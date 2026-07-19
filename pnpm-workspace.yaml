@@ -1,0 +1,6 @@
+# pnpm reads settings here (no longer from the package.json "pnpm" field).
+# Allow native install scripts to run: esbuild powers tsx; protobufjs is used
+# by firebase-admin.
+allowBuilds:
+  esbuild: true
+  protobufjs: true
