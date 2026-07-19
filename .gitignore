@@ -39,3 +39,8 @@ Thumbs.db
 # Editor / tooling temp files
 *.tmp.*
 ~$*
+
+# Local AI agent tooling (installed per-developer via `npx skills add`)
+.agents/
+.claude/
+skills-lock.json

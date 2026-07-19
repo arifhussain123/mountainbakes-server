@@ -33,6 +33,25 @@ const SUPER_ADMIN_EMAIL = 'admin@mountainbakes.com';
 const SUPER_ADMIN_PASSWORD = 'Admin@123';
 const SUPER_ADMIN_NAME = 'Super Admin';
 
+// Non-admin accounts. Branch users are linked by branch `slug` (resolved to the
+// Firestore branch id after seedBranches runs). Password is a shared bootstrap
+// value and every account is flagged mustChangePassword so it cannot survive
+// first login — see the forced-password-change gate in the web middleware.
+const DEFAULT_STAFF_PASSWORD = 'Mountain@123';
+
+const STAFF_USERS: Array<{
+  email: string;
+  name: string;
+  role: 'production_user' | 'branch_manager';
+  branchSlug: string | null;
+}> = [
+  { email: 'production@mountainbakes.com', name: 'Production User', role: 'production_user', branchSlug: null },
+  { email: 'dha@mountainbakes.com', name: 'DHA Branch Manager', role: 'branch_manager', branchSlug: 'dha' },
+  { email: 'north@mountainbakes.com', name: 'North Nazimabad Branch Manager', role: 'branch_manager', branchSlug: 'north-nazimabad' },
+  { email: 'gulshan@mountainbakes.com', name: 'Gulshan Branch Manager', role: 'branch_manager', branchSlug: 'gulshan' },
+  { email: 'clifton@mountainbakes.com', name: 'Clifton Branch Manager', role: 'branch_manager', branchSlug: 'clifton' },
+];
+
 const BRANCHES = [
   { name: 'DHA Branch', slug: 'dha', address: 'DHA Phase 6, Karachi', phone: '021-35310000', isActive: true },
   { name: 'Gulshan Branch', slug: 'gulshan', address: 'Gulshan-e-Iqbal, Karachi', phone: '021-34810000', isActive: true },
@@ -91,6 +110,64 @@ async function createSuperAdmin() {
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   }, { merge: true });
   console.log('  ✔ Firestore user doc created');
+}
+
+async function seedStaffUsers() {
+  console.log('\n── Staff Users ──────────────────────────');
+
+  const { data: list, error: listErr } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  if (listErr) throw listErr;
+
+  for (const staff of STAFF_USERS) {
+    // Resolve the branch id/name from the slug — branches are seeded first.
+    let branchId: string | null = null;
+    let branchName: string | null = null;
+    if (staff.branchSlug) {
+      const snap = await db.collection('branches').where('slug', '==', staff.branchSlug).limit(1).get();
+      if (snap.empty) {
+        console.log(`  ! Skipping ${staff.email} — branch '${staff.branchSlug}' not found`);
+        continue;
+      }
+      branchId = snap.docs[0].id;
+      branchName = (snap.docs[0].data() as { name: string }).name;
+    }
+
+    const claims = { role: staff.role, branchId, branchName, mustChangePassword: true };
+    const existing = list.users.find((u) => u.email?.toLowerCase() === staff.email.toLowerCase());
+
+    let uid: string;
+    if (existing) {
+      uid = existing.id;
+      // Do NOT reset the password of an existing account — only re-assert claims.
+      await supabaseAdmin.auth.admin.updateUserById(uid, { app_metadata: claims });
+      console.log(`  = ${staff.email} (exists, claims updated)`);
+    } else {
+      const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+        email: staff.email,
+        password: DEFAULT_STAFF_PASSWORD,
+        email_confirm: true,
+        user_metadata: { displayName: staff.name },
+        app_metadata: claims,
+      });
+      if (createErr || !created.user) throw createErr ?? new Error(`Failed to create ${staff.email}`);
+      uid = created.user.id;
+      console.log(`  + ${staff.email} (${staff.role}${branchName ? ` @ ${branchName}` : ''})`);
+    }
+
+    await db.collection('users').doc(uid).set({
+      uid,
+      email: staff.email,
+      displayName: staff.name,
+      role: staff.role,
+      branchId,
+      branchName,
+      status: 'active',
+      mustChangePassword: true,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+  }
+  console.log('  ✔ Done');
 }
 
 async function seedBranches() {
@@ -169,6 +246,7 @@ async function main() {
 
   await createSuperAdmin();
   await seedBranches();
+  await seedStaffUsers(); // after seedBranches — resolves branchId from slug
   await seedCategories();
   await initOrderCounter();
   await initSettings();

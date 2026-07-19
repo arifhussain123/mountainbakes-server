@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { supabaseAdmin } from '../config/supabase';
 import type { UserRole } from '../shared';
 
+const VALID_ROLES = new Set<UserRole>(['super_admin', 'branch_manager', 'production_user']);
+
 export interface AuthRequest extends Request {
   user?: {
     uid: string;
@@ -40,10 +42,19 @@ export async function authenticate(req: AuthRequest, res: Response, next: NextFu
     branchName?: string | null;
   };
 
+  // Fail CLOSED. A Supabase account with no (or an unrecognized) `role` claim gets
+  // no access at all — never a default role. Accounts are provisioned by
+  // POST /api/users, which always sets the claim; anything reaching here without
+  // one is either a self-signup or a misprovisioned user, and must be rejected.
+  if (!meta.role || !VALID_ROLES.has(meta.role)) {
+    res.status(403).json({ error: 'Forbidden: Account has no role assigned' });
+    return;
+  }
+
   req.user = {
     uid: data.user.id,
     email: data.user.email ?? '',
-    role: meta.role ?? 'branch_manager',
+    role: meta.role,
     branchId: meta.branchId ?? null,
     branchName: meta.branchName ?? null,
   };
