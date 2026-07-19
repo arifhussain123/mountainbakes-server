@@ -12,6 +12,7 @@
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
+    "seed": "node scripts/seed.js",
     "purge:price-history": "tsx --env-file .env src/scripts/purge-price-history.ts",
     "deploy:firebase": "npx --yes firebase-tools deploy --only firestore:rules,firestore:indexes,storage --project mountain-bakes",
     "deploy:rules": "npx --yes firebase-tools deploy --only firestore:rules,storage --project mountain-bakes",
