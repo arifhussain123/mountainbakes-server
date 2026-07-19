@@ -1,20 +1,13 @@
 import 'dotenv/config';
-import * as admin from 'firebase-admin';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
 import { createClient } from '@supabase/supabase-js';
+// Reuse the server's own Admin bootstrap rather than repeating it here. That gives
+// the seeder all three credential sources (FIREBASE_SERVICE_ACCOUNT raw JSON,
+// _BASE64, or _PATH) instead of a hardcoded credentials/serviceAccount.json, and
+// picks up projectId / storageBucket from the environment. Importing this module
+// initialises Firebase Admin as a side effect.
+import { adminDb, admin } from '../config/firebase';
 
-const serviceAccount = JSON.parse(
-  readFileSync(resolve(process.cwd(), 'credentials/serviceAccount.json'), 'utf-8')
-) as admin.ServiceAccount;
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  projectId: 'mountain-bakes',
-  storageBucket: 'mountain-bakes.firebasestorage.app',
-});
-
-const db = admin.firestore();
+const db = adminDb;
 
 // Supabase admin (service_role) — creates the auth user. Firestore still holds
 // the app's user/branch/category data this phase.
