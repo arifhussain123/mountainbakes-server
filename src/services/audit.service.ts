@@ -1,4 +1,4 @@
-import { adminDb } from '../config/firebase';
+import { supabaseAdmin } from '../config/supabase';
 import type { AuditAction } from '../shared';
 
 export interface AuditInput {
@@ -12,31 +12,41 @@ export interface AuditInput {
 }
 
 /**
- * Append an entry to the `auditLogs` collection. Never throws — an audit-write
- * failure must not break the action that triggered it (it is logged instead).
+ * Append a row to `audit_logs`. Never throws — an audit-write failure must not
+ * break the action that triggered it (it is logged instead). supabase-js returns
+ * errors rather than throwing, so the result is checked explicitly; the try/catch
+ * remains for transport-level failures.
+ *
+ * created_at is left to the column default (now()) instead of being sent from the
+ * app clock, so ordering is consistent with every other table.
  */
 export async function logAudit(input: AuditInput): Promise<void> {
   try {
-    await adminDb.collection('auditLogs').add({
+    const { error } = await supabaseAdmin.from('audit_logs').insert({
       action: input.action,
-      adminId: input.adminId,
-      adminName: input.adminName,
-      targetUserId: input.targetUserId ?? null,
-      targetUserName: input.targetUserName ?? null,
-      targetUserRole: input.targetUserRole ?? null,
+      admin_id: input.adminId,
+      admin_name: input.adminName,
+      target_user_id: input.targetUserId ?? null,
+      target_user_name: input.targetUserName ?? null,
+      target_user_role: input.targetUserRole ?? null,
       details: input.details ?? null,
-      createdAt: new Date().toISOString(),
     });
+    if (error) console.error('[audit] failed to write audit log', error);
   } catch (err) {
     console.error('[audit] failed to write audit log', err);
   }
 }
 
-/** Resolve an admin's display name from their user doc, falling back to email. */
+/** Resolve an admin's display name from their user row, falling back to email. */
 export async function resolveAdminName(uid: string, email: string): Promise<string> {
   try {
-    const doc = await adminDb.collection('users').doc(uid).get();
-    return (doc.data() as { displayName?: string } | undefined)?.displayName || email;
+    const { data, error } = await supabaseAdmin
+      .from('users')
+      .select('display_name')
+      .eq('id', uid)
+      .maybeSingle();
+    if (error) return email;
+    return data?.display_name || email;
   } catch {
     return email;
   }
