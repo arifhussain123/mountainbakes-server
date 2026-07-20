@@ -1,32 +1,37 @@
 import { Router } from 'express';
-import { adminDb } from '../config/firebase';
+import { supabaseAdmin } from '../config/supabase';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { validate } from '../middleware/validate';
 import { CreateExpenseSchema, businessDateStr, businessDaysAgoStr } from '../shared';
 import { assertBusinessDayOpen } from '../middleware/assertBusinessDayOpen';
+import { rowToApi } from '../utils/case';
 
 export const router = Router();
 
 router.use(authenticate);
 
-// GET /api/expenses — last 7 days, branch-scoped
+// GET /api/expenses — last 7 business days, branch-scoped
 router.get('/', async (req: AuthRequest, res, next) => {
   try {
-    let query = adminDb.collection('expenses') as FirebaseFirestore.Query;
+    // The 7-day cutoff is a real indexed predicate now (expenses_branch_date_idx);
+    // it used to fetch every expense for the branch and filter in memory.
+    let query = supabaseAdmin
+      .from('expenses')
+      .select('*')
+      .gte('business_date', businessDaysAgoStr(6)) // inclusive last 7 business days
+      .order('created_at', { ascending: false });
+
     if (req.user!.role === 'branch_manager' && req.user!.branchId) {
-      query = query.where('branchId', '==', req.user!.branchId);
+      query = query.eq('branch_id', req.user!.branchId);
     } else if (req.query['branchId']) {
-      query = query.where('branchId', '==', req.query['branchId']);
+      query = query.eq('branch_id', req.query['branchId']);
     }
 
-    const snapshot = await query.get();
-    const cutoff = businessDaysAgoStr(6);
-    const expenses = snapshot.docs
-      .map((d) => ({ id: d.id, ...d.data() }) as Record<string, unknown>)
-      .filter((e) => String(e['date'] ?? '') >= cutoff)
-      .sort((a, b) => String(b['createdAt'] ?? '').localeCompare(String(a['createdAt'] ?? '')));
+    const { data, error } = await query;
+    if (error) throw error;
 
+    const expenses = rowToApi<Record<string, unknown>[]>(data ?? []);
     res.json({ expenses, total: expenses.length });
   } catch (err) {
     next(err);
@@ -42,22 +47,26 @@ router.post('/', requireRole('super_admin', 'branch_manager'), validate(CreateEx
     const { description, paymentMethod, amount, remarks, date } = req.body;
     const businessDate = date || businessDateStr();
     await assertBusinessDayOpen(businessDate, req.user!.role);
-    const now = new Date().toISOString();
 
-    const ref = await adminDb.collection('expenses').add({
-      branchId,
-      branchName: req.user!.branchName || '',
-      date: businessDate,
-      description,
-      paymentMethod,
-      amount,
-      remarks: remarks || '',
-      createdBy: req.user!.uid,
-      createdByName: req.user!.email,
-      createdAt: now,
-    });
+    // created_at comes from the column default — do not set it here.
+    const { data, error } = await supabaseAdmin
+      .from('expenses')
+      .insert({
+        branch_id: branchId,
+        branch_name: req.user!.branchName || '',
+        business_date: businessDate,
+        description,
+        payment_method: paymentMethod,
+        amount,
+        remarks: remarks || '',
+        created_by: req.user!.uid,
+        created_by_name: req.user!.email,
+      })
+      .select('id')
+      .single();
+    if (error) throw error;
 
-    res.status(201).json({ id: ref.id });
+    res.status(201).json({ id: data.id });
   } catch (err) {
     next(err);
   }

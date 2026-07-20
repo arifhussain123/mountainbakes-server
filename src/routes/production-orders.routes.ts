@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { adminDb } from '../config/firebase';
+import { supabaseAdmin } from '../config/supabase';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { validate } from '../middleware/validate';
@@ -11,15 +11,33 @@ import {
   karachiTimeStr,
   karachiMinutesOfDay,
   isWithinOrderWindow,
-  type Product,
 } from '../shared';
 import { notify } from '../services/push.service';
 import { applyProductionToStock } from '../services/stock.service';
 import { transferOutOnApproval } from '../services/production-stock.service';
 import { getAppSettings, orderWindowMinutes } from '../services/settings.service';
 import { assertBusinessDayOpen } from '../middleware/assertBusinessDayOpen';
+import { rowToApi } from '../utils/case';
 
 export const router = Router();
+
+/**
+ * The branch-submitted items were an embedded array in Firestore; they are
+ * `production_order_items` here (migration 05). The review-only columns are
+ * null until approval, which is what `approved_qty IS NULL` means.
+ *
+ * Callers must also order the embedded rows by line_no — PostgREST gives no
+ * ordering guarantee for an embedded resource on its own.
+ */
+const ORDER_SELECT = `
+  *,
+  items:production_order_items(
+    product_id, product_name, qty, remarks,
+    previous_balance_qty, total_required_qty, approved_qty, remaining_balance_qty, line_no
+  )
+`;
+
+const ITEMS_ORDER = { referencedTable: 'production_order_items', ascending: true } as const;
 
 router.use(authenticate);
 
@@ -40,31 +58,53 @@ router.post('/', requireRole('branch_manager'), validate(CreateProductionOrderSc
 
     const { items } = req.body as { items: { productId: string; qty: number; remarks: string }[] };
 
-    // Resolve product names (branch users never send prices/names — controlled by Admin)
-    const productDocs = await Promise.all(items.map((i) => adminDb.collection('products').doc(i.productId).get()));
-    const resolvedItems = items.map((i, idx) => {
-      const pDoc = productDocs[idx];
-      if (!pDoc || !pDoc.exists) throw Object.assign(new Error(`Product ${i.productId} not found`), { status: 400 });
-      const product = pDoc.data() as Product;
-      return { productId: i.productId, productName: product.name, qty: i.qty, remarks: i.remarks || '' };
+    // Resolve product names server-side — branch users never send names or
+    // prices, those are Admin-controlled. One query rather than N point reads.
+    const productIds = [...new Set(items.map((i) => i.productId))];
+    const { data: products, error: prodErr } = await supabaseAdmin
+      .from('products')
+      .select('id, name')
+      .in('id', productIds);
+    if (prodErr) throw prodErr;
+
+    const nameById = new Map((products ?? []).map((p) => [p.id as string, p.name as string]));
+    const resolvedItems = items.map((i) => {
+      const name = nameById.get(i.productId);
+      if (!name) throw Object.assign(new Error(`Product ${i.productId} not found`), { status: 400 });
+      return { productId: i.productId, productName: name, qty: i.qty, remarks: i.remarks || '' };
     });
 
     const now = new Date();
     await assertBusinessDayOpen(businessDateStr(now), req.user!.role);
-    const ref = await adminDb.collection('production_orders').add({
-      branchId,
-      branchName: req.user!.branchName || '',
-      date: businessDateStr(now),
-      time: karachiTimeStr(now),
-      items: resolvedItems,
-      status: 'pending',
-      createdBy: req.user!.uid,
-      createdByName: req.user!.email,
-      submittedAt: now.toISOString(),
-      approvedBy: null,
-      approvedByName: null,
-      approvedAt: null,
-    });
+
+    // submitted_at / created_at come from column defaults.
+    const { data: order, error: orderErr } = await supabaseAdmin
+      .from('production_orders')
+      .insert({
+        branch_id: branchId,
+        branch_name: req.user!.branchName || '',
+        business_date: businessDateStr(now),
+        submitted_time: karachiTimeStr(now),
+        status: 'pending',
+        created_by: req.user!.uid,
+        created_by_name: req.user!.email,
+      })
+      .select('id')
+      .single();
+    if (orderErr) throw orderErr;
+
+    // Review-only columns stay null until approval.
+    const { error: itemsErr } = await supabaseAdmin.from('production_order_items').insert(
+      resolvedItems.map((it, idx) => ({
+        production_order_id: order.id,
+        product_id: it.productId,
+        product_name: it.productName,
+        qty: it.qty,
+        remarks: it.remarks,
+        line_no: idx + 1,
+      })),
+    );
+    if (itemsErr) throw itemsErr;
 
     await notify({
       type: 'production_demand',
@@ -72,32 +112,37 @@ router.post('/', requireRole('branch_manager'), validate(CreateProductionOrderSc
       message: `${req.user!.branchName || 'A branch'} submitted ${resolvedItems.length} item${resolvedItems.length === 1 ? '' : 's'}`,
       targetRole: 'production_user',
       branchId,
-      relatedId: ref.id,
+      relatedId: order.id,
     });
 
-    res.status(201).json({ id: ref.id });
+    res.status(201).json({ id: order.id });
   } catch (err) {
     next(err);
   }
 });
 
-// GET /api/production-orders — last 7 days, branch-scoped
+// GET /api/production-orders — last 7 business days, branch-scoped
 router.get('/', async (req: AuthRequest, res, next) => {
   try {
-    let query = adminDb.collection('production_orders') as FirebaseFirestore.Query;
+    // The 7-day cutoff is an indexed predicate now; it used to fetch the branch's
+    // entire history and filter in memory.
+    let query = supabaseAdmin
+      .from('production_orders')
+      .select(ORDER_SELECT)
+      .gte('business_date', businessDaysAgoStr(6)) // inclusive last 7 business days
+      .order('submitted_at', { ascending: false })
+      .order('line_no', ITEMS_ORDER);
+
     if (req.user!.role === 'branch_manager' && req.user!.branchId) {
-      query = query.where('branchId', '==', req.user!.branchId);
+      query = query.eq('branch_id', req.user!.branchId);
     } else if (req.query['branchId']) {
-      query = query.where('branchId', '==', req.query['branchId']);
+      query = query.eq('branch_id', req.query['branchId']);
     }
 
-    const snapshot = await query.get();
-    const cutoff = businessDaysAgoStr(6); // inclusive last 7 business days
-    const orders = snapshot.docs
-      .map((d) => ({ id: d.id, ...d.data() }) as Record<string, unknown>)
-      .filter((o) => String(o['date'] ?? '') >= cutoff)
-      .sort((a, b) => String(b['submittedAt'] ?? '').localeCompare(String(a['submittedAt'] ?? '')));
+    const { data, error } = await query;
+    if (error) throw error;
 
+    const orders = rowToApi<Record<string, unknown>[]>(data ?? []);
     res.json({ orders, total: orders.length });
   } catch (err) {
     next(err);
@@ -109,23 +154,25 @@ router.get('/', async (req: AuthRequest, res, next) => {
 // Defined as a literal path (no GET '/:id' route exists) so it never shadows.
 router.get('/balances', async (req: AuthRequest, res, next) => {
   try {
-    let query = adminDb.collection('production_balances') as FirebaseFirestore.Query;
+    // pending_qty > 0 is served by production_balances_outstanding_idx.
+    let query = supabaseAdmin.from('production_balances').select('*').gt('pending_qty', 0);
+
     if (req.user!.role === 'branch_manager' && req.user!.branchId) {
-      query = query.where('branchId', '==', req.user!.branchId);
+      query = query.eq('branch_id', req.user!.branchId);
     } else if (req.query['branchId']) {
-      query = query.where('branchId', '==', req.query['branchId']);
+      query = query.eq('branch_id', req.query['branchId']);
     }
-    const snapshot = await query.get();
-    const balances = snapshot.docs
-      .map((d) => d.data() as Record<string, unknown>)
-      .filter((b) => Number(b['pendingQty'] ?? 0) > 0);
-    res.json({ balances });
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    res.json({ balances: rowToApi(data ?? []) });
   } catch (err) {
     next(err);
   }
 });
 
-type ReviewedItem = {
+interface ReviewedItem {
   productId: string;
   productName: string;
   qty: number;
@@ -133,7 +180,7 @@ type ReviewedItem = {
   totalRequiredQty: number;
   approvedQty: number;
   remainingBalanceQty: number;
-};
+}
 
 // PUT /api/production-orders/:id/review — production/admin approves or rejects
 router.put('/:id/review', requireRole('super_admin', 'production_user'), validate(ReviewProductionOrderSchema), async (req: AuthRequest, res, next) => {
@@ -144,99 +191,69 @@ router.put('/:id/review', requireRole('super_admin', 'production_user'), validat
       reason?: string;
     };
     const id = req.params['id']!;
-    const ref = adminDb.collection('production_orders').doc(id);
 
-    // Approved qty overrides, keyed by productId (defaults to the total required qty).
-    const overrides = new Map((approvedItems ?? []).map((a) => [a.productId, a.approvedQty] as const));
-
-    // Atomic check-and-set (prevents double review). On approval we also read each
-    // product's carried-forward pending balance and persist the new remainder in the
-    // SAME transaction, so status and balances can never diverge. Firestore requires
-    // all reads before any writes — mirrors commitSaleTransaction in stock.service.ts.
-    const order = await adminDb.runTransaction(async (tx) => {
-      const doc = await tx.get(ref);
-      if (!doc.exists) throw Object.assign(new Error('Production order not found'), { status: 404 });
-      const data = doc.data() as { status: string; branchId: string; branchName: string; items: { productId: string; productName: string; qty: number }[] };
-      if (data.status !== 'pending') throw Object.assign(new Error('Order already reviewed'), { status: 409 });
-
-      const now = new Date().toISOString();
-      const base: Record<string, unknown> = {
-        status,
-        approvedBy: req.user!.uid,
-        approvedByName: req.user!.email,
-        approvedAt: now,
-      };
-
-      if (status !== 'approved') {
-        // Rejection: only flip status. Pending balances are intentionally left
-        // untouched so any outstanding demand still carries into the next order.
-        tx.update(ref, base);
-        return data;
-      }
-
-      // ── Reads (all before writes): current pending balance per (branch, product) ──
-      const balanceRefs = data.items.map((it) =>
-        adminDb.collection('production_balances').doc(`${data.branchId}_${it.productId}`));
-      const balanceSnaps = await Promise.all(balanceRefs.map((r) => tx.get(r)));
-
-      // Total Required = carried-in balance + New Demand; approve the total by default.
-      const items: ReviewedItem[] = data.items.map((it, i) => {
-        const previousBalanceQty = balanceSnaps[i]!.exists ? Number(balanceSnaps[i]!.data()!['pendingQty'] ?? 0) : 0;
-        const totalRequiredQty = previousBalanceQty + Number(it.qty ?? 0);
-        const approvedQty = overrides.has(it.productId) ? overrides.get(it.productId)! : totalRequiredQty;
-        const remainingBalanceQty = Math.max(0, totalRequiredQty - approvedQty);
-        return { ...it, previousBalanceQty, totalRequiredQty, approvedQty, remainingBalanceQty };
-      });
-
-      base['items'] = items;
-      base['wasChanged'] = items.some((it) => it.approvedQty !== it.totalRequiredQty);
-      base['changeReason'] = reason ?? null;
-
-      // ── Writes: order doc + the new pending balances (SET/overwrite, never increment;
-      // totalRequiredQty already folded the prior balance in) ──
-      tx.update(ref, base);
-      items.forEach((it, i) => {
-        tx.set(balanceRefs[i]!, {
-          branchId: data.branchId,
-          branchName: data.branchName ?? '',
-          productId: it.productId,
-          productName: it.productName,
-          pendingQty: it.remainingBalanceQty,
-          updatedAt: now,
-        }, { merge: true });
-      });
-
-      return { ...data, items };
+    // Status check-and-set, balance carry-forward and the item rewrite all happen
+    // inside review_production_order (migration 16) — they must be one
+    // transaction or a double review would apply the balance maths twice.
+    const { data, error } = await supabaseAdmin.rpc('review_production_order', {
+      p_order_id: id,
+      p_status: status,
+      p_overrides: approvedItems ?? [],
+      p_reason: reason ?? null,
+      p_reviewed_by: req.user!.uid,
+      p_reviewed_by_name: req.user!.email,
     });
+    if (error) throw error;
+
+    const result = data as
+      | { status: 'ok'; branchId: string; branchName: string | null; items: ReviewedItem[] }
+      | { status: 'not_found' }
+      | { status: 'already_reviewed' };
+
+    if (result.status === 'not_found') {
+      res.status(404).json({ error: 'Production order not found' });
+      return;
+    }
+    if (result.status === 'already_reviewed') {
+      res.status(409).json({ error: 'Order already reviewed' });
+      return;
+    }
 
     // On approval, move approved units OUT of the production pool and INTO branch
     // stock (both idempotent by order id, kept as separate retry-safe units).
     if (status === 'approved') {
-      const items = order.items as ReviewedItem[];
-      const moves = items.map((it) => ({ productId: it.productId, productName: it.productName, qty: it.approvedQty }));
+      const moves = result.items
+        .map((it) => ({ productId: it.productId, productName: it.productName, qty: Number(it.approvedQty) }))
+        .filter((m) => m.qty > 0);
+
       await transferOutOnApproval(id, moves);
-      await Promise.all(moves.map((m) => applyProductionToStock({
-        branchId: order.branchId,
-        productId: m.productId,
-        productName: m.productName,
-        qty: m.qty,
-        refId: id,
-      })));
+      await Promise.all(
+        moves.map((m) =>
+          applyProductionToStock({
+            branchId: result.branchId,
+            productId: m.productId,
+            productName: m.productName,
+            qty: m.qty,
+            refId: id,
+          }),
+        ),
+      );
     }
 
     // Notify the branch with a per-product Total Required / Approved / Pending summary.
-    const message = status === 'approved'
-      ? (order.items as ReviewedItem[])
-          .map((it) => `${it.productName}: Required ${it.totalRequiredQty}, Approved ${it.approvedQty}, Pending ${it.remainingBalanceQty}`)
-          .join(' · ')
-      : 'Your production order was rejected';
+    const message =
+      status === 'approved'
+        ? result.items
+            .map((it) => `${it.productName}: Required ${it.totalRequiredQty}, Approved ${it.approvedQty}, Pending ${it.remainingBalanceQty}`)
+            .join(' · ')
+        : 'Your production order was rejected';
 
     await notify({
       type: 'production_reviewed',
       title: status === 'approved' ? 'Production Order Approved' : 'Production Order Rejected',
       message,
       targetRole: 'branch_manager',
-      branchId: order.branchId,
+      branchId: result.branchId,
       relatedId: id,
     });
 
@@ -246,15 +263,20 @@ router.put('/:id/review', requireRole('super_admin', 'production_user'), validat
   }
 });
 
-// PUT /api/production-orders/:id/printed — mark the slip printed. Idempotent merge-set;
+// PUT /api/production-orders/:id/printed — mark the slip printed. Idempotent;
 // printing never mutates stock or creates records, so re-printing is a safe no-op.
 router.put('/:id/printed', requireRole('super_admin', 'production_user'), async (req: AuthRequest, res, next) => {
   try {
     const id = req.params['id']!;
-    await adminDb.collection('production_orders').doc(id).set(
-      { printed: true, printedAt: new Date().toISOString() },
-      { merge: true },
-    );
+    const { data, error } = await supabaseAdmin
+      .from('production_orders')
+      .update({ printed: true, printed_at: new Date().toISOString() })
+      .eq('id', id)
+      .select('id')
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) { res.status(404).json({ error: 'Production order not found' }); return; }
+
     res.json({ success: true });
   } catch (err) {
     next(err);

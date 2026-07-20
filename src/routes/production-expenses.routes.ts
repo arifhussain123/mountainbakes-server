@@ -1,23 +1,28 @@
 import { Router } from 'express';
-import { adminDb } from '../config/firebase';
+import { supabaseAdmin } from '../config/supabase';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { validate } from '../middleware/validate';
 import { CreateProductionExpenseSchema, businessDateStr, businessDaysAgoStr, businessRange } from '../shared';
+import { rowToApi } from '../utils/case';
 
 export const router = Router();
 
 router.use(authenticate, requireRole('super_admin', 'production_user'));
 
-// GET /api/production-expenses — last 30 days, most recent first
+// GET /api/production-expenses — last 30 business days, most recent first
 router.get('/', async (_req, res, next) => {
   try {
-    const snapshot = await adminDb.collection('production_expenses').get();
-    const cutoff = businessDaysAgoStr(29);
-    const expenses = snapshot.docs
-      .map((d) => ({ id: d.id, ...d.data() }) as Record<string, unknown>)
-      .filter((e) => String(e['date'] ?? '') >= cutoff)
-      .sort((a, b) => String(b['createdAt'] ?? '').localeCompare(String(a['createdAt'] ?? '')));
+    // The cutoff is an indexed predicate (production_expenses_date_idx); this used
+    // to fetch the entire collection and filter in memory.
+    const { data, error } = await supabaseAdmin
+      .from('production_expenses')
+      .select('*')
+      .gte('business_date', businessDaysAgoStr(29))
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+
+    const expenses = rowToApi<Record<string, unknown>[]>(data ?? []);
     res.json({ expenses, total: expenses.length });
   } catch (err) {
     next(err);
@@ -32,12 +37,21 @@ router.get('/summary', async (_req, res, next) => {
     const month = businessRange('monthly');
     const year = businessRange('yearly');
 
-    const snapshot = await adminDb.collection('production_expenses')
-      .where('createdAt', '>=', year.fromISO)
-      .where('createdAt', '<=', year.toISO)
-      .get();
+    // One year-scoped read, then the narrower windows are derived from it —
+    // matching the original, which made a single query and bucketed in memory.
+    const { data, error } = await supabaseAdmin
+      .from('production_expenses')
+      .select('amount, category, business_date, created_at')
+      .gte('created_at', year.fromISO)
+      .lte('created_at', year.toISO);
+    if (error) throw error;
 
-    const expenses = snapshot.docs.map((d) => d.data() as { amount: number; createdAt: string; date: string; category: string });
+    const expenses = (data ?? []) as {
+      amount: number | string;
+      category: string;
+      business_date: string;
+      created_at: string;
+    }[];
 
     let today = 0, weekly = 0, monthly = 0, yearly = 0;
     const categoryMap: Record<string, number> = {};
@@ -45,15 +59,18 @@ router.get('/summary', async (_req, res, next) => {
     const trendFrom = businessDaysAgoStr(29);
 
     for (const e of expenses) {
-      const amt = Number(e.amount || 0);
+      // numeric(14,2) can arrive as a string over PostgREST.
+      const amt = Number(e.amount ?? 0);
       yearly += amt;
-      if (e.date === todayStr) today += amt;
-      if (e.createdAt >= week.fromISO && e.createdAt <= week.toISO) weekly += amt;
-      if (e.createdAt >= month.fromISO && e.createdAt <= month.toISO) {
+      // Today and the trend bucket on the stored business date; the weekly and
+      // monthly windows compare timestamps — same split as the original.
+      if (e.business_date === todayStr) today += amt;
+      if (e.created_at >= week.fromISO && e.created_at <= week.toISO) weekly += amt;
+      if (e.created_at >= month.fromISO && e.created_at <= month.toISO) {
         monthly += amt;
         categoryMap[e.category] = (categoryMap[e.category] || 0) + amt;
       }
-      if (e.date >= trendFrom) trendMap[e.date] = (trendMap[e.date] || 0) + amt;
+      if (e.business_date >= trendFrom) trendMap[e.business_date] = (trendMap[e.business_date] || 0) + amt;
     }
 
     res.json({
@@ -70,22 +87,26 @@ router.get('/summary', async (_req, res, next) => {
 router.post('/', validate(CreateProductionExpenseSchema), async (req: AuthRequest, res, next) => {
   try {
     const { category, description, amount, paymentMethod, supplier, notes, date } = req.body;
-    const now = new Date().toISOString();
 
-    const ref = await adminDb.collection('production_expenses').add({
-      category,
-      description,
-      amount,
-      paymentMethod,
-      supplier: supplier || '',
-      notes: notes || '',
-      date: date || businessDateStr(),
-      createdBy: req.user!.uid,
-      createdByName: req.user!.email,
-      createdAt: now,
-    });
+    // created_at comes from the column default — do not set it here.
+    const { data, error } = await supabaseAdmin
+      .from('production_expenses')
+      .insert({
+        category,
+        description,
+        amount,
+        payment_method: paymentMethod,
+        supplier: supplier || '',
+        notes: notes || '',
+        business_date: date || businessDateStr(),
+        created_by: req.user!.uid,
+        created_by_name: req.user!.email,
+      })
+      .select('id')
+      .single();
+    if (error) throw error;
 
-    res.status(201).json({ id: ref.id });
+    res.status(201).json({ id: data.id });
   } catch (err) {
     next(err);
   }

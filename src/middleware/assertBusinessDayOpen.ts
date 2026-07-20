@@ -1,5 +1,5 @@
 import type { UserRole } from '../shared';
-import { isBusinessDayClosed } from '../services/daily-closing.service';
+import { isBusinessDayClosed } from '../services/business-day.service';
 
 /**
  * Throw a 403 if `businessDate` has already been closed (locked), unless the actor

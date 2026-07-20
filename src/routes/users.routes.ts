@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { adminDb } from '../config/firebase';
 import { supabaseAdmin } from '../config/supabase';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
@@ -8,6 +7,7 @@ import { CreateUserSchema, UpdateUserSchema, AdminResetPasswordSchema, type User
 import { generateTempPassword } from '../utils/password';
 import { logAudit, resolveAdminName } from '../services/audit.service';
 import { notify } from '../services/push.service';
+import { rowToApi } from '../utils/case';
 
 export const router = Router();
 
@@ -24,13 +24,24 @@ async function mergeClaims(uid: string, patch: Record<string, unknown>): Promise
   if (updErr) throw updErr;
 }
 
+/** Read one users row, or null. Shared by the paths that need the target's details. */
+async function getUserRow(id: string): Promise<User | null> {
+  const { data, error } = await supabaseAdmin.from('users').select('*').eq('id', id).maybeSingle();
+  if (error) throw error;
+  return data ? rowToApi<User>(data) : null;
+}
+
 // GET /api/users/activity — audit log feed (most recent first). Declared before
 // '/:id' so it isn't captured as a user id.
 router.get('/activity', async (_req: AuthRequest, res, next) => {
   try {
-    const snap = await adminDb.collection('auditLogs').orderBy('createdAt', 'desc').limit(100).get();
-    const logs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    res.json({ logs });
+    const { data, error } = await supabaseAdmin
+      .from('audit_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(100);
+    if (error) throw error;
+    res.json({ logs: rowToApi(data ?? []) });
   } catch (err) {
     next(err);
   }
@@ -40,13 +51,15 @@ router.get('/activity', async (_req: AuthRequest, res, next) => {
 router.get('/', async (req: AuthRequest, res, next) => {
   try {
     const { status, role } = req.query;
-    let query = adminDb.collection('users').orderBy('createdAt', 'desc') as FirebaseFirestore.Query;
 
-    if (status) query = query.where('status', '==', status);
-    if (role) query = query.where('role', '==', role);
+    let query = supabaseAdmin.from('users').select('*').order('created_at', { ascending: false });
+    if (status) query = query.eq('status', status);
+    if (role) query = query.eq('role', role);
 
-    const snapshot = await query.get();
-    const users = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+    const { data, error } = await query;
+    if (error) throw error;
+
+    const users = rowToApi<Record<string, unknown>[]>(data ?? []);
     res.json({ users, total: users.length });
   } catch (err) {
     next(err);
@@ -56,9 +69,9 @@ router.get('/', async (req: AuthRequest, res, next) => {
 // GET /api/users/:id
 router.get('/:id', async (req: AuthRequest, res, next) => {
   try {
-    const doc = await adminDb.collection('users').doc(req.params['id']!).get();
-    if (!doc.exists) { res.status(404).json({ error: 'User not found' }); return; }
-    res.json({ user: { id: doc.id, ...doc.data() } });
+    const user = await getUserRow(req.params['id']!);
+    if (!user) { res.status(404).json({ error: 'User not found' }); return; }
+    res.json({ user });
   } catch (err) {
     next(err);
   }
@@ -69,12 +82,17 @@ router.post('/', validate(CreateUserSchema), async (req: AuthRequest, res, next)
   try {
     const { email, displayName, phone, username, password, role, branchId } = req.body;
 
-    // Look up branch name if branchId provided
+    // branch_name is a denormalised cache of branches.name.
     let branchName: string | null = null;
     if (branchId) {
-      const branchDoc = await adminDb.collection('branches').doc(branchId).get();
-      if (!branchDoc.exists) { res.status(400).json({ error: 'Branch not found' }); return; }
-      branchName = (branchDoc.data() as { name: string }).name;
+      const { data: branch, error: branchErr } = await supabaseAdmin
+        .from('branches')
+        .select('name')
+        .eq('id', branchId)
+        .maybeSingle();
+      if (branchErr) throw branchErr;
+      if (!branch) { res.status(400).json({ error: 'Branch not found' }); return; }
+      branchName = branch.name as string;
     }
 
     // Create the Supabase Auth user with role/branch in app_metadata.
@@ -88,21 +106,34 @@ router.post('/', validate(CreateUserSchema), async (req: AuthRequest, res, next)
     if (createErr || !created.user) throw createErr ?? new Error('Failed to create user');
     const uid = created.user.id;
 
-    // Write Firestore doc (keyed by the Supabase user id)
-    const now = new Date().toISOString();
-    await adminDb.collection('users').doc(uid).set({
+    // public.users.id is FK → auth.users.id, so the row must follow the auth user.
+    // created_at / updated_at come from column defaults and the users_touch
+    // trigger — do not set them here.
+    const { error: rowErr } = await supabaseAdmin.from('users').insert({
+      id: uid,
       email,
-      displayName,
+      display_name: displayName,
       phone,
       username,
       role,
-      branchId: branchId ?? null,
-      branchName,
+      branch_id: branchId ?? null,
+      branch_name: branchName,
       status: 'active',
-      lastLoginAt: null,
-      createdAt: now,
-      updatedAt: now,
     });
+
+    if (rowErr) {
+      // Roll the auth user back. Without this an orphaned auth account keeps the
+      // email (auth.users.email is unique), so the admin could never retry the
+      // same address — and the account would exist with no profile row.
+      await supabaseAdmin.auth.admin.deleteUser(uid).catch((e) =>
+        console.error(`[users] orphaned auth user ${uid} — profile insert failed and cleanup did too`, e),
+      );
+      if (rowErr.code === '23505') {
+        res.status(409).json({ error: 'That email or username is already taken' });
+        return;
+      }
+      throw rowErr;
+    }
 
     await logAudit({
       action: 'user_created',
@@ -122,44 +153,70 @@ router.post('/', validate(CreateUserSchema), async (req: AuthRequest, res, next)
 // PUT /api/users/:id
 router.put('/:id', validate(UpdateUserSchema), async (req: AuthRequest, res, next) => {
   try {
-    const { id } = req.params;
-    const updates = req.body;
-    const now = new Date().toISOString();
+    const id = req.params['id']!;
+    const updates = req.body as Record<string, unknown>;
 
-    // If role or branchId changed, update app_metadata claims
-    if (updates.role !== undefined || updates.branchId !== undefined) {
-      const userDoc = await adminDb.collection('users').doc(id!).get();
-      const current = userDoc.data() as { role: string; branchId: string | null; branchName: string | null };
+    const current = await getUserRow(id);
+    if (!current) { res.status(404).json({ error: 'User not found' }); return; }
 
-      let branchName = current.branchName;
-      if (updates.branchId !== undefined) {
+    // Build the row patch explicitly rather than spreading the body, so only
+    // known columns are ever written.
+    const patch: Record<string, unknown> = {};
+    if (updates['displayName'] !== undefined) patch['display_name'] = updates['displayName'];
+    if (updates['phone'] !== undefined) patch['phone'] = updates['phone'];
+    if (updates['username'] !== undefined) patch['username'] = updates['username'];
+    if (updates['role'] !== undefined) patch['role'] = updates['role'];
+    if (updates['status'] !== undefined) patch['status'] = updates['status'];
+
+    // If role or branchId changed, the JWT claims must move with them — the RLS
+    // policies and middleware/auth.ts both read role/branch from app_metadata.
+    if (updates['role'] !== undefined || updates['branchId'] !== undefined) {
+      let branchName = current.branchName ?? null;
+
+      if (updates['branchId'] !== undefined) {
         branchName = null;
-        if (updates.branchId) {
-          const branchDoc = await adminDb.collection('branches').doc(updates.branchId).get();
-          if (branchDoc.exists) branchName = (branchDoc.data() as { name: string }).name;
+        if (updates['branchId']) {
+          const { data: branch, error: branchErr } = await supabaseAdmin
+            .from('branches')
+            .select('name')
+            .eq('id', updates['branchId'] as string)
+            .maybeSingle();
+          if (branchErr) throw branchErr;
+          if (!branch) { res.status(400).json({ error: 'Branch not found' }); return; }
+          branchName = branch.name as string;
         }
-        updates['branchName'] = branchName;
+        patch['branch_id'] = updates['branchId'] || null;
+        patch['branch_name'] = branchName;
       }
 
-      await mergeClaims(id!, {
-        role: updates.role ?? current.role,
-        branchId: updates.branchId !== undefined ? updates.branchId : current.branchId,
+      await mergeClaims(id, {
+        role: updates['role'] ?? current.role,
+        branchId: updates['branchId'] !== undefined ? updates['branchId'] || null : current.branchId,
         branchName,
       });
     }
 
-    await adminDb.collection('users').doc(id!).update({ ...updates, updatedAt: now });
+    if (Object.keys(patch).length > 0) {
+      // updated_at is maintained by the users_touch trigger — do not set it here.
+      const { error } = await supabaseAdmin.from('users').update(patch).eq('id', id);
+      if (error) {
+        if (error.code === '23505') {
+          res.status(409).json({ error: 'That email or username is already taken' });
+          return;
+        }
+        throw error;
+      }
+    }
 
-    // Update the auth user's displayName if provided
-    if (updates.displayName) {
-      const { error } = await supabaseAdmin.auth.admin.updateUserById(id!, {
-        user_metadata: { displayName: updates.displayName },
+    // Keep the auth user's display name in step with the profile row.
+    if (updates['displayName']) {
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(id, {
+        user_metadata: { displayName: updates['displayName'] },
       });
       if (error) throw error;
     }
 
-    const updatedDoc = await adminDb.collection('users').doc(id!).get();
-    const updated = updatedDoc.data() as User | undefined;
+    const updated = await getUserRow(id);
     await logAudit({
       action: 'user_updated',
       adminId: req.user!.uid,
@@ -178,16 +235,15 @@ router.put('/:id', validate(UpdateUserSchema), async (req: AuthRequest, res, nex
 // DELETE /api/users/:id — soft delete (deactivate)
 router.delete('/:id', async (req: AuthRequest, res, next) => {
   try {
-    const { id } = req.params;
-    const doc = await adminDb.collection('users').doc(id!).get();
-    const target = doc.data() as User | undefined;
+    const id = req.params['id']!;
+    const target = await getUserRow(id);
+    if (!target) { res.status(404).json({ error: 'User not found' }); return; }
 
-    await adminDb.collection('users').doc(id!).update({
-      status: 'inactive',
-      updatedAt: new Date().toISOString(),
-    });
+    const { error: rowErr } = await supabaseAdmin.from('users').update({ status: 'inactive' }).eq('id', id);
+    if (rowErr) throw rowErr;
+
     // Ban the auth user (~100 years) to block sign-in. 'none' re-enables.
-    const { error } = await supabaseAdmin.auth.admin.updateUserById(id!, { ban_duration: '876000h' });
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(id, { ban_duration: '876000h' });
     if (error) throw error;
 
     await logAudit({
@@ -195,8 +251,8 @@ router.delete('/:id', async (req: AuthRequest, res, next) => {
       adminId: req.user!.uid,
       adminName: await resolveAdminName(req.user!.uid, req.user!.email),
       targetUserId: id,
-      targetUserName: target?.displayName ?? null,
-      targetUserRole: target?.role ?? null,
+      targetUserName: target.displayName ?? null,
+      targetUserRole: target.role ?? null,
     });
 
     res.json({ success: true });
@@ -208,16 +264,14 @@ router.delete('/:id', async (req: AuthRequest, res, next) => {
 // POST /api/users/:id/activate — re-enable a deactivated user
 router.post('/:id/activate', async (req: AuthRequest, res, next) => {
   try {
-    const { id } = req.params;
-    const doc = await adminDb.collection('users').doc(id!).get();
-    if (!doc.exists) { res.status(404).json({ error: 'User not found' }); return; }
-    const target = doc.data() as User;
+    const id = req.params['id']!;
+    const target = await getUserRow(id);
+    if (!target) { res.status(404).json({ error: 'User not found' }); return; }
 
-    await adminDb.collection('users').doc(id!).update({
-      status: 'active',
-      updatedAt: new Date().toISOString(),
-    });
-    const { error } = await supabaseAdmin.auth.admin.updateUserById(id!, { ban_duration: 'none' });
+    const { error: rowErr } = await supabaseAdmin.from('users').update({ status: 'active' }).eq('id', id);
+    if (rowErr) throw rowErr;
+
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(id, { ban_duration: 'none' });
     if (error) throw error;
 
     await logAudit({
@@ -238,35 +292,36 @@ router.post('/:id/activate', async (req: AuthRequest, res, next) => {
 // POST /api/users/:id/reset-password — Super Admin resets another user's password
 router.post('/:id/reset-password', validate(AdminResetPasswordSchema), async (req: AuthRequest, res, next) => {
   try {
-    const { id } = req.params;
+    const id = req.params['id']!;
     const { generateTemp, sendEmail, forceChange } = req.body as {
       generateTemp: boolean; sendEmail: boolean; forceChange: boolean;
     };
 
-    const doc = await adminDb.collection('users').doc(id!).get();
-    if (!doc.exists) { res.status(404).json({ error: 'User not found' }); return; }
-    const target = doc.data() as User;
+    const target = await getUserRow(id);
+    if (!target) { res.status(404).json({ error: 'User not found' }); return; }
 
     let tempPassword: string | null = null;
     if (generateTemp) {
       tempPassword = generateTempPassword();
-      const { error } = await supabaseAdmin.auth.admin.updateUserById(id!, { password: tempPassword });
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(id, { password: tempPassword });
       if (error) throw error;
     }
 
     if (forceChange) {
-      await mergeClaims(id!, { mustChangePassword: true });
+      await mergeClaims(id, { mustChangePassword: true });
     }
 
-    const now = new Date().toISOString();
     const adminName = await resolveAdminName(req.user!.uid, req.user!.email);
-    await adminDb.collection('users').doc(id!).update({
-      mustChangePassword: forceChange ? true : (target.mustChangePassword ?? false),
-      lastPasswordReset: now,
-      passwordResetBy: req.user!.uid,
-      passwordResetByName: adminName,
-      updatedAt: now,
-    });
+    const { error: rowErr } = await supabaseAdmin
+      .from('users')
+      .update({
+        must_change_password: forceChange ? true : (target.mustChangePassword ?? false),
+        last_password_reset: new Date().toISOString(),
+        password_reset_by: req.user!.uid,
+        password_reset_by_name: adminName,
+      })
+      .eq('id', id);
+    if (rowErr) throw rowErr;
 
     const details = [
       generateTemp && 'temporary password',
@@ -284,7 +339,8 @@ router.post('/:id/reset-password', validate(AdminResetPasswordSchema), async (re
       details,
     });
 
-    // Notify the affected user (in-app + web push).
+    // Notify the affected user. 'password_reset' was missing from the
+    // notification_type enum until migration 14 — see that file.
     await notify({
       type: 'password_reset',
       title: 'Password Reset',

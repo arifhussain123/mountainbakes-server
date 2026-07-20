@@ -46,6 +46,15 @@ const COLUMN_TO_FIELD: Record<string, keyof AppSettings> = {
 };
 
 /**
+ * camelCase AppSettings field → snake_case `settings` column, derived from
+ * COLUMN_TO_FIELD so the two can never drift. Used by the settings route to
+ * translate an incoming PUT body into a row.
+ */
+export const FIELD_TO_COLUMN = Object.fromEntries(
+  Object.entries(COLUMN_TO_FIELD).map(([column, field]) => [field, column]),
+) as Record<keyof AppSettings, string>;
+
+/**
  * Resolve app settings with every field guaranteed present (defaults filled in),
  * using the shared 60s in-process cache. The single source both the settings
  * route and the business-logic (order window, daily closing) read from.
