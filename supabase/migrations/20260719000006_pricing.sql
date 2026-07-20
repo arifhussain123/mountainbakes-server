@@ -5,7 +5,7 @@
 --
 -- Invariants carried over from price.service.ts, now constraint-enforced:
 --
---   1. version_number is gapless and unique PER PRODUCT. Firestore derived it
+--   1. version_number is gapless and unique PER PRODUCT. The legacy system derived it
 --      with `where productId = ? order by versionNumber desc limit 1` inside a
 --      transaction. In Postgres, take `select ... for update` on the products
 --      row first — that row lock is what serialises concurrent price changes for
@@ -43,7 +43,7 @@ create table product_price_history (
   changed_on      timestamptz not null default now(),
   activated_on    timestamptz,
   -- Groups rows created by a single spreadsheet import. Minted client-side; was
-  -- an unwritten Firestore .doc().id, now just gen_random_uuid() in app code.
+  -- an unwritten client-minted record id, now just gen_random_uuid() in app code.
   batch_id        uuid,
   constraint product_price_history_version_key unique (product_id, version_number),
   constraint product_price_history_version_positive check (version_number > 0)
@@ -65,7 +65,7 @@ create index product_price_history_batch_idx   on product_price_history (batch_i
 -- ---------------------------------------------------------------------------
 -- Distributed job locks.
 --
--- Both the price-activation job and the daily closing used the same Firestore
+-- Both the price-activation job and the daily closing used the same legacy
 -- pattern: a doc keyed by business date holding running/success/failed, where a
 -- 'running' lock older than 10 minutes is DELIBERATELY STEALABLE so a crashed
 -- dyno cannot wedge the job forever.
@@ -81,7 +81,7 @@ create index product_price_history_batch_idx   on product_price_history (batch_i
 --          or price_activation_locks.started_at < now() - interval '10 minutes')
 -- A zero row count means someone else holds it — skip, do not error.
 --
--- These locks assume a SINGLE dyno (web=1), same as the Firestore version.
+-- These locks assume a SINGLE dyno (web=1), same as the legacy version.
 -- Scaling out needs a real advisory lock, not just this row.
 -- ---------------------------------------------------------------------------
 create table price_activation_locks (

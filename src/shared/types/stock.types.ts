@@ -1,6 +1,6 @@
 export type StockMovementType = 'sale' | 'production' | 'return' | 'adjustment';
 
-/** Running balance per (branchId, productId). Firestore doc id = `${branchId}_${productId}`. */
+/** Running balance per (branchId, productId), keyed by (branchId, productId). */
 export interface StockDoc {
   branchId: string;
   productId: string;

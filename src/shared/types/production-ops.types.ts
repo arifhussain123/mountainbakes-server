@@ -11,7 +11,7 @@ export type ProductionStockMovementType =
   | 'return_in' // accepted return added back → pool +
   | 'adjustment';
 
-/** Running balance for the central production pool. Firestore doc id = `${productId}`. */
+/** Running balance for the central production pool. Keyed by `productId`. */
 export interface ProductionStockDoc {
   productId: string;
   productName: string;

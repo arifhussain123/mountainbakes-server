@@ -1,9 +1,8 @@
 /**
  * Mountain Bakes — Supabase seed.
  *
- * Ported from the original Firebase seed (Firestore + Firebase Auth). Auth is now
- * Supabase and the data lives in Postgres, so this writes to `auth.users` via the
- * Admin API and to the tables created by supabase/migrations/*.sql.
+ * Auth is Supabase and the data lives in Postgres, so this writes to `auth.users`
+ * via the Admin API and to the tables created by supabase/migrations/*.sql.
  *
  * Run:  node scripts/seed.js        (reads .env — needs SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY)
  *
@@ -330,7 +329,7 @@ async function checkOrderCounter() {
   }
 
   // Deliberately NOT reset. The migration seeds this at 124 to continue the
-  // Firestore order numbering; zeroing it would re-issue MB-000001… and collide
+  // supabase order numbering; zeroing it would re-issue MB-000001… and collide
   // with orders that already exist.
   console.log(`  Left untouched at ${data.count} (next order: MB-${String(data.count + 1).padStart(6, '0')})`);
 }

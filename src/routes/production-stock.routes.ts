@@ -1,9 +1,10 @@
 import { Router } from 'express';
-import { adminDb } from '../config/firebase';
+import { randomUUID } from 'crypto';
+import { supabaseAdmin } from '../config/supabase';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { validate } from '../middleware/validate';
-import { PrepareProductionSchema, businessDateStr, type Product } from '../shared';
+import { PrepareProductionSchema, businessDateStr } from '../shared';
 import { prepareProducts, getProductionStockRows } from '../services/production-stock.service';
 
 export const router = Router();
@@ -26,16 +27,25 @@ router.post('/prepare', validate(PrepareProductionSchema), async (req: AuthReque
   try {
     const { items } = req.body as { items: { productId: string; qty: number }[] };
 
-    // Resolve product names server-side (names/prices are Admin-owned).
-    const productDocs = await Promise.all(items.map((i) => adminDb.collection('products').doc(i.productId).get()));
-    const resolved = items.map((i, idx) => {
-      const pDoc = productDocs[idx];
-      if (!pDoc || !pDoc.exists) throw Object.assign(new Error(`Product ${i.productId} not found`), { status: 400 });
-      return { productId: i.productId, productName: (pDoc.data() as Product).name, qty: i.qty };
+    // Resolve product names server-side (names/prices are Admin-owned). One query
+    // rather than N point reads.
+    const productIds = [...new Set(items.map((i) => i.productId))];
+    const { data: products, error: prodErr } = await supabaseAdmin
+      .from('products')
+      .select('id, name')
+      .in('id', productIds);
+    if (prodErr) throw prodErr;
+
+    const nameById = new Map((products ?? []).map((p) => [p.id as string, p.name as string]));
+    const resolved = items.map((i) => {
+      const name = nameById.get(i.productId);
+      if (!name) throw Object.assign(new Error(`Product ${i.productId} not found`), { status: 400 });
+      return { productId: i.productId, productName: name, qty: i.qty };
     });
 
-    // A fresh id per submission keeps each prep batch idempotent yet additive.
-    const refId = adminDb.collection('production_stock_history').doc().id;
+    // A fresh id per submission keeps each prep batch idempotent yet additive
+    // (the ref_id half of the production_stock_history idempotency key).
+    const refId = randomUUID();
     await prepareProducts(refId, resolved);
 
     res.status(201).json({ id: refId, count: resolved.length });

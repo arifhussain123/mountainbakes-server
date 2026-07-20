@@ -465,8 +465,8 @@ export async function commitPriceImport(input: {
   changedBy: string;
   changedByName: string;
 }): Promise<ImportCommitResult> {
-  // batch_id is a uuid column. Firestore minted this as an unwritten .doc().id;
-  // randomUUID() is the direct equivalent (migration 06 notes the same).
+  // batch_id is a uuid column, minted client-side with randomUUID()
+  // (migration 06 notes the same).
   const batchId = randomUUID();
   let appliedImmediate = 0;
   let scheduled = 0;

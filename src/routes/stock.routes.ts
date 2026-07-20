@@ -93,7 +93,7 @@ router.post('/return', requireRole('super_admin', 'branch_manager'), validate(Cr
     // Mint the return id up front so it is the shared refId across branch stock,
     // the production pool and the record — that id is the idempotency key on both
     // stock_history and production_stock_history, so all three movements must
-    // agree on it. (Was an unwritten Firestore .doc().id.)
+    // agree on it. (Minted client-side with randomUUID().)
     const returnId = randomUUID();
     const now = new Date().toISOString();
 

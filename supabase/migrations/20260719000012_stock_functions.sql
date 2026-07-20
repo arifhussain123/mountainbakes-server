@@ -6,7 +6,7 @@
 --   1. IDEMPOTENCY. stock_history has a UNIQUE (ref_id, product_id, type). Every
 --      movement inserts with `on conflict do nothing` and applies the balance
 --      delta ONLY when the insert actually affected a row. A retry that reuses
---      the same ref_id is therefore a true no-op, exactly as the Firestore
+--      the same ref_id is therefore a true no-op, exactly as the legacy
 --      existence-check-inside-the-transaction was.
 --
 --   2. NO LOST UPDATES. The sale path takes `select ... for update` on the stock
@@ -18,7 +18,7 @@
 -- Why these are database functions rather than app code: PostgREST gives each
 -- supabase-js call its own transaction, so validate-then-write split across two
 -- HTTP calls cannot hold a lock between them — precisely the multi-cashier race
--- the Firestore transaction existed to close. Same reasoning as migration 11.
+-- the legacy transaction existed to close. Same reasoning as migration 11.
 --
 -- Balance writes use the RELATIVE form (`stock.balance - qty`) with RETURNING,
 -- not a pre-computed absolute. The lock already serialises us, but the relative
@@ -162,7 +162,7 @@ $$;
 -- (productId, productName, categoryId, categoryName, unitPrice, qty, discount,
 -- lineTotal). Duplicate product lines are preserved verbatim in order_items but
 -- AGGREGATED for stock purposes — one balance write and one ledger row per
--- product, matching the Firestore idempotency scheme.
+-- product, matching the legacy idempotency scheme.
 --
 -- Returns jsonb:
 --   {"status":"ok","orderId":uuid,"balances":{<productId>:{productName,before,after}}}

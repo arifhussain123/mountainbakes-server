@@ -2,7 +2,7 @@
 --
 -- Why these exist as database functions rather than app code:
 --
--- price.service.ts ran its price changes inside Firestore transactions
+-- price.service.ts ran its price changes inside legacy transactions
 -- (read product + latest version, then write history + product atomically).
 -- supabase-js talks to PostgREST over HTTP, where every call is its own
 -- implicit transaction — there is no way to hold `select ... for update`
@@ -132,7 +132,7 @@ $$;
 --
 -- Returns true if this caller now holds the lock, NULL (falsy) if someone else
 -- does. A 'running' lock older than 10 minutes is deliberately stealable so a
--- crashed dyno cannot wedge the job forever — same rule as the Firestore
+-- crashed dyno cannot wedge the job forever — same rule as the legacy
 -- version and as daily-closing.
 --
 -- The WHERE on the DO UPDATE branch is what makes this atomic: a losing caller
@@ -165,7 +165,7 @@ $$;
 --
 -- Returns the number of products repriced.
 --
--- The Firestore version had to reconcile several due 'scheduled' rows per
+-- The legacy version had to reconcile several due 'scheduled' rows per
 -- product (highest version wins, the rest superseded) because nothing stopped
 -- more than one from existing. Here the partial unique index
 -- product_price_history_one_scheduled_key makes that impossible — at most one

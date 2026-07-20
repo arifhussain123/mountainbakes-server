@@ -3,7 +3,7 @@
 -- users.routes.ts raises a notification when an admin resets someone's password
 -- (notify({ type: 'password_reset', ... })), but that value was never in the
 -- enum — migration 01 lists only the order/stock/production types. Under
--- Firestore `type` was a free-text string so this went unnoticed; in Postgres it
+-- In the legacy system `type` was a free-text string so this went unnoticed; in Postgres it
 -- is a real enum and the insert fails with 22P02, taking the whole reset request
 -- down with it.
 --

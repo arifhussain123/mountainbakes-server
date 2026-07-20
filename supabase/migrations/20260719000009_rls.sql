@@ -9,8 +9,8 @@
 --      Express API reaches these with the SECRET key, which BYPASSES RLS
 --      entirely. Authorization for these is enforced in application code — e.g.
 --      branch managers scoped to their own branch_id, production users limited
---      to active order statuses — exactly as it was under the Firebase Admin
---      SDK, which likewise bypassed Firestore rules. The policies here are
+--      to active order statuses — exactly as it was under the legacy admin
+--      SDK, which likewise bypassed database rules. The policies here are
 --      DEFENCE IN DEPTH: they matter only if a publishable-key client ever
 --      reaches these tables directly. Do not delete the application-level checks
 --      on the strength of these policies.

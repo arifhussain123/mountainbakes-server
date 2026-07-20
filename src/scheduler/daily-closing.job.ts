@@ -4,7 +4,7 @@ import { runDailyClosing } from '../services/daily-closing.service';
 /**
  * Arm the automatic end-of-day closing at 2:00 AM Asia/Karachi. node-cron's
  * `timezone` option pins the fire time regardless of the server's own TZ. The
- * closing is idempotent (Firestore lock), so an accidental double-fire is a no-op,
+ * closing is idempotent (row lock), so an accidental double-fire is a no-op,
  * and the Auto Close toggle is checked inside the job at fire time.
  */
 export function startDailyClosingScheduler(): void {

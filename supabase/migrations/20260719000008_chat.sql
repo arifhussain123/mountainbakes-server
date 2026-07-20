@@ -1,8 +1,8 @@
 -- 08: chat and presence.
 --
 -- These collections (`chats`, `userPresence`) are NOT used by the Express API —
--- they were read and written directly from the browser via the Firestore client
--- SDK, and are currently broken because that path needs a Firebase Auth session
+-- they were read and written directly from the browser via the legacy client
+-- SDK, and are currently broken because that path needs a legacy auth session
 -- the app no longer creates.
 --
 -- They are included here because the frontend must migrate onto Supabase

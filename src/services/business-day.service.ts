@@ -5,9 +5,9 @@ import { supabaseAdmin } from '../config/supabase';
  *
  * This lives in its own module rather than in daily-closing.service.ts on
  * purpose: `assertBusinessDayOpen` (and therefore every branch-facing write path)
- * needs only this one read, while daily-closing.service.ts is a much larger
- * module still on Firestore. Importing that one to get this would drag the
- * unported Firestore dependency into the load graph and take the process down.
+ * needs only this one read, while daily-closing.service.ts is a much larger,
+ * as-yet-unported module. Importing that one to get this would drag its
+ * unported dependencies into the load graph and take the process down.
  *
  * When daily-closing.service.ts is ported it should import from here rather than
  * redefining the check — "is this day closed?" must have exactly one definition,
@@ -19,7 +19,7 @@ import { supabaseAdmin } from '../config/supabase';
  *
  * Only a 'success' closure counts. A 'running' row means a close is in flight and
  * a 'failed' one means it did not complete — in both cases the day is still open,
- * which matches the Firestore behaviour of checking `status === 'success'`.
+ * which is why the check is specifically for `status === 'success'`.
  */
 export async function isBusinessDayClosed(businessDate: string): Promise<boolean> {
   const { data, error } = await supabaseAdmin

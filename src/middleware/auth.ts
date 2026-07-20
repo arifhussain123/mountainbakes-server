@@ -19,7 +19,7 @@ export interface AuthRequest extends Request {
  * and attach the resolved identity to `req.user`.
  *
  * Role / branch come from the user's `app_metadata` (server-controlled claims that
- * Supabase embeds in the JWT), replacing the previous Firebase custom claims.
+ * Supabase embeds in the JWT).
  */
 export async function authenticate(req: AuthRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;

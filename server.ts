@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 // Load local env (server/.env) for development. On hosts (Heroku/etc.) the real
 // environment variables are already present and take precedence — dotenv only
 // fills gaps. This MUST run before ./src/app is loaded, because route modules
-// initialise Firebase Admin from env at import time; the dynamic import below
+// read Supabase config from env at import time; the dynamic import below
 // guarantees that ordering.
 dotenv.config();
 
@@ -29,12 +29,11 @@ if (nodeMajor < 22) {
 async function main() {
   const { app, allowedOrigins } = await import('./src/app');
 
-  // ─── Schedulers: disabled until the migration reaches them ──────────────────
-  // Both jobs pull in services that still import ../config/firebase
-  // (daily-closing.service, price.service). Even though these are dynamic
-  // imports, they are awaited during startup, so an unported module fails the
-  // boot exactly like a static one. Re-enable each import together with its
-  // call below once its service is on Supabase.
+  // ─── Schedulers: intentionally left OFF for now ─────────────────────────────
+  // The two 2:00 AM Karachi jobs (daily closing + price activation) are ported
+  // and ready, but kept disabled until their SQL functions are applied to the
+  // database and the jobs are deliberately turned back on. Re-enable each import
+  // together with its call below.
   //
   // const { startDailyClosingScheduler } = await import('./src/scheduler/daily-closing.job');
   // const { startPriceActivationScheduler } = await import('./src/scheduler/price-activation.job');
@@ -46,11 +45,7 @@ async function main() {
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Mountain Bakes API listening on port ${PORT}`);
     console.log('[cors] Allowed origins:', allowedOrigins.join(', ') || '(none configured)');
-    console.warn(
-      '[scheduler] Daily closing and price activation are DISABLED during the ' +
-        'Firestore→Supabase migration. The 2:00 AM close will not run and ' +
-        'future-dated prices will not activate until those services are ported.'
-    );
+    console.warn('[scheduler] Daily closing and price activation are OFF. The 2:00 AM close will not run until re-enabled.');
     // Arm the 2:00 AM Karachi end-of-day closing (idempotent; respects Auto Close).
     // startDailyClosingScheduler();
     // Arm 2:00 AM future-dated price activation + catch up any missed run on boot.

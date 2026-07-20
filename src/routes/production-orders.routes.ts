@@ -22,9 +22,9 @@ import { rowToApi } from '../utils/case';
 export const router = Router();
 
 /**
- * The branch-submitted items were an embedded array in Firestore; they are
- * `production_order_items` here (migration 05). The review-only columns are
- * null until approval, which is what `approved_qty IS NULL` means.
+ * The branch-submitted items live in their own `production_order_items` table
+ * (migration 05). The review-only columns are null until approval, which is what
+ * `approved_qty IS NULL` means.
  *
  * Callers must also order the embedded rows by line_no — PostgREST gives no
  * ordering guarantee for an embedded resource on its own.

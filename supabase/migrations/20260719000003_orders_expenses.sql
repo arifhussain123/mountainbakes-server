@@ -3,14 +3,14 @@
 -- ---------------------------------------------------------------------------
 -- Order numbers.
 --
--- Firestore used a `counters/orders` document incremented inside the sale
+-- The legacy system used a `counters/orders` record incremented inside the sale
 -- transaction, producing gapless MB-000125 numbers seeded at 124.
 --
 -- A Postgres SEQUENCE is deliberately NOT used: sequences are non-transactional
 -- and leave gaps on rollback. The business treats order numbers as gapless, so
 -- this keeps the counter-row semantics. The row lock serialises order creation,
 -- which is acceptable here (one dyno, modest order rate) and is exactly what
--- Firestore was already doing.
+-- the legacy system was already doing.
 -- ---------------------------------------------------------------------------
 create table counters (
   id    text primary key,
@@ -40,7 +40,7 @@ create or replace function next_order_number() returns text
 -- ---------------------------------------------------------------------------
 -- orders
 --
--- created_at is the business-relevant instant AND the reporting axis. Firestore
+-- created_at is the business-relevant instant AND the reporting axis. The legacy system
 -- filtered on it with inclusive bounds (>= from AND <= to) derived from
 -- businessDayBounds(). Keep the bounds INCLUSIVE when porting: switching to a
 -- half-open `< to` silently drops the final millisecond of a business day.
@@ -93,7 +93,7 @@ create trigger orders_touch before update on orders
   for each row execute function app.touch_updated_at();
 
 -- ---------------------------------------------------------------------------
--- order_items — was the embedded orders.items[] array in Firestore.
+-- order_items — was the embedded orders.items[] array in the legacy system.
 --
 -- Every column here is a POINT-IN-TIME SNAPSHOT of the product as sold. It must
 -- never be resolved through to products at read time, or historical receipts

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { adminDb } from '../config/firebase';
+import { supabaseAdmin } from '../config/supabase';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { businessDateStr, businessDaysAgoStr } from '../shared';
@@ -36,8 +36,11 @@ function periodDateRange(period: string): { fromStr: string; toStr: string } {
   return { fromStr: `${todayStr.slice(0, 7)}-01`, toStr: todayStr };
 }
 
-type OItem = { productId: string; productName: string; qty: number; approvedQty?: number; previousBalanceQty?: number; totalRequiredQty?: number; remainingBalanceQty?: number };
-type ODoc = { branchId: string; branchName: string; date: string; status: string; approvedByName?: string; wasChanged?: boolean; items: OItem[] };
+interface RItem { qty: number; approved_qty?: number | null; total_required_qty?: number | null; remaining_balance_qty?: number | null }
+interface RDoc { branch_id: string; branch_name: string; business_date: string; status: string; approved_by_name?: string | null; items: RItem[] }
+
+const ORDER_WITH_ITEMS =
+  'branch_id, branch_name, business_date, status, approved_by_name, items:production_order_items(qty, approved_qty, total_required_qty, remaining_balance_qty)';
 
 /** Build a titled, tabular report dataset for the given type + period. */
 async function buildReport(
@@ -57,21 +60,22 @@ async function buildReport(
       };
     }
     case 'branch-stock': {
-      const [stockSnap, branchesSnap, productsSnap] = await Promise.all([
-        adminDb.collection('stock').get(),
-        adminDb.collection('branches').where('isActive', '==', true).get(),
-        adminDb.collection('products').where('isActive', '==', true).get(),
+      const [stockRes, branchesRes, productsRes] = await Promise.all([
+        supabaseAdmin.from('stock').select('branch_id, product_id, balance'),
+        supabaseAdmin.from('branches').select('id, name').eq('is_active', true),
+        supabaseAdmin.from('products').select('id, name').eq('is_active', true),
       ]);
-      const branches = branchesSnap.docs
-        .map((d) => ({ id: d.id, name: (d.data() as { name: string }).name }))
+      for (const r of [stockRes, branchesRes, productsRes]) { if (r.error) throw r.error; }
+
+      const branches = ((branchesRes.data ?? []) as { id: string; name: string }[])
+        .map((b) => ({ id: b.id, name: b.name }))
         .sort((a, b) => a.name.localeCompare(b.name));
       const balances: Record<string, Record<string, number>> = {};
-      for (const doc of stockSnap.docs) {
-        const s = doc.data() as { branchId: string; productId: string; balance: number };
-        (balances[s.productId] ||= {})[s.branchId] = Number(s.balance ?? 0);
+      for (const s of (stockRes.data ?? []) as { branch_id: string; product_id: string; balance: number }[]) {
+        (balances[s.product_id] ||= {})[s.branch_id] = Number(s.balance ?? 0);
       }
-      const products = productsSnap.docs
-        .map((d) => ({ id: d.id, name: (d.data() as { name: string }).name }))
+      const products = ((productsRes.data ?? []) as { id: string; name: string }[])
+        .map((p) => ({ id: p.id, name: p.name }))
         .sort((a, b) => a.name.localeCompare(b.name));
       return {
         title: 'Branch Stock',
@@ -80,18 +84,20 @@ async function buildReport(
       };
     }
     case 'branch-demand': {
-      const snap = await adminDb.collection('production_orders').where('date', '>=', fromStr).get();
-      const orders = snap.docs.map((d) => d.data() as ODoc).filter((o) => inRange(o.date));
+      const { data, error } = await supabaseAdmin.from('production_orders').select(ORDER_WITH_ITEMS).gte('business_date', fromStr);
+      if (error) throw error;
+      const orders = ((data ?? []) as unknown as RDoc[]).filter((o) => inRange(o.business_date));
       const map: Record<string, { name: string; qty: number; required: number; pending: number; orders: number }> = {};
       for (const o of orders) {
-        const qty = o.items.reduce((s, i) => s + (i.qty || 0), 0);
-        const required = o.items.reduce((s, i) => s + (i.totalRequiredQty ?? i.qty ?? 0), 0);
-        const pending = o.items.reduce((s, i) => s + (i.remainingBalanceQty ?? 0), 0);
-        if (!map[o.branchId]) map[o.branchId] = { name: o.branchName, qty: 0, required: 0, pending: 0, orders: 0 };
-        map[o.branchId]!.qty += qty;
-        map[o.branchId]!.required += required;
-        map[o.branchId]!.pending += pending;
-        map[o.branchId]!.orders += 1;
+        const items = o.items ?? [];
+        const qty = items.reduce((s, i) => s + (Number(i.qty) || 0), 0);
+        const required = items.reduce((s, i) => s + Number(i.total_required_qty ?? i.qty ?? 0), 0);
+        const pending = items.reduce((s, i) => s + Number(i.remaining_balance_qty ?? 0), 0);
+        if (!map[o.branch_id]) map[o.branch_id] = { name: o.branch_name, qty: 0, required: 0, pending: 0, orders: 0 };
+        map[o.branch_id]!.qty += qty;
+        map[o.branch_id]!.required += required;
+        map[o.branch_id]!.pending += pending;
+        map[o.branch_id]!.orders += 1;
       }
       return {
         title: 'Branch Demand',
@@ -100,66 +106,81 @@ async function buildReport(
       };
     }
     case 'approved-orders': {
-      const snap = await adminDb.collection('production_orders').where('date', '>=', fromStr).get();
-      const orders = snap.docs.map((d) => d.data() as ODoc).filter((o) => o.status === 'approved' && inRange(o.date));
+      const { data, error } = await supabaseAdmin.from('production_orders').select(ORDER_WITH_ITEMS).gte('business_date', fromStr);
+      if (error) throw error;
+      const orders = ((data ?? []) as unknown as RDoc[]).filter((o) => o.status === 'approved' && inRange(o.business_date));
       return {
         title: 'Approved Orders',
         headers: ['Date', 'Branch', 'Products', 'Total Required', 'Approved Qty', 'Pending', 'Approved By'],
-        rows: orders.map((o) => [
-          o.date,
-          o.branchName,
-          o.items.length,
-          o.items.reduce((s, i) => s + (i.totalRequiredQty ?? i.qty), 0),
-          o.items.reduce((s, i) => s + (i.approvedQty ?? i.qty), 0),
-          o.items.reduce((s, i) => s + (i.remainingBalanceQty ?? 0), 0),
-          o.approvedByName || '',
-        ]),
+        rows: orders.map((o) => {
+          const items = o.items ?? [];
+          return [
+            o.business_date,
+            o.branch_name,
+            items.length,
+            items.reduce((s, i) => s + Number(i.total_required_qty ?? i.qty), 0),
+            items.reduce((s, i) => s + Number(i.approved_qty ?? i.qty), 0),
+            items.reduce((s, i) => s + Number(i.remaining_balance_qty ?? 0), 0),
+            o.approved_by_name || '',
+          ];
+        }),
       };
     }
     case 'pending-balance': {
       // Snapshot of outstanding carry-forward balances (not period-filtered).
-      const snap = await adminDb.collection('production_balances').get();
-      const rows = snap.docs
-        .map((d) => d.data() as { branchName?: string; productName: string; pendingQty: number; updatedAt?: string })
-        .filter((b) => Number(b.pendingQty ?? 0) > 0)
-        .sort((a, b) => (a.branchName ?? '').localeCompare(b.branchName ?? '') || a.productName.localeCompare(b.productName));
+      const { data, error } = await supabaseAdmin
+        .from('production_balances')
+        .select('branch_name, product_name, pending_qty, updated_at');
+      if (error) throw error;
+      const rows = ((data ?? []) as { branch_name?: string; product_name: string; pending_qty: number; updated_at?: string }[])
+        .filter((b) => Number(b.pending_qty ?? 0) > 0)
+        .sort((a, b) => (a.branch_name ?? '').localeCompare(b.branch_name ?? '') || a.product_name.localeCompare(b.product_name));
       return {
         title: 'Pending Balance',
         headers: ['Branch', 'Product', 'Pending Qty', 'Updated'],
-        rows: rows.map((r) => [r.branchName ?? '', r.productName, Number(r.pendingQty ?? 0), (r.updatedAt ?? '').slice(0, 10)]),
+        rows: rows.map((r) => [r.branch_name ?? '', r.product_name, Number(r.pending_qty ?? 0), (r.updated_at ?? '').slice(0, 10)]),
       };
     }
     case 'returned-products': {
-      const snap = await adminDb.collection('production_returns').where('date', '>=', fromStr).get();
-      const returns = snap.docs
-        .map((d) => d.data() as { date: string; branchName: string; productName: string; qty: number; reason: string; status: string })
-        .filter((r) => inRange(r.date));
+      const { data, error } = await supabaseAdmin
+        .from('production_returns')
+        .select('business_date, branch_name, product_name, qty, reason, status')
+        .gte('business_date', fromStr);
+      if (error) throw error;
+      const returns = ((data ?? []) as { business_date: string; branch_name: string; product_name: string; qty: number; reason: string; status: string }[])
+        .filter((r) => inRange(r.business_date));
       return {
         title: 'Returned Products',
         headers: ['Date', 'Branch', 'Product', 'Qty', 'Reason', 'Status'],
-        rows: returns.map((r) => [r.date, r.branchName, r.productName, r.qty, r.reason, r.status]),
+        rows: returns.map((r) => [r.business_date, r.branch_name, r.product_name, r.qty, r.reason, r.status]),
       };
     }
     case 'production-expenses': {
-      const snap = await adminDb.collection('production_expenses').where('date', '>=', fromStr).get();
-      const expenses = snap.docs
-        .map((d) => d.data() as { date: string; category: string; description: string; amount: number; paymentMethod: string; supplier: string })
-        .filter((e) => inRange(e.date));
+      const { data, error } = await supabaseAdmin
+        .from('production_expenses')
+        .select('business_date, category, description, amount, payment_method, supplier')
+        .gte('business_date', fromStr);
+      if (error) throw error;
+      const expenses = ((data ?? []) as { business_date: string; category: string; description: string; amount: number; payment_method: string; supplier: string }[])
+        .filter((e) => inRange(e.business_date));
       return {
         title: 'Production Expenses',
         headers: ['Date', 'Category', 'Description', 'Amount', 'Payment', 'Supplier'],
-        rows: expenses.map((e) => [e.date, e.category, e.description, e.amount, e.paymentMethod, e.supplier || '']),
+        rows: expenses.map((e) => [e.business_date, e.category, e.description, e.amount, e.payment_method, e.supplier || '']),
       };
     }
     case 'production':
     default: {
       // Prepared production by day.
-      const snap = await adminDb.collection('production_stock_history').where('date', '>=', fromStr).get();
+      const { data, error } = await supabaseAdmin
+        .from('production_stock_history')
+        .select('type, delta, business_date')
+        .gte('business_date', fromStr);
+      if (error) throw error;
       const byDay: Record<string, number> = {};
-      for (const doc of snap.docs) {
-        const h = doc.data() as { type: string; delta: number; date: string };
-        if (h.type !== 'prepare' || !inRange(h.date)) continue;
-        byDay[h.date] = (byDay[h.date] || 0) + Math.abs(h.delta);
+      for (const h of (data ?? []) as { type: string; delta: number; business_date: string }[]) {
+        if (h.type !== 'prepare' || !inRange(h.business_date)) continue;
+        byDay[h.business_date] = (byDay[h.business_date] || 0) + Math.abs(Number(h.delta) || 0);
       }
       return {
         title: 'Production',

@@ -1,9 +1,9 @@
--- 10: Supabase Storage buckets, replacing Firebase Storage.
+-- 10: Supabase Storage buckets, replacing the legacy object storage.
 --
--- Firebase Storage was used in exactly one place: the company logo upload in
+-- The legacy object storage was used in exactly one place: the company logo upload in
 -- settings.routes.ts. It saved the file with a randomUUID() download token and
 -- hand-built a permanent URL of the form
---   https://firebasestorage.googleapis.com/v0/b/<bucket>/o/<path>?alt=media&token=<uuid>
+--   https://<legacy-storage-host>/v0/b/<bucket>/o/<path>?alt=media&token=<uuid>
 --
 -- That URL never expires and is persisted in settings.logo_url for anonymous
 -- public reads (it renders on the login page and on printed receipts, where
@@ -78,6 +78,6 @@ create policy chat_attachments_write on storage.objects
   );
 
 -- NOTE: the old code never deleted the previous logo on re-upload, so files
--- accumulated in Firebase Storage indefinitely. The port should delete the file
+-- accumulated in the legacy object storage indefinitely. The port should delete the file
 -- at settings.logo_path before writing the replacement. Carry the bug over
 -- knowingly or fix it — but don't leave it unnoticed.

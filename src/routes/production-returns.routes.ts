@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { adminDb } from '../config/firebase';
+import { supabaseAdmin } from '../config/supabase';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { validate } from '../middleware/validate';
@@ -8,11 +8,11 @@ import {
   ReviewProductionReturnSchema,
   businessDateStr,
   businessDaysAgoStr,
-  type Product,
 } from '../shared';
 import { notify } from '../services/push.service';
 import { returnIntoPool } from '../services/production-stock.service';
 import { applyStockMovement } from '../services/stock.service';
+import { rowToApi } from '../utils/case';
 
 export const router = Router();
 
@@ -21,12 +21,15 @@ router.use(authenticate, requireRole('super_admin', 'production_user'));
 // GET /api/production-returns — last 30 days, most recent first
 router.get('/', async (_req, res, next) => {
   try {
-    const snapshot = await adminDb.collection('production_returns').get();
     const cutoff = businessDaysAgoStr(29);
-    const returns = snapshot.docs
-      .map((d) => ({ id: d.id, ...d.data() }) as Record<string, unknown>)
-      .filter((r) => String(r['date'] ?? '') >= cutoff)
-      .sort((a, b) => String(b['createdAt'] ?? '').localeCompare(String(a['createdAt'] ?? '')));
+    const { data, error } = await supabaseAdmin
+      .from('production_returns')
+      .select('*')
+      .gte('business_date', cutoff)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+
+    const returns = rowToApi<Record<string, unknown>[]>(data ?? []);
     res.json({ returns, total: returns.length });
   } catch (err) {
     next(err);
@@ -38,44 +41,44 @@ router.post('/', validate(CreateProductionReturnSchema), async (req: AuthRequest
   try {
     const { branchId, productId, qty, reason } = req.body as { branchId: string; productId: string; qty: number; reason: string };
 
-    const [branchDoc, productDoc] = await Promise.all([
-      adminDb.collection('branches').doc(branchId).get(),
-      adminDb.collection('products').doc(productId).get(),
+    const [branchRes, productRes] = await Promise.all([
+      supabaseAdmin.from('branches').select('name').eq('id', branchId).maybeSingle(),
+      supabaseAdmin.from('products').select('name').eq('id', productId).maybeSingle(),
     ]);
-    if (!branchDoc.exists) { res.status(400).json({ error: 'Branch not found' }); return; }
-    if (!productDoc.exists) { res.status(400).json({ error: 'Product not found' }); return; }
+    if (branchRes.error) throw branchRes.error;
+    if (productRes.error) throw productRes.error;
+    if (!branchRes.data) { res.status(400).json({ error: 'Branch not found' }); return; }
+    if (!productRes.data) { res.status(400).json({ error: 'Product not found' }); return; }
 
-    const branchName = (branchDoc.data() as { name: string }).name;
-    const productName = (productDoc.data() as Product).name;
-    const now = new Date().toISOString();
-
-    const ref = await adminDb.collection('production_returns').add({
-      branchId,
-      branchName,
-      productId,
-      productName,
-      qty,
-      reason,
-      status: 'pending',
-      date: businessDateStr(),
-      createdBy: req.user!.uid,
-      createdByName: req.user!.email,
-      createdAt: now,
-      reviewedBy: null,
-      reviewedByName: null,
-      reviewedAt: null,
-    });
+    // created_at comes from the column default; reviewed_* stay null until review.
+    const { data: created, error: insErr } = await supabaseAdmin
+      .from('production_returns')
+      .insert({
+        branch_id: branchId,
+        branch_name: branchRes.data.name,
+        product_id: productId,
+        product_name: productRes.data.name,
+        qty,
+        reason,
+        status: 'pending',
+        business_date: businessDateStr(),
+        created_by: req.user!.uid,
+        created_by_name: req.user!.email,
+      })
+      .select('id')
+      .single();
+    if (insErr) throw insErr;
 
     await notify({
       type: 'production_return',
       title: 'Product Return Recorded',
-      message: `${qty} × ${productName} from ${branchName}`,
+      message: `${qty} × ${productRes.data.name} from ${branchRes.data.name}`,
       targetRole: 'production_user',
       branchId,
-      relatedId: ref.id,
+      relatedId: created.id,
     });
 
-    res.status(201).json({ id: ref.id });
+    res.status(201).json({ id: created.id });
   } catch (err) {
     next(err);
   }
@@ -86,39 +89,55 @@ router.put('/:id/review', validate(ReviewProductionReturnSchema), async (req: Au
   try {
     const { status } = req.body as { status: 'accepted' | 'rejected' };
     const id = req.params['id']!;
-    const ref = adminDb.collection('production_returns').doc(id);
 
-    const data = await adminDb.runTransaction(async (tx) => {
-      const doc = await tx.get(ref);
-      if (!doc.exists) throw Object.assign(new Error('Return not found'), { status: 404 });
-      const d = doc.data() as { status: string; branchId: string; productId: string; productName: string; qty: number };
-      if (d.status !== 'pending') throw Object.assign(new Error('Return already reviewed'), { status: 409 });
-      tx.update(ref, {
+    // Atomic check-and-set: the `.eq('status', 'pending')` predicate is what makes
+    // a double review a no-op (migration 05). A zero-row result means the return
+    // was either not found or already reviewed — distinguished below.
+    const { data: reviewed, error: updErr } = await supabaseAdmin
+      .from('production_returns')
+      .update({
         status,
-        reviewedBy: req.user!.uid,
-        reviewedByName: req.user!.email,
-        reviewedAt: new Date().toISOString(),
-      });
-      return d;
-    });
+        reviewed_by: req.user!.uid,
+        reviewed_by_name: req.user!.email,
+        reviewed_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .eq('status', 'pending')
+      .select('branch_id, product_id, product_name, qty')
+      .maybeSingle();
+    if (updErr) throw updErr;
+
+    if (!reviewed) {
+      const { data: exists, error: exErr } = await supabaseAdmin
+        .from('production_returns')
+        .select('id')
+        .eq('id', id)
+        .maybeSingle();
+      if (exErr) throw exErr;
+      if (!exists) { res.status(404).json({ error: 'Return not found' }); return; }
+      res.status(409).json({ error: 'Return already reviewed' });
+      return;
+    }
 
     // Accepted returns flow back INTO the production pool and OUT of branch stock.
+    // Both movements are idempotent by ref_id, so the separate-transaction gap
+    // carried over from the original is retry-safe.
     if (status === 'accepted') {
-      await returnIntoPool(id, { productId: data.productId, productName: data.productName, qty: data.qty });
+      await returnIntoPool(id, { productId: reviewed.product_id, productName: reviewed.product_name, qty: Number(reviewed.qty) });
       await applyStockMovement({
-        branchId: data.branchId,
-        productId: data.productId,
-        productName: data.productName,
-        delta: -Math.abs(data.qty),
+        branchId: reviewed.branch_id,
+        productId: reviewed.product_id,
+        productName: reviewed.product_name,
+        delta: -Math.abs(Number(reviewed.qty)),
         type: 'adjustment',
         refId: `return_${id}`,
       });
       await notify({
         type: 'production_return',
         title: 'Return Accepted',
-        message: `${data.qty} × ${data.productName} returned to production`,
+        message: `${Number(reviewed.qty)} × ${reviewed.product_name} returned to production`,
         targetRole: 'branch_manager',
-        branchId: data.branchId,
+        branchId: reviewed.branch_id,
         relatedId: id,
       });
     }

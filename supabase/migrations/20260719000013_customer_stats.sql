@@ -1,6 +1,6 @@
 -- 13: atomic customer order statistics.
 --
--- Firestore updated these with FieldValue.increment(), which is atomic on the
+-- The legacy system updated these with a server-side increment operator, atomic on the
 -- server and immune to the read-modify-write race two concurrent orders for the
 -- same customer would otherwise hit.
 --

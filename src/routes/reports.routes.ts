@@ -14,9 +14,8 @@ router.use(authenticate, requireRole('super_admin', 'branch_manager'));
 /**
  * Orders with their line items.
  *
- * The items were an embedded array on the Firestore order document; they live in
- * `order_items` now (migration 03), so the aggregation below reads them through
- * this embed rather than off the order row.
+ * The line items live in their own `order_items` table (migration 03), so the
+ * aggregation below reads them through this embed rather than off the order row.
  *
  * NOTE the aggregation still runs in Node over the whole selected range. That is
  * a deliberate, faithful port of the previous behaviour — the date and branch
@@ -215,8 +214,8 @@ router.get('/branch-comparison', requireRole('super_admin'), async (req: AuthReq
     const from = String(req.query['from'] || startOfMonth(new Date()).toISOString());
     const to = String(req.query['to'] || endOfMonth(new Date()).toISOString());
 
-    // `status != 'cancelled'` alongside a range filter was awkward in Firestore;
-    // it is an ordinary predicate here.
+    // `status != 'cancelled'` alongside a range filter is just an ordinary
+    // predicate here.
     const { data, error } = await supabaseAdmin
       .from('orders')
       .select('branch_id, branch_name, grand_total')

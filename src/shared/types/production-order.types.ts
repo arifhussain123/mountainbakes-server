@@ -48,7 +48,7 @@ export interface BranchProductionOrder {
 
 /**
  * Per-(branch, product) outstanding demand that Production has not yet fulfilled.
- * Firestore doc id is `${branchId}_${productId}`. `pendingQty` is an absolute
+ * Keyed by (branchId, productId). `pendingQty` is an absolute
  * running balance: each approval SETS it to that order's remaining balance
  * (overwrite, never increment — `totalRequiredQty` already folds the prior balance in).
  */

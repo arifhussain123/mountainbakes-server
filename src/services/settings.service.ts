@@ -59,10 +59,10 @@ export const FIELD_TO_COLUMN = Object.fromEntries(
  * using the shared 60s in-process cache. The single source both the settings
  * route and the business-logic (order window, daily closing) read from.
  *
- * NULL columns are skipped rather than spread over FULL_DEFAULTS. Firestore
- * simply omitted unset fields, so the old object spread filled them from the
- * defaults; Postgres returns them as null, which would otherwise clobber a
- * default with null and hand callers a settings object that fails its own type.
+ * NULL columns are skipped rather than spread over FULL_DEFAULTS. Postgres
+ * returns unset fields as null, which would otherwise clobber a default with
+ * null and hand callers a settings object that fails its own type; skipping them
+ * lets the defaults fill in instead.
  */
 export async function getAppSettings(): Promise<AppSettings> {
   const hit = getCached<AppSettings>('settings');

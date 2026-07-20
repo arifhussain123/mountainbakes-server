@@ -18,7 +18,7 @@ begin;
 --
 -- Why these exist as database functions rather than app code:
 --
--- price.service.ts ran its price changes inside Firestore transactions
+-- price.service.ts ran its price changes inside legacy transactions
 -- (read product + latest version, then write history + product atomically).
 -- supabase-js talks to PostgREST over HTTP, where every call is its own
 -- implicit transaction — there is no way to hold `select ... for update`
@@ -148,7 +148,7 @@ $$;
 --
 -- Returns true if this caller now holds the lock, NULL (falsy) if someone else
 -- does. A 'running' lock older than 10 minutes is deliberately stealable so a
--- crashed dyno cannot wedge the job forever — same rule as the Firestore
+-- crashed dyno cannot wedge the job forever — same rule as the legacy
 -- version and as daily-closing.
 --
 -- The WHERE on the DO UPDATE branch is what makes this atomic: a losing caller
@@ -181,7 +181,7 @@ $$;
 --
 -- Returns the number of products repriced.
 --
--- The Firestore version had to reconcile several due 'scheduled' rows per
+-- The legacy version had to reconcile several due 'scheduled' rows per
 -- product (highest version wins, the rest superseded) because nothing stopped
 -- more than one from existing. Here the partial unique index
 -- product_price_history_one_scheduled_key makes that impossible — at most one
@@ -277,7 +277,7 @@ grant execute on function public.close_price_activation(date, closure_status, in
 --   1. IDEMPOTENCY. stock_history has a UNIQUE (ref_id, product_id, type). Every
 --      movement inserts with `on conflict do nothing` and applies the balance
 --      delta ONLY when the insert actually affected a row. A retry that reuses
---      the same ref_id is therefore a true no-op, exactly as the Firestore
+--      the same ref_id is therefore a true no-op, exactly as the legacy
 --      existence-check-inside-the-transaction was.
 --
 --   2. NO LOST UPDATES. The sale path takes `select ... for update` on the stock
@@ -289,7 +289,7 @@ grant execute on function public.close_price_activation(date, closure_status, in
 -- Why these are database functions rather than app code: PostgREST gives each
 -- supabase-js call its own transaction, so validate-then-write split across two
 -- HTTP calls cannot hold a lock between them — precisely the multi-cashier race
--- the Firestore transaction existed to close. Same reasoning as migration 11.
+-- the legacy transaction existed to close. Same reasoning as migration 11.
 --
 -- Balance writes use the RELATIVE form (`stock.balance - qty`) with RETURNING,
 -- not a pre-computed absolute. The lock already serialises us, but the relative
@@ -433,7 +433,7 @@ $$;
 -- (productId, productName, categoryId, categoryName, unitPrice, qty, discount,
 -- lineTotal). Duplicate product lines are preserved verbatim in order_items but
 -- AGGREGATED for stock purposes — one balance write and one ledger row per
--- product, matching the Firestore idempotency scheme.
+-- product, matching the legacy idempotency scheme.
 --
 -- Returns jsonb:
 --   {"status":"ok","orderId":uuid,"balances":{<productId>:{productName,before,after}}}
@@ -606,9 +606,7 @@ grant execute on function public.commit_sale(jsonb, jsonb, uuid, date) to servic
 -- ==========================================================================
 -- 13: atomic customer order statistics.
 --
--- Firestore updated these with FieldValue.increment(), which is atomic on the
--- server and immune to the read-modify-write race two concurrent orders for the
--- same customer would otherwise hit.
+--
 --
 -- supabase-js has no equivalent: `.update({ total_orders: n + 1 })` requires
 -- reading n first, and PostgREST gives that read its own transaction. Two orders
@@ -644,9 +642,7 @@ grant execute on function public.increment_customer_stats(uuid, numeric) to serv
 -- users.routes.ts raises a notification when an admin resets someone's password
 -- (notify({ type: 'password_reset', ... })), but that value was never in the
 -- enum — migration 01 lists only the order/stock/production types. Under
--- Firestore `type` was a free-text string so this went unnoticed; in Postgres it
--- is a real enum and the insert fails with 22P02, taking the whole reset request
--- down with it.
+-- 
 --
 -- ALTER rather than editing migration 01, because 01 is already applied to the
 -- live database. On a fresh run of schema_bundle.sql this still works: adding a
@@ -888,6 +884,69 @@ $$;
 
 revoke all on function public.review_production_order(uuid, branch_production_order_status, jsonb, text, uuid, text) from public, anon, authenticated;
 grant execute on function public.review_production_order(uuid, branch_production_order_status, jsonb, text, uuid, text) to service_role;
+
+
+-- ==========================================================================
+-- 20260721000017_business_day_closure_claim.sql
+-- ==========================================================================
+-- Atomic claim for the daily-closing distributed lock (business_day_closures,
+-- table created in migration 07). Reproduces the once-per-day read-check-write
+-- in one row-locked block, since PostgREST gives each call its own transaction.
+-- Returns 'claimed' | 'already_closed' | 'in_progress'.
+
+create or replace function claim_business_day_closure(
+  p_business_date      date,
+  p_trigger            closure_trigger,
+  p_closed_by          text,
+  p_auto_stock_closing boolean,
+  p_stale_ms           integer
+) returns text
+  language plpgsql
+  as $$
+  declare
+    existing business_day_closures%rowtype;
+  begin
+    select * into existing
+      from business_day_closures
+      where business_date = p_business_date
+      for update;
+
+    if found then
+      if existing.status = 'success' then
+        return 'already_closed';
+      end if;
+      if existing.status = 'running'
+         and existing.started_at > now() - make_interval(secs => p_stale_ms / 1000.0) then
+        return 'in_progress';
+      end if;
+    end if;
+
+    insert into business_day_closures (
+      business_date, status, trigger, closed_by, auto_stock_closing, started_at
+    ) values (
+      p_business_date, 'running', p_trigger, p_closed_by, p_auto_stock_closing, now()
+    )
+    on conflict (business_date) do update set
+      status                     = 'running',
+      trigger                    = excluded.trigger,
+      closed_by                  = excluded.closed_by,
+      auto_stock_closing         = excluded.auto_stock_closing,
+      started_at                 = now(),
+      sales_summary              = null,
+      expense_summary            = null,
+      production_expense_summary = null,
+      production_summary         = null,
+      stock_snapshot             = null,
+      error                      = null,
+      closed_at                  = null,
+      duration_ms                = null;
+
+    return 'claimed';
+  end;
+  $$;
+
+revoke all on function public.claim_business_day_closure(date, closure_trigger, text, boolean, integer) from public, anon, authenticated;
+grant execute on function public.claim_business_day_closure(date, closure_trigger, text, boolean, integer) to service_role;
 
 
 commit;

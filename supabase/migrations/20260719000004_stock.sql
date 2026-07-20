@@ -1,10 +1,10 @@
 -- 04: branch stock balances, movement history, and the blocked-sale audit log.
 --
 -- THIS IS THE MOST SAFETY-CRITICAL FILE IN THE SCHEMA. Two invariants from the
--- Firestore implementation must survive, and both are enforced here by
+-- legacy implementation must survive, and both are enforced here by
 -- constraints rather than by application code:
 --
---   1. IDEMPOTENCY. Firestore keyed stock_history documents by the composite ID
+--   1. IDEMPOTENCY. The legacy system keyed stock_history records by the composite ID
 --      `{refId}_{productId}_{type}` and did an existence check inside the
 --      transaction: if the doc existed, the whole movement was a no-op. That
 --      composite ID becomes the UNIQUE constraint below. It is NOT merely an
@@ -13,7 +13,7 @@
 --      the balance delta ONLY when the insert actually affected a row.
 --
 --   2. NO LOST UPDATES on the running balance. Two cashiers selling the last
---      unit concurrently must not both succeed. Firestore's optimistic
+--      unit concurrently must not both succeed. The legacy system's optimistic
 --      transaction retry covered this; in Postgres the sale path must take
 --      `select ... for update` on the stock rows, ordered deterministically by
 --      product_id, before validating. The deterministic order is what prevents
@@ -21,7 +21,7 @@
 
 -- ---------------------------------------------------------------------------
 -- stock — one running balance per (branch, product).
--- Was Firestore doc id `{branchId}_{productId}`.
+-- Keyed by (branch_id, product_id).
 --
 -- Balances are deliberately allowed to go NEGATIVE. applyStockMovement never
 -- validated; only the branch-return path (commitBranchReturn) and the sale path

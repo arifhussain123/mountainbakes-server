@@ -1,7 +1,7 @@
 -- 02: core reference entities — branches, categories, products, customers, users.
 --
 -- On denormalised *_name columns (branch_name, product_name, category_name):
--- Firestore copied these onto nearly every row. They are PRESERVED here rather
+-- The legacy system copied these onto nearly every row. They are PRESERVED here rather
 -- than normalised away, because in several places they are genuine point-in-time
 -- snapshots (an order must keep the product name as sold, even if the product is
 -- later renamed). Where a column is a cache rather than a snapshot it is called
@@ -40,7 +40,7 @@ create trigger branches_touch before update on branches
 -- users
 --
 -- PK is the Supabase Auth user id — the same deterministic external ID strategy
--- Firestore used (doc id = auth uid). The FK to auth.users with ON DELETE
+-- the legacy system used (record id = auth uid). The FK to auth.users with ON DELETE
 -- CASCADE means deleting the auth user reaps the profile row, which the old
 -- code had to do by hand in two steps.
 --
@@ -123,7 +123,7 @@ create table products (
 );
 
 -- SKU is the natural key used by the price-import path (price.service.ts). It
--- was NOT unique in Firestore, so the ETL may surface duplicates. This unique
+-- was NOT unique in the legacy system, so the ETL may surface duplicates. This unique
 -- index is deliberately partial (ignores NULLs and inactive rows) so the import
 -- lookup is unambiguous without breaking legacy rows that never had a SKU.
 create unique index products_sku_key on products (sku) where sku is not null and is_active;
@@ -137,7 +137,7 @@ create trigger products_touch before update on products
 -- ---------------------------------------------------------------------------
 -- customers
 --
--- total_orders / total_spent are running aggregates. Firestore updated them
+-- total_orders / total_spent are running aggregates. The legacy system updated them
 -- with FieldValue.increment AFTER the order write and outside its transaction,
 -- so an order could exist without its customer stats moving. The port should
 -- fold this into the sale transaction (see migration 03) — numeric(14,2) also

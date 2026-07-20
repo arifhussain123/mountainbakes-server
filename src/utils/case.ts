@@ -1,9 +1,9 @@
 /**
  * snake_case ↔ camelCase conversion at the Postgres boundary.
  *
- * The API contract is camelCase (it was Firestore-shaped, and the shared types
- * in src/shared/types are what the frontend compiles against), while Postgres
- * columns are snake_case. Rather than hand-maintaining a field map per table,
+ * The API contract is camelCase (the shared types in src/shared/types are what
+ * the frontend compiles against), while Postgres columns are snake_case. Rather
+ * than hand-maintaining a field map per table,
  * every route converts rows on the way out and payloads on the way in.
  *
  * Scope note: these walk plain objects and arrays only. Date, and any other

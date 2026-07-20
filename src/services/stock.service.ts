@@ -10,8 +10,8 @@ import { businessDateStr, type StockMovementType, type StockRow } from '../share
  * The read-validate-write cores are Postgres functions (migration 12), called via
  * .rpc(). PostgREST gives every call its own transaction, so validate-then-write
  * split across two supabase-js calls could not hold `select ... for update`
- * between them — which is exactly the multi-cashier race the Firestore
- * transaction existed to close.
+ * between them — which is exactly the multi-cashier race the SQL-function
+ * transaction exists to close.
  *
  * Idempotency is the UNIQUE (ref_id, product_id, type) on stock_history: a retry
  * that reuses the same refId is a true no-op. Negative balances remain allowed
@@ -205,9 +205,8 @@ export interface SaleItem {
  *
  * Throws `InsufficientStockError` with nothing persisted if validation fails.
  *
- * NOTE: this differs from the Firestore signature, which took a pre-made
- * DocumentReference so the caller owned the id. Postgres generates the order id,
- * so it is returned instead.
+ * NOTE: the caller does not supply the id — Postgres generates the order id, so
+ * it is returned instead.
  */
 export async function commitSaleTransaction(params: {
   order: Record<string, unknown>;

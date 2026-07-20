@@ -124,8 +124,8 @@ router.put('/:id', authenticate, requireRole('super_admin'), validate(UpdateBran
     const updates = apiToRow(req.body);
     if (typeof req.body.name === 'string') updates['slug'] = slugify(req.body.name);
 
-    // Firestore's .update() rejected a missing document; Postgres would just
-    // report 0 rows affected. Select the id back so a bad :id is still a 404.
+    // A Postgres UPDATE against a missing row just reports 0 rows affected rather
+    // than erroring. Select the id back so a bad :id is still a 404.
     const { data, error } = await supabaseAdmin
       .from('branches')
       .update(updates)

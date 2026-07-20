@@ -43,7 +43,7 @@ create trigger production_orders_touch before update on production_orders
 -- ---------------------------------------------------------------------------
 -- production_order_items — was the embedded items[] array.
 --
--- IMPORTANT: this array had TWO SHAPES in Firestore. On submission each item was
+-- IMPORTANT: this array had TWO SHAPES in the legacy system. On submission each item was
 -- {productId, productName, qty, remarks}. On approval the whole array was
 -- REWRITTEN to {productId, productName, qty, previousBalanceQty,
 -- totalRequiredQty, approvedQty, remainingBalanceQty}. Rather than model two
@@ -69,7 +69,7 @@ create index production_order_items_order_idx on production_order_items (product
 
 -- ---------------------------------------------------------------------------
 -- production_balances — outstanding unmet demand per (branch, product).
--- Was Firestore doc id `{branchId}_{productId}`.
+-- Keyed by (branch_id, product_id).
 --
 -- CRITICAL SEMANTIC: this value is SET (overwritten), never incremented. The
 -- review computes total_required = previous_balance + new_demand and then stores
@@ -108,7 +108,7 @@ create trigger production_balances_touch before update on production_balances
 -- 'accepted', with source = 'branch'). The review is another atomic
 -- check-and-set guarded on status = 'pending'.
 --
--- NOTE a pre-existing weakness carried over from Firestore: the review commits
+-- NOTE a pre-existing weakness carried over from the legacy system: the review commits
 -- in one transaction and the resulting stock movements happen in a SEPARATE one
 -- afterwards. Retry safety depends entirely on the stock_history idempotency
 -- key. The port MAY legitimately fold both into a single transaction, which
@@ -142,7 +142,7 @@ create index production_returns_status_idx on production_returns (status) where 
 
 -- ---------------------------------------------------------------------------
 -- production_stock — the central pool. Branch-agnostic: one row per product,
--- so product_id is the natural primary key (Firestore used it as the doc id).
+-- so product_id is the natural primary key (the legacy system used it as the record id).
 -- Negative balances are permitted, as before.
 -- ---------------------------------------------------------------------------
 create table production_stock (

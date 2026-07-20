@@ -8,7 +8,7 @@ build/
 # Turbo
 .turbo/
 
-# Secrets (NEVER commit) — the Firebase Admin service-account key lives here.
+# Secrets (NEVER commit) — any local credential/key files live here.
 credentials/
 .secrets/
 

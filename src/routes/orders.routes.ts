@@ -14,9 +14,9 @@ import { rowToApi } from '../utils/case';
 export const router = Router();
 
 /**
- * Firestore embedded the line items inside the order document; Postgres
- * normalises them into `order_items` (migration 03). Every read therefore joins
- * them back on so the API shape the frontend compiles against is unchanged.
+ * The line items are normalised into their own `order_items` table
+ * (migration 03). Every read therefore joins them back on so the API shape the
+ * frontend compiles against is unchanged.
  *
  * Callers MUST also order the embedded rows by line_no (see ORDER_ITEMS_ORDER) —
  * PostgREST makes no ordering guarantee for an embedded resource on its own, and
@@ -113,9 +113,9 @@ router.get('/', async (req: AuthRequest, res, next) => {
       query = query.eq('status', status);
     }
 
-    // Date filtering is a real indexed predicate now. Firestore could not combine
-    // an inequality with the equality filters above, so this was done in memory
-    // over the whole result set.
+    // Date filtering is a real indexed predicate: an inequality can be combined
+    // with the equality filters above directly in the query, rather than being
+    // done in memory over the whole result set.
     if (from) query = query.gte('created_at', String(from));
     if (to) query = query.lte('created_at', `${String(to)}Z`);
 

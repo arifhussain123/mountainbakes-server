@@ -1,6 +1,6 @@
 // Tiny in-process TTL cache for hot, rarely-changing reads (products, categories,
 // branches, settings). These are the same for every authenticated user, so a shared
-// process-level cache cuts Firestore reads dramatically without external infra.
+// process-level cache cuts database reads dramatically without external infra.
 //
 // Caveat: the cache is per-process. With a single API instance (the current deploy)
 // invalidation is global and immediate. If the API is ever horizontally scaled, each

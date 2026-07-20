@@ -9,8 +9,7 @@ import { createClient } from '@supabase/supabase-js';
  *   2. Managing auth users                 — supabaseAdmin.auth.admin.*
  *
  * Role / branch data lives in each user's `app_metadata` (server-controlled, and
- * automatically embedded in the access-token JWT), mirroring the old Firebase
- * custom claims.
+ * automatically embedded in the access-token JWT).
  */
 const url = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

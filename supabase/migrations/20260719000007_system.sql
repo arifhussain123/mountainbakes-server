@@ -2,7 +2,7 @@
 -- business-day closure archive.
 
 -- ---------------------------------------------------------------------------
--- settings — a singleton. Firestore used a fixed doc id 'app'; the check
+-- settings — a singleton. The legacy system used a fixed record id 'app'; the check
 -- constraint below enforces that there can only ever be one row.
 -- ---------------------------------------------------------------------------
 create table settings (
@@ -60,7 +60,7 @@ create index audit_logs_target_idx  on audit_logs (target_user_id) where target_
 -- makes the old convention explicit.
 --
 -- This is the table the client subscribes to via Supabase Realtime, replacing
--- the Firestore onSnapshot listener. Realtime respects RLS, so the policies in
+-- the legacy realtime listener. Realtime respects RLS, so the policies in
 -- migration 09 are what scope each user's feed.
 -- ---------------------------------------------------------------------------
 create table notifications (
@@ -86,13 +86,13 @@ create index notifications_role_idx   on notifications (target_role, branch_id, 
 create index notifications_unread_idx on notifications (target_user_id) where not is_read;
 
 -- ---------------------------------------------------------------------------
--- push_subscriptions — REPLACES the Firestore `fcmTokens` collection.
+-- push_subscriptions — REPLACES the legacy device-token collection.
 --
--- Firebase Cloud Messaging has no Supabase equivalent, so push moves to the Web
--- Push protocol (VAPID). The shape changes accordingly: FCM identified a device
+-- The legacy push provider has no Supabase equivalent, so push moves to the Web
+-- Push protocol (VAPID). The shape changes accordingly: the old provider identified a device
 -- by a single opaque token string, whereas Web Push needs the full subscription
 -- triple — endpoint URL plus the p256dh and auth keys used to encrypt the
--- payload. Existing FCM tokens CANNOT be converted; every client must re-subscribe
+-- payload. Existing device tokens CANNOT be converted; every client must re-subscribe
 -- after the switch, so expect this table to start empty regardless of ETL.
 --
 -- endpoint is the natural unique key (one row per browser install).
@@ -100,7 +100,7 @@ create index notifications_unread_idx on notifications (target_user_id) where no
 -- Two behaviours from push.service.ts must be preserved in the port:
 --   * Payloads stay DATA-ONLY. The service worker renders the notification
 --     itself; including a display payload produces duplicate notifications.
---   * Dead subscriptions self-heal. FCM pruned tokens on specific error codes;
+--   * Dead subscriptions self-heal. The old provider pruned tokens on specific error codes;
 --     Web Push signals the same with HTTP 404/410 from the push service, at
 --     which point the row must be deleted.
 -- ---------------------------------------------------------------------------

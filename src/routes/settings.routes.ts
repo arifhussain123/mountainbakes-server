@@ -41,8 +41,7 @@ router.get('/', async (_req, res, next) => {
 /**
  * The `settings` table is a singleton: `id` is a boolean primary key with a
  * `settings_singleton` check constraint pinning it to true. Upserting on `id`
- * therefore creates the row on first write and merges into it thereafter —
- * the Postgres equivalent of Firestore's `.doc('app').set(…, { merge: true })`.
+ * therefore creates the row on first write and merges into it thereafter.
  *
  * updated_at is maintained by the settings_touch trigger — do not set it here.
  */
@@ -107,7 +106,7 @@ router.post('/logo', requireRole('super_admin'), // eslint-disable-next-line @ty
 
     invalidate('settings');
 
-    // Remove the superseded file. The old Firebase code never did this, so logos
+    // Remove the superseded file. Older code never did this, so logos
     // accumulated forever (migration 10 flags it). Done last and best-effort: the
     // new logo is already live, so a failed cleanup must not fail the request —
     // it just leaves one orphan behind. Deleting any earlier would risk removing

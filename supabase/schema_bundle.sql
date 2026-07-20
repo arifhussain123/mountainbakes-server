@@ -9,27 +9,27 @@ begin;
 -- ==========================================================================
 -- 20260719000001_enums_and_helpers.sql
 -- ==========================================================================
--- Mountain Bakes — Firestore → Postgres migration
+-- Mountain Bakes — Postgres schema
 -- 01: enum types, shared helper functions, common column conventions.
 --
 -- Conventions used throughout this schema:
 --   * snake_case columns (the app layer maps to/from its camelCase TS types).
---   * All instants are `timestamptz`. Firestore stored these inconsistently —
---     seed.ts wrote Firestore Timestamp objects while every route wrote ISO-8601
+--   * All instants are `timestamptz`. The legacy system stored these inconsistently —
+--     seed.ts wrote native timestamp objects while every route wrote ISO-8601
 --     strings into the same field. The ETL normalises both into timestamptz.
 --   * Business dates ('YYYY-MM-DD', Asia/Karachi, 2 AM rollover) are `date`.
 --     Do NOT use now()::date for these — the business day boundary is 02:00
 --     Karachi, so the app must keep computing them via shared/utils/timezone.ts
 --     and pass them in explicitly.
---   * Money is `numeric(14,2)`, never float. Firestore stored these as JS
+--   * Money is `numeric(14,2)`, never float. The legacy system stored these as JS
 --     numbers; customers.total_spent in particular was accumulating float drift.
 --   * Quantities are `numeric(14,3)` and are allowed to go negative where the
 --     old code allowed it (see comments on the individual stock tables).
---   * Every table carries `legacy_id text unique` — the original Firestore
---     document ID. This is what lets the ETL rebuild relationships across
+--   * Every table carries `legacy_id text unique` — the original external
+--     record ID. This is what lets the ETL rebuild relationships across
 --     collections. It is intentionally kept after cutover so historical
 --     references and support queries still resolve; drop it only once the
---     Firestore project is decommissioned.
+--     legacy system is decommissioned.
 
 create extension if not exists "pgcrypto";  -- gen_random_uuid()
 
@@ -78,7 +78,7 @@ create type app_theme as enum ('light', 'dark');
 -- JWT claim accessors, used by the RLS policies in migration 09.
 --
 -- Role and branch live in the Supabase user's app_metadata (server-controlled,
--- embedded in the access token) — mirroring the old Firebase custom claims.
+-- embedded in the access token) — mirroring the old system's custom claims.
 -- These are STABLE, not IMMUTABLE: they read per-statement request state.
 -- ---------------------------------------------------------------------------
 
@@ -107,7 +107,7 @@ create or replace function app.is_super_admin() returns boolean
   as $$ select app.jwt_role() = 'super_admin' $$;
 
 -- ---------------------------------------------------------------------------
--- updated_at maintenance. Firestore had the app write updated_at by hand on
+-- updated_at maintenance. The legacy system had the app write updated_at by hand on
 -- every mutation, which was easy to forget; a trigger makes it unconditional.
 -- ---------------------------------------------------------------------------
 
@@ -127,7 +127,7 @@ create or replace function app.touch_updated_at() returns trigger
 -- 02: core reference entities — branches, categories, products, customers, users.
 --
 -- On denormalised *_name columns (branch_name, product_name, category_name):
--- Firestore copied these onto nearly every row. They are PRESERVED here rather
+-- The legacy system copied these onto nearly every row. They are PRESERVED here rather
 -- than normalised away, because in several places they are genuine point-in-time
 -- snapshots (an order must keep the product name as sold, even if the product is
 -- later renamed). Where a column is a cache rather than a snapshot it is called
@@ -166,7 +166,7 @@ create trigger branches_touch before update on branches
 -- users
 --
 -- PK is the Supabase Auth user id — the same deterministic external ID strategy
--- Firestore used (doc id = auth uid). The FK to auth.users with ON DELETE
+-- the legacy system used (record id = auth uid). The FK to auth.users with ON DELETE
 -- CASCADE means deleting the auth user reaps the profile row, which the old
 -- code had to do by hand in two steps.
 --
@@ -249,7 +249,7 @@ create table products (
 );
 
 -- SKU is the natural key used by the price-import path (price.service.ts). It
--- was NOT unique in Firestore, so the ETL may surface duplicates. This unique
+-- was NOT unique in the legacy system, so the ETL may surface duplicates. This unique
 -- index is deliberately partial (ignores NULLs and inactive rows) so the import
 -- lookup is unambiguous without breaking legacy rows that never had a SKU.
 create unique index products_sku_key on products (sku) where sku is not null and is_active;
@@ -263,7 +263,7 @@ create trigger products_touch before update on products
 -- ---------------------------------------------------------------------------
 -- customers
 --
--- total_orders / total_spent are running aggregates. Firestore updated them
+-- total_orders / total_spent are running aggregates. The legacy system updated them
 -- with FieldValue.increment AFTER the order write and outside its transaction,
 -- so an order could exist without its customer stats moving. The port should
 -- fold this into the sale transaction (see migration 03) — numeric(14,2) also
@@ -299,14 +299,14 @@ create trigger customers_touch before update on customers
 -- ---------------------------------------------------------------------------
 -- Order numbers.
 --
--- Firestore used a `counters/orders` document incremented inside the sale
+-- The legacy system used a `counters/orders` record incremented inside the sale
 -- transaction, producing gapless MB-000125 numbers seeded at 124.
 --
 -- A Postgres SEQUENCE is deliberately NOT used: sequences are non-transactional
 -- and leave gaps on rollback. The business treats order numbers as gapless, so
 -- this keeps the counter-row semantics. The row lock serialises order creation,
 -- which is acceptable here (one dyno, modest order rate) and is exactly what
--- Firestore was already doing.
+-- the legacy system was already doing.
 -- ---------------------------------------------------------------------------
 create table counters (
   id    text primary key,
@@ -336,7 +336,7 @@ create or replace function next_order_number() returns text
 -- ---------------------------------------------------------------------------
 -- orders
 --
--- created_at is the business-relevant instant AND the reporting axis. Firestore
+-- created_at is the business-relevant instant AND the reporting axis. The legacy system
 -- filtered on it with inclusive bounds (>= from AND <= to) derived from
 -- businessDayBounds(). Keep the bounds INCLUSIVE when porting: switching to a
 -- half-open `< to` silently drops the final millisecond of a business day.
@@ -389,7 +389,7 @@ create trigger orders_touch before update on orders
   for each row execute function app.touch_updated_at();
 
 -- ---------------------------------------------------------------------------
--- order_items — was the embedded orders.items[] array in Firestore.
+-- order_items — was the embedded orders.items[] array in the legacy system.
 --
 -- Every column here is a POINT-IN-TIME SNAPSHOT of the product as sold. It must
 -- never be resolved through to products at read time, or historical receipts
@@ -465,10 +465,10 @@ create index production_expenses_created_idx on production_expenses (created_at)
 -- 04: branch stock balances, movement history, and the blocked-sale audit log.
 --
 -- THIS IS THE MOST SAFETY-CRITICAL FILE IN THE SCHEMA. Two invariants from the
--- Firestore implementation must survive, and both are enforced here by
+-- legacy implementation must survive, and both are enforced here by
 -- constraints rather than by application code:
 --
---   1. IDEMPOTENCY. Firestore keyed stock_history documents by the composite ID
+--   1. IDEMPOTENCY. The legacy system keyed stock_history records by the composite ID
 --      `{refId}_{productId}_{type}` and did an existence check inside the
 --      transaction: if the doc existed, the whole movement was a no-op. That
 --      composite ID becomes the UNIQUE constraint below. It is NOT merely an
@@ -477,7 +477,7 @@ create index production_expenses_created_idx on production_expenses (created_at)
 --      the balance delta ONLY when the insert actually affected a row.
 --
 --   2. NO LOST UPDATES on the running balance. Two cashiers selling the last
---      unit concurrently must not both succeed. Firestore's optimistic
+--      unit concurrently must not both succeed. The legacy system's optimistic
 --      transaction retry covered this; in Postgres the sale path must take
 --      `select ... for update` on the stock rows, ordered deterministically by
 --      product_id, before validating. The deterministic order is what prevents
@@ -485,7 +485,7 @@ create index production_expenses_created_idx on production_expenses (created_at)
 
 -- ---------------------------------------------------------------------------
 -- stock — one running balance per (branch, product).
--- Was Firestore doc id `{branchId}_{productId}`.
+-- Keyed by (branch_id, product_id).
 --
 -- Balances are deliberately allowed to go NEGATIVE. applyStockMovement never
 -- validated; only the branch-return path (commitBranchReturn) and the sale path
@@ -611,7 +611,7 @@ create trigger production_orders_touch before update on production_orders
 -- ---------------------------------------------------------------------------
 -- production_order_items — was the embedded items[] array.
 --
--- IMPORTANT: this array had TWO SHAPES in Firestore. On submission each item was
+-- IMPORTANT: this array had TWO SHAPES in the legacy system. On submission each item was
 -- {productId, productName, qty, remarks}. On approval the whole array was
 -- REWRITTEN to {productId, productName, qty, previousBalanceQty,
 -- totalRequiredQty, approvedQty, remainingBalanceQty}. Rather than model two
@@ -637,7 +637,7 @@ create index production_order_items_order_idx on production_order_items (product
 
 -- ---------------------------------------------------------------------------
 -- production_balances — outstanding unmet demand per (branch, product).
--- Was Firestore doc id `{branchId}_{productId}`.
+-- Keyed by (branch_id, product_id).
 --
 -- CRITICAL SEMANTIC: this value is SET (overwritten), never incremented. The
 -- review computes total_required = previous_balance + new_demand and then stores
@@ -676,7 +676,7 @@ create trigger production_balances_touch before update on production_balances
 -- 'accepted', with source = 'branch'). The review is another atomic
 -- check-and-set guarded on status = 'pending'.
 --
--- NOTE a pre-existing weakness carried over from Firestore: the review commits
+-- NOTE a pre-existing weakness carried over from the legacy system: the review commits
 -- in one transaction and the resulting stock movements happen in a SEPARATE one
 -- afterwards. Retry safety depends entirely on the stock_history idempotency
 -- key. The port MAY legitimately fold both into a single transaction, which
@@ -710,7 +710,7 @@ create index production_returns_status_idx on production_returns (status) where 
 
 -- ---------------------------------------------------------------------------
 -- production_stock — the central pool. Branch-agnostic: one row per product,
--- so product_id is the natural primary key (Firestore used it as the doc id).
+-- so product_id is the natural primary key (the legacy system used it as the record id).
 -- Negative balances are permitted, as before.
 -- ---------------------------------------------------------------------------
 create table production_stock (
@@ -756,7 +756,7 @@ create index production_stock_history_ref_idx  on production_stock_history (ref_
 --
 -- Invariants carried over from price.service.ts, now constraint-enforced:
 --
---   1. version_number is gapless and unique PER PRODUCT. Firestore derived it
+--   1. version_number is gapless and unique PER PRODUCT. The legacy system derived it
 --      with `where productId = ? order by versionNumber desc limit 1` inside a
 --      transaction. In Postgres, take `select ... for update` on the products
 --      row first — that row lock is what serialises concurrent price changes for
@@ -794,7 +794,7 @@ create table product_price_history (
   changed_on      timestamptz not null default now(),
   activated_on    timestamptz,
   -- Groups rows created by a single spreadsheet import. Minted client-side; was
-  -- an unwritten Firestore .doc().id, now just gen_random_uuid() in app code.
+  -- an unwritten client-minted record id, now just gen_random_uuid() in app code.
   batch_id        uuid,
   constraint product_price_history_version_key unique (product_id, version_number),
   constraint product_price_history_version_positive check (version_number > 0)
@@ -816,7 +816,7 @@ create index product_price_history_batch_idx   on product_price_history (batch_i
 -- ---------------------------------------------------------------------------
 -- Distributed job locks.
 --
--- Both the price-activation job and the daily closing used the same Firestore
+-- Both the price-activation job and the daily closing used the same legacy
 -- pattern: a doc keyed by business date holding running/success/failed, where a
 -- 'running' lock older than 10 minutes is DELIBERATELY STEALABLE so a crashed
 -- dyno cannot wedge the job forever.
@@ -832,7 +832,7 @@ create index product_price_history_batch_idx   on product_price_history (batch_i
 --          or price_activation_locks.started_at < now() - interval '10 minutes')
 -- A zero row count means someone else holds it — skip, do not error.
 --
--- These locks assume a SINGLE dyno (web=1), same as the Firestore version.
+-- These locks assume a SINGLE dyno (web=1), same as the legacy version.
 -- Scaling out needs a real advisory lock, not just this row.
 -- ---------------------------------------------------------------------------
 create table price_activation_locks (
@@ -856,7 +856,7 @@ create index price_activation_locks_stale_idx on price_activation_locks (started
 -- business-day closure archive.
 
 -- ---------------------------------------------------------------------------
--- settings — a singleton. Firestore used a fixed doc id 'app'; the check
+-- settings — a singleton. The legacy system used a fixed record id 'app'; the check
 -- constraint below enforces that there can only ever be one row.
 -- ---------------------------------------------------------------------------
 create table settings (
@@ -914,7 +914,7 @@ create index audit_logs_target_idx  on audit_logs (target_user_id) where target_
 -- makes the old convention explicit.
 --
 -- This is the table the client subscribes to via Supabase Realtime, replacing
--- the Firestore onSnapshot listener. Realtime respects RLS, so the policies in
+-- the legacy realtime listener. Realtime respects RLS, so the policies in
 -- migration 09 are what scope each user's feed.
 -- ---------------------------------------------------------------------------
 create table notifications (
@@ -940,13 +940,13 @@ create index notifications_role_idx   on notifications (target_role, branch_id, 
 create index notifications_unread_idx on notifications (target_user_id) where not is_read;
 
 -- ---------------------------------------------------------------------------
--- push_subscriptions — REPLACES the Firestore `fcmTokens` collection.
+-- push_subscriptions — REPLACES the legacy device-token collection.
 --
--- Firebase Cloud Messaging has no Supabase equivalent, so push moves to the Web
--- Push protocol (VAPID). The shape changes accordingly: FCM identified a device
+-- The legacy push provider has no Supabase equivalent, so push moves to the Web
+-- Push protocol (VAPID). The shape changes accordingly: the old provider identified a device
 -- by a single opaque token string, whereas Web Push needs the full subscription
 -- triple — endpoint URL plus the p256dh and auth keys used to encrypt the
--- payload. Existing FCM tokens CANNOT be converted; every client must re-subscribe
+-- payload. Existing device tokens CANNOT be converted; every client must re-subscribe
 -- after the switch, so expect this table to start empty regardless of ETL.
 --
 -- endpoint is the natural unique key (one row per browser install).
@@ -954,7 +954,7 @@ create index notifications_unread_idx on notifications (target_user_id) where no
 -- Two behaviours from push.service.ts must be preserved in the port:
 --   * Payloads stay DATA-ONLY. The service worker renders the notification
 --     itself; including a display payload produces duplicate notifications.
---   * Dead subscriptions self-heal. FCM pruned tokens on specific error codes;
+--   * Dead subscriptions self-heal. The old provider pruned tokens on specific error codes;
 --     Web Push signals the same with HTTP 404/410 from the push service, at
 --     which point the row must be deleted.
 -- ---------------------------------------------------------------------------
@@ -1013,8 +1013,8 @@ create index business_day_closures_stale_idx on business_day_closures (started_a
 -- 08: chat and presence.
 --
 -- These collections (`chats`, `userPresence`) are NOT used by the Express API —
--- they were read and written directly from the browser via the Firestore client
--- SDK, and are currently broken because that path needs a Firebase Auth session
+-- they were read and written directly from the browser via the legacy client
+-- SDK, and are currently broken because that path needs a legacy auth session
 -- the app no longer creates.
 --
 -- They are included here because the frontend must migrate onto Supabase
@@ -1116,8 +1116,8 @@ create index user_presence_status_idx on user_presence (status) where status <> 
 --      Express API reaches these with the SECRET key, which BYPASSES RLS
 --      entirely. Authorization for these is enforced in application code — e.g.
 --      branch managers scoped to their own branch_id, production users limited
---      to active order statuses — exactly as it was under the Firebase Admin
---      SDK, which likewise bypassed Firestore rules. The policies here are
+--      to active order statuses — exactly as it was under the legacy admin
+--      SDK, which likewise bypassed database rules. The policies here are
 --      DEFENCE IN DEPTH: they matter only if a publishable-key client ever
 --      reaches these tables directly. Do not delete the application-level checks
 --      on the strength of these policies.
@@ -1357,12 +1357,12 @@ create policy production_returns_select_branch on production_returns
 -- ==========================================================================
 -- 20260719000010_storage.sql
 -- ==========================================================================
--- 10: Supabase Storage buckets, replacing Firebase Storage.
+-- 10: Supabase Storage buckets, replacing the legacy object storage.
 --
--- Firebase Storage was used in exactly one place: the company logo upload in
+-- The legacy object storage was used in exactly one place: the company logo upload in
 -- settings.routes.ts. It saved the file with a randomUUID() download token and
 -- hand-built a permanent URL of the form
---   https://firebasestorage.googleapis.com/v0/b/<bucket>/o/<path>?alt=media&token=<uuid>
+--   https://<legacy-storage-host>/v0/b/<bucket>/o/<path>?alt=media&token=<uuid>
 --
 -- That URL never expires and is persisted in settings.logo_url for anonymous
 -- public reads (it renders on the login page and on printed receipts, where
@@ -1437,7 +1437,7 @@ create policy chat_attachments_write on storage.objects
   );
 
 -- NOTE: the old code never deleted the previous logo on re-upload, so files
--- accumulated in Firebase Storage indefinitely. The port should delete the file
+-- accumulated in the legacy object storage indefinitely. The port should delete the file
 -- at settings.logo_path before writing the replacement. Carry the bug over
 -- knowingly or fix it — but don't leave it unnoticed.
 
@@ -1449,7 +1449,7 @@ create policy chat_attachments_write on storage.objects
 --
 -- Why these exist as database functions rather than app code:
 --
--- price.service.ts ran its price changes inside Firestore transactions
+-- price.service.ts ran its price changes inside legacy transactions
 -- (read product + latest version, then write history + product atomically).
 -- supabase-js talks to PostgREST over HTTP, where every call is its own
 -- implicit transaction — there is no way to hold `select ... for update`
@@ -1579,7 +1579,7 @@ $$;
 --
 -- Returns true if this caller now holds the lock, NULL (falsy) if someone else
 -- does. A 'running' lock older than 10 minutes is deliberately stealable so a
--- crashed dyno cannot wedge the job forever — same rule as the Firestore
+-- crashed dyno cannot wedge the job forever — same rule as the legacy
 -- version and as daily-closing.
 --
 -- The WHERE on the DO UPDATE branch is what makes this atomic: a losing caller
@@ -1612,7 +1612,7 @@ $$;
 --
 -- Returns the number of products repriced.
 --
--- The Firestore version had to reconcile several due 'scheduled' rows per
+-- The legacy version had to reconcile several due 'scheduled' rows per
 -- product (highest version wins, the rest superseded) because nothing stopped
 -- more than one from existing. Here the partial unique index
 -- product_price_history_one_scheduled_key makes that impossible — at most one
@@ -1708,7 +1708,7 @@ grant execute on function public.close_price_activation(date, closure_status, in
 --   1. IDEMPOTENCY. stock_history has a UNIQUE (ref_id, product_id, type). Every
 --      movement inserts with `on conflict do nothing` and applies the balance
 --      delta ONLY when the insert actually affected a row. A retry that reuses
---      the same ref_id is therefore a true no-op, exactly as the Firestore
+--      the same ref_id is therefore a true no-op, exactly as the legacy
 --      existence-check-inside-the-transaction was.
 --
 --   2. NO LOST UPDATES. The sale path takes `select ... for update` on the stock
@@ -1720,7 +1720,7 @@ grant execute on function public.close_price_activation(date, closure_status, in
 -- Why these are database functions rather than app code: PostgREST gives each
 -- supabase-js call its own transaction, so validate-then-write split across two
 -- HTTP calls cannot hold a lock between them — precisely the multi-cashier race
--- the Firestore transaction existed to close. Same reasoning as migration 11.
+-- the legacy transaction existed to close. Same reasoning as migration 11.
 --
 -- Balance writes use the RELATIVE form (`stock.balance - qty`) with RETURNING,
 -- not a pre-computed absolute. The lock already serialises us, but the relative
@@ -1864,7 +1864,7 @@ $$;
 -- (productId, productName, categoryId, categoryName, unitPrice, qty, discount,
 -- lineTotal). Duplicate product lines are preserved verbatim in order_items but
 -- AGGREGATED for stock purposes — one balance write and one ledger row per
--- product, matching the Firestore idempotency scheme.
+-- product, matching the legacy idempotency scheme.
 --
 -- Returns jsonb:
 --   {"status":"ok","orderId":uuid,"balances":{<productId>:{productName,before,after}}}
@@ -2037,7 +2037,7 @@ grant execute on function public.commit_sale(jsonb, jsonb, uuid, date) to servic
 -- ==========================================================================
 -- 13: atomic customer order statistics.
 --
--- Firestore updated these with FieldValue.increment(), which is atomic on the
+-- The legacy system updated these with a server-side increment operator, atomic on the
 -- server and immune to the read-modify-write race two concurrent orders for the
 -- same customer would otherwise hit.
 --
@@ -2075,7 +2075,7 @@ grant execute on function public.increment_customer_stats(uuid, numeric) to serv
 -- users.routes.ts raises a notification when an admin resets someone's password
 -- (notify({ type: 'password_reset', ... })), but that value was never in the
 -- enum — migration 01 lists only the order/stock/production types. Under
--- Firestore `type` was a free-text string so this went unnoticed; in Postgres it
+-- In the legacy system `type` was a free-text string so this went unnoticed; in Postgres it
 -- is a real enum and the insert fails with 22P02, taking the whole reset request
 -- down with it.
 --
