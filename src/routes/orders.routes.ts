@@ -241,12 +241,16 @@ router.post('/', requireRole('super_admin', 'branch_manager'), validate(CreateOr
     });
     if (statsErr) throw statsErr;
 
+    // branchId is null: production_user is a central role with no branch claim, and
+    // the notifications RLS filters out a role broadcast whose branch_id doesn't
+    // match the recipient's — so any non-null branchId hides this from every
+    // production user. The branch is already named in the message.
     await notify({
       type: 'order_created',
       title: 'New Order',
       message: `Order ${orderNumber} created at ${branch.name}`,
       targetRole: 'production_user',
-      branchId,
+      branchId: null,
       relatedId: order.id,
     });
 
@@ -355,8 +359,19 @@ router.post('/pos', requireRole('super_admin', 'branch_manager'), validate(Creat
         ? `${crossed[0]!.productName} is low on stock (${crossed[0]!.after} left) at ${branch.name}. Please create a Production Order.`
         : `${crossed.length} products are low on stock at ${branch.name}. Please create a Production Order.`;
       await Promise.all(
+        // Only branch_manager is branch-scoped, so only it keeps branchId (which
+        // limits the alert to that branch's manager). production_user/super_admin
+        // are central and carry no branch claim — a non-null branchId there would
+        // be filtered out by the notifications RLS, so they get null.
         (['branch_manager', 'production_user', 'super_admin'] as const).map((role) =>
-          notify({ type: 'low_stock', title: 'Low Stock', message, targetRole: role, branchId, relatedId: null }),
+          notify({
+            type: 'low_stock',
+            title: 'Low Stock',
+            message,
+            targetRole: role,
+            branchId: role === 'branch_manager' ? branchId : null,
+            relatedId: null,
+          }),
         ),
       ).catch((e) => console.error('[stock] failed to send low-stock notifications', e));
     }

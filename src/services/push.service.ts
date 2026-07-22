@@ -44,6 +44,12 @@ export const TYPE_URL: Record<string, string> = {
   production_demand: '/production-orders',
   production_reviewed: '/branch-new-orders',
   production_return: '/production-returns',
+  // Support / Query tickets (Admin lands on the Support Center)
+  ticket_created: '/tickets',
+  ticket_replied: '/tickets',
+  ticket_resolved: '/tickets',
+  ticket_reopened: '/tickets',
+  ticket_status_changed: '/tickets',
 };
 
 /**

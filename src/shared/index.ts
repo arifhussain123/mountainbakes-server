@@ -10,6 +10,7 @@ export * from './types/production-ops.types';
 export * from './types/expense.types';
 export * from './types/stock.types';
 export * from './types/notification.types';
+export * from './types/support-ticket.types';
 export * from './types/settings.types';
 export * from './types/report.types';
 
@@ -28,6 +29,7 @@ export * from './schemas/production-order.schemas';
 export * from './schemas/production-ops.schemas';
 export * from './schemas/expense.schemas';
 export * from './schemas/settings.schemas';
+export * from './schemas/support-ticket.schemas';
 export * from './schemas/price.schemas';
 
 // Utils

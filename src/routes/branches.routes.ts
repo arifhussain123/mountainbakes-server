@@ -102,12 +102,16 @@ router.post('/', authenticate, requireRole('super_admin'), validate(CreateBranch
 
     // Notify admins of new branch. In-app only for now — web push is not
     // delivered until VAPID is implemented (see push.service.ts).
+    // branchId is null: super_admin is a central role with no branch claim, and the
+    // notifications RLS filters out a role broadcast whose branch_id doesn't match
+    // the recipient's — so a non-null branchId hides this from every admin. The new
+    // branch is still linked via relatedId.
     await notify({
       type: 'branch_added',
       title: 'New Branch Added',
       message: `${name} has been added to the system`,
       targetRole: 'super_admin',
-      branchId: data.id,
+      branchId: null,
       relatedId: data.id,
     });
 

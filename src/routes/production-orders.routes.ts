@@ -106,12 +106,18 @@ router.post('/', requireRole('branch_manager'), validate(CreateProductionOrderSc
     );
     if (itemsErr) throw itemsErr;
 
+    // NOTE: branchId is deliberately null here. Production users are a central
+    // role with no branch claim (only branch_manager carries a branchId), and the
+    // notifications RLS narrows a role broadcast that carries a branch_id to that
+    // branch — so setting branchId to the submitting branch would filter this out
+    // for every production user. The branch is already named in the message and
+    // linked via relatedId. Keep it null so all production users see the demand.
     await notify({
       type: 'production_demand',
       title: 'New Production Demand Received',
       message: `${req.user!.branchName || 'A branch'} submitted ${resolvedItems.length} item${resolvedItems.length === 1 ? '' : 's'}`,
       targetRole: 'production_user',
-      branchId,
+      branchId: null,
       relatedId: order.id,
     });
 
@@ -142,7 +148,16 @@ router.get('/', async (req: AuthRequest, res, next) => {
     const { data, error } = await query;
     if (error) throw error;
 
-    const orders = rowToApi<Record<string, unknown>[]>(data ?? []);
+    // DB columns are business_date / submitted_time; the API contract
+    // (BranchProductionOrder) exposes them as date / time. rowToApi only
+    // camelCases keys, so remap those two here — otherwise the client's
+    // date/time are undefined (blank columns, and slipReference → "PO--").
+    const rows = rowToApi<Record<string, unknown>[]>(data ?? []);
+    const orders = rows.map(({ businessDate, submittedTime, ...rest }) => ({
+      ...rest,
+      date: businessDate,
+      time: submittedTime,
+    }));
     res.json({ orders, total: orders.length });
   } catch (err) {
     next(err);

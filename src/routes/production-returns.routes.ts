@@ -69,12 +69,15 @@ router.post('/', validate(CreateProductionReturnSchema), async (req: AuthRequest
       .single();
     if (insErr) throw insErr;
 
+    // branchId null: production_user has no branch claim, and the notifications RLS
+    // filters out a role broadcast whose branch_id doesn't match the recipient's.
+    // The source branch is already named in the message.
     await notify({
       type: 'production_return',
       title: 'Product Return Recorded',
       message: `${qty} × ${productRes.data.name} from ${branchRes.data.name}`,
       targetRole: 'production_user',
-      branchId,
+      branchId: null,
       relatedId: created.id,
     });
 

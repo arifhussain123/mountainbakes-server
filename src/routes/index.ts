@@ -19,6 +19,7 @@ import { router as reportsRouter } from './reports.routes';
 import { router as searchRouter } from './search.routes';
 import { router as settingsRouter } from './settings.routes';
 import { router as businessDayRouter } from './business-day.routes';
+import { router as supportTicketsRouter } from './support-tickets.routes';
 
 export function setupRoutes(app: Express) {
   app.use('/api/auth', authRouter);
@@ -42,4 +43,5 @@ export function setupRoutes(app: Express) {
   app.use('/api/search', searchRouter);
   app.use('/api/settings', settingsRouter);
   app.use('/api/business-day', businessDayRouter);
+  app.use('/api/support-tickets', supportTicketsRouter);
 }

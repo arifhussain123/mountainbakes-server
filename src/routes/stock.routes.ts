@@ -132,13 +132,15 @@ router.post('/return', requireRole('super_admin', 'branch_manager'), validate(Cr
     });
     if (insertErr) throw insertErr;
 
-    // 4) Notify Production in real time.
+    // 4) Notify Production in real time. branchId null: production_user has no
+    // branch claim, and the notifications RLS filters out a role broadcast whose
+    // branch_id doesn't match the recipient's. The branch is named in the message.
     await notify({
       type: 'production_return',
       title: 'Stock Returned',
       message: `${qty} × ${productName} from ${branchName}`,
       targetRole: 'production_user',
-      branchId,
+      branchId: null,
       relatedId: returnId,
     });
 
