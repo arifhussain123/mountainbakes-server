@@ -2,6 +2,7 @@ export type ExpensePaymentMethod = 'cash' | 'easypaisa';
 
 export interface Expense {
   id: string;
+  expenseNumber: string; // human-readable EXP-###### (unique across branch + production expenses)
   branchId: string;
   branchName: string;
   date: string; // 'YYYY-MM-DD' (Karachi)

@@ -25,6 +25,7 @@ export interface BranchProductionOrderItem {
 
 export interface BranchProductionOrder {
   id: string;
+  demandNumber: string; // human-readable DMD-######
   branchId: string;
   branchName: string;
   date: string; // 'YYYY-MM-DD' (Karachi)

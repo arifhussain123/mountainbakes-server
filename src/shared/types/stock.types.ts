@@ -26,6 +26,7 @@ export interface StockHistoryRow {
 /** Computed per-product row for the Stock page. */
 export interface StockRow {
   productId: string;
+  stockCode: string; // human-readable STK-###### (per product)
   productName: string;
   opening: number;
   newQty: number;

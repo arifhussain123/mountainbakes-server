@@ -56,7 +56,7 @@ export async function computeStockRows(branchId: string, date: string = business
   // (stock_history_branch_date_idx), rather than fetching a branch's entire
   // history and filtering in memory.
   const [products, stock, history] = await Promise.all([
-    supabaseAdmin.from('products').select('id, name').eq('is_active', true),
+    supabaseAdmin.from('products').select('id, name, stock_code').eq('is_active', true),
     supabaseAdmin.from('stock').select('product_id, balance').eq('branch_id', branchId),
     supabaseAdmin
       .from('stock_history')
@@ -86,12 +86,13 @@ export async function computeStockRows(branchId: string, date: string = business
     if (h.type === 'return') returned.set(h.product_id, (returned.get(h.product_id) ?? 0) - delta);
   }
 
-  return ((products.data ?? []) as { id: string; name: string }[])
+  return ((products.data ?? []) as { id: string; name: string; stock_code: string }[])
     .map((p) => {
       const balance = balanceByProduct.get(p.id) ?? 0;
       return {
         productId: p.id,
         productName: p.name,
+        stockCode: p.stock_code,
         opening: balance - (net.get(p.id) ?? 0), // balance at start of the business day
         newQty: newQty.get(p.id) ?? 0,
         sold: sold.get(p.id) ?? 0,

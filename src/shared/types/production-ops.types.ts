@@ -71,6 +71,7 @@ export type ProductionExpensePaymentMethod = 'cash' | 'easypaisa' | 'bank_accoun
 
 export interface ProductionExpense {
   id: string;
+  expenseNumber: string; // human-readable EXP-###### (unique across branch + production expenses)
   date: string; // 'YYYY-MM-DD' (Karachi)
   category: string;
   description: string;
