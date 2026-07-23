@@ -22,6 +22,22 @@ export interface SupportEditableField {
 }
 
 /**
+ * One editable line of a sale (order_items row). Carried on a sale reference so
+ * the Support Center can change the product, qty, or unit price of each line and
+ * apply it live via edit_sale_items. `discount` is carried through unchanged (not
+ * exposed in the editor); `unitPrice` is the "amount" the admin edits per unit.
+ */
+export interface SupportSaleItem {
+  productId: string | null;
+  productName: string;
+  categoryId: string | null;
+  categoryName: string | null;
+  unitPrice: number;
+  qty: number;
+  discount: number;
+}
+
+/**
  * The resolved detail for a reference ID. Rendered auto-adjusted in both the
  * Help Desk (before submit) and the Support Center (on the ticket), and stored
  * on the ticket as `referenceSnapshot`.
@@ -34,6 +50,11 @@ export interface SupportReference {
   fields: SupportDetailField[];
   /** Directly editable fields (live mutation applies to expenses only). */
   editableFields: SupportEditableField[];
+  /**
+   * For sale references: the current line items, editable in the Support Center
+   * and applied live (product / qty / unit price) via edit_sale_items.
+   */
+  saleItems?: SupportSaleItem[];
   /** Internal uuid of the underlying row, used when applying a figure edit. */
   entityId: string;
   /** For expenses: which table the row lives in, so the figure edit hits the right one. */

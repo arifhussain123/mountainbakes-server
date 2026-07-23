@@ -8,6 +8,8 @@ import {
   EditSupportTicketSchema,
   ResolveSupportTicketSchema,
   ChangeFiguresSchema,
+  EditSaleItemsSchema,
+  businessDateStr,
   type SupportReference,
   type SupportReferenceType,
 } from '../shared';
@@ -56,6 +58,16 @@ async function resolveReference(user: AuthRequest['user'], rawRef: string): Prom
     const { data, error } = await q.maybeSingle();
     if (error) throw error;
     if (!data) throw new LookupError(`No sale found for ${referenceId}.`, 404);
+
+    // Line items are editable in the Support Center: the admin can change a
+    // line's product, qty, or unit price, and it applies live via edit_sale_items.
+    const { data: items, error: itemsErr } = await supabaseAdmin
+      .from('order_items')
+      .select('product_id, product_name, category_id, category_name, unit_price, qty, discount')
+      .eq('order_id', data.id)
+      .order('line_no', { ascending: true });
+    if (itemsErr) throw itemsErr;
+
     return {
       type,
       referenceId,
@@ -69,8 +81,17 @@ async function resolveReference(user: AuthRequest['user'], rawRef: string): Prom
         { label: 'Status', value: String(data.status ?? '—') },
         { label: 'Date', value: String(data.business_date ?? '—') },
       ],
-      // Order totals derive from line items; they are shown for correction as a
-      // recorded note rather than mutated directly.
+      saleItems: (items ?? []).map((it) => ({
+        productId: it.product_id,
+        productName: it.product_name,
+        categoryId: it.category_id,
+        categoryName: it.category_name,
+        unitPrice: Number(it.unit_price),
+        qty: Number(it.qty),
+        discount: Number(it.discount ?? 0),
+      })),
+      // Order totals are recomputed from the line edits by edit_sale_items — the
+      // flat editableFields path (expenses) does not apply to sales.
       editableFields: [],
     };
   }
@@ -393,6 +414,73 @@ router.patch('/:id/figures', requireRole('super_admin'), validate(ChangeFiguresS
     } catch { /* best-effort */ }
 
     res.json({ ticket: rowToApi(data), applied });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PATCH /api/support/:id/sale-items — admin "Change" for a SALE query. Applies a
+// live edit to the order's line items (product / qty / unit price, add / remove),
+// recomputing order totals and reconciling stock atomically via edit_sale_items,
+// then resolves the ticket. Overdrawing a branch balance is rejected (409).
+router.patch('/:id/sale-items', requireRole('super_admin'), validate(EditSaleItemsSchema), async (req: AuthRequest, res, next) => {
+  try {
+    const ticket = await getTicket(req.params.id);
+    if (!ticket) { res.status(404).json({ error: 'Ticket not found' }); return; }
+    if (ticket.reference_type !== 'sale') { res.status(400).json({ error: 'Only sale queries support line-item edits' }); return; }
+
+    const snapshot = (ticket.reference_snapshot ?? null) as SupportReference | null;
+    const orderId = snapshot?.entityId;
+    if (!orderId) { res.status(400).json({ error: 'This ticket has no linked sale to edit' }); return; }
+
+    const { items, note } = req.body as { items: unknown[]; note: string };
+
+    const { data: result, error } = await supabaseAdmin.rpc('edit_sale_items', {
+      p_order_id: orderId,
+      p_items: items,
+      p_business_date: businessDateStr(),
+    });
+    if (error) throw error;
+
+    const outcome = (result ?? {}) as { status?: string; shortfalls?: unknown; grandTotal?: number };
+    if (outcome.status === 'not_found') { res.status(404).json({ error: 'The linked sale no longer exists' }); return; }
+    if (outcome.status === 'insufficient') {
+      const shortfalls = (outcome.shortfalls ?? []) as Array<{ productName: string; requested: number; available: number }>;
+      const detail = shortfalls.map((s) => `${s.productName} (need ${s.requested}, have ${s.available})`).join('; ');
+      res.status(409).json({ error: `Not enough stock: ${detail}`, shortfalls: outcome.shortfalls });
+      return;
+    }
+
+    // Record what changed and resolve the ticket in one update.
+    const resolutionNote = [note, `Sale items updated (new total ${money(outcome.grandTotal)})`].filter(Boolean).join(' — ');
+    const { data, error: updErr } = await supabaseAdmin
+      .from('support_tickets')
+      .update({
+        status: 'resolved',
+        resolution_note: resolutionNote,
+        resolved_by: req.user!.uid,
+        resolved_by_name: req.user!.email,
+        resolved_at: new Date().toISOString(),
+      })
+      .eq('id', req.params.id)
+      .select('*')
+      .single();
+    if (updErr) throw updErr;
+
+    try {
+      if (data.raised_by) {
+        await notify({
+          type: 'support_resolved',
+          title: `Query ${data.ticket_number} resolved`,
+          message: resolutionNote || `Your query on ${data.reference_id} was resolved.`,
+          targetUserId: data.raised_by,
+          branchId: data.branch_id,
+          relatedId: data.id,
+        });
+      }
+    } catch { /* best-effort */ }
+
+    res.json({ ticket: rowToApi(data), applied: true });
   } catch (err) {
     next(err);
   }
