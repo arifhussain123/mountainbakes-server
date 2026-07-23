@@ -82,7 +82,7 @@ Storage for files, Supabase Realtime for live updates. There is no other backend
   pending VAPID Web Push over the `push_subscriptions` table — see
   `services/push.service.ts`.
 - **Realtime = Supabase Realtime.** The frontend subscribes to Postgres changes
-  (notifications, chats, price/production updates) through `@/lib/supabase/client`;
+  (notifications, price/production updates) through `@/lib/supabase/client`;
   there is no separate realtime service.
 
 Roles: `super_admin`, `branch_manager`, `production_user`.
@@ -153,7 +153,7 @@ All paths in this section are inside `../mountainbakes-frontend/`.
 TanStack Query throughout. **Every query key comes from `src/lib/queryKeys.ts` (`qk`)** —
 never hand-roll a key, or invalidations silently miss it. `AuthProvider`, `QueryProvider`,
 `RealtimeProvider`, `ThemeProvider` are mounted once at the root; consume auth via
-`useAuth()` and realtime via `useNotifications()` / `useChats()` rather than opening your
+`useAuth()` and realtime via `useNotifications()` rather than opening your
 own listeners. The API client is `src/lib/api/client.ts` (`apiCall`), which attaches the
 Bearer token and normalizes errors into `ApiError`.
 

@@ -67,11 +67,6 @@ create type notification_type as enum (
   'production_demand', 'production_reviewed', 'production_return'
 );
 
-create type chat_type       as enum ('dm', 'group');
-create type group_chat_type as enum ('admin_only', 'production_team', 'all_branch_managers', 'custom');
-create type message_type    as enum ('text', 'image', 'file', 'system');
-create type presence_status as enum ('online', 'offline', 'away');
-
 create type app_theme as enum ('light', 'dark');
 
 -- ---------------------------------------------------------------------------
@@ -119,7 +114,6 @@ create or replace function app.touch_updated_at() returns trigger
     return new;
   end;
   $$;
-
 
 -- ==========================================================================
 -- 20260719000002_core.sql
@@ -290,7 +284,6 @@ create index customers_phone_idx  on customers (phone) where phone is not null;
 create trigger customers_touch before update on customers
   for each row execute function app.touch_updated_at();
 
-
 -- ==========================================================================
 -- 20260719000003_orders_expenses.sql
 -- ==========================================================================
@@ -458,7 +451,6 @@ create table production_expenses (
 create index production_expenses_date_idx    on production_expenses (business_date desc);
 create index production_expenses_created_idx on production_expenses (created_at);
 
-
 -- ==========================================================================
 -- 20260719000004_stock.sql
 -- ==========================================================================
@@ -561,7 +553,6 @@ create table stock_audit_log (
 );
 
 create index stock_audit_log_branch_idx on stock_audit_log (branch_id, created_at desc);
-
 
 -- ==========================================================================
 -- 20260719000005_production.sql
@@ -745,7 +736,6 @@ create table production_stock_history (
 create index production_stock_history_date_idx on production_stock_history (business_date, product_id);
 create index production_stock_history_ref_idx  on production_stock_history (ref_id);
 
-
 -- ==========================================================================
 -- 20260719000006_pricing.sql
 -- ==========================================================================
@@ -847,7 +837,6 @@ create table price_activation_locks (
 
 create index price_activation_locks_stale_idx on price_activation_locks (started_at)
   where status = 'running';
-
 
 -- ==========================================================================
 -- 20260719000007_system.sql
@@ -1006,102 +995,6 @@ create index business_day_closures_date_idx on business_day_closures (business_d
 create index business_day_closures_stale_idx on business_day_closures (started_at)
   where status = 'running';
 
-
--- ==========================================================================
--- 20260719000008_chat.sql
--- ==========================================================================
--- 08: chat and presence.
---
--- These collections (`chats`, `userPresence`) are NOT used by the Express API —
--- they were read and written directly from the browser via the legacy client
--- SDK, and are currently broken because that path needs a legacy auth session
--- the app no longer creates.
---
--- They are included here because the frontend must migrate onto Supabase
--- Realtime, and that needs tables plus RLS. Unlike every other table in this
--- schema, these are written by the CLIENT under RLS rather than by the API under
--- the secret key — so their policies in migration 09 are load-bearing security,
--- not defence in depth.
-
--- ---------------------------------------------------------------------------
--- chats — a DM or a group conversation.
--- ---------------------------------------------------------------------------
-create table chats (
-  id              uuid primary key default gen_random_uuid(),
-  legacy_id       text unique,
-  type            chat_type not null,
-  -- Only meaningful for type = 'group'.
-  group_type      group_chat_type,
-  name            text,
-  branch_id       uuid references branches (id) on delete set null,
-  created_by      uuid references users (id) on delete set null,
-  last_message_at timestamptz,
-  last_message    text,                  -- preview cache for the chat list
-  created_at      timestamptz not null default now(),
-  updated_at      timestamptz not null default now(),
-  constraint chats_group_has_type check (type <> 'group' or group_type is not null)
-);
-
-create index chats_recent_idx on chats (last_message_at desc nulls last);
-
-create trigger chats_touch before update on chats
-  for each row execute function app.touch_updated_at();
-
--- ---------------------------------------------------------------------------
--- chat_participants — membership. This table is what every chat RLS policy
--- pivots on, so keep the (chat_id, user_id) unique constraint.
--- ---------------------------------------------------------------------------
-create table chat_participants (
-  id           uuid primary key default gen_random_uuid(),
-  chat_id      uuid not null references chats (id) on delete cascade,
-  user_id      uuid not null references users (id) on delete cascade,
-  joined_at    timestamptz not null default now(),
-  last_read_at timestamptz,
-  constraint chat_participants_key unique (chat_id, user_id)
-);
-
-create index chat_participants_user_idx on chat_participants (user_id);
-
--- ---------------------------------------------------------------------------
--- chat_messages
--- ---------------------------------------------------------------------------
-create table chat_messages (
-  id           uuid primary key default gen_random_uuid(),
-  legacy_id    text unique,
-  chat_id      uuid not null references chats (id) on delete cascade,
-  sender_id    uuid references users (id) on delete set null,
-  sender_name  text,                    -- snapshot; survives user deletion
-  type         message_type not null default 'text',
-  body         text,
-  -- Populated for type in ('image', 'file'); points at Supabase Storage.
-  attachment_path text,
-  attachment_name text,
-  attachment_size integer,
-  created_at   timestamptz not null default now(),
-  edited_at    timestamptz,
-  constraint chat_messages_text_has_body
-    check (type <> 'text' or body is not null)
-);
-
-create index chat_messages_chat_idx on chat_messages (chat_id, created_at desc);
-
--- ---------------------------------------------------------------------------
--- user_presence — was the `userPresence` collection.
---
--- One row per user, heartbeat-updated. Consider driving the online/offline
--- indicator from Supabase Realtime Presence (which is ephemeral and needs no
--- table) instead of this table; it is modelled here so the existing behaviour
--- can be ported literally first, then simplified.
--- ---------------------------------------------------------------------------
-create table user_presence (
-  user_id   uuid primary key references users (id) on delete cascade,
-  status    presence_status not null default 'offline',
-  last_seen timestamptz not null default now()
-);
-
-create index user_presence_status_idx on user_presence (status) where status <> 'offline';
-
-
 -- ==========================================================================
 -- 20260719000009_rls.sql
 -- ==========================================================================
@@ -1112,7 +1005,7 @@ create index user_presence_status_idx on user_presence (status) where status <> 
 -- There are two classes of table in this schema, and they need opposite levels
 -- of paranoia:
 --
---   A. API-OWNED tables (everything except chat/presence/notifications). The
+--   A. API-OWNED tables (everything except notifications). The
 --      Express API reaches these with the SECRET key, which BYPASSES RLS
 --      entirely. Authorization for these is enforced in application code — e.g.
 --      branch managers scoped to their own branch_id, production users limited
@@ -1122,11 +1015,11 @@ create index user_presence_status_idx on user_presence (status) where status <> 
 --      reaches these tables directly. Do not delete the application-level checks
 --      on the strength of these policies.
 --
---   B. CLIENT-OWNED tables (chats, chat_participants, chat_messages,
---      user_presence, notifications). The browser talks to these directly with
---      the user's JWT, and Realtime subscriptions are filtered by exactly these
---      policies. Here RLS is the ONLY thing standing between one user and
---      another's messages. Treat changes to these as security changes.
+--   B. CLIENT-OWNED tables (notifications, push_subscriptions). The browser
+--      talks to these directly with the user's JWT, and Realtime subscriptions
+--      are filtered by exactly these policies. Here RLS is the ONLY thing
+--      standing between one user and another's feed. Treat changes to these as
+--      security changes.
 --
 -- Every table gets RLS enabled. A table with RLS on and no policy denies all
 -- access to non-secret-key callers, which is the correct default — so tables
@@ -1161,46 +1054,11 @@ alter table audit_logs              enable row level security;
 alter table notifications           enable row level security;
 alter table push_subscriptions      enable row level security;
 alter table business_day_closures   enable row level security;
-alter table chats                   enable row level security;
-alter table chat_participants       enable row level security;
-alter table chat_messages           enable row level security;
-alter table user_presence           enable row level security;
 
 -- No policies are defined for: counters, price_activation_locks,
 -- business_day_closures, audit_logs, stock_audit_log, production_balances,
 -- production_stock_history, stock_history, product_price_history.
 -- These are API/job-internal and must never be reachable with a user JWT.
-
--- ---------------------------------------------------------------------------
--- Chat membership lookup.
---
--- This MUST be SECURITY DEFINER. Every chat policy needs to ask "is the caller a
--- participant of this chat?", which means reading chat_participants — but
--- chat_participants itself has a SELECT policy, so a plain subquery there causes
--- Postgres to re-evaluate that policy while it is already evaluating it:
---   ERROR: infinite recursion detected in policy for relation "chat_participants"
---
--- SECURITY DEFINER runs the lookup as the function owner, which bypasses RLS on
--- the inner read and breaks the cycle. search_path is pinned so the definer
--- rights cannot be hijacked by a caller-controlled search_path.
---
--- Do not "simplify" this back into an inline EXISTS on chat_participants.
--- ---------------------------------------------------------------------------
-create or replace function app.is_chat_participant(target_chat_id uuid)
-  returns boolean
-  language sql
-  stable
-  security definer
-  set search_path = public, pg_temp
-  as $$
-    select exists (
-      select 1 from chat_participants
-      where chat_id = target_chat_id and user_id = auth.uid()
-    )
-  $$;
-
-revoke execute on function app.is_chat_participant(uuid) from public;
-grant execute on function app.is_chat_participant(uuid) to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Class B — client-owned. These are the load-bearing ones.
@@ -1227,59 +1085,6 @@ create policy notifications_update_own on notifications
   for update to authenticated
   using (target_user_id = auth.uid())
   with check (target_user_id = auth.uid());
-
--- Chats: visible only to participants.
-create policy chats_select_participant on chats
-  for select to authenticated
-  using (app.is_chat_participant(chats.id));
-
-create policy chats_insert_own on chats
-  for insert to authenticated
-  with check (created_by = auth.uid());
-
--- A participant row is visible if it is yours, or if it belongs to a chat you
--- are in. The second arm goes through the SECURITY DEFINER helper above — an
--- inline EXISTS on this same table would recurse.
-create policy chat_participants_select on chat_participants
-  for select to authenticated
-  using (
-    user_id = auth.uid()
-    or app.is_chat_participant(chat_participants.chat_id)
-  );
-
--- Updating last_read_at is the caller's own bookkeeping.
-create policy chat_participants_update_own on chat_participants
-  for update to authenticated
-  using (user_id = auth.uid())
-  with check (user_id = auth.uid());
-
--- Messages: readable by participants, writable only as yourself.
-create policy chat_messages_select on chat_messages
-  for select to authenticated
-  using (app.is_chat_participant(chat_messages.chat_id));
-
-create policy chat_messages_insert on chat_messages
-  for insert to authenticated
-  with check (
-    sender_id = auth.uid()
-    and app.is_chat_participant(chat_messages.chat_id)
-  );
-
-create policy chat_messages_update_own on chat_messages
-  for update to authenticated
-  using (sender_id = auth.uid())
-  with check (sender_id = auth.uid());
-
--- Presence: everyone signed in can see who is online; you may only write your own.
-create policy user_presence_select_all on user_presence
-  for select to authenticated using (true);
-
-create policy user_presence_upsert_own on user_presence
-  for insert to authenticated with check (user_id = auth.uid());
-
-create policy user_presence_update_own on user_presence
-  for update to authenticated
-  using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 -- Push subscriptions: a client registers and revokes its own.
 create policy push_subscriptions_select_own on push_subscriptions
@@ -1353,7 +1158,6 @@ create policy production_returns_select_branch on production_returns
   for select to authenticated
   using (app.is_super_admin() or branch_id = app.jwt_branch_id());
 
-
 -- ==========================================================================
 -- 20260719000010_storage.sql
 -- ==========================================================================
@@ -1382,12 +1186,6 @@ values (
 )
 on conflict (id) do nothing;
 
--- Chat attachments are private: readable only by participants of the chat the
--- attachment belongs to. Path convention: chat-attachments/{chat_id}/{filename}
-insert into storage.buckets (id, name, public, file_size_limit)
-values ('chat-attachments', 'chat-attachments', false, 10485760)  -- 10 MB
-on conflict (id) do nothing;
-
 -- ---------------------------------------------------------------------------
 -- Branding bucket policies.
 --
@@ -1411,36 +1209,10 @@ create policy branding_admin_delete on storage.objects
   for delete to authenticated
   using (bucket_id = 'branding' and app.is_super_admin());
 
--- ---------------------------------------------------------------------------
--- Chat attachment policies. The first path segment is the chat id, so
--- membership is checked against chat_participants.
--- ---------------------------------------------------------------------------
--- Goes through app.is_chat_participant (SECURITY DEFINER, see migration 09) for
--- the same reason the table policies do. The path segment is cast defensively:
--- a non-UUID first segment would otherwise raise 22P02 instead of denying.
-create policy chat_attachments_read on storage.objects
-  for select to authenticated
-  using (
-    bucket_id = 'chat-attachments'
-    and app.is_chat_participant(
-      nullif((storage.foldername(name))[1], '')::uuid
-    )
-  );
-
-create policy chat_attachments_write on storage.objects
-  for insert to authenticated
-  with check (
-    bucket_id = 'chat-attachments'
-    and app.is_chat_participant(
-      nullif((storage.foldername(name))[1], '')::uuid
-    )
-  );
-
 -- NOTE: the old code never deleted the previous logo on re-upload, so files
 -- accumulated in the legacy object storage indefinitely. The port should delete the file
 -- at settings.logo_path before writing the replacement. Carry the bug over
 -- knowingly or fix it — but don't leave it unnoticed.
-
 
 -- ==========================================================================
 -- 20260719000011_pricing_functions.sql
@@ -1695,7 +1467,6 @@ grant execute on function public.apply_price_change(uuid, numeric, date, text, p
 grant execute on function public.claim_price_activation(date, closure_trigger) to service_role;
 grant execute on function public.activate_due_prices(date) to service_role;
 grant execute on function public.close_price_activation(date, closure_status, integer, text) to service_role;
-
 
 -- ==========================================================================
 -- 20260719000012_stock_functions.sql
@@ -2031,7 +1802,6 @@ grant execute on function public.apply_stock_movement(uuid, uuid, text, numeric,
 grant execute on function public.commit_branch_return(uuid, uuid, text, numeric, text, date) to service_role;
 grant execute on function public.commit_sale(jsonb, jsonb, uuid, date) to service_role;
 
-
 -- ==========================================================================
 -- 20260719000013_customer_stats.sql
 -- ==========================================================================
@@ -2066,7 +1836,6 @@ $$;
 revoke all on function public.increment_customer_stats(uuid, numeric) from public, anon, authenticated;
 grant execute on function public.increment_customer_stats(uuid, numeric) to service_role;
 
-
 -- ==========================================================================
 -- 20260719000014_password_reset_notification.sql
 -- ==========================================================================
@@ -2087,7 +1856,6 @@ grant execute on function public.increment_customer_stats(uuid, numeric) to serv
 -- value is not USED in that same transaction — which it is not here.
 
 alter type notification_type add value if not exists 'password_reset';
-
 
 -- ==========================================================================
 -- 20260719000015_production_stock_function.sql
@@ -2165,7 +1933,6 @@ $$;
 
 revoke all on function public.apply_production_stock_movement(uuid, text, numeric, production_stock_movement_type, text, date) from public, anon, authenticated;
 grant execute on function public.apply_production_stock_movement(uuid, text, numeric, production_stock_movement_type, text, date) to service_role;
-
 
 -- ==========================================================================
 -- 20260719000016_review_production_order.sql

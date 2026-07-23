@@ -23,12 +23,6 @@ values (
 )
 on conflict (id) do nothing;
 
--- Chat attachments are private: readable only by participants of the chat the
--- attachment belongs to. Path convention: chat-attachments/{chat_id}/{filename}
-insert into storage.buckets (id, name, public, file_size_limit)
-values ('chat-attachments', 'chat-attachments', false, 10485760)  -- 10 MB
-on conflict (id) do nothing;
-
 -- ---------------------------------------------------------------------------
 -- Branding bucket policies.
 --
@@ -51,31 +45,6 @@ create policy branding_admin_update on storage.objects
 create policy branding_admin_delete on storage.objects
   for delete to authenticated
   using (bucket_id = 'branding' and app.is_super_admin());
-
--- ---------------------------------------------------------------------------
--- Chat attachment policies. The first path segment is the chat id, so
--- membership is checked against chat_participants.
--- ---------------------------------------------------------------------------
--- Goes through app.is_chat_participant (SECURITY DEFINER, see migration 09) for
--- the same reason the table policies do. The path segment is cast defensively:
--- a non-UUID first segment would otherwise raise 22P02 instead of denying.
-create policy chat_attachments_read on storage.objects
-  for select to authenticated
-  using (
-    bucket_id = 'chat-attachments'
-    and app.is_chat_participant(
-      nullif((storage.foldername(name))[1], '')::uuid
-    )
-  );
-
-create policy chat_attachments_write on storage.objects
-  for insert to authenticated
-  with check (
-    bucket_id = 'chat-attachments'
-    and app.is_chat_participant(
-      nullif((storage.foldername(name))[1], '')::uuid
-    )
-  );
 
 -- NOTE: the old code never deleted the previous logo on re-upload, so files
 -- accumulated in the legacy object storage indefinitely. The port should delete the file
