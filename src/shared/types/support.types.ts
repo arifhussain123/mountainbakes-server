@@ -4,7 +4,11 @@
 // reference's figures are snapshotted onto the ticket at submit time so the
 // admin sees exactly what the raiser saw.
 
-export type SupportReferenceType = 'sale' | 'expense' | 'stock';
+// 'system' is not raised by a human against a lookupable ID — it is opened
+// automatically when an unattended job fails (e.g. the 2 AM closing summary could
+// not be generated or delivered). Such a ticket has no editable reference, so its
+// referenceSnapshot is null and the failure detail lives in `message`.
+export type SupportReferenceType = 'sale' | 'expense' | 'stock' | 'system';
 export type SupportTicketStatus = 'open' | 'resolved' | 'rejected';
 
 /** One key/value line of the auto-shown reference detail. */

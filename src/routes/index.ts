@@ -18,6 +18,7 @@ import { router as stockRouter } from './stock.routes';
 import { router as reportsRouter } from './reports.routes';
 import { router as searchRouter } from './search.routes';
 import { router as supportRouter } from './support.routes';
+import { router as closingNotificationsRouter } from './closing-notifications.routes';
 import { router as settingsRouter } from './settings.routes';
 import { router as businessDayRouter } from './business-day.routes';
 
@@ -42,6 +43,7 @@ export function setupRoutes(app: Express) {
   app.use('/api/reports', reportsRouter);
   app.use('/api/search', searchRouter);
   app.use('/api/support', supportRouter);
+  app.use('/api/closing-notifications', closingNotificationsRouter);
   app.use('/api/settings', settingsRouter);
   app.use('/api/business-day', businessDayRouter);
 }

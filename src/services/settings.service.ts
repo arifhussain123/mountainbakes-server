@@ -20,6 +20,7 @@ const FULL_DEFAULTS: AppSettings = {
   receiptFooter: 'Thank you for choosing Mountain Bakes!',
   theme: 'light',
   ...DEFAULT_BUSINESS_HOURS,
+  closingNotificationsEnabled: false,
   updatedAt: '',
   updatedBy: '',
 };
@@ -41,6 +42,7 @@ const COLUMN_TO_FIELD: Record<string, keyof AppSettings> = {
   order_end_time: 'orderEndTime',
   auto_close_business: 'autoCloseBusiness',
   auto_stock_closing: 'autoStockClosing',
+  closing_notifications_enabled: 'closingNotificationsEnabled',
   updated_at: 'updatedAt',
   updated_by: 'updatedBy',
 };
