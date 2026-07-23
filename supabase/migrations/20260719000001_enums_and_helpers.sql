@@ -56,6 +56,11 @@ create type notification_type as enum (
   'production_demand', 'production_reviewed', 'production_return'
 );
 
+create type chat_type       as enum ('dm', 'group');
+create type group_chat_type as enum ('admin_only', 'production_team', 'all_branch_managers', 'custom');
+create type message_type    as enum ('text', 'image', 'file', 'system');
+create type presence_status as enum ('online', 'offline', 'away');
+
 create type app_theme as enum ('light', 'dark');
 
 -- ---------------------------------------------------------------------------

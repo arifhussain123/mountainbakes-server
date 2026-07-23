@@ -5,7 +5,7 @@
 -- There are two classes of table in this schema, and they need opposite levels
 -- of paranoia:
 --
---   A. API-OWNED tables (everything except notifications). The
+--   A. API-OWNED tables (everything except chat/presence/notifications). The
 --      Express API reaches these with the SECRET key, which BYPASSES RLS
 --      entirely. Authorization for these is enforced in application code — e.g.
 --      branch managers scoped to their own branch_id, production users limited
@@ -15,11 +15,11 @@
 --      reaches these tables directly. Do not delete the application-level checks
 --      on the strength of these policies.
 --
---   B. CLIENT-OWNED tables (notifications, push_subscriptions). The browser
---      talks to these directly with the user's JWT, and Realtime subscriptions
---      are filtered by exactly these policies. Here RLS is the ONLY thing
---      standing between one user and another's feed. Treat changes to these as
---      security changes.
+--   B. CLIENT-OWNED tables (chats, chat_participants, chat_messages,
+--      user_presence, notifications). The browser talks to these directly with
+--      the user's JWT, and Realtime subscriptions are filtered by exactly these
+--      policies. Here RLS is the ONLY thing standing between one user and
+--      another's messages. Treat changes to these as security changes.
 --
 -- Every table gets RLS enabled. A table with RLS on and no policy denies all
 -- access to non-secret-key callers, which is the correct default — so tables
@@ -54,11 +54,46 @@ alter table audit_logs              enable row level security;
 alter table notifications           enable row level security;
 alter table push_subscriptions      enable row level security;
 alter table business_day_closures   enable row level security;
+alter table chats                   enable row level security;
+alter table chat_participants       enable row level security;
+alter table chat_messages           enable row level security;
+alter table user_presence           enable row level security;
 
 -- No policies are defined for: counters, price_activation_locks,
 -- business_day_closures, audit_logs, stock_audit_log, production_balances,
 -- production_stock_history, stock_history, product_price_history.
 -- These are API/job-internal and must never be reachable with a user JWT.
+
+-- ---------------------------------------------------------------------------
+-- Chat membership lookup.
+--
+-- This MUST be SECURITY DEFINER. Every chat policy needs to ask "is the caller a
+-- participant of this chat?", which means reading chat_participants — but
+-- chat_participants itself has a SELECT policy, so a plain subquery there causes
+-- Postgres to re-evaluate that policy while it is already evaluating it:
+--   ERROR: infinite recursion detected in policy for relation "chat_participants"
+--
+-- SECURITY DEFINER runs the lookup as the function owner, which bypasses RLS on
+-- the inner read and breaks the cycle. search_path is pinned so the definer
+-- rights cannot be hijacked by a caller-controlled search_path.
+--
+-- Do not "simplify" this back into an inline EXISTS on chat_participants.
+-- ---------------------------------------------------------------------------
+create or replace function app.is_chat_participant(target_chat_id uuid)
+  returns boolean
+  language sql
+  stable
+  security definer
+  set search_path = public, pg_temp
+  as $$
+    select exists (
+      select 1 from chat_participants
+      where chat_id = target_chat_id and user_id = auth.uid()
+    )
+  $$;
+
+revoke execute on function app.is_chat_participant(uuid) from public;
+grant execute on function app.is_chat_participant(uuid) to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Class B — client-owned. These are the load-bearing ones.
@@ -85,6 +120,59 @@ create policy notifications_update_own on notifications
   for update to authenticated
   using (target_user_id = auth.uid())
   with check (target_user_id = auth.uid());
+
+-- Chats: visible only to participants.
+create policy chats_select_participant on chats
+  for select to authenticated
+  using (app.is_chat_participant(chats.id));
+
+create policy chats_insert_own on chats
+  for insert to authenticated
+  with check (created_by = auth.uid());
+
+-- A participant row is visible if it is yours, or if it belongs to a chat you
+-- are in. The second arm goes through the SECURITY DEFINER helper above — an
+-- inline EXISTS on this same table would recurse.
+create policy chat_participants_select on chat_participants
+  for select to authenticated
+  using (
+    user_id = auth.uid()
+    or app.is_chat_participant(chat_participants.chat_id)
+  );
+
+-- Updating last_read_at is the caller's own bookkeeping.
+create policy chat_participants_update_own on chat_participants
+  for update to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
+
+-- Messages: readable by participants, writable only as yourself.
+create policy chat_messages_select on chat_messages
+  for select to authenticated
+  using (app.is_chat_participant(chat_messages.chat_id));
+
+create policy chat_messages_insert on chat_messages
+  for insert to authenticated
+  with check (
+    sender_id = auth.uid()
+    and app.is_chat_participant(chat_messages.chat_id)
+  );
+
+create policy chat_messages_update_own on chat_messages
+  for update to authenticated
+  using (sender_id = auth.uid())
+  with check (sender_id = auth.uid());
+
+-- Presence: everyone signed in can see who is online; you may only write your own.
+create policy user_presence_select_all on user_presence
+  for select to authenticated using (true);
+
+create policy user_presence_upsert_own on user_presence
+  for insert to authenticated with check (user_id = auth.uid());
+
+create policy user_presence_update_own on user_presence
+  for update to authenticated
+  using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 -- Push subscriptions: a client registers and revokes its own.
 create policy push_subscriptions_select_own on push_subscriptions
