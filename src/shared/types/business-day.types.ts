@@ -14,7 +14,7 @@ export interface SalesSummary {
   netSales: number; // totalSales − totalDiscounts − governmentTax
 }
 
-/** Expense rollup. `byCategory` is keyed by category (production) or description (shop). */
+/** Expense rollup. `byCategory` is keyed by expense category (both shop and production). */
 export interface ExpenseSummary {
   total: number;
   byCategory: Record<string, number>;

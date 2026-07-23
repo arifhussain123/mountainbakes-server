@@ -52,7 +52,7 @@ export async function buildBranchReport(
       .lte('created_at', toISO),
     supabaseAdmin
       .from('expenses')
-      .select('amount, payment_method, description')
+      .select('amount, payment_method, category')
       .eq('branch_id', branch.id)
       .eq('business_date', businessDate),
     supabaseAdmin
@@ -94,13 +94,13 @@ export async function buildBranchReport(
   sales.average = sales.transactions > 0 ? sales.total / sales.transactions : 0;
 
   // ── Expenses ──
-  const expenseRows = (expenses.data ?? []) as { amount: number; payment_method: string; description?: string }[];
+  const expenseRows = (expenses.data ?? []) as { amount: number; payment_method: string; category?: string }[];
   const byCategory: Record<string, number> = {};
   let expTotal = 0, expCash = 0, expEasypaisa = 0;
   for (const e of expenseRows) {
     const amt = num(e.amount);
     expTotal += amt;
-    const cat = e.description || 'Uncategorised';
+    const cat = e.category || 'Uncategorised';
     byCategory[cat] = (byCategory[cat] || 0) + amt;
     if (e.payment_method === 'cash') expCash += amt;
     else if (e.payment_method === 'easypaisa') expEasypaisa += amt;

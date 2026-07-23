@@ -6,6 +6,7 @@ export interface Expense {
   branchId: string;
   branchName: string;
   date: string; // 'YYYY-MM-DD' (Karachi)
+  category: string; // one of EXPENSE_CATEGORIES (free text in the DB, like production)
   description: string;
   paymentMethod: ExpensePaymentMethod;
   amount: number;

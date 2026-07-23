@@ -152,7 +152,7 @@ async function buildArchive(businessDate: string, autoStockClosing: boolean): Pr
       .select('status, grand_total, discount_total, tax_amount, payment_method')
       .gte('created_at', fromISO)
       .lte('created_at', toISO),
-    supabaseAdmin.from('expenses').select('amount, payment_method, description').eq('business_date', businessDate),
+    supabaseAdmin.from('expenses').select('amount, payment_method, category').eq('business_date', businessDate),
     supabaseAdmin.from('production_expenses').select('amount, payment_method, category').eq('business_date', businessDate),
     supabaseAdmin
       .from('production_orders')
@@ -185,10 +185,10 @@ async function buildArchive(businessDate: string, autoStockClosing: boolean): Pr
   }
   sales.netSales = sales.totalSales - sales.totalDiscounts - sales.governmentTax;
 
-  // ── Shop expenses (no category field → group by description) ──
+  // ── Shop expenses (real category column since migration 29) ──
   const expenseSummary = summariseExpenses(
-    (expenses.data ?? []) as { amount: number; payment_method: string; description?: string }[],
-    (e) => e.description || 'Uncategorised',
+    (expenses.data ?? []) as { amount: number; payment_method: string; category?: string }[],
+    (e) => e.category || 'Uncategorised',
   );
 
   // ── Production expenses (have a category) ──

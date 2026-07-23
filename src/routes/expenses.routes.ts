@@ -31,7 +31,11 @@ router.get('/', async (req: AuthRequest, res, next) => {
     const { data, error } = await query;
     if (error) throw error;
 
-    const expenses = rowToApi<Record<string, unknown>[]>(data ?? []);
+    // DB column is business_date; the API contract (Expense) exposes it as `date`.
+    // rowToApi only camelCases keys, so remap businessDate → date here (mirrors the
+    // production-orders route). expense_number → expenseNumber flows automatically.
+    const rows = rowToApi<Record<string, unknown>[]>(data ?? []);
+    const expenses = rows.map(({ businessDate, ...rest }) => ({ ...rest, date: businessDate }));
     res.json({ expenses, total: expenses.length });
   } catch (err) {
     next(err);
@@ -44,7 +48,7 @@ router.post('/', requireRole('super_admin', 'branch_manager'), validate(CreateEx
     const branchId = req.user!.branchId;
     if (!branchId) { res.status(400).json({ error: 'No branch assigned to this account' }); return; }
 
-    const { description, paymentMethod, amount, remarks, date } = req.body;
+    const { category, description, paymentMethod, amount, remarks, date } = req.body;
     const businessDate = date || businessDateStr();
     await assertBusinessDayOpen(businessDate, req.user!.role);
 
@@ -55,6 +59,7 @@ router.post('/', requireRole('super_admin', 'branch_manager'), validate(CreateEx
         branch_id: branchId,
         branch_name: req.user!.branchName || '',
         business_date: businessDate,
+        category,
         description,
         payment_method: paymentMethod,
         amount,

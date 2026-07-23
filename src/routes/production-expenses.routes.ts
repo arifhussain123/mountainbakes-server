@@ -22,7 +22,10 @@ router.get('/', async (_req, res, next) => {
       .order('created_at', { ascending: false });
     if (error) throw error;
 
-    const expenses = rowToApi<Record<string, unknown>[]>(data ?? []);
+    // business_date → date to match the ProductionExpense API contract; expense_number
+    // → expenseNumber flows via rowToApi automatically.
+    const rows = rowToApi<Record<string, unknown>[]>(data ?? []);
+    const expenses = rows.map(({ businessDate, ...rest }) => ({ ...rest, date: businessDate }));
     res.json({ expenses, total: expenses.length });
   } catch (err) {
     next(err);
