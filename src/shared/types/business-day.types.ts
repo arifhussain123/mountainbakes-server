@@ -14,7 +14,7 @@ export interface SalesSummary {
   netSales: number; // totalSales − totalDiscounts − governmentTax
 }
 
-/** Expense rollup. `byCategory` is keyed by category (production) or description (shop). */
+/** Expense rollup. `byCategory` is keyed by expense category (both shop and production). */
 export interface ExpenseSummary {
   total: number;
   byCategory: Record<string, number>;
@@ -39,7 +39,7 @@ export interface StockSnapshotBranch {
 
 /**
  * One document per closed business day — the archive + idempotency lock.
- * Firestore collection `business_day_closures`, doc id = the business date.
+ * Table `business_day_closures`, keyed by the business date.
  */
 export interface DailyClosure {
   businessDate: string; // 'YYYY-MM-DD'

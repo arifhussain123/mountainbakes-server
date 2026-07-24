@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { adminDb } from '../config/firebase';
 import { supabaseAdmin } from '../config/supabase';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
@@ -21,16 +20,18 @@ router.post('/forgot-password', async (req, res, next) => {
       return;
     }
 
-    // Role is read from the Firestore users doc (retained this phase). Unknown
-    // emails resolve to undefined — treated the same as a non-admin.
+    // Role is read from the `users` table. Unknown emails resolve to undefined —
+    // treated the same as a non-admin, so this endpoint never reveals whether a
+    // given address exists. maybeSingle() returns null rather than erroring on
+    // no match, which keeps that indistinguishable from a genuine lookup failure.
     let role: string | undefined;
     try {
-      const snap = await adminDb
-        .collection('users')
-        .where('email', '==', parsed.data.email)
-        .limit(1)
-        .get();
-      role = snap.empty ? undefined : (snap.docs[0]!.data()['role'] as string | undefined);
+      const { data, error } = await supabaseAdmin
+        .from('users')
+        .select('role')
+        .eq('email', parsed.data.email)
+        .maybeSingle();
+      role = error ? undefined : (data?.role ?? undefined);
     } catch {
       role = undefined;
     }
@@ -72,11 +73,16 @@ router.post('/change-password', authenticate, async (req: AuthRequest, res, next
     });
     if (updErr) throw updErr;
 
-    // Mirror the cleared flag onto the Firestore doc.
-    await adminDb.collection('users').doc(uid).update({
-      mustChangePassword: false,
-      updatedAt: new Date().toISOString(),
-    }).catch(() => undefined);
+    // Mirror the cleared flag onto the users row. Deliberately best-effort: the
+    // password has already been changed in Auth by this point, so a failure here
+    // must not fail the request. app_metadata (above) is what the app actually
+    // gates on; this row is the reporting copy. The supabase-js client returns
+    // errors rather than throwing, so the error is discarded explicitly.
+    // updated_at is maintained by the users_touch trigger — do not set it here.
+    await supabaseAdmin
+      .from('users')
+      .update({ must_change_password: false })
+      .eq('id', uid);
 
     await logAudit({
       action: 'password_changed',

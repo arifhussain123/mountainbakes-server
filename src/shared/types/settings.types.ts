@@ -17,6 +17,8 @@ export interface AppSettings {
   orderEndTime: string;
   autoCloseBusiness: boolean;
   autoStockClosing: boolean;
+  /** Master switch for the 2 AM WhatsApp/SMS closing summaries. */
+  closingNotificationsEnabled: boolean;
   updatedAt: string;
   updatedBy: string;
 }
@@ -45,4 +47,5 @@ export interface UpdateSettingsPayload {
   orderEndTime?: string;
   autoCloseBusiness?: boolean;
   autoStockClosing?: boolean;
+  closingNotificationsEnabled?: boolean;
 }

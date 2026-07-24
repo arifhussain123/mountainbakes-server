@@ -4,7 +4,7 @@ This folder deploys as its **own** Heroku app, independent of `../frontend/`.
 
 ```
 Browser ──HTTPS──▶ Next.js web app ──┐
-                                     ├──HTTPS──▶ this API ──▶ Firebase
+                                     ├──HTTPS──▶ this API ──▶ Supabase (Postgres)
 Web app SSR ─────────────────────────┘
 ```
 
@@ -14,8 +14,8 @@ required** — it is what permits the web app's requests.
 ## Prerequisites
 
 - Heroku CLI installed, `heroku login` done.
-- A Firebase service-account JSON (Firebase Console → ⚙ Project settings →
-  Service accounts → Generate new private key). Never commit it.
+- A Supabase project, with its URL and **secret** service-role key to hand
+  (Supabase dashboard → Project Settings → API). Never commit the key.
 - `pnpm-lock.yaml` committed — builds install from it.
 
 ## Deploy
@@ -26,10 +26,9 @@ This folder is its own git repository, so pushes come from here:
 cd server
 heroku create <api-app> --remote heroku
 heroku config:set -a <api-app> \
-  FIREBASE_SERVICE_ACCOUNT="$(cat credentials/serviceAccount.json)" \
+  SUPABASE_URL=https://<project-ref>.supabase.co \
+  SUPABASE_SERVICE_ROLE_KEY=<secret-service-role-key> \
   NODE_ENV=production \
-  NEXT_PUBLIC_FIREBASE_PROJECT_ID=mountain-bakes \
-  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=mountain-bakes.firebasestorage.app \
   CORS_ORIGINS=https://<web-host>
 
 git push heroku HEAD:main
@@ -43,15 +42,9 @@ and binds `0.0.0.0`.
 | Variable | When | Value |
 | --- | --- | --- |
 | `SUPABASE_URL` | **Required** | `https://<project-ref>.supabase.co` — auth verification fails without it and every request 401s |
-| `SUPABASE_SERVICE_ROLE_KEY` | **Required** | The **secret** service-role key, not the anon/publishable one |
-| `FIREBASE_SERVICE_ACCOUNT` | **Required** | Raw service-account JSON (or `…_BASE64`). Still needed — Firestore/Storage remain the data layer. There is no file in a dyno, so `FIREBASE_SERVICE_ACCOUNT_PATH` is local-dev only |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Required** | The **secret** service-role key, not the anon/publishable one. Grants full admin access — keep it server-side only |
 | `CORS_ORIGINS` | **Required** | The web app's exact origin: scheme + host, no path, no trailing slash. Comma-separate multiple |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | **Required** | `mountain-bakes` |
-| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | **Required** | `mountain-bakes.firebasestorage.app` |
 | `NODE_ENV` | Recommended | `production` |
-
-> **Migration in progress.** Auth is Supabase; data, storage, and messaging are still
-> Firebase. Both sets of credentials are required until the data-layer phase lands.
 
 ## Runtime pinning
 
@@ -88,12 +81,13 @@ because `src/app.ts` deliberately omits the headers rather than throwing.
 
 ## Notes
 
+- **Database migrations** live in `supabase/migrations/*.sql` and are applied with
+  the Supabase CLI (`supabase db push`), not by the dyno at boot. Apply pending
+  migrations before or alongside a deploy that depends on them.
 - **Scheduled jobs** (2 AM Karachi closing + price activation) run in this dyno via
   `node-cron`. They only fire while the dyno is awake — avoid a sleeping tier if you
   rely on the exact 2 AM run. This dyno sees less traffic than the web app, so it is
   likelier to idle.
-- **Keep it at one dyno** (`heroku ps:scale web=1`). The jobs are written to be
-  idempotent, but running them on multiple dynos concurrently is untested.
-- **Firestore rules/indexes are no longer managed here.** The Firebase CLI config
-  was removed during the Supabase migration; the rules stay deployed and active in
-  the `mountain-bakes` project, but must now be edited via the Firebase Console.
+- **Keep it at one dyno** (`heroku ps:scale web=1`). The jobs are idempotent, but
+  their locks assume a single instance — running them on multiple dynos concurrently
+  is untested.

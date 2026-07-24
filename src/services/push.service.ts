@@ -1,17 +1,20 @@
-import { adminDb, admin } from '../config/firebase';
+import { supabaseAdmin } from '../config/supabase';
 
 /**
- * Firebase Cloud Messaging + notification helper.
+ * Notification helper.
  *
- * `notify()` writes the Firestore notification document (unchanged in-app
- * behaviour) AND fans out a web-push message to every device token registered
- * for the target role / user. Push is fire-and-forget: a messaging failure
- * never breaks the originating request.
+ * `notify()` writes a row to the `notifications` table — the in-app notification
+ * feed. It is the single entry point every mutation uses to raise a notification,
+ * and it works fully.
  *
- * Messages are DATA-ONLY on purpose — the web service worker
- * (public/firebase-messaging-sw.js) renders the notification, which avoids the
- * duplicate-notification problem you get when a `notification` payload is also
- * present.
+ * ─── Web push is currently NOT delivered ──────────────────────────────────────
+ * Push-to-device delivery is not implemented yet. The intended mechanism is
+ * standard VAPID Web Push, backed by the `push_subscriptions` table
+ * (endpoint / p256dh / auth, migration 07). Turning it on needs a `web-push`
+ * dependency plus a VAPID keypair in the server env, so it is deliberately left
+ * as a no-op rather than half-built; see sendPush() below.
+ *
+ * In-app notifications work fully — only the push-to-device leg is missing.
  */
 
 export interface NotifyInput {
@@ -24,8 +27,12 @@ export interface NotifyInput {
   relatedId?: string | null;
 }
 
-// Deep-link a notification tap to the most relevant screen.
-const TYPE_URL: Record<string, string> = {
+/**
+ * Deep-link a notification tap to the most relevant screen. Unused until push is
+ * reimplemented, but kept here so the mapping doesn't have to be rediscovered —
+ * the keys match the `notification_type` enum (migration 01).
+ */
+export const TYPE_URL: Record<string, string> = {
   order_created: '/production-queue',
   order_ready: '/orders',
   order_cancelled: '/orders',
@@ -39,85 +46,55 @@ const TYPE_URL: Record<string, string> = {
   production_return: '/production-returns',
 };
 
-const INVALID_TOKEN_CODES = new Set([
-  'messaging/registration-token-not-registered',
-  'messaging/invalid-registration-token',
-  'messaging/invalid-argument',
-]);
-
-async function tokensFor(input: NotifyInput): Promise<string[]> {
-  const col = adminDb.collection('fcmTokens');
-  const queries: Promise<FirebaseFirestore.QuerySnapshot>[] = [];
-  if (input.targetRole) queries.push(col.where('role', '==', input.targetRole).get());
-  if (input.targetUserId) queries.push(col.where('uid', '==', input.targetUserId).get());
-  if (queries.length === 0) return [];
-
-  const snaps = await Promise.all(queries);
-  const tokens = new Set<string>();
-  for (const snap of snaps) {
-    for (const doc of snap.docs) {
-      const t = (doc.data() as { token?: string }).token || doc.id;
-      if (t) tokens.add(t);
-    }
-  }
-  return [...tokens];
-}
-
-async function sendPush(input: NotifyInput, notificationId: string): Promise<void> {
-  const tokens = await tokensFor(input);
-  if (tokens.length === 0) return;
-
-  const data: Record<string, string> = {
-    title: input.title,
-    body: input.message,
-    url: TYPE_URL[input.type] || '/',
-    type: input.type,
-    notificationId,
-  };
-  if (input.relatedId) data.relatedId = input.relatedId;
-
-  // sendEachForMulticast handles up to 500 tokens per call.
-  const batches: string[][] = [];
-  for (let i = 0; i < tokens.length; i += 500) batches.push(tokens.slice(i, i + 500));
-
-  for (const batch of batches) {
-    const res = await admin.messaging().sendEachForMulticast({ tokens: batch, data });
-    // Prune tokens that are no longer valid so the collection stays clean.
-    await Promise.all(
-      res.responses.map((r, i) => {
-        if (r.success) return null;
-        const code = r.error?.code;
-        if (code && INVALID_TOKEN_CODES.has(code)) {
-          return adminDb.collection('fcmTokens').doc(batch[i]!).delete().catch(() => undefined);
-        }
-        return null;
-      }),
-    );
-  }
+/**
+ * TODO(push): deliver via VAPID Web Push.
+ *
+ * Sketch, for whoever picks this up: add `web-push`, set VAPID_PUBLIC_KEY /
+ * VAPID_PRIVATE_KEY / VAPID_SUBJECT in the server env, then select from
+ * `push_subscriptions` by role and/or user_id, and sendNotification() to each
+ * {endpoint, keys:{p256dh, auth}}. Delete rows on a 404/410 response — the
+ * standard Web Push way to prune dead subscriptions.
+ *
+ * Must stay fire-and-forget: a delivery failure never fails the mutation that
+ * raised the notification.
+ */
+function sendPush(_input: NotifyInput, _notificationId: string): void {
+  // Intentionally a no-op. See the module comment above.
 }
 
 /**
- * Write a notification document and push it to registered devices.
- * Returns the created document reference (same as the old raw `.add()`).
+ * Write a notification row. Returns { id } — callers that need to reference the
+ * created notification use `.id`.
+ *
+ * Deliberately throws on a failed insert rather than swallowing: callers await
+ * this inside their own try/catch and surface it via next(err), and a silently
+ * dropped notification is worse than a visible failure.
  */
-export async function notify(input: NotifyInput) {
-  const now = new Date().toISOString();
-  const ref = await adminDb.collection('notifications').add({
-    type: input.type,
-    title: input.title,
-    message: input.message,
-    isRead: false,
-    targetUserId: input.targetUserId ?? null,
-    targetRole: input.targetRole ?? null,
-    branchId: input.branchId ?? null,
-    relatedId: input.relatedId ?? null,
-    createdAt: now,
-  });
+export async function notify(input: NotifyInput): Promise<{ id: string }> {
+  // The notifications_target_present check constraint requires at least one
+  // target. Fail with a clear message instead of a raw 23514 from Postgres.
+  if (!input.targetUserId && !input.targetRole) {
+    throw new Error('notify() requires targetUserId or targetRole');
+  }
 
-  // Fire-and-forget: never let a push error fail the mutation.
-  void sendPush(input, ref.id).catch((err) =>
-    console.error('[push] failed to send notification', err),
-  );
+  // created_at / is_read come from column defaults — do not set them here.
+  const { data, error } = await supabaseAdmin
+    .from('notifications')
+    .insert({
+      type: input.type,
+      title: input.title,
+      message: input.message,
+      target_user_id: input.targetUserId ?? null,
+      target_role: input.targetRole ?? null,
+      branch_id: input.branchId ?? null,
+      related_id: input.relatedId ?? null,
+    })
+    .select('id')
+    .single();
 
-  return ref;
+  if (error) throw new Error(`Failed to write notification: ${error.message}`);
+
+  sendPush(input, data.id);
+
+  return { id: data.id };
 }

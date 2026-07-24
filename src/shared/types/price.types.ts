@@ -8,6 +8,7 @@ export type PriceChangeSource = 'manual' | 'import';
 
 export interface PriceHistoryDoc {
   id: string;
+  priceNumber: string; // human-readable PRC-######
   productId: string;
   productCode: string; // = product.sku snapshot at change time
   productName: string;

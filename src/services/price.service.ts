@@ -1,6 +1,7 @@
 import ExcelJS from 'exceljs';
+import { randomUUID } from 'crypto';
 import { Readable } from 'stream';
-import { adminDb } from '../config/firebase';
+import { supabaseAdmin } from '../config/supabase';
 import {
   businessDateStr,
   type PriceHistoryDoc,
@@ -11,23 +12,28 @@ import {
   type ImportCommitResult,
 } from '../shared';
 import { invalidate } from '../utils/cache';
+import { rowToApi } from '../utils/case';
 import { notify } from './push.service';
 
 /**
  * Product price changes with an effective date. `products.price` always holds the
  * currently-active price; every change appends an immutable `product_price_history`
- * doc. A change effective today/past applies immediately in one transaction; a
+ * row. A change effective today/past applies immediately in one transaction; a
  * future-dated change is stored `scheduled` and flipped to `active` by
  * `activateDuePrices()` at the 2 AM business-day rollover (idempotent, locked —
  * mirrors daily-closing.service.ts). Historical sales are never touched: orders
  * snapshot `unitPrice` at sale time, so this layer is purely about the live price.
+ *
+ * ─── Where the transactions live ─────────────────────────────────────────────
+ * The atomic parts — read product + version then write history + product under a
+ * row lock — are Postgres functions (migration 11), called via .rpc(). PostgREST
+ * gives every HTTP call its own transaction, so a read-then-write split across
+ * two supabase-js calls could not hold `select ... for update` between them and
+ * would race on version_number. This module keeps the non-transactional work:
+ * business-date arithmetic, spreadsheet parsing, and notifications.
  */
 
 const HISTORY = 'product_price_history';
-const LOCKS = 'price_activation_locks';
-const RUNNING_TTL_MS = 10 * 60 * 1000; // a 'running' lock older than this is treated as crashed
-
-type ProductDoc = { name: string; sku: string; price: number; categoryName: string; isActive?: boolean; createdAt?: string };
 
 /** 'YYYY-MM-DD' → 'DD-MM-YYYY' for human-facing messages/exports. */
 function formatDMY(d: string): string {
@@ -35,7 +41,7 @@ function formatDMY(d: string): string {
   return dd && m && y ? `${dd}-${m}-${y}` : String(d);
 }
 
-/** Retry an async op with linear backoff — for transient Firestore blips. */
+/** Retry an async op with linear backoff — for transient network blips. */
 async function withRetry<T>(op: () => Promise<T>, attempts: number): Promise<T> {
   let lastErr: unknown;
   for (let i = 1; i <= attempts; i++) {
@@ -70,77 +76,69 @@ export interface ApplyPriceChangeResult {
   newPrice?: number;
 }
 
+/** One row of public.apply_price_change's result set. */
+interface ApplyPriceChangeRow {
+  status: 'active' | 'scheduled' | 'skipped';
+  skip_reason: string | null;
+  history_id: string | null;
+  version_number: number | null;
+  product_name: string;
+  old_price: number | null;
+  new_price: number;
+}
+
 /**
- * Record a single price change (manual or one import row). One transaction:
- * read product + latest version + any scheduled rows, then supersede stale
- * scheduled rows, append the history doc, and (if effective today/past) update
- * `products.price`. Callers send notifications, so a bulk import fires exactly one.
+ * Record a single price change (manual or one import row). The whole read-modify-
+ * write runs inside public.apply_price_change (migration 11) under a `for update`
+ * lock on the product row, which is what serialises concurrent changes and keeps
+ * version_number gapless. Callers send notifications, so a bulk import fires
+ * exactly one.
  */
 export async function applyPriceChange(input: ApplyPriceChangeInput): Promise<ApplyPriceChangeResult> {
   const { productId, newPrice, effectiveDate, reason, source, changedBy, changedByName } = input;
-  const batchId = input.batchId ?? null;
-  const productRef = adminDb.collection('products').doc(productId);
-  const isImmediate = effectiveDate <= businessDateStr();
 
-  const result = await adminDb.runTransaction(async (tx): Promise<ApplyPriceChangeResult> => {
-    // ── Reads (all before writes) ──
-    const prodSnap = await tx.get(productRef);
-    if (!prodSnap.exists) throw Object.assign(new Error('Product not found'), { status: 404 });
-    const prod = prodSnap.data() as ProductDoc;
-    const oldPrice = Number(prod.price ?? 0);
-
-    // No-op: an immediate change to the same price does nothing.
-    if (isImmediate && oldPrice === newPrice) return { status: 'skipped', reason: 'unchanged' };
-
-    const latestSnap = await tx.get(
-      adminDb.collection(HISTORY).where('productId', '==', productId).orderBy('versionNumber', 'desc').limit(1),
-    );
-    const nextVersion = latestSnap.empty
-      ? 1
-      : Number((latestSnap.docs[0]!.data() as PriceHistoryDoc).versionNumber ?? 0) + 1;
-
-    const scheduledSnap = await tx.get(
-      adminDb.collection(HISTORY).where('productId', '==', productId).where('status', '==', 'scheduled'),
-    );
-
-    // ── Writes ──
-    for (const doc of scheduledSnap.docs) tx.update(doc.ref, { status: 'superseded' });
-
-    const now = new Date().toISOString();
-    const histRef = adminDb.collection(HISTORY).doc();
-    const doc: Omit<PriceHistoryDoc, 'id'> = {
-      productId,
-      productCode: prod.sku ?? '',
-      productName: prod.name ?? '',
-      categoryName: prod.categoryName ?? '',
-      oldPrice,
-      newPrice,
-      effectiveDate,
-      reason,
-      source,
-      status: isImmediate ? 'active' : 'scheduled',
-      versionNumber: nextVersion,
-      changedBy,
-      changedByName,
-      changedOn: now,
-      activatedOn: isImmediate ? now : null,
-      batchId,
-    };
-    tx.set(histRef, doc);
-    if (isImmediate) tx.update(productRef, { price: newPrice, updatedAt: now });
-
-    return {
-      status: isImmediate ? 'active' : 'scheduled',
-      historyId: histRef.id,
-      versionNumber: nextVersion,
-      productName: prod.name ?? '',
-      oldPrice,
-      newPrice,
-    };
+  const { data, error } = await supabaseAdmin.rpc('apply_price_change', {
+    p_product_id: productId,
+    p_new_price: newPrice,
+    p_effective_date: effectiveDate,
+    p_reason: reason,
+    p_source: source,
+    p_changed_by: changedBy,
+    p_changed_by_name: changedByName,
+    p_batch_id: input.batchId ?? null,
+    // The business date is Karachi-local shifted back by the 2 AM rollover — not
+    // now()::date. Computed here so the definition stays in one place.
+    p_today: businessDateStr(),
   });
 
-  if (result.status === 'active') invalidate('products');
-  return result;
+  if (error) {
+    // P0002 (no_data_found) is the function's "Product not found" — keep the 404
+    // the route handler and the import loop both expect.
+    if (error.code === 'P0002') throw Object.assign(new Error('Product not found'), { status: 404 });
+    throw error;
+  }
+
+  // A `returns table` function comes back as an array of rows; it always emits
+  // exactly one.
+  const row = (Array.isArray(data) ? data[0] : data) as ApplyPriceChangeRow | undefined;
+  if (!row) throw new Error('apply_price_change returned no row');
+
+  if (row.status === 'skipped') {
+    return { status: 'skipped', reason: row.skip_reason ?? 'unchanged' };
+  }
+
+  if (row.status === 'active') invalidate('products');
+
+  return {
+    status: row.status,
+    historyId: row.history_id ?? undefined,
+    versionNumber: row.version_number ?? undefined,
+    productName: row.product_name,
+    // numeric(14,2) arrives as a string over PostgREST when it exceeds JS-safe
+    // precision handling; Number() normalises both cases.
+    oldPrice: row.old_price === null ? undefined : Number(row.old_price),
+    newPrice: Number(row.new_price),
+  };
 }
 
 export interface ActivateResult {
@@ -151,75 +149,35 @@ export interface ActivateResult {
 
 /**
  * Flip every scheduled price whose effective date has arrived to the live price.
- * Idempotent via a `price_activation_locks/{businessDate}` lock (running/success +
- * 10-min crash TTL). Runs on the 2 AM cron and once on server startup (catch-up).
+ * Idempotent via a `price_activation_locks` row keyed by business date
+ * (running/success + 10-min crash TTL). Runs on the 2 AM cron.
  */
 export async function activateDuePrices(
   opts: { trigger: 'scheduler' | 'startup' | 'manual'; today?: string } = { trigger: 'manual' },
 ): Promise<ActivateResult> {
   const today = opts.today ?? businessDateStr();
-  const lockRef = adminDb.collection(LOCKS).doc(today);
-  const startedAt = new Date().toISOString();
 
-  const claim = await adminDb.runTransaction(async (tx) => {
-    const doc = await tx.get(lockRef);
-    if (doc.exists) {
-      const d = doc.data() as { status: string; startedAt: string };
-      if (d.status === 'success') return { ok: false, reason: 'already run' };
-      if (d.status === 'running' && Date.now() - new Date(d.startedAt).getTime() < RUNNING_TTL_MS) {
-        return { ok: false, reason: 'in progress' };
-      }
-    }
-    tx.set(lockRef, { date: today, status: 'running', trigger: opts.trigger, startedAt, activated: 0, closedAt: null, error: null });
-    return { ok: true };
+  // The closure_trigger enum is ('scheduler','manual') — it has no 'startup'
+  // member. A startup catch-up is recorded as 'manual'; the distinction was only
+  // ever diagnostic, and nothing currently calls with 'startup'.
+  const trigger = opts.trigger === 'startup' ? 'manual' : opts.trigger;
+
+  const { data: claimed, error: claimErr } = await supabaseAdmin.rpc('claim_price_activation', {
+    p_date: today,
+    p_trigger: trigger,
   });
-  if (!claim.ok) return { status: 'skipped', activated: 0, reason: claim.reason };
+  if (claimErr) throw claimErr;
+
+  // The function returns true on a successful claim and NULL when the lock is
+  // held by a live run (or already succeeded today).
+  if (!claimed) return { status: 'skipped', activated: 0, reason: 'already run or in progress' };
 
   try {
-    const dueSnap = await adminDb
-      .collection(HISTORY)
-      .where('status', '==', 'scheduled')
-      .where('effectiveDate', '<=', today)
-      .get();
-
-    // Highest version per product wins; older due rows for the same product lose.
-    type Snap = FirebaseFirestore.QueryDocumentSnapshot;
-    const byProduct = new Map<string, { winner: Snap; losers: Snap[] }>();
-    for (const d of dueSnap.docs) {
-      const row = d.data() as PriceHistoryDoc;
-      const cur = byProduct.get(row.productId);
-      if (!cur) { byProduct.set(row.productId, { winner: d, losers: [] }); continue; }
-      if (Number(row.versionNumber ?? 0) > Number((cur.winner.data() as PriceHistoryDoc).versionNumber ?? 0)) {
-        cur.losers.push(cur.winner);
-        cur.winner = d;
-      } else {
-        cur.losers.push(d);
-      }
-    }
-
-    let activated = 0;
-    for (const { winner, losers } of byProduct.values()) {
-      const didActivate = await withRetry(
-        () =>
-          adminDb.runTransaction(async (tx) => {
-            const w = winner.data() as PriceHistoryDoc;
-            const prodRef = adminDb.collection('products').doc(w.productId);
-            const prodSnap = await tx.get(prodRef);
-            const now = new Date().toISOString();
-            if (prodSnap.exists) {
-              const curPrice = Number((prodSnap.data() as ProductDoc).price ?? 0);
-              tx.update(prodRef, { price: w.newPrice, updatedAt: now });
-              tx.update(winner.ref, { status: 'active', activatedOn: now, oldPrice: curPrice });
-            } else {
-              tx.update(winner.ref, { status: 'superseded' }); // product gone — don't leave it scheduled
-            }
-            for (const l of losers) tx.update(l.ref, { status: 'superseded' });
-            return prodSnap.exists;
-          }),
-        3,
-      );
-      if (didActivate) activated += 1;
-    }
+    const activated = await withRetry(async () => {
+      const { data, error } = await supabaseAdmin.rpc('activate_due_prices', { p_today: today });
+      if (error) throw error;
+      return Number(data ?? 0);
+    }, 3);
 
     invalidate('products');
 
@@ -233,11 +191,20 @@ export async function activateDuePrices(
       });
     }
 
-    await lockRef.set({ status: 'success', activated, closedAt: new Date().toISOString() }, { merge: true });
+    await supabaseAdmin.rpc('close_price_activation', {
+      p_date: today,
+      p_status: 'success',
+      p_activated: activated,
+      p_error: null,
+    });
     return { status: 'success', activated };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    await lockRef.set({ status: 'failed', error: message, closedAt: new Date().toISOString() }, { merge: true }).catch(() => undefined);
+    // Best-effort: the run already failed, so a failure to record that must not
+    // mask the original error.
+    await supabaseAdmin
+      .rpc('close_price_activation', { p_date: today, p_status: 'failed', p_activated: 0, p_error: message })
+      .then(undefined, () => undefined);
     console.error(`[price-activation] FAILED for ${today}:`, message);
     return { status: 'failed', activated: 0, reason: message };
   }
@@ -245,18 +212,29 @@ export async function activateDuePrices(
 
 /** History rows for the Price History page (most recent first). */
 export async function listPriceHistory(productId?: string, limit = 300): Promise<PriceHistoryDoc[]> {
-  let query = adminDb.collection(HISTORY) as FirebaseFirestore.Query;
-  if (productId) query = query.where('productId', '==', productId);
-  const snap = await query.get();
-  return snap.docs
-    .map((d) => ({ id: d.id, ...(d.data() as Omit<PriceHistoryDoc, 'id'>) }))
-    .sort((a, b) => String(b.changedOn).localeCompare(String(a.changedOn)))
-    .slice(0, limit);
+  // Ordering and limiting now happen in Postgres (indexed by changed_on desc)
+  // rather than by fetching the whole collection and sorting in memory.
+  let query = supabaseAdmin.from(HISTORY).select('*').order('changed_on', { ascending: false }).limit(limit);
+  if (productId) query = query.eq('product_id', productId);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return rowToApi<PriceHistoryDoc[]>(data ?? []);
 }
 
 // ─── Export ─────────────────────────────────────────────────────────────────
 
 export const PRICE_LIST_HEADERS = ['Product Code', 'Product Name', 'Category', 'Current Price', 'Effective Date', 'Status'];
+
+interface ProductRow {
+  id: string;
+  name: string | null;
+  sku: string | null;
+  price: number | string | null;
+  category_name: string | null;
+  is_active: boolean | null;
+  created_at: string | null;
+}
 
 /**
  * Rows for the price-list export (also the re-import template).
@@ -267,30 +245,43 @@ export const PRICE_LIST_HEADERS = ['Product Code', 'Product Name', 'Category', '
  * read better but `genericExcel` is single-sheet; not worth rewriting for this.
  */
 export async function buildPriceListRows(opts?: { groupBy?: 'category' }): Promise<(string | number)[][]> {
-  const [prodSnap, histSnap] = await Promise.all([
-    adminDb.collection('products').get(),
-    adminDb.collection(HISTORY).where('status', '==', 'active').get(),
-  ]);
+  const orderBy: { column: string; ascending: boolean }[] =
+    opts?.groupBy === 'category'
+      ? [{ column: 'category_name', ascending: true }, { column: 'name', ascending: true }]
+      : [{ column: 'name', ascending: true }];
 
-  // Latest active history row per product → the effective date of the current price.
-  const latestActive = new Map<string, PriceHistoryDoc>();
-  for (const d of histSnap.docs) {
-    const h = d.data() as PriceHistoryDoc;
-    const cur = latestActive.get(h.productId);
-    if (!cur || Number(h.versionNumber ?? 0) > Number(cur.versionNumber ?? 0)) latestActive.set(h.productId, h);
+  let productQuery = supabaseAdmin.from('products').select('id, name, sku, price, category_name, is_active, created_at');
+  for (const o of orderBy) productQuery = productQuery.order(o.column, { ascending: o.ascending });
+
+  const [{ data: products, error: prodErr }, { data: history, error: histErr }] = await Promise.all([
+    productQuery,
+    supabaseAdmin
+      .from(HISTORY)
+      .select('product_id, effective_date, version_number')
+      .eq('status', 'active')
+      .order('version_number', { ascending: false }),
+  ]);
+  if (prodErr) throw prodErr;
+  if (histErr) throw histErr;
+
+  // Latest active history row per product → the effective date of the current
+  // price. Rows arrive version-descending, so the first one seen per product wins.
+  const latestActive = new Map<string, string>();
+  for (const h of (history ?? []) as { product_id: string; effective_date: string }[]) {
+    if (!latestActive.has(h.product_id)) latestActive.set(h.product_id, h.effective_date);
   }
 
-  const byName = (a: ProductDoc, b: ProductDoc) => String(a.name ?? '').localeCompare(String(b.name ?? ''));
-  const byCategoryThenName = (a: ProductDoc, b: ProductDoc) =>
-    String(a.categoryName ?? '').localeCompare(String(b.categoryName ?? '')) || byName(a, b);
-
-  return prodSnap.docs
-    .map((d) => ({ id: d.id, ...(d.data() as ProductDoc) }))
-    .sort(opts?.groupBy === 'category' ? byCategoryThenName : byName)
-    .map((p) => {
-      const eff = latestActive.get(p.id)?.effectiveDate ?? String(p.createdAt ?? '').slice(0, 10);
-      return [p.sku ?? '', p.name ?? '', p.categoryName ?? '', Number(p.price ?? 0), formatDMY(eff), p.isActive ? 'Active' : 'Inactive'];
-    });
+  return ((products ?? []) as ProductRow[]).map((p) => {
+    const eff = latestActive.get(p.id) ?? String(p.created_at ?? '').slice(0, 10);
+    return [
+      p.sku ?? '',
+      p.name ?? '',
+      p.category_name ?? '',
+      Number(p.price ?? 0),
+      formatDMY(eff),
+      p.is_active ? 'Active' : 'Inactive',
+    ];
+  });
 }
 
 export const PRICE_HISTORY_HEADERS = [
@@ -387,11 +378,21 @@ export async function parseImportWorkbook(buffer: Buffer): Promise<ImportPreview
     throw Object.assign(new Error('File must have a "Product Code" column and a "Current Price" (or Price) column'), { status: 400 });
   }
 
-  const prodSnap = await adminDb.collection('products').get();
-  const bySku = new Map<string, { id: string } & ProductDoc>();
-  for (const d of prodSnap.docs) {
-    const p = d.data() as ProductDoc;
-    if (p.sku) bySku.set(String(p.sku).trim().toLowerCase(), { id: d.id, ...p });
+  const { data: products, error } = await supabaseAdmin
+    .from('products')
+    .select('id, name, sku, price, category_name');
+  if (error) throw error;
+
+  const bySku = new Map<string, { id: string; name: string; price: number; category_name: string | null }>();
+  for (const p of (products ?? []) as ProductRow[]) {
+    if (p.sku) {
+      bySku.set(String(p.sku).trim().toLowerCase(), {
+        id: p.id,
+        name: p.name ?? '',
+        price: Number(p.price ?? 0),
+        category_name: p.category_name,
+      });
+    }
   }
 
   const validRows: ImportValidRow[] = [];
@@ -434,7 +435,7 @@ export async function parseImportWorkbook(buffer: Buffer): Promise<ImportPreview
     }
     const rounded = Math.round(price * 100) / 100;
 
-    if (rounded === Number(product.price ?? 0)) {
+    if (rounded === product.price) {
       unchangedRows.push({ productCode: codeRaw, productName: product.name, price: rounded });
       return;
     }
@@ -442,8 +443,8 @@ export async function parseImportWorkbook(buffer: Buffer): Promise<ImportPreview
       productId: product.id,
       productCode: codeRaw,
       productName: product.name,
-      categoryName: product.categoryName ?? '',
-      currentPrice: Number(product.price ?? 0),
+      categoryName: product.category_name ?? '',
+      currentPrice: product.price,
       newPrice: rounded,
     });
   });
@@ -464,7 +465,9 @@ export async function commitPriceImport(input: {
   changedBy: string;
   changedByName: string;
 }): Promise<ImportCommitResult> {
-  const batchId = adminDb.collection(HISTORY).doc().id;
+  // batch_id is a uuid column, minted client-side with randomUUID()
+  // (migration 06 notes the same).
+  const batchId = randomUUID();
   let appliedImmediate = 0;
   let scheduled = 0;
   let skipped = 0;

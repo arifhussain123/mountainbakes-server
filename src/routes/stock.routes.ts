@@ -1,13 +1,15 @@
 import { Router } from 'express';
-import { adminDb } from '../config/firebase';
+import { randomUUID } from 'crypto';
+import { supabaseAdmin } from '../config/supabase';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { validate } from '../middleware/validate';
-import { businessDateStr, CreateBranchReturnSchema, type StockAuditLog, type Product } from '../shared';
+import { businessDateStr, CreateBranchReturnSchema, type StockAuditLog } from '../shared';
 import { notify } from '../services/push.service';
 import { returnIntoPool } from '../services/production-stock.service';
 import { commitBranchReturn, computeStockRows, InsufficientStockError } from '../services/stock.service';
 import { assertBusinessDayOpen } from '../middleware/assertBusinessDayOpen';
+import { rowToApi } from '../utils/case';
 
 export const router = Router();
 
@@ -16,23 +18,29 @@ router.use(authenticate);
 // GET /api/stock/audit — blocked-sale attempts (Admin: all; branch manager: own branch)
 router.get('/audit', async (req: AuthRequest, res, next) => {
   try {
-    let query = adminDb.collection('stock_audit_log') as FirebaseFirestore.Query;
+    // Ordering and the 200-row cap happen in Postgres (stock_audit_log_branch_idx
+    // is already (branch_id, created_at desc)); this used to fetch every row and
+    // sort/slice in memory.
+    let query = supabaseAdmin
+      .from('stock_audit_log')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(200);
+
     if (req.user!.role === 'branch_manager') {
       if (!req.user!.branchId) { res.status(400).json({ error: 'No branch assigned' }); return; }
-      query = query.where('branchId', '==', req.user!.branchId);
+      query = query.eq('branch_id', req.user!.branchId);
     } else if (req.user!.role !== 'super_admin') {
       res.status(403).json({ error: 'Access denied' });
       return;
     } else if (req.query['branchId']) {
-      query = query.where('branchId', '==', req.query['branchId']);
+      query = query.eq('branch_id', req.query['branchId']);
     }
 
-    const snap = await query.get();
-    const logs = snap.docs
-      .map((d) => ({ id: d.id, ...d.data() }) as StockAuditLog)
-      .sort((a, b) => String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? '')))
-      .slice(0, 200); // most recent 200
+    const { data, error } = await query;
+    if (error) throw error;
 
+    const logs = rowToApi<StockAuditLog[]>(data ?? []);
     res.json({ logs, total: logs.length });
   } catch (err) {
     next(err);
@@ -70,24 +78,28 @@ router.post('/return', requireRole('super_admin', 'branch_manager'), validate(Cr
 
     await assertBusinessDayOpen(businessDateStr(), req.user!.role);
 
-    const [branchDoc, productDoc] = await Promise.all([
-      adminDb.collection('branches').doc(branchId).get(),
-      adminDb.collection('products').doc(productId).get(),
+    const [branchRes, productRes] = await Promise.all([
+      supabaseAdmin.from('branches').select('name').eq('id', branchId).maybeSingle(),
+      supabaseAdmin.from('products').select('name').eq('id', productId).maybeSingle(),
     ]);
-    if (!branchDoc.exists) { res.status(400).json({ error: 'Branch not found' }); return; }
-    if (!productDoc.exists) { res.status(400).json({ error: 'Product not found' }); return; }
+    if (branchRes.error) throw branchRes.error;
+    if (productRes.error) throw productRes.error;
+    if (!branchRes.data) { res.status(400).json({ error: 'Branch not found' }); return; }
+    if (!productRes.data) { res.status(400).json({ error: 'Product not found' }); return; }
 
-    const branchName = (branchDoc.data() as { name: string }).name;
-    const productName = (productDoc.data() as Product).name;
+    const branchName = branchRes.data.name as string;
+    const productName = productRes.data.name as string;
+
+    // Mint the return id up front so it is the shared refId across branch stock,
+    // the production pool and the record — that id is the idempotency key on both
+    // stock_history and production_stock_history, so all three movements must
+    // agree on it. (Minted client-side with randomUUID().)
+    const returnId = randomUUID();
     const now = new Date().toISOString();
-
-    // Reserve the return-doc id up front so it is the shared refId across branch stock,
-    // the production pool and the record — keeping every movement idempotent.
-    const returnRef = adminDb.collection('production_returns').doc();
 
     // 1) Decrement branch stock (validates qty <= balance atomically).
     try {
-      await commitBranchReturn({ branchId, productId, productName, qty, refId: returnRef.id });
+      await commitBranchReturn({ branchId, productId, productName, qty, refId: returnId });
     } catch (err) {
       if (err instanceof InsufficientStockError) {
         res.status(409).json({ error: 'Return quantity cannot be greater than available stock.', details: err.shortfalls });
@@ -97,38 +109,42 @@ router.post('/return', requireRole('super_admin', 'branch_manager'), validate(Cr
     }
 
     // 2) Add the units back into the central production pool (feeds "Returned").
-    await returnIntoPool(returnRef.id, { productId, productName, qty });
+    await returnIntoPool(returnId, { productId, productName, qty });
 
     // 3) Record an accepted return so it surfaces on the Production Returns page.
-    await returnRef.set({
-      branchId,
-      branchName,
-      productId,
-      productName,
+    //    The id is supplied rather than generated, to match the refId above.
+    const { error: insertErr } = await supabaseAdmin.from('production_returns').insert({
+      id: returnId,
+      branch_id: branchId,
+      branch_name: branchName,
+      product_id: productId,
+      product_name: productName,
       qty,
       reason: reason || '',
       status: 'accepted',
       source: 'branch',
-      date: businessDateStr(),
-      createdBy: req.user!.uid,
-      createdByName: req.user!.email,
-      createdAt: now,
-      reviewedBy: req.user!.uid,
-      reviewedByName: req.user!.email,
-      reviewedAt: now,
+      business_date: businessDateStr(),
+      created_by: req.user!.uid,
+      created_by_name: req.user!.email,
+      reviewed_by: req.user!.uid,
+      reviewed_by_name: req.user!.email,
+      reviewed_at: now,
     });
+    if (insertErr) throw insertErr;
 
-    // 4) Notify Production in real time.
+    // 4) Notify Production in real time. branchId null: production_user has no
+    // branch claim, and the notifications RLS filters out a role broadcast whose
+    // branch_id doesn't match the recipient's. The branch is named in the message.
     await notify({
       type: 'production_return',
       title: 'Stock Returned',
       message: `${qty} × ${productName} from ${branchName}`,
       targetRole: 'production_user',
-      branchId,
-      relatedId: returnRef.id,
+      branchId: null,
+      relatedId: returnId,
     });
 
-    res.status(201).json({ id: returnRef.id });
+    res.status(201).json({ id: returnId });
   } catch (err) {
     next(err);
   }

@@ -11,7 +11,7 @@ export type ProductionStockMovementType =
   | 'return_in' // accepted return added back → pool +
   | 'adjustment';
 
-/** Running balance for the central production pool. Firestore doc id = `${productId}`. */
+/** Running balance for the central production pool. Keyed by `productId`. */
 export interface ProductionStockDoc {
   productId: string;
   productName: string;
@@ -71,6 +71,7 @@ export type ProductionExpensePaymentMethod = 'cash' | 'easypaisa' | 'bank_accoun
 
 export interface ProductionExpense {
   id: string;
+  expenseNumber: string; // human-readable EXP-###### (unique across branch + production expenses)
   date: string; // 'YYYY-MM-DD' (Karachi)
   category: string;
   description: string;

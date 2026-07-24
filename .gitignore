@@ -8,7 +8,7 @@ build/
 # Turbo
 .turbo/
 
-# Secrets (NEVER commit) — the Firebase Admin service-account key lives here.
+# Secrets (NEVER commit) — any local credential/key files live here.
 credentials/
 .secrets/
 
@@ -17,6 +17,9 @@ credentials/
 .env.local
 .env.*.local
 !.env.example
+
+# Supabase CLI local state (project link, pooler URL) — per-developer, not shared.
+supabase/.temp/
 
 # Logs
 *.log
@@ -39,3 +42,8 @@ Thumbs.db
 # Editor / tooling temp files
 *.tmp.*
 ~$*
+
+# Local AI agent tooling (installed per-developer via `npx skills add`)
+.agents/
+.claude/
+skills-lock.json

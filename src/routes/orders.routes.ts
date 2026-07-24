@@ -1,55 +1,128 @@
 import { Router } from 'express';
-import { adminDb } from '../config/firebase';
-import { FieldValue } from 'firebase-admin/firestore';
+import { supabaseAdmin } from '../config/supabase';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { validate } from '../middleware/validate';
-import { CreateOrderSchema, CreatePosSaleSchema, UpdateOrderStatusSchema, LOW_STOCK_THRESHOLD, businessDateStr, type Product, type AppSettings } from '../shared';
+import { CreateOrderSchema, CreatePosSaleSchema, UpdateOrderStatusSchema, LOW_STOCK_THRESHOLD, businessDateStr } from '../shared';
 import { generateOrderNumber } from '../utils/orderNumber';
 import { notify } from '../services/push.service';
-import { commitSaleTransaction, logBlockedSale, InsufficientStockError, type SaleBalance } from '../services/stock.service';
+import { commitSaleTransaction, logBlockedSale, InsufficientStockError, type SaleBalance, type SaleItem } from '../services/stock.service';
 import { assertBusinessDayOpen } from '../middleware/assertBusinessDayOpen';
+import { getAppSettings } from '../services/settings.service';
+import { rowToApi } from '../utils/case';
 
 export const router = Router();
+
+/**
+ * The line items are normalised into their own `order_items` table
+ * (migration 03). Every read therefore joins them back on so the API shape the
+ * frontend compiles against is unchanged.
+ *
+ * Callers MUST also order the embedded rows by line_no (see ORDER_ITEMS_ORDER) —
+ * PostgREST makes no ordering guarantee for an embedded resource on its own, and
+ * a receipt would print its lines shuffled.
+ */
+const ORDER_SELECT = `
+  *,
+  items:order_items(
+    product_id, product_name, category_id, category_name,
+    unit_price, qty, discount, line_total, line_no
+  )
+`;
+
+/** Ordering for the embedded order_items rows. Applied alongside ORDER_SELECT. */
+const ORDER_ITEMS_ORDER = { referencedTable: 'order_items', ascending: true } as const;
+
+const ACTIVE_STATUSES = ['pending', 'preparing', 'ready'];
+
+/** Shared tax resolution: GST is applied only when enabled in settings. */
+async function resolveTaxRate(): Promise<number> {
+  const settings = await getAppSettings();
+  return settings.gstEnabled ? settings.gstRate / 100 : 0;
+}
+
+/**
+ * Resolve the posted line items against live product rows and compute the money.
+ *
+ * Prices come from the database, never from the client — the receipt is built
+ * from what is stored, so a stale client price must not be able to set it.
+ */
+async function buildOrderItems(
+  items: { productId: string; qty: number; discount: number }[],
+): Promise<SaleItem[]> {
+  const productIds = [...new Set(items.map((i) => i.productId))];
+
+  // One query for every product on the order, rather than N point reads.
+  const { data, error } = await supabaseAdmin
+    .from('products')
+    .select('id, name, category_id, category_name, price')
+    .in('id', productIds);
+  if (error) throw error;
+
+  const byId = new Map((data ?? []).map((p) => [p.id as string, p]));
+
+  return items.map((item) => {
+    const product = byId.get(item.productId);
+    if (!product) throw Object.assign(new Error(`Product ${item.productId} not found`), { status: 400 });
+    const unitPrice = Number(product.price ?? 0);
+    return {
+      productId: item.productId,
+      productName: product.name as string,
+      categoryId: (product.category_id as string | null) ?? null,
+      categoryName: (product.category_name as string | null) ?? null,
+      unitPrice,
+      qty: item.qty,
+      discount: item.discount,
+      lineTotal: unitPrice * item.qty - item.discount,
+    };
+  });
+}
 
 router.use(authenticate);
 
 router.get('/', async (req: AuthRequest, res, next) => {
   try {
     const { status, from, to } = req.query;
-    let query = adminDb.collection('orders') as FirebaseFirestore.Query;
 
-    // Branch managers see only their branch
+    let query = supabaseAdmin
+      .from('orders')
+      .select(ORDER_SELECT)
+      .order('created_at', { ascending: false })
+      .order('line_no', ORDER_ITEMS_ORDER);
+
+    // Branch managers see only their branch.
     if (req.user!.role === 'branch_manager' && req.user!.branchId) {
-      query = query.where('branchId', '==', req.user!.branchId);
+      query = query.eq('branch_id', req.user!.branchId);
     } else if (req.query['branchId']) {
-      query = query.where('branchId', '==', req.query['branchId']);
+      query = query.eq('branch_id', req.query['branchId']);
     }
 
-    // Production users are restricted to active order statuses (Admin SDK bypasses Firestore rules)
-    const ACTIVE_STATUSES = ['pending', 'preparing', 'ready'];
+    // Production users are restricted to active order statuses (the service key
+    // bypasses RLS, so this must be enforced here).
     if (req.user!.role === 'production_user') {
       if (status) {
         if (!ACTIVE_STATUSES.includes(String(status))) {
           res.status(403).json({ error: 'Access denied' });
           return;
         }
-        query = query.where('status', '==', status);
+        query = query.eq('status', status);
       } else {
-        query = query.where('status', 'in', ACTIVE_STATUSES);
+        query = query.in('status', ACTIVE_STATUSES);
       }
     } else if (status) {
-      query = query.where('status', '==', status);
+      query = query.eq('status', status);
     }
 
-    const snapshot = await query.get();
-    let orders = snapshot.docs.map((d) => ({ id: d.id, ...d.data() })) as Record<string, unknown>[];
-    orders.sort((a, b) => String(b['createdAt'] ?? '').localeCompare(String(a['createdAt'] ?? '')));
+    // Date filtering is a real indexed predicate: an inequality can be combined
+    // with the equality filters above directly in the query, rather than being
+    // done in memory over the whole result set.
+    if (from) query = query.gte('created_at', String(from));
+    if (to) query = query.lte('created_at', `${String(to)}Z`);
 
-    // Date filter in memory (Firestore limitation with inequality + equality)
-    if (from) orders = orders.filter((o: Record<string, unknown>) => String(o['createdAt']) >= String(from));
-    if (to) orders = orders.filter((o: Record<string, unknown>) => String(o['createdAt']) <= String(to) + 'Z');
+    const { data, error } = await query;
+    if (error) throw error;
 
+    const orders = rowToApi<Record<string, unknown>[]>(data ?? []);
     res.json({ orders, total: orders.length });
   } catch (err) {
     next(err);
@@ -58,16 +131,21 @@ router.get('/', async (req: AuthRequest, res, next) => {
 
 router.get('/:id', async (req: AuthRequest, res, next) => {
   try {
-    const doc = await adminDb.collection('orders').doc(req.params['id']!).get();
-    if (!doc.exists) { res.status(404).json({ error: 'Order not found' }); return; }
+    const { data, error } = await supabaseAdmin
+      .from('orders')
+      .select(ORDER_SELECT)
+      .order('line_no', ORDER_ITEMS_ORDER)
+      .eq('id', req.params['id']!)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) { res.status(404).json({ error: 'Order not found' }); return; }
 
-    const data = doc.data() as { branchId: string };
-    if (req.user!.role === 'branch_manager' && data.branchId !== req.user!.branchId) {
+    if (req.user!.role === 'branch_manager' && (data as { branch_id: string }).branch_id !== req.user!.branchId) {
       res.status(403).json({ error: 'Access denied' });
       return;
     }
 
-    res.json({ order: { id: doc.id, ...data } });
+    res.json({ order: rowToApi(data) });
   } catch (err) {
     next(err);
   }
@@ -85,92 +163,98 @@ router.post('/', requireRole('super_admin', 'branch_manager'), validate(CreateOr
 
     await assertBusinessDayOpen(businessDateStr(), req.user!.role);
 
-    // Fetch branch + customer concurrently
-    const [branchDoc, customerDoc, settingsDoc] = await Promise.all([
-      adminDb.collection('branches').doc(branchId).get(),
-      adminDb.collection('customers').doc(customerId).get(),
-      adminDb.collection('settings').doc('app').get(),
+    const [branchRes, customerRes, taxRate] = await Promise.all([
+      supabaseAdmin.from('branches').select('name').eq('id', branchId).maybeSingle(),
+      supabaseAdmin.from('customers').select('name, phone, address').eq('id', customerId).maybeSingle(),
+      resolveTaxRate(),
     ]);
+    if (branchRes.error) throw branchRes.error;
+    if (customerRes.error) throw customerRes.error;
+    if (!branchRes.data) { res.status(400).json({ error: 'Branch not found' }); return; }
+    if (!customerRes.data) { res.status(400).json({ error: 'Customer not found' }); return; }
 
-    if (!branchDoc.exists) { res.status(400).json({ error: 'Branch not found' }); return; }
-    if (!customerDoc.exists) { res.status(400).json({ error: 'Customer not found' }); return; }
+    const branch = branchRes.data as { name: string };
+    const customer = customerRes.data as { name: string; phone: string; address: string };
 
-    const branch = branchDoc.data() as { name: string };
-    const customer = customerDoc.data() as { name: string; phone: string; address: string };
-    const settings = settingsDoc.exists ? (settingsDoc.data() as AppSettings) : null;
-    const taxRate = settings?.gstEnabled ? (settings.gstRate / 100) : 0;
-
-    // Resolve products and build order items
-    const productDocs = await Promise.all(items.map((item: { productId: string }) =>
-      adminDb.collection('products').doc(item.productId).get()
-    ));
-
-    const orderItems = items.map((item: { productId: string; qty: number; discount: number }, i: number) => {
-      const pDoc = productDocs[i];
-      if (!pDoc || !pDoc.exists) throw Object.assign(new Error(`Product ${item.productId} not found`), { status: 400 });
-      const product = pDoc.data() as Product;
-      const lineTotal = product.price * item.qty - item.discount;
-      return {
-        productId: item.productId,
-        productName: product.name,
-        categoryId: product.categoryId,
-        categoryName: product.categoryName,
-        unitPrice: product.price,
-        qty: item.qty,
-        discount: item.discount,
-        lineTotal,
-      };
-    });
-
-    const subtotal = orderItems.reduce((sum: number, i: { lineTotal: number }) => sum + i.lineTotal, 0);
-    const discountTotal = orderItems.reduce((sum: number, i: { discount: number }) => sum + i.discount, 0);
+    const orderItems = await buildOrderItems(items);
+    const subtotal = orderItems.reduce((sum, i) => sum + i.lineTotal, 0);
+    const discountTotal = orderItems.reduce((sum, i) => sum + (i.discount ?? 0), 0);
     const taxAmount = Math.round(subtotal * taxRate * 100) / 100;
     const grandTotal = subtotal + deliveryCharges + taxAmount;
 
     const orderNumber = await generateOrderNumber();
-    const now = new Date().toISOString();
 
-    const ref = await adminDb.collection('orders').add({
-      orderNumber,
-      branchId,
-      branchName: branch.name,
-      customerId,
-      customerName: customer.name,
-      customerPhone: customer.phone,
-      customerAddress: customer.address,
-      items: orderItems,
-      subtotal,
-      discountTotal,
-      deliveryCharges,
-      taxRate,
-      taxAmount,
-      grandTotal,
-      paymentMethod,
-      status: 'pending',
-      notes: notes || '',
-      createdBy: req.user!.uid,
-      createdByName: req.user!.email,
-      createdAt: now,
-      updatedAt: now,
+    // created_at / updated_at come from column defaults and the orders_touch
+    // trigger — do not set them here.
+    const { data: order, error: orderErr } = await supabaseAdmin
+      .from('orders')
+      .insert({
+        order_number: orderNumber,
+        branch_id: branchId,
+        branch_name: branch.name,
+        customer_id: customerId,
+        customer_name: customer.name,
+        customer_phone: customer.phone,
+        customer_address: customer.address,
+        subtotal,
+        discount_total: discountTotal,
+        delivery_charges: deliveryCharges,
+        tax_rate: taxRate,
+        tax_amount: taxAmount,
+        grand_total: grandTotal,
+        payment_method: paymentMethod,
+        status: 'pending',
+        notes: notes || '',
+        created_by: req.user!.uid,
+        created_by_name: req.user!.email,
+        business_date: businessDateStr(),
+      })
+      .select('id')
+      .single();
+    if (orderErr) throw orderErr;
+
+    // Line items are a separate table now. This is NOT in the same transaction as
+    // the order insert — unlike the POS path, which goes through commit_sale.
+    // A failure here would leave an order with no lines; acceptable for the
+    // non-stock path, but see the note on POST /pos below.
+    const { error: itemsErr } = await supabaseAdmin.from('order_items').insert(
+      orderItems.map((it, idx) => ({
+        order_id: order.id,
+        product_id: it.productId,
+        product_name: it.productName,
+        category_id: it.categoryId,
+        category_name: it.categoryName,
+        unit_price: it.unitPrice,
+        qty: it.qty,
+        discount: it.discount ?? 0,
+        line_total: it.lineTotal,
+        line_no: idx + 1,
+      })),
+    );
+    if (itemsErr) throw itemsErr;
+
+    // Atomic — a plain read-then-write would lose one of two concurrent orders
+    // for the same customer (migration 13).
+    const { error: statsErr } = await supabaseAdmin.rpc('increment_customer_stats', {
+      p_customer_id: customerId,
+      p_amount: grandTotal,
     });
+    if (statsErr) throw statsErr;
 
-    // Update customer stats atomically to avoid race conditions
-    await adminDb.collection('customers').doc(customerId).update({
-      totalOrders: FieldValue.increment(1),
-      totalSpent: FieldValue.increment(grandTotal),
-    });
-
-    // Notify production of the new order (in-app + web push)
+    // branchId is null: production_user is a central role with no branch claim, and
+    // the notifications RLS filters out a role broadcast whose branch_id doesn't
+    // match the recipient's — so any non-null branchId hides this from every
+    // production user. The branch is already named in the message.
     await notify({
       type: 'order_created',
       title: 'New Order',
       message: `Order ${orderNumber} created at ${branch.name}`,
       targetRole: 'production_user',
-      branchId,
-      relatedId: ref.id,
+      branchId: null,
+      relatedId: order.id,
     });
 
-    res.status(201).json({ id: ref.id, orderNumber, grandTotal });
+    res.status(201).json({ id: order.id, orderNumber, grandTotal });
   } catch (err) {
     next(err);
   }
@@ -188,39 +272,17 @@ router.post('/pos', requireRole('super_admin', 'branch_manager'), validate(Creat
 
     await assertBusinessDayOpen(businessDateStr(), req.user!.role);
 
-    const [branchDoc, settingsDoc] = await Promise.all([
-      adminDb.collection('branches').doc(branchId).get(),
-      adminDb.collection('settings').doc('app').get(),
+    const [branchRes, taxRate] = await Promise.all([
+      supabaseAdmin.from('branches').select('name').eq('id', branchId).maybeSingle(),
+      resolveTaxRate(),
     ]);
-    if (!branchDoc.exists) { res.status(400).json({ error: 'Branch not found' }); return; }
+    if (branchRes.error) throw branchRes.error;
+    if (!branchRes.data) { res.status(400).json({ error: 'Branch not found' }); return; }
+    const branch = branchRes.data as { name: string };
 
-    const branch = branchDoc.data() as { name: string };
-    const settings = settingsDoc.exists ? (settingsDoc.data() as AppSettings) : null;
-    const taxRate = settings?.gstEnabled ? (settings.gstRate / 100) : 0;
-
-    const productDocs = await Promise.all(items.map((item: { productId: string }) =>
-      adminDb.collection('products').doc(item.productId).get()
-    ));
-
-    const orderItems = items.map((item: { productId: string; qty: number; discount: number }, i: number) => {
-      const pDoc = productDocs[i];
-      if (!pDoc || !pDoc.exists) throw Object.assign(new Error(`Product ${item.productId} not found`), { status: 400 });
-      const product = pDoc.data() as Product;
-      const lineTotal = product.price * item.qty - item.discount;
-      return {
-        productId: item.productId,
-        productName: product.name,
-        categoryId: product.categoryId,
-        categoryName: product.categoryName,
-        unitPrice: product.price,
-        qty: item.qty,
-        discount: item.discount,
-        lineTotal,
-      };
-    });
-
-    const subtotal = orderItems.reduce((sum: number, i: { lineTotal: number }) => sum + i.lineTotal, 0);
-    const discountTotal = orderItems.reduce((sum: number, i: { discount: number }) => sum + i.discount, 0);
+    const orderItems = await buildOrderItems(items);
+    const subtotal = orderItems.reduce((sum, i) => sum + i.lineTotal, 0);
+    const discountTotal = orderItems.reduce((sum, i) => sum + (i.discount ?? 0), 0);
     const taxAmount = Math.round(subtotal * taxRate * 100) / 100;
     const grandTotal = subtotal + taxAmount;
 
@@ -235,49 +297,40 @@ router.post('/pos', requireRole('super_admin', 'branch_manager'), validate(Creat
     }
 
     const orderNumber = await generateOrderNumber();
-    const now = new Date().toISOString();
     const name = (customerName || '').trim() || 'Walking Customer';
-    const orderRef = adminDb.collection('orders').doc();
 
-    const orderData = {
-      orderNumber,
-      branchId,
-      branchName: branch.name,
-      customerId: '',
-      customerName: name,
-      customerPhone: (customerPhone || '').trim(),
-      customerAddress: '',
-      items: orderItems,
-      subtotal,
-      discountTotal,
-      deliveryCharges: 0,
-      taxRate,
-      taxAmount,
-      grandTotal,
-      paymentMethod,
-      status: 'delivered', // completed at the counter; bypasses the production queue
-      ...(cashFields ?? {}),
-      notes: notes || '',
-      createdBy: req.user!.uid,
-      createdByName: req.user!.email,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    // Validate stock, create the order and decrement balances atomically. If any
-    // product is short, nothing is written — we log the blocked attempt and 409.
+    // Validate stock, create the order + its line items and decrement balances —
+    // all inside commit_sale's single transaction (migration 12). If any product
+    // is short, nothing is written; we log the blocked attempt and 409.
+    let orderId: string;
     let balances: Map<string, SaleBalance>;
     try {
-      balances = await commitSaleTransaction({
-        orderRef,
-        orderData,
+      ({ orderId, balances } = await commitSaleTransaction({
         branchId,
-        lines: orderItems.map((it: { productId: string; productName: string; qty: number }) => ({
-          productId: it.productId,
-          productName: it.productName,
-          qty: it.qty,
-        })),
-      });
+        items: orderItems,
+        order: {
+          orderNumber,
+          branchName: branch.name,
+          // No customer record for a walk-in; the name/phone are captured on the
+          // order itself. customerId stays null rather than '' — it is a uuid FK.
+          customerId: null,
+          customerName: name,
+          customerPhone: (customerPhone || '').trim(),
+          customerAddress: '',
+          subtotal,
+          discountTotal,
+          deliveryCharges: 0,
+          taxRate,
+          taxAmount,
+          grandTotal,
+          paymentMethod,
+          status: 'delivered', // completed at the counter; bypasses the production queue
+          notes: notes || '',
+          createdBy: req.user!.uid,
+          createdByName: req.user!.email,
+          ...(cashFields ?? {}),
+        },
+      }));
     } catch (err) {
       if (err instanceof InsufficientStockError) {
         // Best-effort audit log; never let it mask the 409 from the caller.
@@ -306,8 +359,19 @@ router.post('/pos', requireRole('super_admin', 'branch_manager'), validate(Creat
         ? `${crossed[0]!.productName} is low on stock (${crossed[0]!.after} left) at ${branch.name}. Please create a Production Order.`
         : `${crossed.length} products are low on stock at ${branch.name}. Please create a Production Order.`;
       await Promise.all(
+        // Only branch_manager is branch-scoped, so only it keeps branchId (which
+        // limits the alert to that branch's manager). production_user/super_admin
+        // are central and carry no branch claim — a non-null branchId there would
+        // be filtered out by the notifications RLS, so they get null.
         (['branch_manager', 'production_user', 'super_admin'] as const).map((role) =>
-          notify({ type: 'low_stock', title: 'Low Stock', message, targetRole: role, branchId, relatedId: null }),
+          notify({
+            type: 'low_stock',
+            title: 'Low Stock',
+            message,
+            targetRole: role,
+            branchId: role === 'branch_manager' ? branchId : null,
+            relatedId: null,
+          }),
         ),
       ).catch((e) => console.error('[stock] failed to send low-stock notifications', e));
     }
@@ -317,14 +381,14 @@ router.post('/pos', requireRole('super_admin', 'branch_manager'), validate(Creat
     // price change between opening the form and saving would put a unitPrice on the
     // customer's receipt that disagrees with the order actually stored.
     res.status(201).json({
-      id: orderRef.id,
+      id: orderId,
       orderNumber,
       grandTotal,
       items: orderItems,
       subtotal,
       discountTotal,
       taxAmount,
-      createdAt: now,
+      createdAt: new Date().toISOString(),
       ...(cashFields ?? {}),
     });
   } catch (err) {
@@ -335,13 +399,17 @@ router.post('/pos', requireRole('super_admin', 'branch_manager'), validate(Creat
 router.put('/:id/status', validate(UpdateOrderStatusSchema), async (req: AuthRequest, res, next) => {
   try {
     const { status } = req.body;
-    const doc = await adminDb.collection('orders').doc(req.params['id']!).get();
-    if (!doc.exists) { res.status(404).json({ error: 'Order not found' }); return; }
 
-    const data = doc.data() as { branchId: string; status: string; orderNumber: string };
+    const { data: order, error: readErr } = await supabaseAdmin
+      .from('orders')
+      .select('branch_id, status, order_number')
+      .eq('id', req.params['id']!)
+      .maybeSingle();
+    if (readErr) throw readErr;
+    if (!order) { res.status(404).json({ error: 'Order not found' }); return; }
 
     // Branch managers can only update their own branch orders
-    if (req.user!.role === 'branch_manager' && data.branchId !== req.user!.branchId) {
+    if (req.user!.role === 'branch_manager' && order.branch_id !== req.user!.branchId) {
       res.status(403).json({ error: 'Access denied' });
       return;
     }
@@ -352,16 +420,20 @@ router.put('/:id/status', validate(UpdateOrderStatusSchema), async (req: AuthReq
       return;
     }
 
-    const now = new Date().toISOString();
-    await adminDb.collection('orders').doc(req.params['id']!).update({ status, updatedAt: now });
+    // updated_at is maintained by the orders_touch trigger — do not set it here.
+    const { error: updErr } = await supabaseAdmin
+      .from('orders')
+      .update({ status })
+      .eq('id', req.params['id']!);
+    if (updErr) throw updErr;
 
     if (status === 'ready') {
       await notify({
         type: 'order_ready',
         title: 'Order Ready',
-        message: `Order ${data.orderNumber} is ready for delivery`,
+        message: `Order ${order.order_number} is ready for delivery`,
         targetRole: 'branch_manager',
-        branchId: data.branchId,
+        branchId: order.branch_id,
         relatedId: req.params['id'],
       });
     }

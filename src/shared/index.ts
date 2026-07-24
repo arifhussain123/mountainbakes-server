@@ -13,10 +13,11 @@ export * from './types/notification.types';
 export * from './types/settings.types';
 export * from './types/report.types';
 
-export * from './types/chat.types';
 export * from './types/audit.types';
 export * from './types/business-day.types';
 export * from './types/price.types';
+export * from './types/support.types';
+export * from './types/closing-notifications.types';
 
 // Zod schemas + inferred input types
 export * from './schemas/user.schemas';
@@ -29,6 +30,8 @@ export * from './schemas/production-ops.schemas';
 export * from './schemas/expense.schemas';
 export * from './schemas/settings.schemas';
 export * from './schemas/price.schemas';
+export * from './schemas/support.schemas';
+export * from './schemas/closing-notifications.schemas';
 
 // Utils
 export * from './utils/timezone';
