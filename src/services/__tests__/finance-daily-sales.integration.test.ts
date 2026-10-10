@@ -401,7 +401,7 @@ describe('business dates', () => {
     const list = await financeList(EMPTY_DAY, EMPTY_DAY);
     assert.deepEqual(list.records, []);
     assert.equal(list.summary.totalSale, 0);
-    assert.equal(list.reconciliation.expected.total, 0);
+    assert.equal(list.reconciliation.expected, 0);
     assert.deepEqual(list.unmatchedDeposits, []);
   });
 
@@ -444,7 +444,8 @@ describe('the branch filter', () => {
     const prior = process.env['DB_MAX_ROWS'];
     process.env['DB_MAX_ROWS'] = '10';
     try {
-      // Two branches × six days is twelve possible rows against a ceiling of ten.
+      // Two branches × (six days + the two-day lead-in) is sixteen possible rows
+      // against a ceiling of ten.
       const all = await call('finance', 'GET', `${FINANCE}${window('2026-09-06', D2)}`);
       assert.equal(all.status, 400, JSON.stringify(all.body));
       assert.match(all.body.error, /Choose one branch/);
@@ -474,8 +475,10 @@ describe('changes to a sale', () => {
   });
 });
 
-// Gulberg's D1 now records Cash on Table 1,100 and Easypaisa 400 — 1,500 due.
-describe('recorded money against verified receipts', () => {
+// Gulberg's D1 now records a Total Sale of 1,900. At the default 75% that is a
+// Company Share of 1,425 — what the branch owes for the day, and what its deposit
+// is looked for by. Saddar's D1 share is 427.50.
+describe('the Company Share against the deposit that paid it', () => {
   let recordBefore: Json;
   let ordersBefore: Json;
   let first: string;
@@ -483,25 +486,28 @@ describe('recorded money against verified receipts', () => {
 
   const reconciliation = async () => rowOf(await financeList(D1, D1), A, D1).reconciliation;
 
-  test('nothing deposited → not received, and the whole amount is outstanding', async () => {
+  test('nothing deposited → not received, and the whole share is outstanding', async () => {
     const a = rowOf(await financeList(D1, D1), A, D1);
     recordBefore = sourceValues(a);
     ordersBefore = await footprint();
 
+    assert.equal(a.companyShare, 1425);
     assert.equal(a.reconciliation.status, 'not_received');
-    assert.deepEqual(a.reconciliation.expected, { cash: 1100, easypaisa: 400, bank: 0, total: 1500 });
-    assert.deepEqual(a.reconciliation.difference, { cash: 1100, easypaisa: 400, bank: 0, total: 1500 });
+    assert.equal(a.reconciliation.expected, 1425);
+    assert.equal(a.reconciliation.difference, 1425);
+    assert.equal(a.reconciliation.match, 'none');
     assert.equal(a.reconciliation.provisional, true);
   });
 
-  test('a submitted deposit is shown as pending and not counted', async () => {
-    first = await deposit({ branch: A, date: D1, status: 'pending', cash: 1100, easypaisa: 400 });
+  test('a deposit of the same amount handed over the NEXT day is found, and while pending is not counted', async () => {
+    first = await deposit({ branch: A, date: D2, status: 'pending', cash: 1025, easypaisa: 400 });
     const r = await reconciliation();
     assert.equal(r.status, 'pending');
-    assert.equal(r.received.total, 0);
-    assert.equal(r.pending.total, 1500);
-    assert.equal(r.difference.total, 1500);
+    assert.equal(r.received, 0);
+    assert.equal(r.pending, 1425);
+    assert.equal(r.difference, 1425);
     assert.equal(r.deposits.length, 1);
+    assert.equal(r.deposits[0].businessDate, D2);
     assert.equal(r.deposits[0].status, 'pending');
   });
 
@@ -512,42 +518,53 @@ describe('recorded money against verified receipts', () => {
     );
     const r = await reconciliation();
     assert.equal(r.status, 'matched');
-    assert.deepEqual(r.difference, { cash: 0, easypaisa: 0, bank: 0, total: 0 });
+    assert.equal(r.match, 'amount');
+    assert.equal(r.received, 1425);
+    assert.equal(r.difference, 0);
     assert.equal(r.deposits[0].voucherNo, 'RV-1');
     assert.equal(r.approvedCount, 1);
   });
 
-  test('more received than recorded is flagged, with a negative difference', async () => {
+  test('the deposit that paid D1 is not also set against the day it was handed over', async () => {
+    // Saddar is the only branch with a row on D2; Gulberg's deposit is dated D2.
+    const list = await financeList(D2, D2);
+    assert.equal(rowOf(list, B, D2).reconciliation.deposits.length, 0);
+    // Claimed by D1, just outside this window — so it is not "unmatched" either.
+    assert.deepEqual(list.unmatchedDeposits, []);
+  });
+
+  test('a second deposit that matches nothing is reported as unmatched, and the day stays matched', async () => {
     extra = await deposit({ branch: A, date: D1, status: 'approved', cash: 50 });
-    const r = await reconciliation();
-    assert.equal(r.status, 'discrepancy');
-    assert.equal(r.difference.cash, -50);
-    assert.equal(r.approvedCount, 2);
+    const list = await financeList(D1, D1);
+    assert.equal(rowOf(list, A, D1).reconciliation.status, 'matched');
+    assert.equal(rowOf(list, A, D1).reconciliation.received, 1425);
+    assert.deepEqual(list.unmatchedDeposits.map((d: Json) => d.id), [extra]);
   });
 
   test('a deposit deleted through the Help Desk drops out', async () => {
     await db.query(`update cash_transfers set deleted_at = now() where id = $1`, [extra]);
-    const r = await reconciliation();
-    assert.equal(r.status, 'matched');
-    assert.equal(r.deposits.length, 1);
+    const list = await financeList(D1, D1);
+    assert.deepEqual(list.unmatchedDeposits, []);
+    assert.equal(rowOf(list, A, D1).reconciliation.status, 'matched');
   });
 
   test('a rejected deposit and a fuel-only one are not receipts', async () => {
-    await deposit({ branch: A, date: D1, status: 'rejected', cash: 700 });
+    await deposit({ branch: A, date: D1, status: 'rejected', cash: 1425 });
     await deposit({ branch: A, date: D1, status: 'approved', fuel: 200 });
-    const r = await reconciliation();
+    const list = await financeList(D1, D1);
+    const r = rowOf(list, A, D1).reconciliation;
     assert.equal(r.status, 'matched');
-    assert.equal(r.received.total, 1500);
     assert.equal(r.deposits.length, 1);
+    assert.deepEqual(list.unmatchedDeposits, []);
   });
 
-  test('less received than recorded is flagged, with a positive difference', async () => {
-    await db.query(`update cash_transfers set cash_amount = 1000, amount = 1400 where id = $1`, [first]);
+  test('a deposit of a different amount is shown as the nearest one and flagged', async () => {
+    await db.query(`update cash_transfers set cash_amount = 925, amount = 1325 where id = $1`, [first]);
     const r = await reconciliation();
     assert.equal(r.status, 'discrepancy');
-    assert.equal(r.difference.cash, 100);
-    assert.equal(r.difference.total, 100);
-    assert.equal(r.totalMatches, false);
+    assert.equal(r.match, 'nearest');
+    assert.equal(r.received, 1325);
+    assert.equal(r.difference, 100);
   });
 
   test('none of that changed the record, the sales, or created anything', async () => {
@@ -564,6 +581,7 @@ describe('recorded money against verified receipts', () => {
   test('another branch\'s deposits never land on this one', async () => {
     const list = await financeList(D1, D1);
     assert.equal(rowOf(list, B, D1).reconciliation.status, 'not_received');
+    assert.equal(rowOf(list, B, D1).reconciliation.expected, 427.5);
     assert.equal(rowOf(list, B, D1).reconciliation.deposits.length, 0);
   });
 
@@ -572,13 +590,32 @@ describe('recorded money against verified receipts', () => {
     assert.deepEqual(list.reconciliation.counts, {
       nothing_due: 0, not_received: 1, pending: 0, matched: 0, discrepancy: 1,
     });
-    // Gulberg 1,500 + Saddar's 570 cash.
-    assert.equal(list.reconciliation.expected.total, 2070);
-    assert.equal(list.reconciliation.received.total, 1400);
-    assert.equal(list.reconciliation.difference.total, 670);
+    assert.equal(list.reconciliation.expected, 1852.5);
+    assert.equal(list.reconciliation.received, 1325);
+    assert.equal(list.reconciliation.difference, 527.5);
   });
 
-  test('a deposit dated on a day with no sales is reported, not moved to another day', async () => {
+  test('a deposit dated on the window\'s first day that paid the day BEFORE the window is not given to that first day', async () => {
+    // Saddar traded the day before D1 for 400 — a share of 300 — and handed it
+    // over on D1. Asked about D1 alone, that 300 must not be read as D1's money.
+    const D0 = '2026-09-09';
+    await order({ branch: B, method: 'cash', total: 400, at: `${D0}T07:00:00Z` });
+    const paid = await deposit({ branch: B, date: D1, status: 'approved', cash: 300 });
+
+    const d1 = await financeList(D1, D1);
+    assert.equal(rowOf(d1, B, D1).reconciliation.status, 'not_received');
+    assert.equal(rowOf(d1, B, D1).reconciliation.deposits.length, 0);
+    assert.deepEqual(d1.unmatchedDeposits, []);
+    assert.ok(d1.records.every((r: Json) => r.businessDate === D1));
+
+    const d0 = await financeList(D0, D0);
+    const r = rowOf(d0, B, D0).reconciliation;
+    assert.equal(r.status, 'matched');
+    assert.equal(r.deposits[0].id, paid);
+    assert.equal(r.deposits[0].businessDate, D1);
+  });
+
+  test('a deposit that matches no day is reported, not forced onto one', async () => {
     const orphan = await deposit({ branch: A, date: EMPTY_DAY, status: 'approved', cash: 250 });
     const list = await financeList(EMPTY_DAY, EMPTY_DAY);
     assert.deepEqual(list.records, []);
@@ -587,7 +624,7 @@ describe('recorded money against verified receipts', () => {
     assert.equal(list.unmatchedDeposits[0].branchName, 'Gulberg');
     assert.equal(list.unmatchedDeposits[0].businessDate, EMPTY_DAY);
 
-    // And it does not leak into the day beside it.
+    // And it does not leak into another day.
     assert.equal(rowOf(await financeList(D1, D1), A, D1).reconciliation.deposits.length, 1);
   });
 });
