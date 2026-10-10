@@ -281,6 +281,7 @@ export type finance_employeesWhereInput = {
   created_at?: Prisma.DateTimeFilter<"finance_employees"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"finance_employees"> | Date | string
   employee_advances?: Prisma.Employee_advancesListRelationFilter
+  employee_resignations?: Prisma.XOR<Prisma.Employee_resignationsNullableScalarRelationFilter, Prisma.employee_resignationsWhereInput> | null
   branches?: Prisma.XOR<Prisma.BranchesNullableScalarRelationFilter, Prisma.branchesWhereInput> | null
   salary_payments?: Prisma.Salary_paymentsListRelationFilter
   salary_revisions?: Prisma.Salary_revisionsListRelationFilter
@@ -301,6 +302,7 @@ export type finance_employeesOrderByWithRelationInput = {
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   employee_advances?: Prisma.employee_advancesOrderByRelationAggregateInput
+  employee_resignations?: Prisma.employee_resignationsOrderByWithRelationInput
   branches?: Prisma.branchesOrderByWithRelationInput
   salary_payments?: Prisma.salary_paymentsOrderByRelationAggregateInput
   salary_revisions?: Prisma.salary_revisionsOrderByRelationAggregateInput
@@ -324,6 +326,7 @@ export type finance_employeesWhereUniqueInput = Prisma.AtLeast<{
   created_at?: Prisma.DateTimeFilter<"finance_employees"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"finance_employees"> | Date | string
   employee_advances?: Prisma.Employee_advancesListRelationFilter
+  employee_resignations?: Prisma.XOR<Prisma.Employee_resignationsNullableScalarRelationFilter, Prisma.employee_resignationsWhereInput> | null
   branches?: Prisma.XOR<Prisma.BranchesNullableScalarRelationFilter, Prisma.branchesWhereInput> | null
   salary_payments?: Prisma.Salary_paymentsListRelationFilter
   salary_revisions?: Prisma.Salary_revisionsListRelationFilter
@@ -383,6 +386,7 @@ export type finance_employeesCreateInput = {
   created_at?: Date | string
   updated_at?: Date | string
   employee_advances?: Prisma.employee_advancesCreateNestedManyWithoutFinance_employeesInput
+  employee_resignations?: Prisma.employee_resignationsCreateNestedOneWithoutFinance_employeesInput
   branches?: Prisma.branchesCreateNestedOneWithoutFinance_employeesInput
   salary_payments?: Prisma.salary_paymentsCreateNestedManyWithoutFinance_employeesInput
   salary_revisions?: Prisma.salary_revisionsCreateNestedManyWithoutFinance_employeesInput
@@ -403,6 +407,7 @@ export type finance_employeesUncheckedCreateInput = {
   created_at?: Date | string
   updated_at?: Date | string
   employee_advances?: Prisma.employee_advancesUncheckedCreateNestedManyWithoutFinance_employeesInput
+  employee_resignations?: Prisma.employee_resignationsUncheckedCreateNestedOneWithoutFinance_employeesInput
   salary_payments?: Prisma.salary_paymentsUncheckedCreateNestedManyWithoutFinance_employeesInput
   salary_revisions?: Prisma.salary_revisionsUncheckedCreateNestedManyWithoutFinance_employeesInput
 }
@@ -421,6 +426,7 @@ export type finance_employeesUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employee_advances?: Prisma.employee_advancesUpdateManyWithoutFinance_employeesNestedInput
+  employee_resignations?: Prisma.employee_resignationsUpdateOneWithoutFinance_employeesNestedInput
   branches?: Prisma.branchesUpdateOneWithoutFinance_employeesNestedInput
   salary_payments?: Prisma.salary_paymentsUpdateManyWithoutFinance_employeesNestedInput
   salary_revisions?: Prisma.salary_revisionsUpdateManyWithoutFinance_employeesNestedInput
@@ -441,6 +447,7 @@ export type finance_employeesUncheckedUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employee_advances?: Prisma.employee_advancesUncheckedUpdateManyWithoutFinance_employeesNestedInput
+  employee_resignations?: Prisma.employee_resignationsUncheckedUpdateOneWithoutFinance_employeesNestedInput
   salary_payments?: Prisma.salary_paymentsUncheckedUpdateManyWithoutFinance_employeesNestedInput
   salary_revisions?: Prisma.salary_revisionsUncheckedUpdateManyWithoutFinance_employeesNestedInput
 }
@@ -647,6 +654,20 @@ export type finance_employeesUpdateOneRequiredWithoutSalary_revisionsNestedInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.finance_employeesUpdateToOneWithWhereWithoutSalary_revisionsInput, Prisma.finance_employeesUpdateWithoutSalary_revisionsInput>, Prisma.finance_employeesUncheckedUpdateWithoutSalary_revisionsInput>
 }
 
+export type finance_employeesCreateNestedOneWithoutEmployee_resignationsInput = {
+  create?: Prisma.XOR<Prisma.finance_employeesCreateWithoutEmployee_resignationsInput, Prisma.finance_employeesUncheckedCreateWithoutEmployee_resignationsInput>
+  connectOrCreate?: Prisma.finance_employeesCreateOrConnectWithoutEmployee_resignationsInput
+  connect?: Prisma.finance_employeesWhereUniqueInput
+}
+
+export type finance_employeesUpdateOneRequiredWithoutEmployee_resignationsNestedInput = {
+  create?: Prisma.XOR<Prisma.finance_employeesCreateWithoutEmployee_resignationsInput, Prisma.finance_employeesUncheckedCreateWithoutEmployee_resignationsInput>
+  connectOrCreate?: Prisma.finance_employeesCreateOrConnectWithoutEmployee_resignationsInput
+  upsert?: Prisma.finance_employeesUpsertWithoutEmployee_resignationsInput
+  connect?: Prisma.finance_employeesWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.finance_employeesUpdateToOneWithWhereWithoutEmployee_resignationsInput, Prisma.finance_employeesUpdateWithoutEmployee_resignationsInput>, Prisma.finance_employeesUncheckedUpdateWithoutEmployee_resignationsInput>
+}
+
 export type finance_employeesCreateWithoutBranchesInput = {
   id?: string
   employee_code?: string
@@ -661,6 +682,7 @@ export type finance_employeesCreateWithoutBranchesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   employee_advances?: Prisma.employee_advancesCreateNestedManyWithoutFinance_employeesInput
+  employee_resignations?: Prisma.employee_resignationsCreateNestedOneWithoutFinance_employeesInput
   salary_payments?: Prisma.salary_paymentsCreateNestedManyWithoutFinance_employeesInput
   salary_revisions?: Prisma.salary_revisionsCreateNestedManyWithoutFinance_employeesInput
 }
@@ -679,6 +701,7 @@ export type finance_employeesUncheckedCreateWithoutBranchesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   employee_advances?: Prisma.employee_advancesUncheckedCreateNestedManyWithoutFinance_employeesInput
+  employee_resignations?: Prisma.employee_resignationsUncheckedCreateNestedOneWithoutFinance_employeesInput
   salary_payments?: Prisma.salary_paymentsUncheckedCreateNestedManyWithoutFinance_employeesInput
   salary_revisions?: Prisma.salary_revisionsUncheckedCreateNestedManyWithoutFinance_employeesInput
 }
@@ -741,6 +764,7 @@ export type finance_employeesCreateWithoutEmployee_advancesInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
+  employee_resignations?: Prisma.employee_resignationsCreateNestedOneWithoutFinance_employeesInput
   branches?: Prisma.branchesCreateNestedOneWithoutFinance_employeesInput
   salary_payments?: Prisma.salary_paymentsCreateNestedManyWithoutFinance_employeesInput
   salary_revisions?: Prisma.salary_revisionsCreateNestedManyWithoutFinance_employeesInput
@@ -760,6 +784,7 @@ export type finance_employeesUncheckedCreateWithoutEmployee_advancesInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
+  employee_resignations?: Prisma.employee_resignationsUncheckedCreateNestedOneWithoutFinance_employeesInput
   salary_payments?: Prisma.salary_paymentsUncheckedCreateNestedManyWithoutFinance_employeesInput
   salary_revisions?: Prisma.salary_revisionsUncheckedCreateNestedManyWithoutFinance_employeesInput
 }
@@ -793,6 +818,7 @@ export type finance_employeesUpdateWithoutEmployee_advancesInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  employee_resignations?: Prisma.employee_resignationsUpdateOneWithoutFinance_employeesNestedInput
   branches?: Prisma.branchesUpdateOneWithoutFinance_employeesNestedInput
   salary_payments?: Prisma.salary_paymentsUpdateManyWithoutFinance_employeesNestedInput
   salary_revisions?: Prisma.salary_revisionsUpdateManyWithoutFinance_employeesNestedInput
@@ -812,6 +838,7 @@ export type finance_employeesUncheckedUpdateWithoutEmployee_advancesInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  employee_resignations?: Prisma.employee_resignationsUncheckedUpdateOneWithoutFinance_employeesNestedInput
   salary_payments?: Prisma.salary_paymentsUncheckedUpdateManyWithoutFinance_employeesNestedInput
   salary_revisions?: Prisma.salary_revisionsUncheckedUpdateManyWithoutFinance_employeesNestedInput
 }
@@ -830,6 +857,7 @@ export type finance_employeesCreateWithoutSalary_paymentsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   employee_advances?: Prisma.employee_advancesCreateNestedManyWithoutFinance_employeesInput
+  employee_resignations?: Prisma.employee_resignationsCreateNestedOneWithoutFinance_employeesInput
   branches?: Prisma.branchesCreateNestedOneWithoutFinance_employeesInput
   salary_revisions?: Prisma.salary_revisionsCreateNestedManyWithoutFinance_employeesInput
 }
@@ -849,6 +877,7 @@ export type finance_employeesUncheckedCreateWithoutSalary_paymentsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   employee_advances?: Prisma.employee_advancesUncheckedCreateNestedManyWithoutFinance_employeesInput
+  employee_resignations?: Prisma.employee_resignationsUncheckedCreateNestedOneWithoutFinance_employeesInput
   salary_revisions?: Prisma.salary_revisionsUncheckedCreateNestedManyWithoutFinance_employeesInput
 }
 
@@ -882,6 +911,7 @@ export type finance_employeesUpdateWithoutSalary_paymentsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employee_advances?: Prisma.employee_advancesUpdateManyWithoutFinance_employeesNestedInput
+  employee_resignations?: Prisma.employee_resignationsUpdateOneWithoutFinance_employeesNestedInput
   branches?: Prisma.branchesUpdateOneWithoutFinance_employeesNestedInput
   salary_revisions?: Prisma.salary_revisionsUpdateManyWithoutFinance_employeesNestedInput
 }
@@ -901,6 +931,7 @@ export type finance_employeesUncheckedUpdateWithoutSalary_paymentsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employee_advances?: Prisma.employee_advancesUncheckedUpdateManyWithoutFinance_employeesNestedInput
+  employee_resignations?: Prisma.employee_resignationsUncheckedUpdateOneWithoutFinance_employeesNestedInput
   salary_revisions?: Prisma.salary_revisionsUncheckedUpdateManyWithoutFinance_employeesNestedInput
 }
 
@@ -918,6 +949,7 @@ export type finance_employeesCreateWithoutSalary_revisionsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   employee_advances?: Prisma.employee_advancesCreateNestedManyWithoutFinance_employeesInput
+  employee_resignations?: Prisma.employee_resignationsCreateNestedOneWithoutFinance_employeesInput
   branches?: Prisma.branchesCreateNestedOneWithoutFinance_employeesInput
   salary_payments?: Prisma.salary_paymentsCreateNestedManyWithoutFinance_employeesInput
 }
@@ -937,6 +969,7 @@ export type finance_employeesUncheckedCreateWithoutSalary_revisionsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   employee_advances?: Prisma.employee_advancesUncheckedCreateNestedManyWithoutFinance_employeesInput
+  employee_resignations?: Prisma.employee_resignationsUncheckedCreateNestedOneWithoutFinance_employeesInput
   salary_payments?: Prisma.salary_paymentsUncheckedCreateNestedManyWithoutFinance_employeesInput
 }
 
@@ -970,6 +1003,7 @@ export type finance_employeesUpdateWithoutSalary_revisionsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employee_advances?: Prisma.employee_advancesUpdateManyWithoutFinance_employeesNestedInput
+  employee_resignations?: Prisma.employee_resignationsUpdateOneWithoutFinance_employeesNestedInput
   branches?: Prisma.branchesUpdateOneWithoutFinance_employeesNestedInput
   salary_payments?: Prisma.salary_paymentsUpdateManyWithoutFinance_employeesNestedInput
 }
@@ -989,7 +1023,100 @@ export type finance_employeesUncheckedUpdateWithoutSalary_revisionsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employee_advances?: Prisma.employee_advancesUncheckedUpdateManyWithoutFinance_employeesNestedInput
+  employee_resignations?: Prisma.employee_resignationsUncheckedUpdateOneWithoutFinance_employeesNestedInput
   salary_payments?: Prisma.salary_paymentsUncheckedUpdateManyWithoutFinance_employeesNestedInput
+}
+
+export type finance_employeesCreateWithoutEmployee_resignationsInput = {
+  id?: string
+  employee_code?: string
+  name: string
+  department: string
+  designation: string
+  branch_name?: string | null
+  base_salary?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  phone?: string | null
+  joined_on?: Date | string | null
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  employee_advances?: Prisma.employee_advancesCreateNestedManyWithoutFinance_employeesInput
+  branches?: Prisma.branchesCreateNestedOneWithoutFinance_employeesInput
+  salary_payments?: Prisma.salary_paymentsCreateNestedManyWithoutFinance_employeesInput
+  salary_revisions?: Prisma.salary_revisionsCreateNestedManyWithoutFinance_employeesInput
+}
+
+export type finance_employeesUncheckedCreateWithoutEmployee_resignationsInput = {
+  id?: string
+  employee_code?: string
+  name: string
+  department: string
+  designation: string
+  branch_id?: string | null
+  branch_name?: string | null
+  base_salary?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  phone?: string | null
+  joined_on?: Date | string | null
+  is_active?: boolean
+  created_at?: Date | string
+  updated_at?: Date | string
+  employee_advances?: Prisma.employee_advancesUncheckedCreateNestedManyWithoutFinance_employeesInput
+  salary_payments?: Prisma.salary_paymentsUncheckedCreateNestedManyWithoutFinance_employeesInput
+  salary_revisions?: Prisma.salary_revisionsUncheckedCreateNestedManyWithoutFinance_employeesInput
+}
+
+export type finance_employeesCreateOrConnectWithoutEmployee_resignationsInput = {
+  where: Prisma.finance_employeesWhereUniqueInput
+  create: Prisma.XOR<Prisma.finance_employeesCreateWithoutEmployee_resignationsInput, Prisma.finance_employeesUncheckedCreateWithoutEmployee_resignationsInput>
+}
+
+export type finance_employeesUpsertWithoutEmployee_resignationsInput = {
+  update: Prisma.XOR<Prisma.finance_employeesUpdateWithoutEmployee_resignationsInput, Prisma.finance_employeesUncheckedUpdateWithoutEmployee_resignationsInput>
+  create: Prisma.XOR<Prisma.finance_employeesCreateWithoutEmployee_resignationsInput, Prisma.finance_employeesUncheckedCreateWithoutEmployee_resignationsInput>
+  where?: Prisma.finance_employeesWhereInput
+}
+
+export type finance_employeesUpdateToOneWithWhereWithoutEmployee_resignationsInput = {
+  where?: Prisma.finance_employeesWhereInput
+  data: Prisma.XOR<Prisma.finance_employeesUpdateWithoutEmployee_resignationsInput, Prisma.finance_employeesUncheckedUpdateWithoutEmployee_resignationsInput>
+}
+
+export type finance_employeesUpdateWithoutEmployee_resignationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employee_code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.StringFieldUpdateOperationsInput | string
+  designation?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  base_salary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  joined_on?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  employee_advances?: Prisma.employee_advancesUpdateManyWithoutFinance_employeesNestedInput
+  branches?: Prisma.branchesUpdateOneWithoutFinance_employeesNestedInput
+  salary_payments?: Prisma.salary_paymentsUpdateManyWithoutFinance_employeesNestedInput
+  salary_revisions?: Prisma.salary_revisionsUpdateManyWithoutFinance_employeesNestedInput
+}
+
+export type finance_employeesUncheckedUpdateWithoutEmployee_resignationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employee_code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.StringFieldUpdateOperationsInput | string
+  designation?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  base_salary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  joined_on?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  employee_advances?: Prisma.employee_advancesUncheckedUpdateManyWithoutFinance_employeesNestedInput
+  salary_payments?: Prisma.salary_paymentsUncheckedUpdateManyWithoutFinance_employeesNestedInput
+  salary_revisions?: Prisma.salary_revisionsUncheckedUpdateManyWithoutFinance_employeesNestedInput
 }
 
 export type finance_employeesCreateManyBranchesInput = {
@@ -1021,6 +1148,7 @@ export type finance_employeesUpdateWithoutBranchesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employee_advances?: Prisma.employee_advancesUpdateManyWithoutFinance_employeesNestedInput
+  employee_resignations?: Prisma.employee_resignationsUpdateOneWithoutFinance_employeesNestedInput
   salary_payments?: Prisma.salary_paymentsUpdateManyWithoutFinance_employeesNestedInput
   salary_revisions?: Prisma.salary_revisionsUpdateManyWithoutFinance_employeesNestedInput
 }
@@ -1039,6 +1167,7 @@ export type finance_employeesUncheckedUpdateWithoutBranchesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employee_advances?: Prisma.employee_advancesUncheckedUpdateManyWithoutFinance_employeesNestedInput
+  employee_resignations?: Prisma.employee_resignationsUncheckedUpdateOneWithoutFinance_employeesNestedInput
   salary_payments?: Prisma.salary_paymentsUncheckedUpdateManyWithoutFinance_employeesNestedInput
   salary_revisions?: Prisma.salary_revisionsUncheckedUpdateManyWithoutFinance_employeesNestedInput
 }
@@ -1122,6 +1251,7 @@ export type finance_employeesSelect<ExtArgs extends runtime.Types.Extensions.Int
   created_at?: boolean
   updated_at?: boolean
   employee_advances?: boolean | Prisma.finance_employees$employee_advancesArgs<ExtArgs>
+  employee_resignations?: boolean | Prisma.finance_employees$employee_resignationsArgs<ExtArgs>
   branches?: boolean | Prisma.finance_employees$branchesArgs<ExtArgs>
   salary_payments?: boolean | Prisma.finance_employees$salary_paymentsArgs<ExtArgs>
   salary_revisions?: boolean | Prisma.finance_employees$salary_revisionsArgs<ExtArgs>
@@ -1181,6 +1311,7 @@ export type finance_employeesSelectScalar = {
 export type finance_employeesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employee_code" | "name" | "department" | "designation" | "branch_id" | "branch_name" | "base_salary" | "phone" | "joined_on" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["finance_employees"]>
 export type finance_employeesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employee_advances?: boolean | Prisma.finance_employees$employee_advancesArgs<ExtArgs>
+  employee_resignations?: boolean | Prisma.finance_employees$employee_resignationsArgs<ExtArgs>
   branches?: boolean | Prisma.finance_employees$branchesArgs<ExtArgs>
   salary_payments?: boolean | Prisma.finance_employees$salary_paymentsArgs<ExtArgs>
   salary_revisions?: boolean | Prisma.finance_employees$salary_revisionsArgs<ExtArgs>
@@ -1197,6 +1328,7 @@ export type $finance_employeesPayload<ExtArgs extends runtime.Types.Extensions.I
   name: "finance_employees"
   objects: {
     employee_advances: Prisma.$employee_advancesPayload<ExtArgs>[]
+    employee_resignations: Prisma.$employee_resignationsPayload<ExtArgs> | null
     branches: Prisma.$branchesPayload<ExtArgs> | null
     salary_payments: Prisma.$salary_paymentsPayload<ExtArgs>[]
     salary_revisions: Prisma.$salary_revisionsPayload<ExtArgs>[]
@@ -1610,6 +1742,7 @@ readonly fields: finance_employeesFieldRefs;
 export interface Prisma__finance_employeesClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   employee_advances<T extends Prisma.finance_employees$employee_advancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.finance_employees$employee_advancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$employee_advancesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  employee_resignations<T extends Prisma.finance_employees$employee_resignationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.finance_employees$employee_resignationsArgs<ExtArgs>>): Prisma.Prisma__employee_resignationsClient<runtime.Types.Result.GetResult<Prisma.$employee_resignationsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   branches<T extends Prisma.finance_employees$branchesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.finance_employees$branchesArgs<ExtArgs>>): Prisma.Prisma__branchesClient<runtime.Types.Result.GetResult<Prisma.$branchesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   salary_payments<T extends Prisma.finance_employees$salary_paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.finance_employees$salary_paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$salary_paymentsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   salary_revisions<T extends Prisma.finance_employees$salary_revisionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.finance_employees$salary_revisionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$salary_revisionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2077,6 +2210,25 @@ export type finance_employees$employee_advancesArgs<ExtArgs extends runtime.Type
   take?: number
   skip?: number
   distinct?: Prisma.Employee_advancesScalarFieldEnum | Prisma.Employee_advancesScalarFieldEnum[]
+}
+
+/**
+ * finance_employees.employee_resignations
+ */
+export type finance_employees$employee_resignationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the employee_resignations
+   */
+  select?: Prisma.employee_resignationsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the employee_resignations
+   */
+  omit?: Prisma.employee_resignationsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.employee_resignationsInclude<ExtArgs> | null
+  where?: Prisma.employee_resignationsWhereInput
 }
 
 /**

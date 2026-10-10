@@ -478,6 +478,52 @@ export interface FinanceEmployee {
   phone: string | null;
   joinedOn: string | null;
   isActive: boolean;
+  /** The live resignation, if one is recorded. A cancelled one is history, not this. */
+  resignation: EmployeeResignation | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Offered by the resignation form. "Other" requires remarks. */
+export const RESIGNATION_REASONS = [
+  'Personal reasons',
+  'Better opportunity',
+  'Relocation',
+  'Health',
+  'Further studies',
+  'Other',
+] as const;
+
+export type EmployeeResignationStatus = 'recorded' | 'cancelled';
+
+/**
+ * One resignation record (employee_resignations).
+ *
+ * `resignationDate` / `resignationTime` are what the person recording it
+ * entered, in Asia/Karachi. `createdAt` is when the server wrote the row. The
+ * two are kept apart: a resignation handed in on Friday and keyed in on Monday
+ * has a Friday date and a Monday timestamp, and both are true.
+ *
+ * Rows are never deleted. A wrong one is cancelled and stays in the history.
+ */
+export interface EmployeeResignation {
+  id: string;
+  employeeId: string;
+  employeeCode: string;
+  employeeName: string;
+  /** 'YYYY-MM-DD'. */
+  resignationDate: string;
+  /** 'HH:MM', 24-hour. */
+  resignationTime: string;
+  reason: string;
+  remarks: string | null;
+  status: EmployeeResignationStatus;
+  submittedBy: string | null;
+  submittedByName: string;
+  cancelledBy: string | null;
+  cancelledByName: string | null;
+  cancelledAt: string | null;
+  cancelReason: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -636,6 +682,8 @@ export interface EmployeeAdvanceSummary {
  * away rather than a re-derivation. */
 export interface FinancePartner {
   id: string;
+  /** 'PT-000001'. Permanent; the name can be corrected, this cannot change. */
+  partnerCode: string;
   name: string;
   fatherName: string | null;
   dateOfBirth: string | null;
@@ -871,6 +919,8 @@ export type FinanceAuditAction =
   | 'imported'
   | 'settings_updated'
   | 'salary_revised'
+  | 'resigned'
+  | 'resignation_cancelled'
   | 'resolved'
   // §12. Two actions, not one: 'reopened' is an Admin overturning a resolution
   // and IS a change to the query; 'reopen_requested' is the raiser disputing it

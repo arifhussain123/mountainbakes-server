@@ -133,7 +133,8 @@ export const ModelName = {
   stock_history: 'stock_history',
   support_tickets: 'support_tickets',
   user_credentials: 'user_credentials',
-  users: 'users'
+  users: 'users',
+  employee_resignations: 'employee_resignations'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -816,7 +817,8 @@ export const Finance_partnersScalarFieldEnum = {
   share_pct: 'share_pct',
   is_active: 'is_active',
   created_at: 'created_at',
-  updated_at: 'updated_at'
+  updated_at: 'updated_at',
+  partner_code: 'partner_code'
 } as const
 
 export type Finance_partnersScalarFieldEnum = (typeof Finance_partnersScalarFieldEnum)[keyof typeof Finance_partnersScalarFieldEnum]
@@ -1953,6 +1955,29 @@ export const UsersScalarFieldEnum = {
 } as const
 
 export type UsersScalarFieldEnum = (typeof UsersScalarFieldEnum)[keyof typeof UsersScalarFieldEnum]
+
+
+export const Employee_resignationsScalarFieldEnum = {
+  id: 'id',
+  employee_id: 'employee_id',
+  employee_code: 'employee_code',
+  employee_name: 'employee_name',
+  resignation_date: 'resignation_date',
+  resignation_time: 'resignation_time',
+  reason: 'reason',
+  remarks: 'remarks',
+  status: 'status',
+  submitted_by: 'submitted_by',
+  submitted_by_name: 'submitted_by_name',
+  cancelled_by: 'cancelled_by',
+  cancelled_by_name: 'cancelled_by_name',
+  cancelled_at: 'cancelled_at',
+  cancel_reason: 'cancel_reason',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Employee_resignationsScalarFieldEnum = (typeof Employee_resignationsScalarFieldEnum)[keyof typeof Employee_resignationsScalarFieldEnum]
 
 
 export const SortOrder = {

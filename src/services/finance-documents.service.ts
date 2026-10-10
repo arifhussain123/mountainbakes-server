@@ -858,7 +858,12 @@ async function approveDocument(input: ApproveDocumentInput): Promise<LedgerEntry
   )
     .select('id')
     .maybeSingle();
-  if (claimErr) throw claimErr;
+  if (claimErr) {
+    // MBRSG: the salary_payments trigger refused the claim because the employee
+    // resigned before this month. A decision about the document, not a fault.
+    if (claimErr.code === 'MBRSG') throw Object.assign(new Error(claimErr.message), { status: 409 });
+    throw claimErr;
+  }
   if (!claimed) {
     throw Object.assign(new Error(`${input.ref} was just approved by someone else.`), { status: 409 });
   }
