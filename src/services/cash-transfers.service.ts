@@ -5,6 +5,7 @@ import {
   businessDateStr,
   cashTransferChannelsLabel,
   cashTransferTotal,
+  type BranchDayDeposit,
   type CashTransfer,
   type CashTransferMethod,
   type CashTransferSortKey,
@@ -486,4 +487,71 @@ export async function paymentsReceivedInWindow(
     paymentItems,
     paymentsReceivedValue: paymentItems.reduce((a, p) => a + p.amount, 0),
   };
+}
+
+/** Rows per read while paging a window of deposits — under the query layer's ceiling. */
+const RECONCILIATION_PAGE = 500;
+
+/**
+ * Every live deposit dated inside a window, for Finance's Daily Closing.
+ *
+ * Unlike `listCashTransfers` this reads only the amounts and the two numbers a
+ * reader needs to find the deposit — no photos are signed — and it pages until
+ * the window is exhausted rather than returning one screen of it, because a
+ * deposit left off the end would read as money not received.
+ *
+ * Pending and approved rows both come back and the caller tells them apart: a
+ * pending deposit is reported beside the day, never counted into it. Rejected
+ * deposits never arrived, deleted ones left the ledger, and a fuel-only deposit
+ * (Total 0) is income rather than a handover — the same three exclusions
+ * `paymentsReceivedInWindow` makes.
+ */
+export async function listDepositsForReconciliation(q: {
+  from: string;
+  to: string;
+  branchId: string | null;
+}): Promise<BranchDayDeposit[]> {
+  const deposits: BranchDayDeposit[] = [];
+
+  for (let offset = 0; ; offset += RECONCILIATION_PAGE) {
+    let query = withoutDeleted(
+      db
+        .from('cash_transfers')
+        .select(
+          'id, transfer_no, voucher_no, status, branch_id, branch_name, business_date, amount, cash_amount, easypaisa_amount, bank_amount',
+        ),
+    )
+      .in('status', ['pending', 'approved'])
+      .gt('amount', 0)
+      .gte('business_date', q.from)
+      .lte('business_date', q.to)
+      // `id` is the tiebreak that keeps a page boundary from repeating or
+      // skipping a row among deposits submitted in the same instant.
+      .order('created_at', { ascending: true })
+      .order('id', { ascending: true })
+      .range(offset, offset + RECONCILIATION_PAGE - 1);
+    if (q.branchId) query = query.eq('branch_id', q.branchId);
+
+    const { data, error } = await query;
+    if (error) throw asClientError(error);
+    const rows = (data ?? []) as Record<string, unknown>[];
+
+    for (const r of rows) {
+      deposits.push({
+        id: String(r['id']),
+        transferNo: String(r['transfer_no']),
+        voucherNo: (r['voucher_no'] as string | null) ?? null,
+        status: r['status'] === 'approved' ? 'approved' : 'pending',
+        branchId: String(r['branch_id']),
+        branchName: String(r['branch_name'] ?? ''),
+        businessDate: String(r['business_date']),
+        amount: Number(r['amount'] ?? 0),
+        cashAmount: Number(r['cash_amount'] ?? 0),
+        easypaisaAmount: Number(r['easypaisa_amount'] ?? 0),
+        bankAmount: Number(r['bank_amount'] ?? 0),
+      });
+    }
+
+    if (rows.length < RECONCILIATION_PAGE) return deposits;
+  }
 }

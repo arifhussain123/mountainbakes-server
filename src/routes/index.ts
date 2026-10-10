@@ -41,6 +41,7 @@ import { router as financeBranchShareRouter } from './finance-branch-share.route
 import { router as financeReportsRouter } from './finance-reports.routes';
 import { router as financeTicketsRouter } from './finance-tickets.routes';
 import { router as financeCashTransfersRouter } from './finance-cash-transfers.routes';
+import { router as financeDailySalesRouter } from './finance-daily-sales.routes';
 import { router as attachmentsRouter } from './attachments.routes';
 import { router as dataRouter } from './data.routes';
 import { router as backupsRouter } from './backups.routes';
@@ -143,6 +144,7 @@ export function setupRoutes(app: Express) {
   app.use('/api/finance/reports', financeReportsRouter);
   app.use('/api/finance/tickets', financeTicketsRouter);
   app.use('/api/finance/cash-transfers', financeCashTransfersRouter);
+  app.use('/api/finance/daily-sales', financeDailySalesRouter);
   app.use('/api/finance', financeRouter);
   // Database backups — super_admin only. Lives under /api/admin/ because it is
   // operations tooling, not a business resource: it reports on pg_dump → S3

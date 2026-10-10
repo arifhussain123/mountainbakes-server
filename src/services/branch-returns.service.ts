@@ -4,7 +4,7 @@ import type { ProductionReturn } from '../shared';
 import { rowToApi } from '../utils/case';
 import { getAttachmentsByIds } from './attachments.service';
 import { applyStockMovement, commitBranchReturn } from './stock.service';
-import { isBusinessDayClosed } from './daily-closing.service';
+import { isBusinessDayClosed } from './business-day.service';
 
 const db = dbFor('branch-returns');
 
