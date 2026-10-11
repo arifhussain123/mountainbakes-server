@@ -797,7 +797,7 @@ export interface PartnerShareRow {
   id: string;
   name: string;
   sharePct: number;
-  /** grandTotal × sharePct / 100 */
+  /** ledgerBalance × sharePct / 100 */
   sharePctAmount: number;
   advancePaid: number;
   drawPaid: number;
@@ -814,6 +814,8 @@ export interface PartnerShareSummary {
   totalCompanyShare: number;
   /** totalCompanyShare − totalExpense */
   grandTotal: number;
+  /** The Daily Ledger's Balance (opening + received − expense, company-wide) as of `to` or today — what the partners' shares are cut from. */
+  ledgerBalance: number;
   partners: PartnerShareRow[];
 }
 
