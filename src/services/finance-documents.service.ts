@@ -20,7 +20,7 @@ import {
 import { rowToApi } from '../utils/case';
 import { withoutDeleted } from '../utils/softDelete';
 import { bindAttachments, listAttachments, listAttachmentsFor } from './attachments.service';
-import { getLedgerSummary, postEntry, requireActiveHead } from './finance-ledger.service';
+import { postEntry, requireActiveHead } from './finance-ledger.service';
 import { getLedgerHeadByCode, round2 } from './finance-settings.service';
 import { checkFinanceEntry, enforceRestrictions, type RestrictionGuard } from './restriction.service';
 
@@ -703,17 +703,11 @@ export async function rejectPartnerExpense(
 // ---------------------------------------------------------------------------
 
 /**
- * The ledger Balance the four partners split, each partner's cut of it,
- * their advances, draws and remaining balance — plus total company share and
- * the grand total (company share − expenses) for reference.
+ * Total expenses (everything except partner advances/draws), total company
+ * share, the grand total the four partners split, and each partner's cut,
+ * advances, draws and remaining balance.
  *
- * THE SHARE BASE IS THE DAILY LEDGER'S BALANCE, not the grand total: the same
- * `getLedgerSummary()` figure the Daily Ledger's "Balance" card shows (opening
- * balance + received − expense, company-wide), as of `to` or today. It is a
- * running book balance, so `from` does not move it — `from` only narrows the
- * period totals and the advances/draws below.
- *
- * The period totals come straight off `ledger_entries` rather than the source
+ * Both totals come straight off `ledger_entries` rather than the source
  * documents — a posted entry is the one thing every finance figure on this
  * page has to agree with, and reading it directly means a reversal or an
  * adjustment is reflected automatically instead of needing this report to
@@ -742,8 +736,6 @@ export async function getPartnerShareSummary(from?: string, to?: string): Promis
   }
 
   const grandTotal = round2(totalCompanyShare - totalExpense);
-
-  const { balance: ledgerBalance } = await getLedgerSummary({ to: to ?? businessDateStr() });
 
   const partners = await listFinancePartners();
 
@@ -776,10 +768,9 @@ export async function getPartnerShareSummary(from?: string, to?: string): Promis
     totalExpense: round2(totalExpense),
     totalCompanyShare: round2(totalCompanyShare),
     grandTotal,
-    ledgerBalance,
     partners: partners.map((p) => {
       const bucket = totalsByPartner.get(p.id) ?? { advance: 0, draw: 0 };
-      const sharePctAmount = round2((ledgerBalance * p.sharePct) / 100);
+      const sharePctAmount = round2((grandTotal * p.sharePct) / 100);
       return {
         id: p.id,
         name: p.name,
