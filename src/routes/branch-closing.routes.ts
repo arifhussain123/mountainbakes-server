@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Response } from 'express';
 import { dbFor } from '../db';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
@@ -9,6 +9,7 @@ import {
   computeClosingTotals,
   type Order,
   type Expense,
+  type PaymentMethod,
 } from '../shared';
 import { computeBranchStockHistory } from '../services/stock.service';
 import { genericExcel, genericCSV } from '../services/production-export.service';
@@ -51,26 +52,110 @@ function exportRange(from: unknown, to: unknown): { fromStr: string; toStr: stri
   return a <= b ? { fromStr: a, toStr: b } : { fromStr: b, toStr: a };
 }
 
+/**
+ * A branch account reads its own shop and cannot ask about another; a super
+ * admin has no branch of their own, so they must name one. Refused rather than
+ * defaulting to "all branches": these figures reconcile against one physical
+ * cash drawer, and a total spanning several shops reconciles with nothing.
+ * Shared by both routes below — the one rule the export already enforced.
+ */
+function resolveBranchId(req: AuthRequest, res: Response): string | null {
+  if (isBranchRole(req.user!.role)) {
+    if (!req.user!.branchId) {
+      res.status(400).json({ error: 'No branch assigned' });
+      return null;
+    }
+    return req.user!.branchId;
+  }
+  const asked = req.query['branchId'];
+  if (typeof asked !== 'string' || !asked) {
+    res.status(400).json({ error: 'Branch context required' });
+    return null;
+  }
+  return asked;
+}
+
+/**
+ * GET /api/branch-closing?date=YYYY-MM-DD — the Branch Closing screen's own
+ * read, one business date at a time. Reuses exactly the computation the
+ * export below already relies on (`computeClosingTotals`), plus the two
+ * groupings the screen additionally shows that the shared totals function
+ * doesn't carry: takings by payment method, and expenses by category. Stock
+ * on hand / closing stock by product is deliberately NOT duplicated here —
+ * the screen reads that from `GET /api/stock?date=`, which already serves it.
+ */
+router.get('/', async (req: AuthRequest, res, next) => {
+  try {
+    const branchId = resolveBranchId(req, res);
+    if (!branchId) return;
+
+    const date = (req.query['date'] as string | undefined) || businessDateStr();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      res.status(400).json({ error: 'date must be YYYY-MM-DD' });
+      return;
+    }
+
+    const [branchRes, ordersRes, expensesRes] = await Promise.all([
+      db.from('branches').select('name').eq('id', branchId).maybeSingle(),
+      db.from('orders').select('*').eq('branch_id', branchId).eq('business_date', date),
+      db.from('expenses').select('*').eq('branch_id', branchId).eq('business_date', date),
+    ]);
+    if (branchRes.error) throw branchRes.error;
+    if (ordersRes.error) throw ordersRes.error;
+    if (expensesRes.error) throw expensesRes.error;
+    if (!branchRes.data) { res.status(404).json({ error: 'Branch not found' }); return; }
+
+    const orders = rowToApi<Order[]>(ordersRes.data ?? []);
+    const expenses = (rowToApi<(Expense & { businessDate: string })[]>(expensesRes.data ?? [])).map(
+      ({ businessDate, ...rest }) => ({ ...rest, date: businessDate }) as Expense,
+    );
+
+    const totals = computeClosingTotals(orders, expenses);
+
+    // Same filter `computeClosingTotals.sales`/`cashSales` apply: cancelled
+    // orders are not takings, and a staff order took no money, so it has no
+    // place on a "takings by payment method" breakdown.
+    const takingOrders = orders.filter((o) => o.status !== 'cancelled' && o.paymentMethod !== 'staff');
+    const byMethod = new Map<PaymentMethod, { orderCount: number; amount: number }>();
+    for (const o of takingOrders) {
+      const entry = byMethod.get(o.paymentMethod) ?? { orderCount: 0, amount: 0 };
+      entry.orderCount += 1;
+      entry.amount += o.grandTotal || 0;
+      byMethod.set(o.paymentMethod, entry);
+    }
+    const paymentMethods = [...byMethod.entries()]
+      .map(([method, v]) => ({ method, ...v }))
+      .sort((a, b) => b.amount - a.amount);
+
+    const byCategory = new Map<string, number>();
+    for (const e of expenses) {
+      byCategory.set(e.category, (byCategory.get(e.category) ?? 0) + (e.amount || 0));
+    }
+    const expenseCategories = [...byCategory.entries()]
+      .map(([category, amount]) => ({ category, amount }))
+      .sort((a, b) => b.amount - a.amount);
+
+    res.json({
+      date,
+      branchId,
+      branchName: (branchRes.data as { name: string }).name,
+      totals,
+      paymentMethods,
+      expenseCategories,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // GET /api/branch-closing/export?from=&to=&type=excel|csv
 router.get('/export', async (req: AuthRequest, res, next) => {
   try {
     const exportType = String(req.query['type'] || 'excel');
     const { fromStr, toStr } = exportRange(req.query['from'], req.query['to']);
 
-    // A branch account exports its own shop and cannot ask about another; a super
-    // admin has no branch of their own, so they must name one. Refused rather
-    // than defaulting to "all branches": these figures reconcile against one
-    // physical cash drawer, and a total spanning several shops reconciles with
-    // nothing.
-    let branchId: string;
-    if (isBranchRole(req.user!.role)) {
-      if (!req.user!.branchId) { res.status(400).json({ error: 'No branch assigned' }); return; }
-      branchId = req.user!.branchId;
-    } else {
-      const asked = req.query['branchId'];
-      if (typeof asked !== 'string' || !asked) { res.status(400).json({ error: 'Branch context required' }); return; }
-      branchId = asked;
-    }
+    const branchId = resolveBranchId(req, res);
+    if (!branchId) return;
 
     if (dayCount(fromStr, toStr) > MAX_WINDOW_DAYS) {
       res.status(400).json({ error: `That range is longer than ${MAX_WINDOW_DAYS} days. Export it in smaller windows.` });
