@@ -277,20 +277,6 @@ async function withRetry<T>(op: () => Promise<T>, attempts: number): Promise<T> 
   throw lastErr;
 }
 
-/**
- * Whether a business date is closed (locked). Super Admin bypasses the lock;
- * everyone else is blocked from writing to a day that has been closed.
- */
-export async function isBusinessDayClosed(businessDate: string): Promise<boolean> {
-  const { data, error } = await db
-    .from(CLOSURES)
-    .select('status')
-    .eq('business_date', businessDate)
-    .maybeSingle();
-  if (error) throw error;
-  return data?.status === 'success';
-}
-
 /** List closure/audit records, most recent first (default last 30 business days). */
 export async function listClosures(days = 30): Promise<DailyClosure[]> {
   const since = businessDaysAgoStr(days - 1);

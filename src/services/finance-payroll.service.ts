@@ -23,6 +23,7 @@ import { sortRows } from '../utils/sortRows';
 import { withoutDeleted } from '../utils/softDelete';
 import { bindAttachments, listAttachments, listAttachmentsFor } from './attachments.service';
 import { approveDocument, rejectDocument } from './finance-documents.service';
+import { getLiveResignation, liveResignations, niceDate, resignationMonth } from './finance-resignations.service';
 import { getLedgerHeadByCode, round2 } from './finance-settings.service';
 
 const db = dbFor('finance-payroll');
@@ -93,8 +94,22 @@ export async function listEmployees(opts: {
     ...e,
     baseSalary: num(e.baseSalary),
     pendingRevision: null as FinanceEmployee['pendingRevision'],
+    resignation: null as FinanceEmployee['resignation'],
   }));
-  return applyEffectiveSalary(employees);
+  return withResignations(await applyEffectiveSalary(employees));
+}
+
+/**
+ * Attach each employee's live resignation, if they have one.
+ *
+ * Read from `employee_resignations` rather than kept on the employee row: the
+ * record has a history (it can be cancelled and recorded again), and a copy on
+ * the master would be a second place for the date to be wrong.
+ */
+async function withResignations(employees: FinanceEmployee[]): Promise<FinanceEmployee[]> {
+  if (employees.length === 0) return employees;
+  const live = await liveResignations();
+  return employees.map((e) => ({ ...e, resignation: live.get(e.id) ?? null }));
 }
 
 /**
@@ -161,7 +176,7 @@ export async function createEmployee(input: CreateEmployeeInput): Promise<Financ
     .select('*')
     .single();
   if (error) throw error;
-  return { ...rowToApi<FinanceEmployee>(data), pendingRevision: null };
+  return { ...rowToApi<FinanceEmployee>(data), pendingRevision: null, resignation: null };
 }
 
 export async function updateEmployee(id: string, input: UpdateEmployeeInput): Promise<FinanceEmployee> {
@@ -171,7 +186,24 @@ export async function updateEmployee(id: string, input: UpdateEmployeeInput): Pr
   if (input.designation !== undefined) row['designation'] = input.designation;
   if (input.phone !== undefined) row['phone'] = input.phone;
   if (input.joinedOn !== undefined) row['joined_on'] = input.joinedOn;
-  if (input.isActive !== undefined) row['is_active'] = input.isActive;
+  if (input.isActive !== undefined) {
+    // A resigned employee is inactive BECAUSE of the resignation. Flipping the
+    // switch back would leave a live resignation on an active employee, and the
+    // rule that closes their salary would then depend on which one was read.
+    if (input.isActive) {
+      const resignation = await getLiveResignation(id);
+      if (resignation) {
+        throw Object.assign(
+          new Error(
+            `${resignation.employeeName} resigned on ${niceDate(resignation.resignationDate)}. ` +
+              'Cancel the resignation to make them active again.',
+          ),
+          { status: 409 },
+        );
+      }
+    }
+    row['is_active'] = input.isActive;
+  }
   if (input.branchId !== undefined) {
     const branch = await resolveBranch(input.branchId);
     row['branch_id'] = branch?.id ?? null;
@@ -186,9 +218,11 @@ export async function updateEmployee(id: string, input: UpdateEmployeeInput): Pr
     .single();
   if (error) throw error;
   const employee = rowToApi<FinanceEmployee>(data);
-  const [resolved] = await applyEffectiveSalary([
-    { ...employee, baseSalary: num(employee.baseSalary), pendingRevision: null },
-  ]);
+  const [resolved] = await withResignations(
+    await applyEffectiveSalary([
+      { ...employee, baseSalary: num(employee.baseSalary), pendingRevision: null, resignation: null },
+    ]),
+  );
   return resolved!;
 }
 
@@ -214,7 +248,7 @@ export async function reviseEmployeeSalary(
   if (empErr) throw empErr;
   if (!empRow) throw Object.assign(new Error('Employee not found'), { status: 404 });
 
-  const employee = rowToApi<FinanceEmployee>(empRow);
+  const employee: FinanceEmployee = { ...rowToApi<FinanceEmployee>(empRow), resignation: null };
   const [current] = await applyEffectiveSalary([
     { ...employee, baseSalary: num(employee.baseSalary), pendingRevision: null },
   ]);
@@ -235,9 +269,9 @@ export async function reviseEmployeeSalary(
     .single();
   if (revErr) throw revErr;
 
-  const [updated] = await applyEffectiveSalary([
-    { ...employee, baseSalary: num(employee.baseSalary), pendingRevision: null },
-  ]);
+  const [updated] = await withResignations(
+    await applyEffectiveSalary([{ ...employee, baseSalary: num(employee.baseSalary), pendingRevision: null }]),
+  );
 
   return {
     employee: updated!,
@@ -377,7 +411,19 @@ export async function createSalaryPayment(
   if (empErr) throw empErr;
   if (!employee) throw Object.assign(new Error('Employee not found'), { status: 404 });
   if (!employee.is_active) {
-    throw Object.assign(new Error(`${employee.name} is not an active employee.`), { status: 400 });
+    // Inactive for one of two reasons, and they are not the same. A resigned
+    // employee is still owed the salary for the months up to and including the
+    // one they resigned in, so that payslip can be raised; anything later is
+    // closed. An employee who was simply deactivated stays blocked, as before.
+    const resignation = await getLiveResignation(employee.id as string);
+    if (!resignation) {
+      throw Object.assign(new Error(`${employee.name} is not an active employee.`), { status: 400 });
+    }
+    if (input.salaryMonth > resignationMonth(resignation)) {
+      throw Object.assign(new Error(salaryClosedMessage(employee.name as string, resignation.resignationDate, input.salaryMonth)), {
+        status: 400,
+      });
+    }
   }
 
   const netSalary = round2(input.grossSalary + input.bonus - input.deductions);
@@ -527,6 +573,20 @@ export async function approveSalaryPayment(
   const doc = await getSalaryPayment(id);
   if (!doc) throw Object.assign(new Error('Salary record not found'), { status: 404 });
 
+  // A payslip raised before a resignation was recorded can still be sitting
+  // here for a month after it. It stays pending — nothing deletes it — but it
+  // cannot become paid salary. The trigger on salary_payments enforces the same
+  // rule for the case where the resignation lands between this check and the
+  // claim below.
+  if (doc.status === 'pending_approval') {
+    const resignation = await getLiveResignation(doc.employeeId);
+    if (resignation && doc.salaryMonth > resignationMonth(resignation)) {
+      throw Object.assign(new Error(salaryClosedMessage(doc.employeeName, resignation.resignationDate, doc.salaryMonth)), {
+        status: 409,
+      });
+    }
+  }
+
   const head = await getLedgerHeadByCode(SYSTEM_LEDGER_HEAD_CODES.SALARIES);
 
   const entry = await approveDocument({
@@ -575,6 +635,13 @@ export async function approveSalaryPayment(
   if (recoverErr) console.error(`[finance] could not stamp advance recovery for ${doc.salaryNo}:`, recoverErr.message);
 
   return { document: (await getSalaryPayment(id))!, entry };
+}
+
+function salaryClosedMessage(name: string, resignedOn: string, salaryMonth: string): string {
+  return (
+    `${name} resigned on ${niceDate(resignedOn)}. Salary for ${salaryMonth} is after the resignation month ` +
+    'and is closed.'
+  );
 }
 
 export async function rejectSalaryPayment(

@@ -739,23 +739,24 @@ model finance_day_closings {
 }
 
 model finance_employees {
-  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  employee_code     String              @unique @default(dbgenerated("app.next_finance_number('finance_employee'::text, 'EMP'::text)"))
-  name              String
-  department        String
-  designation       String
-  branch_id         String?             @db.Uuid
-  branch_name       String?
-  base_salary       Decimal             @default(0) @db.Decimal(14, 2)
-  phone             String?
-  joined_on         DateTime?           @db.Date
-  is_active         Boolean             @default(true)
-  created_at        DateTime            @default(now()) @db.Timestamptz(6)
-  updated_at        DateTime            @default(now()) @db.Timestamptz(6)
-  employee_advances employee_advances[]
-  branches          branches?           @relation(fields: [branch_id], references: [id], onUpdate: NoAction)
-  salary_payments   salary_payments[]
-  salary_revisions  salary_revisions[]
+  id                    String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employee_code         String                 @unique @default(dbgenerated("app.next_finance_number('finance_employee'::text, 'EMP'::text)"))
+  name                  String
+  department            String
+  designation           String
+  branch_id             String?                @db.Uuid
+  branch_name           String?
+  base_salary           Decimal                @default(0) @db.Decimal(14, 2)
+  phone                 String?
+  joined_on             DateTime?              @db.Date
+  is_active             Boolean                @default(true)
+  created_at            DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime               @default(now()) @db.Timestamptz(6)
+  employee_advances     employee_advances[]
+  employee_resignations employee_resignations?
+  branches              branches?              @relation(fields: [branch_id], references: [id], onUpdate: NoAction)
+  salary_payments       salary_payments[]
+  salary_revisions      salary_revisions[]
 
   @@index([department, name], map: "finance_employees_active_idx", where: raw("is_active"))
 }
@@ -823,6 +824,7 @@ model finance_partners {
   is_active        Boolean            @default(true)
   created_at       DateTime           @default(now()) @db.Timestamptz(6)
   updated_at       DateTime           @default(now()) @db.Timestamptz(6)
+  partner_code     String             @unique @default(dbgenerated("app.next_finance_number('finance_partner_code'::text, 'PT'::text)"))
   partner_expenses partner_expenses[]
 }
 
@@ -1487,6 +1489,7 @@ model partner_expenses {
   @@index([deleted_at], map: "partner_expenses_live_idx", where: raw("(deleted_at IS NULL)"))
   @@index([partner_name, business_date(sort: Desc)], map: "partner_expenses_partner_idx")
   @@index([status, business_date(sort: Desc)], map: "partner_expenses_status_idx")
+  @@index([partner_id, business_date(sort: Desc)], map: "partner_expenses_partner_date_idx", where: raw("(deleted_at IS NULL)"))
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -2259,6 +2262,8 @@ model users {
   employee_advances_employee_advances_approved_byTousers               employee_advances[]        @relation("employee_advances_approved_byTousers")
   employee_advances_employee_advances_created_byTousers                employee_advances[]        @relation("employee_advances_created_byTousers")
   employee_advances_employee_advances_deleted_byTousers                employee_advances[]        @relation("employee_advances_deleted_byTousers")
+  employee_resignations_employee_resignations_cancelled_byTousers      employee_resignations[]    @relation("employee_resignations_cancelled_byTousers")
+  employee_resignations_employee_resignations_submitted_byTousers      employee_resignations[]    @relation("employee_resignations_submitted_byTousers")
   event_branch_demands_event_branch_demands_reviewed_byTousers         event_branch_demands[]     @relation("event_branch_demands_reviewed_byTousers")
   event_branch_demands_event_branch_demands_submitted_byTousers        event_branch_demands[]     @relation("event_branch_demands_submitted_byTousers")
   event_production_status                                              event_production_status[]
@@ -2336,6 +2341,32 @@ model users {
   @@index([branch_id], map: "users_branch_idx", where: raw("(branch_id IS NOT NULL)"))
   @@index([created_at(sort: Desc)], map: "users_created_idx")
   @@index([role, status, created_at(sort: Desc)], map: "users_role_status_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model employee_resignations {
+  id                                              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employee_id                                     String            @unique(map: "employee_resignations_one_live_idx", where: raw("(status = 'recorded'::text)")) @db.Uuid
+  employee_code                                   String
+  employee_name                                   String
+  resignation_date                                DateTime          @db.Date
+  resignation_time                                DateTime          @db.Time(6)
+  reason                                          String
+  remarks                                         String?
+  status                                          String            @default("recorded")
+  submitted_by                                    String?           @db.Uuid
+  submitted_by_name                               String            @default("")
+  cancelled_by                                    String?           @db.Uuid
+  cancelled_by_name                               String?
+  cancelled_at                                    DateTime?         @db.Timestamptz(6)
+  cancel_reason                                   String?
+  created_at                                      DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at                                      DateTime          @default(now()) @db.Timestamptz(6)
+  users_employee_resignations_cancelled_byTousers users?            @relation("employee_resignations_cancelled_byTousers", fields: [cancelled_by], references: [id], onUpdate: NoAction)
+  finance_employees                               finance_employees @relation(fields: [employee_id], references: [id], onUpdate: NoAction)
+  users_employee_resignations_submitted_byTousers users?            @relation("employee_resignations_submitted_byTousers", fields: [submitted_by], references: [id], onUpdate: NoAction)
+
+  @@index([employee_id, created_at(sort: Desc)], map: "employee_resignations_employee_idx")
 }
 
 enum app_theme {

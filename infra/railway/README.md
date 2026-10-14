@@ -95,8 +95,10 @@ collation. A copy into a database that sorts differently is refused unless
 | `DATABASE_URL` | the Railway database (it is where `files:copy` reads rows and rewrites the logo URL) |
 | `FILES_S3_BUCKET`, `FILES_S3_PREFIX`, `PUBLIC_API_URL`, `AWS_*` | where files go |
 
-Heroku config vars for the new API. **With any of the first four missing the
-server refuses to start and says which** (see `server.ts`):
+Heroku config vars for the new API. **With either of the first two missing the
+server refuses to start and says which.** With `FILES_S3_BUCKET` or
+`PUBLIC_API_URL` missing it starts and logs a warning, and screens that show
+photos fail (see `server.ts`):
 
 | Variable | Value |
 |---|---|
@@ -170,8 +172,9 @@ Pick a time the shops are closed. Budget two hours.
    the first copy and points the logo at this API. `DATABASE_URL` in
    `backend/.env` must be the Railway database for this step.
 6. **Heroku config vars**, from the table above.
-7. **Deploy the API.** Watch the log: `[server] cannot start:` names anything
-   missing from step 6.
+7. **Deploy the API.** Watch the log: `[server] cannot start:` names a missing
+   `DATABASE_URL` or `JWT_SECRET`, and `[server] file storage is not
+   configured` names a missing `FILES_S3_BUCKET` or `PUBLIC_API_URL`.
 8. **Deploy the web app** (`pnpm run deploy` in `frontend/`) and hand out the
    Android build.
 9. `heroku maintenance:off`. Then check, in this order:

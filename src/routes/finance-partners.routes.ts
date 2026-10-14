@@ -5,6 +5,8 @@ import { validate } from '../middleware/validate';
 import {
   ApproveSchema,
   CreatePartnerExpenseSchema,
+  PartnerLedgerQuerySchema,
+  PartnerLedgerTransactionsQuerySchema,
   RejectSchema,
   UpdateFinancePartnerSchema,
   UpdatePartnerExpenseSchema,
@@ -24,6 +26,7 @@ import {
   type PartnerExpenseQuery,
 } from '../services/finance-documents.service';
 import { auditSnapshot, logFinanceAudit } from '../services/finance-audit.service';
+import { getPartnerLedger, getPartnerLedgerTransactions } from '../services/finance-ledgers.service';
 
 /**
  * /api/finance/partner-expenses — money paid out to the partners.
@@ -87,6 +90,43 @@ router.get('/share-summary', requireFinance('view'), async (req: AuthRequest, re
   } catch (err) {
     next(err);
   }
+});
+
+// ---------------------------------------------------------------------------
+// Company Transaction Details — the read-only year ledger
+//
+// GET only, and registered ahead of the `/:id` routes below so that "ledger" is
+// never read as a document id. Nothing under /ledger accepts a write: a figure
+// changes only when a partner advance or draw is approved or corrected through
+// the routes further down.
+// ---------------------------------------------------------------------------
+
+/** GET /api/finance/partner-expenses/ledger?year= — partner × month, approved only. */
+router.get('/ledger', requireFinance('view'), async (req: AuthRequest, res, next) => {
+  try {
+    res.json({ ledger: await getPartnerLedger(PartnerLedgerQuerySchema.parse(req.query)) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/** GET /api/finance/partner-expenses/ledger/transactions — the records behind a cell, a partner or a year. */
+router.get('/ledger/transactions', requireFinance('view'), async (req: AuthRequest, res, next) => {
+  try {
+    res.json(await getPartnerLedgerTransactions(PartnerLedgerTransactionsQuerySchema.parse(req.query)));
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * Anything else aimed at the ledger — a POST, a PUT, a DELETE — is refused by
+ * name rather than left to fall through to whichever route happens to match.
+ */
+router.all(['/ledger', '/ledger/*'], (_req, res) => {
+  res.set('Allow', 'GET').status(405).json({
+    error: 'This ledger is read-only. Create and approve records through their own page.',
+  });
 });
 
 // ---------------------------------------------------------------------------

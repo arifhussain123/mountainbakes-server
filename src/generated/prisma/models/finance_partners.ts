@@ -48,6 +48,7 @@ export type Finance_partnersMinAggregateOutputType = {
   is_active: boolean | null
   created_at: Date | null
   updated_at: Date | null
+  partner_code: string | null
 }
 
 export type Finance_partnersMaxAggregateOutputType = {
@@ -64,6 +65,7 @@ export type Finance_partnersMaxAggregateOutputType = {
   is_active: boolean | null
   created_at: Date | null
   updated_at: Date | null
+  partner_code: string | null
 }
 
 export type Finance_partnersCountAggregateOutputType = {
@@ -80,6 +82,7 @@ export type Finance_partnersCountAggregateOutputType = {
   is_active: number
   created_at: number
   updated_at: number
+  partner_code: number
   _all: number
 }
 
@@ -106,6 +109,7 @@ export type Finance_partnersMinAggregateInputType = {
   is_active?: true
   created_at?: true
   updated_at?: true
+  partner_code?: true
 }
 
 export type Finance_partnersMaxAggregateInputType = {
@@ -122,6 +126,7 @@ export type Finance_partnersMaxAggregateInputType = {
   is_active?: true
   created_at?: true
   updated_at?: true
+  partner_code?: true
 }
 
 export type Finance_partnersCountAggregateInputType = {
@@ -138,6 +143,7 @@ export type Finance_partnersCountAggregateInputType = {
   is_active?: true
   created_at?: true
   updated_at?: true
+  partner_code?: true
   _all?: true
 }
 
@@ -241,6 +247,7 @@ export type Finance_partnersGroupByOutputType = {
   is_active: boolean
   created_at: Date
   updated_at: Date
+  partner_code: string
   _count: Finance_partnersCountAggregateOutputType | null
   _avg: Finance_partnersAvgAggregateOutputType | null
   _sum: Finance_partnersSumAggregateOutputType | null
@@ -280,6 +287,7 @@ export type finance_partnersWhereInput = {
   is_active?: Prisma.BoolFilter<"finance_partners"> | boolean
   created_at?: Prisma.DateTimeFilter<"finance_partners"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"finance_partners"> | Date | string
+  partner_code?: Prisma.StringFilter<"finance_partners"> | string
   partner_expenses?: Prisma.Partner_expensesListRelationFilter
 }
 
@@ -297,12 +305,14 @@ export type finance_partnersOrderByWithRelationInput = {
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+  partner_code?: Prisma.SortOrder
   partner_expenses?: Prisma.partner_expensesOrderByRelationAggregateInput
 }
 
 export type finance_partnersWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   name?: string
+  partner_code?: string
   AND?: Prisma.finance_partnersWhereInput | Prisma.finance_partnersWhereInput[]
   OR?: Prisma.finance_partnersWhereInput[]
   NOT?: Prisma.finance_partnersWhereInput | Prisma.finance_partnersWhereInput[]
@@ -318,7 +328,7 @@ export type finance_partnersWhereUniqueInput = Prisma.AtLeast<{
   created_at?: Prisma.DateTimeFilter<"finance_partners"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"finance_partners"> | Date | string
   partner_expenses?: Prisma.Partner_expensesListRelationFilter
-}, "id" | "name">
+}, "id" | "name" | "partner_code">
 
 export type finance_partnersOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -334,6 +344,7 @@ export type finance_partnersOrderByWithAggregationInput = {
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+  partner_code?: Prisma.SortOrder
   _count?: Prisma.finance_partnersCountOrderByAggregateInput
   _avg?: Prisma.finance_partnersAvgOrderByAggregateInput
   _max?: Prisma.finance_partnersMaxOrderByAggregateInput
@@ -358,6 +369,7 @@ export type finance_partnersScalarWhereWithAggregatesInput = {
   is_active?: Prisma.BoolWithAggregatesFilter<"finance_partners"> | boolean
   created_at?: Prisma.DateTimeWithAggregatesFilter<"finance_partners"> | Date | string
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"finance_partners"> | Date | string
+  partner_code?: Prisma.StringWithAggregatesFilter<"finance_partners"> | string
 }
 
 export type finance_partnersCreateInput = {
@@ -374,6 +386,7 @@ export type finance_partnersCreateInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
+  partner_code?: string
   partner_expenses?: Prisma.partner_expensesCreateNestedManyWithoutFinance_partnersInput
 }
 
@@ -391,6 +404,7 @@ export type finance_partnersUncheckedCreateInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
+  partner_code?: string
   partner_expenses?: Prisma.partner_expensesUncheckedCreateNestedManyWithoutFinance_partnersInput
 }
 
@@ -408,6 +422,7 @@ export type finance_partnersUpdateInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  partner_code?: Prisma.StringFieldUpdateOperationsInput | string
   partner_expenses?: Prisma.partner_expensesUpdateManyWithoutFinance_partnersNestedInput
 }
 
@@ -425,6 +440,7 @@ export type finance_partnersUncheckedUpdateInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  partner_code?: Prisma.StringFieldUpdateOperationsInput | string
   partner_expenses?: Prisma.partner_expensesUncheckedUpdateManyWithoutFinance_partnersNestedInput
 }
 
@@ -442,6 +458,7 @@ export type finance_partnersCreateManyInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
+  partner_code?: string
 }
 
 export type finance_partnersUpdateManyMutationInput = {
@@ -458,6 +475,7 @@ export type finance_partnersUpdateManyMutationInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  partner_code?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type finance_partnersUncheckedUpdateManyInput = {
@@ -474,6 +492,7 @@ export type finance_partnersUncheckedUpdateManyInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  partner_code?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type finance_partnersCountOrderByAggregateInput = {
@@ -490,6 +509,7 @@ export type finance_partnersCountOrderByAggregateInput = {
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+  partner_code?: Prisma.SortOrder
 }
 
 export type finance_partnersAvgOrderByAggregateInput = {
@@ -510,6 +530,7 @@ export type finance_partnersMaxOrderByAggregateInput = {
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+  partner_code?: Prisma.SortOrder
 }
 
 export type finance_partnersMinOrderByAggregateInput = {
@@ -526,6 +547,7 @@ export type finance_partnersMinOrderByAggregateInput = {
   is_active?: Prisma.SortOrder
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
+  partner_code?: Prisma.SortOrder
 }
 
 export type finance_partnersSumOrderByAggregateInput = {
@@ -567,6 +589,7 @@ export type finance_partnersCreateWithoutPartner_expensesInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
+  partner_code?: string
 }
 
 export type finance_partnersUncheckedCreateWithoutPartner_expensesInput = {
@@ -583,6 +606,7 @@ export type finance_partnersUncheckedCreateWithoutPartner_expensesInput = {
   is_active?: boolean
   created_at?: Date | string
   updated_at?: Date | string
+  partner_code?: string
 }
 
 export type finance_partnersCreateOrConnectWithoutPartner_expensesInput = {
@@ -615,6 +639,7 @@ export type finance_partnersUpdateWithoutPartner_expensesInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  partner_code?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 export type finance_partnersUncheckedUpdateWithoutPartner_expensesInput = {
@@ -631,6 +656,7 @@ export type finance_partnersUncheckedUpdateWithoutPartner_expensesInput = {
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  partner_code?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 
@@ -678,6 +704,7 @@ export type finance_partnersSelect<ExtArgs extends runtime.Types.Extensions.Inte
   is_active?: boolean
   created_at?: boolean
   updated_at?: boolean
+  partner_code?: boolean
   partner_expenses?: boolean | Prisma.finance_partners$partner_expensesArgs<ExtArgs>
   _count?: boolean | Prisma.Finance_partnersCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["finance_partners"]>
@@ -696,6 +723,7 @@ export type finance_partnersSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   is_active?: boolean
   created_at?: boolean
   updated_at?: boolean
+  partner_code?: boolean
 }, ExtArgs["result"]["finance_partners"]>
 
 export type finance_partnersSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -712,6 +740,7 @@ export type finance_partnersSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   is_active?: boolean
   created_at?: boolean
   updated_at?: boolean
+  partner_code?: boolean
 }, ExtArgs["result"]["finance_partners"]>
 
 export type finance_partnersSelectScalar = {
@@ -728,9 +757,10 @@ export type finance_partnersSelectScalar = {
   is_active?: boolean
   created_at?: boolean
   updated_at?: boolean
+  partner_code?: boolean
 }
 
-export type finance_partnersOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "father_name" | "date_of_birth" | "joined_on" | "partner_type" | "address" | "contact_number" | "emergency_number" | "share_pct" | "is_active" | "created_at" | "updated_at", ExtArgs["result"]["finance_partners"]>
+export type finance_partnersOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "father_name" | "date_of_birth" | "joined_on" | "partner_type" | "address" | "contact_number" | "emergency_number" | "share_pct" | "is_active" | "created_at" | "updated_at" | "partner_code", ExtArgs["result"]["finance_partners"]>
 export type finance_partnersInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   partner_expenses?: boolean | Prisma.finance_partners$partner_expensesArgs<ExtArgs>
   _count?: boolean | Prisma.Finance_partnersCountOutputTypeDefaultArgs<ExtArgs>
@@ -757,6 +787,7 @@ export type $finance_partnersPayload<ExtArgs extends runtime.Types.Extensions.In
     is_active: boolean
     created_at: Date
     updated_at: Date
+    partner_code: string
   }, ExtArgs["result"]["finance_partners"]>
   composites: {}
 }
@@ -1194,6 +1225,7 @@ export interface finance_partnersFieldRefs {
   readonly is_active: Prisma.FieldRef<"finance_partners", 'Boolean'>
   readonly created_at: Prisma.FieldRef<"finance_partners", 'DateTime'>
   readonly updated_at: Prisma.FieldRef<"finance_partners", 'DateTime'>
+  readonly partner_code: Prisma.FieldRef<"finance_partners", 'String'>
 }
     
 

@@ -4,11 +4,15 @@ import { requireFinance } from '../middleware/requireFinance';
 import { validate } from '../middleware/validate';
 import {
   ApproveSchema,
+  CancelResignationSchema,
   CreateEmployeeAdvanceSchema,
   CreateEmployeeSchema,
   CreateSalaryPaymentSchema,
   CreateSalaryRevisionSchema,
+  RecordResignationSchema,
   RejectSchema,
+  SalaryLedgerPaymentsQuerySchema,
+  SalaryLedgerQuerySchema,
   UpdateEmployeeAdvanceSchema,
   UpdateEmployeeSchema,
   UpdateSalaryPaymentSchema,
@@ -39,6 +43,8 @@ import {
   type SalaryQuery,
 } from '../services/finance-payroll.service';
 import { auditSnapshot, logFinanceAudit } from '../services/finance-audit.service';
+import { getEmployeeProfile, getSalaryLedger, getSalaryLedgerPayments } from '../services/finance-ledgers.service';
+import { cancelResignation, recordResignation } from '../services/finance-resignations.service';
 
 /**
  * /api/finance/payroll — the employee master and the salary ledger.
@@ -56,6 +62,42 @@ router.use(authenticate);
 function actorOf(req: AuthRequest): { uid: string; name: string } {
   return { uid: req.user!.uid, name: req.user!.email };
 }
+
+// ---------------------------------------------------------------------------
+// Salary Ledger — read only
+//
+// Two GETs and nothing else. There is no POST, PUT, PATCH or DELETE under
+// /ledger: a figure on the ledger exists because a payslip was approved, and
+// the only way to change it is through that payslip (/salaries, below).
+// ---------------------------------------------------------------------------
+
+/** GET /api/finance/payroll/ledger?year= — employee × month, approved salary only. */
+router.get('/ledger', requireFinance('view'), async (req: AuthRequest, res, next) => {
+  try {
+    res.json({ ledger: await getSalaryLedger(SalaryLedgerQuerySchema.parse(req.query)) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/** GET /api/finance/payroll/ledger/payments — the payslips behind a cell, an employee or a year. */
+router.get('/ledger/payments', requireFinance('view'), async (req: AuthRequest, res, next) => {
+  try {
+    res.json(await getSalaryLedgerPayments(SalaryLedgerPaymentsQuerySchema.parse(req.query)));
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * Anything else aimed at the ledger — a POST, a PUT, a DELETE — is refused by
+ * name rather than left to fall through to whichever route happens to match.
+ */
+router.all(['/ledger', '/ledger/*'], (_req, res) => {
+  res.set('Allow', 'GET').status(405).json({
+    error: 'This ledger is read-only. Create and approve records through their own page.',
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Employees
@@ -119,6 +161,86 @@ router.put(
       });
 
       res.json({ employee });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+/** GET /api/finance/payroll/employees/:id — biodata, resignation history, last approved salary. */
+router.get('/employees/:id', requireFinance('view'), async (req: AuthRequest, res, next) => {
+  try {
+    res.json({ profile: await getEmployeeProfile(String(req.params['id'])) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * POST /api/finance/payroll/employees/:id/resignation
+ *
+ * `configure`, like every other change to the payroll master. The employee is
+ * the one in the path and the recorder is the signed-in user; the body carries
+ * only the date, the time and the reason.
+ */
+router.post(
+  '/employees/:id/resignation',
+  requireFinance('configure'),
+  validate(RecordResignationSchema),
+  async (req: AuthRequest, res, next) => {
+    try {
+      const id = String(req.params['id']);
+      const { resignation, impact } = await recordResignation(id, req.body, actorOf(req));
+      await logFinanceAudit(req, {
+        entity: 'employee',
+        entityId: id,
+        entityRef: resignation.employeeCode,
+        action: 'resigned',
+        previousValues: { isActive: true },
+        newValues: {
+          isActive: false,
+          resignationId: resignation.id,
+          employeeName: resignation.employeeName,
+          resignationDate: resignation.resignationDate,
+          resignationTime: resignation.resignationTime,
+          reason: resignation.reason,
+          remarks: resignation.remarks,
+          // What was left standing, so the trail shows it was seen.
+          approvedAfter: impact.approvedAfter.map((p) => p.salaryNo),
+          pendingAfter: impact.pendingAfter.map((p) => p.salaryNo),
+        },
+      });
+      const { employee } = await getEmployeeProfile(id);
+      res.status(201).json({ resignation, impact, employee });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+/** POST /api/finance/payroll/employees/:id/resignation/cancel — keeps the record, marks it cancelled. */
+router.post(
+  '/employees/:id/resignation/cancel',
+  requireFinance('configure'),
+  validate(CancelResignationSchema),
+  async (req: AuthRequest, res, next) => {
+    try {
+      const id = String(req.params['id']);
+      const resignation = await cancelResignation(id, req.body, actorOf(req));
+      await logFinanceAudit(req, {
+        entity: 'employee',
+        entityId: id,
+        entityRef: resignation.employeeCode,
+        action: 'resignation_cancelled',
+        previousValues: {
+          isActive: false,
+          resignationDate: resignation.resignationDate,
+          reason: resignation.reason,
+        },
+        newValues: { isActive: true, resignationId: resignation.id, cancelReason: resignation.cancelReason },
+      });
+      const { employee } = await getEmployeeProfile(id);
+      res.json({ resignation, employee });
     } catch (err) {
       next(err);
     }

@@ -41,6 +41,7 @@
     "db:baseline": "tsx --env-file .env infra/railway/db-baseline.ts",
     "db:test": "node --import tsx --test \"src/db/__tests__/*.test.ts\"",
     "auth:set-password": "tsx --env-file .env src/scripts/auth-set-password.ts",
+    "user:change-email": "tsx --env-file .env src/scripts/user-change-email.ts",
     "backup:integration": "tsx --env-file .env src/scripts/backup-integration.ts"
   },
   "dependencies": {

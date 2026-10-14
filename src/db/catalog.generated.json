@@ -464,6 +464,39 @@
   },
   {
    "columns": [
+    "cancelled_by"
+   ],
+   "name": "employee_resignations_cancelled_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "employee_resignations"
+  },
+  {
+   "columns": [
+    "employee_id"
+   ],
+   "name": "employee_resignations_employee_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "finance_employees",
+   "table": "employee_resignations"
+  },
+  {
+   "columns": [
+    "submitted_by"
+   ],
+   "name": "employee_resignations_submitted_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "employee_resignations"
+  },
+  {
+   "columns": [
     "demand_id"
    ],
    "name": "event_branch_demand_items_demand_id_fkey",
@@ -5412,6 +5445,35 @@
     ]
    ]
   },
+  "employee_resignations": {
+   "columns": {
+    "id": "uuid",
+    "employee_id": "uuid",
+    "employee_code": "text",
+    "employee_name": "text",
+    "resignation_date": "date",
+    "resignation_time": "time without time zone",
+    "reason": "text",
+    "remarks": "text",
+    "status": "text",
+    "submitted_by": "uuid",
+    "submitted_by_name": "text",
+    "cancelled_by": "uuid",
+    "cancelled_by_name": "text",
+    "cancelled_at": "timestamp with time zone",
+    "cancel_reason": "text",
+    "created_at": "timestamp with time zone",
+    "updated_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ]
+   ]
+  },
   "event_branch_demand_items": {
    "columns": {
     "id": "uuid",
@@ -5742,7 +5804,8 @@
     "share_pct": "numeric",
     "is_active": "boolean",
     "created_at": "timestamp with time zone",
-    "updated_at": "timestamp with time zone"
+    "updated_at": "timestamp with time zone",
+    "partner_code": "text"
    },
    "pk": [
     "id"
@@ -5753,6 +5816,9 @@
     ],
     [
      "name"
+    ],
+    [
+     "partner_code"
     ]
    ]
   },
@@ -6453,6 +6519,37 @@
     ]
    ]
   },
+  "partner_ledger_transactions": {
+   "columns": {
+    "id": "uuid",
+    "expense_no": "text",
+    "partner_id": "uuid",
+    "partner_name": "text",
+    "txn_kind": "text",
+    "description": "text",
+    "amount": "numeric",
+    "business_date": "date",
+    "ledger_date": "date",
+    "txn_year": "integer",
+    "month_no": "integer",
+    "status": "public.finance_doc_status",
+    "payment_method": "text",
+    "account": "public.finance_account",
+    "notes": "text",
+    "requested_by_name": "text",
+    "created_at": "timestamp with time zone",
+    "approved_by_name": "text",
+    "approved_at": "timestamp with time zone",
+    "rejection_reason": "text",
+    "ledger_entry_id": "uuid",
+    "voucher_no": "text",
+    "voucher_removed": "boolean",
+    "counted": "boolean",
+    "counted_amount": "numeric"
+   },
+   "pk": [],
+   "unique": []
+  },
   "password_reset_tokens": {
    "columns": {
     "token_hash": "text",
@@ -6955,6 +7052,39 @@
      "type"
     ]
    ]
+  },
+  "salary_ledger_payments": {
+   "columns": {
+    "id": "uuid",
+    "salary_no": "text",
+    "employee_id": "uuid",
+    "salary_month": "text",
+    "salary_year": "integer",
+    "month_no": "integer",
+    "status": "public.finance_doc_status",
+    "gross_salary": "numeric",
+    "bonus": "numeric",
+    "deductions": "numeric",
+    "net_salary": "numeric",
+    "payment_date": "date",
+    "payment_method": "text",
+    "account": "public.finance_account",
+    "notes": "text",
+    "created_by_name": "text",
+    "created_at": "timestamp with time zone",
+    "approved_by_name": "text",
+    "approved_at": "timestamp with time zone",
+    "rejection_reason": "text",
+    "ledger_entry_id": "uuid",
+    "voucher_no": "text",
+    "voucher_removed": "boolean",
+    "counted": "boolean",
+    "counted_amount": "numeric",
+    "resignation_date": "date",
+    "after_resignation": "boolean"
+   },
+   "pk": [],
+   "unique": []
   },
   "salary_payments": {
    "columns": {

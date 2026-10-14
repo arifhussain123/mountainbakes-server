@@ -4,7 +4,7 @@ import { dbFor } from '../db';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { validate } from '../middleware/validate';
-import { CreateUserSchema, UpdateUserSchema, AdminResetPasswordSchema, type User } from '../shared';
+import { CreateUserSchema, UpdateUserSchema, AdminResetPasswordSchema, ChangeUserEmailSchema, type User } from '../shared';
 import { generateTempPassword } from '../utils/password';
 import { logAudit, resolveAdminName } from '../services/audit.service';
 import {
@@ -16,6 +16,7 @@ import {
 } from '../services/auth/auth.service';
 import { MailNotConfiguredError, sendPasswordResetEmail } from '../services/mailer';
 import { notify } from '../services/push.service';
+import { changeUserEmail } from '../services/user-email.service';
 import { rowToApi } from '../utils/case';
 
 const db = dbFor('users');
@@ -299,6 +300,29 @@ router.post('/:id/activate', async (req: AuthRequest, res, next) => {
     });
 
     res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/users/:id/change-email — a new sign-in address for an existing
+// account. The id, branch, password, sessions and every record that points at
+// the user stay as they are; history goes on naming the address used at the
+// time (see user-email.service, which also writes the audit line, inside the
+// same transaction as the change).
+router.post('/:id/change-email', validate(ChangeUserEmailSchema), async (req: AuthRequest, res, next) => {
+  try {
+    const { email, reason } = req.body as { email: string; reason?: string };
+    const result = await changeUserEmail({
+      user: { id: req.params['id']! },
+      to: email,
+      records: 'keep',
+      apply: true,
+      actor: { id: req.user!.uid, name: await resolveAdminName(req.user!.uid, req.user!.email) },
+      reason,
+    });
+
+    res.json({ success: true, id: result.userId, email: result.to, previousEmail: result.from });
   } catch (err) {
     next(err);
   }

@@ -38,9 +38,9 @@ const db = dbFor('daily-sale');
  * `super_admin` and the branch manager, who physically counts the drawer.
  *
  * `production_user` and every finance role are absent. Production never handles a
- * branch's till, and Finance reads these figures through its own Branch Income
- * screen (finance-income.routes.ts), which is a different question — what the
- * company may bank — asked of the same day.
+ * branch's till, and Finance reads the same records, read-only, through its own
+ * router (finance-daily-sales.routes.ts) — kept apart so that nothing a branch may
+ * DO here is ever one role-list edit away from a finance account.
  *
  * ─── What each role may DO is decided per endpoint, not here ─────────────────
  *   feed            branch roles + admin   (locks decided per method, in SQL)

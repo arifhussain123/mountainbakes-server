@@ -53,6 +53,21 @@ export const AdminResetPasswordSchema = z
     path: ['generateTemp'],
   });
 
+/**
+ * Admin action to change the address a user signs in with (Super Admin only).
+ * Trimmed and lower-cased here so the two fields compare as the API stores them.
+ */
+export const ChangeUserEmailSchema = z
+  .object({
+    email: z.string().trim().toLowerCase().email('Invalid email address'),
+    confirmEmail: z.string().trim().toLowerCase(),
+    reason: z.string().trim().max(300, 'Keep the reason under 300 characters').optional(),
+  })
+  .refine((d) => d.email === d.confirmEmail, {
+    message: 'The two email addresses do not match',
+    path: ['confirmEmail'],
+  });
+
 /** A user setting their own new password (e.g. forced change after reset). */
 export const ChangePasswordSchema = z
   .object({
@@ -67,3 +82,4 @@ export const ChangePasswordSchema = z
 export type ForgotPasswordInput = z.infer<typeof ForgotPasswordSchema>;
 export type AdminResetPasswordInput = z.infer<typeof AdminResetPasswordSchema>;
 export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
+export type ChangeUserEmailInput = z.infer<typeof ChangeUserEmailSchema>;

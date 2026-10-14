@@ -24,8 +24,7 @@ function assertConfigured() {
   if (!/^https?:\/\/[^/]+\/?$/.test((process.env.PUBLIC_API_URL || '').trim())) {
     files.push("PUBLIC_API_URL is not set to this API's public origin — the logo is served from it");
   }
-  if (process.env.NODE_ENV === 'production') problems.push(...files);
-  else if (files.length > 0) console.warn(`[server] file storage is not configured; screens that show photos will fail:\n  - ${files.join('\n  - ')}`);
+  if (files.length > 0) console.warn(`[server] file storage is not configured; screens that show photos will fail:\n  - ${files.join('\n  - ')}`);
 
   if (problems.length > 0) {
     console.error(`[server] cannot start:\n  - ${problems.join('\n  - ')}\n         See .env.example.`);

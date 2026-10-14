@@ -24,7 +24,7 @@ import type { Db, DbResult, Executor, QueryBuilder } from './types';
  */
 
 /** The most rows one read returns, whatever it asked for. */
-const maxRows = () => Number(process.env.DB_MAX_ROWS) || 1000;
+export const maxRows = () => Number(process.env.DB_MAX_ROWS) || 1000;
 
 let executor: Executor = prismaExecutor;
 

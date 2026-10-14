@@ -479,7 +479,8 @@ export const ModelName = {
   stock_history: 'stock_history',
   support_tickets: 'support_tickets',
   user_credentials: 'user_credentials',
-  users: 'users'
+  users: 'users',
+  employee_resignations: 'employee_resignations'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -495,7 +496,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "attachments" | "audit_logs" | "auth_refresh_tokens" | "auth_sessions" | "backup_jobs" | "backup_restore_tests" | "branch_discounts" | "branch_locations" | "branch_share_payments" | "branches" | "business_day_closures" | "cash_transfers" | "categories" | "counters" | "customers" | "daily_closing_reports" | "daily_sale_record_audits" | "daily_sale_records" | "employee_advances" | "event_branch_demand_items" | "event_branch_demands" | "event_branches" | "event_notifications" | "event_production_status" | "expenses" | "finance_amendments" | "finance_audit_logs" | "finance_day_closings" | "finance_employees" | "finance_income_approvals" | "finance_partners" | "finance_queries" | "finance_query_counters" | "finance_query_year_counters" | "finance_settings" | "finance_ticket_messages" | "finance_ticket_versions" | "finance_tickets" | "finance_transactions" | "geofence_logs" | "idempotency_keys" | "ledger_entries" | "ledger_heads" | "login_attempts" | "login_sessions" | "notification_logs" | "notification_reads" | "notification_recipients" | "notifications" | "order_items" | "orders" | "packing_materials" | "partner_expenses" | "password_reset_tokens" | "payment_method_settings" | "price_activation_locks" | "product_price_history" | "production_balances" | "production_order_items" | "production_order_packing_items" | "production_orders" | "production_returns" | "production_stock" | "production_stock_history" | "products" | "push_subscriptions" | "restriction_events" | "restriction_requests" | "restriction_rules" | "return_stock" | "return_stock_history" | "salary_payments" | "salary_revisions" | "settings" | "special_events" | "special_order_items" | "special_orders" | "stock" | "stock_audit_log" | "stock_history" | "support_tickets" | "user_credentials" | "users"
+    modelProps: "attachments" | "audit_logs" | "auth_refresh_tokens" | "auth_sessions" | "backup_jobs" | "backup_restore_tests" | "branch_discounts" | "branch_locations" | "branch_share_payments" | "branches" | "business_day_closures" | "cash_transfers" | "categories" | "counters" | "customers" | "daily_closing_reports" | "daily_sale_record_audits" | "daily_sale_records" | "employee_advances" | "event_branch_demand_items" | "event_branch_demands" | "event_branches" | "event_notifications" | "event_production_status" | "expenses" | "finance_amendments" | "finance_audit_logs" | "finance_day_closings" | "finance_employees" | "finance_income_approvals" | "finance_partners" | "finance_queries" | "finance_query_counters" | "finance_query_year_counters" | "finance_settings" | "finance_ticket_messages" | "finance_ticket_versions" | "finance_tickets" | "finance_transactions" | "geofence_logs" | "idempotency_keys" | "ledger_entries" | "ledger_heads" | "login_attempts" | "login_sessions" | "notification_logs" | "notification_reads" | "notification_recipients" | "notifications" | "order_items" | "orders" | "packing_materials" | "partner_expenses" | "password_reset_tokens" | "payment_method_settings" | "price_activation_locks" | "product_price_history" | "production_balances" | "production_order_items" | "production_order_packing_items" | "production_orders" | "production_returns" | "production_stock" | "production_stock_history" | "products" | "push_subscriptions" | "restriction_events" | "restriction_requests" | "restriction_rules" | "return_stock" | "return_stock_history" | "salary_payments" | "salary_revisions" | "settings" | "special_events" | "special_order_items" | "special_orders" | "stock" | "stock_audit_log" | "stock_history" | "support_tickets" | "user_credentials" | "users" | "employee_resignations"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -6641,6 +6642,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    employee_resignations: {
+      payload: Prisma.$employee_resignationsPayload<ExtArgs>
+      fields: Prisma.employee_resignationsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.employee_resignationsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$employee_resignationsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.employee_resignationsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$employee_resignationsPayload>
+        }
+        findFirst: {
+          args: Prisma.employee_resignationsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$employee_resignationsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.employee_resignationsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$employee_resignationsPayload>
+        }
+        findMany: {
+          args: Prisma.employee_resignationsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$employee_resignationsPayload>[]
+        }
+        create: {
+          args: Prisma.employee_resignationsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$employee_resignationsPayload>
+        }
+        createMany: {
+          args: Prisma.employee_resignationsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.employee_resignationsCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$employee_resignationsPayload>[]
+        }
+        delete: {
+          args: Prisma.employee_resignationsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$employee_resignationsPayload>
+        }
+        update: {
+          args: Prisma.employee_resignationsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$employee_resignationsPayload>
+        }
+        deleteMany: {
+          args: Prisma.employee_resignationsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.employee_resignationsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.employee_resignationsUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$employee_resignationsPayload>[]
+        }
+        upsert: {
+          args: Prisma.employee_resignationsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$employee_resignationsPayload>
+        }
+        aggregate: {
+          args: Prisma.Employee_resignationsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmployee_resignations>
+        }
+        groupBy: {
+          args: Prisma.employee_resignationsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Employee_resignationsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.employee_resignationsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Employee_resignationsCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -7344,7 +7419,8 @@ export const Finance_partnersScalarFieldEnum = {
   share_pct: 'share_pct',
   is_active: 'is_active',
   created_at: 'created_at',
-  updated_at: 'updated_at'
+  updated_at: 'updated_at',
+  partner_code: 'partner_code'
 } as const
 
 export type Finance_partnersScalarFieldEnum = (typeof Finance_partnersScalarFieldEnum)[keyof typeof Finance_partnersScalarFieldEnum]
@@ -8483,6 +8559,29 @@ export const UsersScalarFieldEnum = {
 export type UsersScalarFieldEnum = (typeof UsersScalarFieldEnum)[keyof typeof UsersScalarFieldEnum]
 
 
+export const Employee_resignationsScalarFieldEnum = {
+  id: 'id',
+  employee_id: 'employee_id',
+  employee_code: 'employee_code',
+  employee_name: 'employee_name',
+  resignation_date: 'resignation_date',
+  resignation_time: 'resignation_time',
+  reason: 'reason',
+  remarks: 'remarks',
+  status: 'status',
+  submitted_by: 'submitted_by',
+  submitted_by_name: 'submitted_by_name',
+  cancelled_by: 'cancelled_by',
+  cancelled_by_name: 'cancelled_by_name',
+  cancelled_at: 'cancelled_at',
+  cancel_reason: 'cancel_reason',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Employee_resignationsScalarFieldEnum = (typeof Employee_resignationsScalarFieldEnum)[keyof typeof Employee_resignationsScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -9435,6 +9534,7 @@ export type GlobalOmitConfig = {
   support_tickets?: Prisma.support_ticketsOmit
   user_credentials?: Prisma.user_credentialsOmit
   users?: Prisma.usersOmit
+  employee_resignations?: Prisma.employee_resignationsOmit
 }
 
 /* Types for Logging */
