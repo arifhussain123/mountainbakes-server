@@ -15,6 +15,7 @@ import {
   karachiMinutesOfDay,
   isWithinOrderWindow,
   BRANCH_ROLES,
+  FINANCE_ROLES,
   isBranchRole,
   type ProductionShortfall,
   enforcesProductionStock,
@@ -425,7 +426,11 @@ router.get('/:id', async (req: AuthRequest, res, next) => {
 // The computation, and the reasoning behind its billing window, live in
 // services/previous-balance.service.ts — the Collections export bills off the
 // same function, so the slip and the spreadsheet cannot disagree.
-router.get('/:id/previous-balance', requireRole('super_admin', 'production_user'), async (req, res, next) => {
+//
+// Finance roles were added so the Income drill-down's demand detail can show
+// the same previous/return/received figures the slip prints, without a second
+// implementation of this window logic.
+router.get('/:id/previous-balance', requireRole('super_admin', 'production_user', ...FINANCE_ROLES), async (req, res, next) => {
   try {
     const balance = await getPreviousOrderBalance(req.params['id']!);
     if (!balance) { res.status(404).json({ error: 'Production order not found' }); return; }
