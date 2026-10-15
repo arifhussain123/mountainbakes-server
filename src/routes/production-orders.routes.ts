@@ -364,7 +364,8 @@ router.get('/', async (req: AuthRequest, res, next) => {
 
 // GET /api/production-orders/balances — outstanding pending balances per product.
 // Branch managers are scoped to their own branch; others may pass ?branchId=.
-// Defined as a literal path (no GET '/:id' route exists) so it never shadows.
+// Defined as a literal path BEFORE the GET '/:id' route below, so Express
+// matches this one first and ':id' never shadows it.
 router.get('/balances', async (req: AuthRequest, res, next) => {
   try {
     // pending_qty > 0 is served by production_balances_outstanding_idx.
@@ -380,6 +381,39 @@ router.get('/balances', async (req: AuthRequest, res, next) => {
     if (error) throw error;
 
     res.json({ balances: rowToApi(data ?? []) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/production-orders/:id — a single demand's complete record: the
+// company's Finance Income drill-down opens a voucher's related demand through
+// this (Demand Amount → demand number), and it is the same read Production/the
+// branch get from the list above, just for one id instead of the last 7 days.
+// Must be registered AFTER the literal '/balances' route above.
+router.get('/:id', async (req: AuthRequest, res, next) => {
+  try {
+    const { data, error } = await db
+      .from('production_orders')
+      .select(ORDER_SELECT)
+      .order('line_no', ITEMS_ORDER)
+      .order('line_no', PACKING_ITEMS_ORDER)
+      .eq('id', req.params['id']!)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) {
+      res.status(404).json({ error: 'Demand not found' });
+      return;
+    }
+
+    if (isBranchRole(req.user!.role) && req.user!.branchId && (data as { branch_id: string }).branch_id !== req.user!.branchId) {
+      res.status(403).json({ error: 'Access denied' });
+      return;
+    }
+
+    const { businessDate, submittedTime, ...rest } = rowToApi<Record<string, unknown>>(data);
+    const [order] = await withPhotos([{ ...rest, date: businessDate, time: submittedTime }]);
+    res.json({ order });
   } catch (err) {
     next(err);
   }
