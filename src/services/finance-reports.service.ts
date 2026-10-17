@@ -234,9 +234,25 @@ async function dailyCashBook(
 ): Promise<FinanceReport> {
   const [{ entries, capped }, opening] = await Promise.all([fetchEntries(q, from, to), getDayClosing(from)]);
 
+  // The ledger's own `voucherNo` is always PV-/RV- (or legacy FV-) — allocated
+  // by `post_finance_ledger_entry` at posting time, independent of whatever
+  // document raised the entry. A manual income/expense posting (`source_type
+  // = 'manual'`) is raised from a `finance_transactions` row carrying its OWN
+  // FTX- reference (`txn_no`), which never made it onto the ledger row itself
+  // and so never showed up here. Resolved by `source_id` and attached as its
+  // own column, same pattern as the attachment lookup in finance-ledger.service.
+  const manualSourceIds = [...new Set(entries.filter((e) => e.sourceType === 'manual' && e.sourceId).map((e) => e.sourceId as string))];
+  const ftxBySourceId = new Map<string, string>();
+  if (manualSourceIds.length > 0) {
+    const { data, error } = await withoutDeleted(db.from('finance_transactions').select('id, txn_no').in('id', manualSourceIds));
+    if (error) throw error;
+    for (const r of data ?? []) ftxBySourceId.set(r['id'] as string, r['txn_no'] as string);
+  }
+
   const columns: FinanceReportColumn[] = [
     { key: 'entryDate', label: 'Date', format: 'date', width: 14 },
     { key: 'voucherNo', label: 'Voucher No', width: 14 },
+    { key: 'ftxNo', label: 'FTX No', width: 14 },
     { key: 'ledgerHeadName', label: 'Ledger Head', width: 24 },
     { key: 'description', label: 'Description', width: 38 },
     { key: 'branchName', label: 'Branch', width: 18 },
@@ -256,6 +272,7 @@ async function dailyCashBook(
     rows: entries.map((e) => ({
       entryDate: e.entryDate,
       voucherNo: e.voucherNo,
+      ftxNo: (e.sourceId && ftxBySourceId.get(e.sourceId)) ?? '—',
       ledgerHeadName: e.ledgerHeadName,
       description: e.description,
       branchName: e.branchName ?? '—',
