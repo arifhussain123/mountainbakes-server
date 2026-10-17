@@ -78,12 +78,13 @@ export function computeDailySaleCompanyShare(
   totalSale: number,
   snapshotPct: number | null | undefined,
   currentPct: number,
-): { companySharePct: number; companyShare: number } {
+): { companySharePct: number; companyShare: number; branchSharePct: number; branchShare: number } {
   const usable = (v: unknown): v is number =>
     v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v)) && Number(v) >= 0 && Number(v) <= 100;
   const companySharePct = usable(snapshotPct) ? Number(snapshotPct) : usable(currentPct) ? Number(currentPct) : 0;
   const total = Number.isFinite(Number(totalSale)) ? Number(totalSale) : 0;
-  return { companySharePct, companyShare: splitShare(total, companySharePct).companyShare };
+  const { companyShare, branchShare } = splitShare(total, companySharePct);
+  return { companySharePct, companyShare, branchSharePct: round2(100 - companySharePct), branchShare };
 }
 
 /** `manual − expected`, or null when nothing was counted. */

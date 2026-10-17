@@ -168,6 +168,10 @@ export interface DailySaleRecord {
   companySharePct: number;
   /** `autoTotalSale × companySharePct`, to two places. Server-computed. */
   companyShare: number;
+  /** `100 − companySharePct`. Derived, never stored independently. */
+  branchSharePct: number;
+  /** `autoTotalSale − companyShare`, to two places. Server-computed. */
+  branchShare: number;
   autoCash: number;
   autoEasypaisa: number;
   autoFoodpanda: number;
