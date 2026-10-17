@@ -409,15 +409,18 @@ export async function exportFinanceReportExcel(report: FinanceReport, companyNam
 
   // Pivot table — a grouped roll-up of this report's own money columns,
   // placed to the RIGHT of the main table (one blank column after its last
-  // column) and top-aligned with the main column-header row rather than
-  // stacked underneath it. Which column it groups by and which money
-  // columns it sums are both auto-detected per report — see buildAutoPivot.
+  // column) and starting one row BELOW the main column-header row rather
+  // than sharing it. Sharing that row put the pivot's own title text next
+  // to the main table's orange header band, in the same cell row — it read
+  // as one broken header rather than two separate tables. Which column it
+  // groups by and which money columns it sums are both auto-detected per
+  // report — see buildAutoPivot.
   const pivot = buildAutoPivot(report);
   if (pivot) {
     const dimCount = pivot.secondaryLabel ? 2 : 1;
     const metricCount = pivot.metricLabels.length;
     const pivotCol = columns.length + 2; // one blank gutter column after the last main column
-    let pivotRow = headerRow.number;
+    let pivotRow = headerRow.number + 1;
 
     sheet.mergeCells(pivotRow, pivotCol, pivotRow, pivotCol + dimCount + metricCount - 1);
     const pivotTitleCell = sheet.getCell(pivotRow, pivotCol);
