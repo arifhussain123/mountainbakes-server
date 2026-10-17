@@ -57,7 +57,11 @@ export async function exportFinanceReportPDF(report: FinanceReport, companyName 
     const left = doc.page.margins.left;
     const printable = doc.page.width - doc.page.margins.left - doc.page.margins.right;
 
-    const weights = report.columns.map((c) => c.width ?? 16);
+    // `pdfOmit` columns (e.g. Status, Approved By on the cash book) stay in
+    // Excel/CSV, which are worked with, but drop out of the PDF, which is
+    // printed and filed.
+    const columns = report.columns.filter((c) => !c.pdfOmit);
+    const weights = columns.map((c) => c.width ?? 16);
     const totalWeight = weights.reduce((s, w) => s + w, 0);
     const widths = weights.map((w) => (w / totalWeight) * printable);
     const xs = widths.reduce<number[]>((acc, w, i) => [...acc, (acc[i] ?? left) + (i === 0 ? 0 : widths[i - 1]!)], [left]);
@@ -79,7 +83,7 @@ export async function exportFinanceReportPDF(report: FinanceReport, companyName 
     const drawColumnHeads = () => {
       const y = doc.y;
       doc.fillColor(INK).fontSize(7.5).font('Helvetica-Bold');
-      report.columns.forEach((c, i) => {
+      columns.forEach((c, i) => {
         doc.text(c.label, xs[i]!, y, { width: widths[i]! - 4, align: c.align ?? 'left' });
       });
       doc.y = y + 12;
@@ -123,7 +127,7 @@ export async function exportFinanceReportPDF(report: FinanceReport, companyName 
         doc.font('Helvetica').fontSize(7).fillColor(BODY);
       }
       const y = doc.y;
-      report.columns.forEach((c, i) => {
+      columns.forEach((c, i) => {
         doc.text(cellText(row[c.key], c), xs[i]!, y, {
           width: widths[i]! - 4,
           align: c.align ?? 'left',
@@ -142,7 +146,7 @@ export async function exportFinanceReportPDF(report: FinanceReport, companyName 
       doc.y += 6;
       const y = doc.y;
       doc.font('Helvetica-Bold').fontSize(8).fillColor(INK);
-      report.columns.forEach((c, i) => {
+      columns.forEach((c, i) => {
         const total = report.totals[c.key];
         const text = total !== undefined ? money(total) : i === 0 ? 'TOTAL' : '';
         doc.text(text, xs[i]!, y, { width: widths[i]! - 4, align: c.align ?? 'left', lineBreak: false });
