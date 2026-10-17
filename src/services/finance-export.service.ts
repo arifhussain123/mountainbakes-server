@@ -371,7 +371,13 @@ export async function exportFinanceReportExcel(report: FinanceReport, companyNam
         // a stray character someone would have to filter or sum around, so
         // the cell is left truly blank instead.
         cell.value = raw === null || raw === undefined || raw === '—' ? '' : String(raw);
-        if (c.align) cell.alignment = { horizontal: c.align };
+        // Without `wrapText`, a string longer than its column — e.g. a
+        // Description with " (FTX-12345)" appended — is clipped at the column
+        // boundary the moment the next cell to the right has content, so the
+        // reference number silently disappears from view even though the
+        // cell's actual value is complete. No row height is set, so Excel
+        // auto-grows the row to fit the wrapped text when it opens the file.
+        cell.alignment = { horizontal: c.align, wrapText: true, vertical: 'top' };
       }
     });
   }
