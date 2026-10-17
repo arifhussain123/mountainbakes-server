@@ -366,7 +366,11 @@ export async function exportFinanceReportExcel(report: FinanceReport, companyNam
         cell.numFmt = c.format === 'money' ? '#,##0.00' : '#,##0';
         cell.alignment = { horizontal: 'right' };
       } else {
-        cell.value = raw === null || raw === undefined ? '' : String(raw);
+        // The "—" placeholder (no branch, no approver, no payment method
+        // recorded, …) is a print/screen convention — in a workbook it's just
+        // a stray character someone would have to filter or sum around, so
+        // the cell is left truly blank instead.
+        cell.value = raw === null || raw === undefined || raw === '—' ? '' : String(raw);
         if (c.align) cell.alignment = { horizontal: c.align };
       }
     });
@@ -423,8 +427,8 @@ export async function exportFinanceReportExcel(report: FinanceReport, companyNam
     for (const row of pivot.rows) {
       pivotRow += 1;
       const r = sheet.getRow(pivotRow);
-      r.getCell(pivotCol).value = row.label;
-      if (row.secondary !== undefined) r.getCell(pivotCol + 1).value = row.secondary;
+      r.getCell(pivotCol).value = row.label === '—' ? '' : row.label;
+      if (row.secondary !== undefined) r.getCell(pivotCol + 1).value = row.secondary === '—' ? '' : row.secondary;
       row.metrics.forEach((m, i) => {
         const cell = r.getCell(pivotCol + dimCount + i);
         // A zero in a pivot cell means "nothing on this side of the ledger
