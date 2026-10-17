@@ -34,6 +34,32 @@ function cellText(value: unknown, col: FinanceReportColumn): string {
   return String(value);
 }
 
+/**
+ * Shrinks `text` to the longest prefix (plus "…") that fits `maxWidth` at the
+ * document's current font/size, or returns it unchanged if it already fits.
+ *
+ * pdfkit's own `lineBreak: false` / `ellipsis: true` text options do NOT stop
+ * a long cell from word-wrapping onto a second line — `ellipsis` there only
+ * fires once a `height` cap is reached, not per line. Every cell here is
+ * positioned at an absolute (x, y) with a fixed row-height advance, so a
+ * second wrapped line draws straight into the row below it — the "headers
+ * and rows overlapping" bug. Truncating the string up front keeps every cell
+ * to one line, so no wrap can ever happen.
+ */
+function truncateToWidth(doc: PDFKit.PDFDocument, text: string, maxWidth: number): string {
+  if (maxWidth <= 0 || doc.widthOfString(text) <= maxWidth) return text;
+  const ELLIPSIS = '…';
+  let lo = 0;
+  let hi = text.length;
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2);
+    const fits = doc.widthOfString(text.slice(0, mid) + ELLIPSIS) <= maxWidth;
+    if (fits) lo = mid;
+    else hi = mid - 1;
+  }
+  return lo === 0 ? ELLIPSIS : text.slice(0, lo) + ELLIPSIS;
+}
+
 // ---------------------------------------------------------------------------
 // PDF
 // ---------------------------------------------------------------------------
@@ -64,31 +90,50 @@ export async function exportFinanceReportPDF(report: FinanceReport, companyName 
     const weights = columns.map((c) => c.width ?? 16);
     const totalWeight = weights.reduce((s, w) => s + w, 0);
     const widths = weights.map((w) => (w / totalWeight) * printable);
-    const xs = widths.reduce<number[]>((acc, w, i) => [...acc, (acc[i] ?? left) + (i === 0 ? 0 : widths[i - 1]!)], [left]);
+    // Running x position of each column — plain prefix sum. A `reduce` here
+    // previously doubled the first column's x and shifted every column after
+    // it by one slot, so adjacent headers (and cells) landed on top of each
+    // other; this is the actual cause of the overlap.
+    const xs: number[] = [];
+    let cursorX = left;
+    for (const w of widths) {
+      xs.push(cursorX);
+      cursorX += w;
+    }
+
+    // Gutter kept between a cell's text and the next column's — wide enough
+    // that two adjacent values (e.g. a full "Balance" figure butting up against
+    // "Status") never read as touching, on headers and body rows alike.
+    const GUTTER = 10;
 
     const drawHeader = () => {
       doc.fillColor(BRAND).fontSize(18).font('Helvetica-Bold').text(companyName, left, doc.page.margins.top);
-      doc.fillColor(INK).fontSize(13).font('Helvetica-Bold').text(report.title);
-      doc.fillColor(BODY).fontSize(8).font('Helvetica').text(report.subtitle);
+      doc.moveDown(0.25);
+      doc.fillColor(INK).fontSize(13).font('Helvetica-Bold').text(report.title, left);
+      doc.moveDown(0.25);
+      doc.fillColor(BODY).fontSize(8).font('Helvetica').text(report.subtitle, left);
+      doc.moveDown(0.25);
       doc
         .fillColor(MUTED)
         .fontSize(7)
         .text(
           `Period ${report.periodFrom} to ${report.periodTo}   ·   ` +
             `Generated ${format(new Date(report.generatedAt), 'dd MMM yyyy HH:mm')} by ${report.generatedBy}`,
+          left,
         );
-      doc.moveDown(0.6);
+      doc.moveDown(0.8);
     };
 
     const drawColumnHeads = () => {
       const y = doc.y;
       doc.fillColor(INK).fontSize(7.5).font('Helvetica-Bold');
       columns.forEach((c, i) => {
-        doc.text(c.label, xs[i]!, y, { width: widths[i]! - 4, align: c.align ?? 'left' });
+        const w = widths[i]! - GUTTER;
+        doc.text(truncateToWidth(doc, c.label, w), xs[i]!, y, { width: w, align: c.align ?? 'left' });
       });
-      doc.y = y + 12;
+      doc.y = y + 14;
       doc.moveTo(left, doc.y).lineTo(left + printable, doc.y).strokeColor(BRAND).lineWidth(0.8).stroke();
-      doc.y += 3;
+      doc.y += 5;
     };
 
     drawHeader();
@@ -128,16 +173,13 @@ export async function exportFinanceReportPDF(report: FinanceReport, companyName 
       }
       const y = doc.y;
       columns.forEach((c, i) => {
-        doc.text(cellText(row[c.key], c), xs[i]!, y, {
-          width: widths[i]! - 4,
-          align: c.align ?? 'left',
-          // One line per cell: a wrapped description would push the row's other
-          // cells out of alignment, since each is positioned absolutely.
-          lineBreak: false,
-          ellipsis: true,
-        });
+        const w = widths[i]! - GUTTER;
+        // One line per cell: a wrapped description would push the row's
+        // other cells out of alignment and run into the next row, since
+        // each cell is positioned absolutely with a fixed row-height advance.
+        doc.text(truncateToWidth(doc, cellText(row[c.key], c), w), xs[i]!, y, { width: w, align: c.align ?? 'left' });
       });
-      doc.y = y + 11;
+      doc.y = y + 12;
     }
 
     // Totals footer
@@ -149,7 +191,8 @@ export async function exportFinanceReportPDF(report: FinanceReport, companyName 
       columns.forEach((c, i) => {
         const total = report.totals[c.key];
         const text = total !== undefined ? money(total) : i === 0 ? 'TOTAL' : '';
-        doc.text(text, xs[i]!, y, { width: widths[i]! - 4, align: c.align ?? 'left', lineBreak: false });
+        const w = widths[i]! - GUTTER;
+        doc.text(truncateToWidth(doc, text, w), xs[i]!, y, { width: w, align: c.align ?? 'left' });
       });
       doc.y = y + 14;
     }
