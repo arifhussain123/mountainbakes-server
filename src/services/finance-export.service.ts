@@ -357,7 +357,17 @@ export async function exportFinanceReportExcel(report: FinanceReport, companyNam
     const r = sheet.getRow(cursor);
     columns.forEach((c, i) => {
       const cell = r.getCell(i + 1);
-      const raw = row[c.key];
+      let raw = row[c.key];
+      // The posted description carries its own reference number for whoever
+      // is reading the on-screen ledger — "Flour purchase (FTX-00412)",
+      // "Advance to Zubair (ADV-00019)" — see finance-documents.service.ts /
+      // finance-payroll.service.ts. The workbook already has that reference
+      // in its own Voucher No column, so repeating it in Description here
+      // reads as clutter rather than information; stripped for the export
+      // only — the stored value and the on-screen table are untouched.
+      if (c.key === 'description' && typeof raw === 'string') {
+        raw = raw.replace(/\s*\([A-Z]{2,4}-[^()]*\)\s*$/, '');
+      }
       // Money and counts stay NUMBERS in the cell, formatted for display. Writing
       // them as pre-formatted strings is the classic export bug: the recipient
       // opens the file, tries to sum a column, and gets zero.
@@ -371,12 +381,9 @@ export async function exportFinanceReportExcel(report: FinanceReport, companyNam
         // a stray character someone would have to filter or sum around, so
         // the cell is left truly blank instead.
         cell.value = raw === null || raw === undefined || raw === '—' ? '' : String(raw);
-        // Without `wrapText`, a string longer than its column — e.g. a
-        // Description with " (FTX-12345)" appended — is clipped at the column
-        // boundary the moment the next cell to the right has content, so the
-        // reference number silently disappears from view even though the
-        // cell's actual value is complete. No row height is set, so Excel
-        // auto-grows the row to fit the wrapped text when it opens the file.
+        // No row height is set, so Excel auto-grows the row to fit wrapped
+        // text rather than clipping it at the column boundary when the next
+        // cell to the right has content.
         cell.alignment = { horizontal: c.align, wrapText: true, vertical: 'top' };
       }
     });
