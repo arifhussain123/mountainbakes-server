@@ -1012,8 +1012,24 @@ export interface FinanceReportColumn {
   align?: 'left' | 'right' | 'center';
   /** Relative width hint, used by the PDF/Excel writers. */
   width?: number;
-  /** Dropped from the PDF only — Excel/CSV still carry it, since those are worked with, not printed and filed. */
+  /** Dropped from the PDF only — Excel/CSV still carry it, since those are printed and filed. */
   pdfOmit?: boolean;
+  /** Dropped from the Excel workbook only — CSV still carries it. */
+  excelOmit?: boolean;
+}
+
+/**
+ * A grouped Debit/Credit roll-up — e.g. the cash book's "by Ledger Head"
+ * table — appended to the Excel workbook only, below the main sheet's totals
+ * row. Not a separate report type: it rides along on the same `FinanceReport`
+ * the row-level table is already built from, so it can never disagree with it.
+ */
+export interface FinanceReportPivot {
+  title: string;
+  /** Header label for the grouping column, e.g. "Ledger Head". */
+  rowLabel: string;
+  /** One row per (ledger head, branch) pair — branch is "—" when the report has no branch filter or the entry has none. */
+  rows: { label: string; branchName: string; debit: number; credit: number }[];
 }
 
 /**
@@ -1047,6 +1063,8 @@ export interface FinanceReport {
    * (income statement, P&L, trial balance), which always return every row.
    */
   pagination?: { page: number; pageSize: number; total: number; totalPages: number; hasNext: boolean; hasPrevious: boolean };
+  /** Optional grouped Debit/Credit roll-up, rendered into the Excel workbook only — see {@link FinanceReportPivot}. */
+  pivot?: FinanceReportPivot;
 }
 
 export interface FinanceReportQuery {

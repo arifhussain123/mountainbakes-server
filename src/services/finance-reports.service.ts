@@ -6,6 +6,7 @@ import {
   SYSTEM_LEDGER_HEAD_CODES,
   type FinanceReport,
   type FinanceReportColumn,
+  type FinanceReportPivot,
   type FinanceReportQueryInput,
   type FinanceReportType,
   type LedgerEntry,
@@ -243,12 +244,37 @@ async function dailyCashBook(
     { key: 'debit', label: 'Debit', format: 'money', align: 'right', width: 14 },
     { key: 'credit', label: 'Credit', format: 'money', align: 'right', width: 14 },
     { key: 'balance', label: 'Balance', format: 'money', align: 'right', width: 16 },
-    { key: 'status', label: 'Status', width: 12, pdfOmit: true },
-    { key: 'approvedByName', label: 'Approved By', width: 22, pdfOmit: true },
+    { key: 'status', label: 'Status', width: 12, pdfOmit: true, excelOmit: true },
+    { key: 'approvedByName', label: 'Approved By', width: 22, pdfOmit: true, excelOmit: true },
   ];
 
   const totalDebit = round2(entries.reduce((s, e) => s + e.debit, 0));
   const totalCredit = round2(entries.reduce((s, e) => s + e.credit, 0));
+
+  // Pivot: every entry's Debit/Credit rolled up by (ledger head, branch) — the
+  // same `entries` the row table is built from, so the two can never
+  // disagree, and already narrowed to whatever branch filter the caller
+  // applied (`fetchEntries` → `q.branchId`). Rendered into the Excel workbook
+  // only, below the main table.
+  const pivotTotals = new Map<string, { label: string; branchName: string; debit: number; credit: number }>();
+  for (const e of entries) {
+    const branchName = e.branchName ?? '—';
+    const key = `${e.ledgerHeadName}\u0000${branchName}`;
+    const row = pivotTotals.get(key) ?? { label: e.ledgerHeadName, branchName, debit: 0, credit: 0 };
+    row.debit += e.debit;
+    row.credit += e.credit;
+    pivotTotals.set(key, row);
+  }
+  const pivot: FinanceReportPivot = {
+    title: 'Pivot Table — by Ledger Head and Branch',
+    rowLabel: 'Ledger Head',
+    rows: [...pivotTotals.values()].map((v) => ({
+      label: v.label,
+      branchName: v.branchName,
+      debit: round2(v.debit),
+      credit: round2(v.credit),
+    })),
+  };
 
   return {
     ...shell('daily_cash_book', from, to, by, `Cash book for ${period(from, to)}${capNote(capped)}`),
@@ -272,6 +298,7 @@ async function dailyCashBook(
       { label: 'Total Payments', value: totalCredit, format: 'money' },
       { label: 'Closing Balance', value: round2(opening.openingBalance + totalDebit - totalCredit), format: 'money' },
     ],
+    pivot,
   };
 }
 

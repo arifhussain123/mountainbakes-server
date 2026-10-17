@@ -2,6 +2,7 @@ import PDFDocument from 'pdfkit';
 import ExcelJS from 'exceljs';
 import { format } from 'date-fns';
 import type { FinanceReport, FinanceReportColumn } from '../shared';
+import { round2 } from './finance-settings.service';
 
 /**
  * One PDF writer, one Excel writer, one CSV writer — for all ten finance reports.
@@ -216,6 +217,11 @@ export async function exportFinanceReportExcel(report: FinanceReport, companyNam
   workbook.creator = `${companyName} ERP — Finance Ledger`;
   workbook.created = new Date(report.generatedAt);
 
+  // `excelOmit` columns (e.g. Status, Approved By on the cash book) stay in
+  // the PDF/CSV, which are printed and filed, but drop out of the workbook,
+  // which is worked with.
+  const columns = report.columns.filter((c) => !c.excelOmit);
+
   // Sheet names cannot exceed 31 characters or contain []:*?/\ — a report title
   // like "Partner Expense Report" is fine, but sanitising here means a future
   // title can never make the whole export throw.
@@ -225,12 +231,12 @@ export async function exportFinanceReportExcel(report: FinanceReport, companyNam
     views: [{ state: 'frozen', ySplit: headerRowCount(report) }],
   });
 
-  sheet.mergeCells(1, 1, 1, Math.max(report.columns.length, 2));
+  sheet.mergeCells(1, 1, 1, Math.max(columns.length, 2));
   const titleCell = sheet.getCell(1, 1);
   titleCell.value = `${companyName} — ${report.title}`;
   titleCell.font = { bold: true, size: 14, color: { argb: 'FF6B3B1E' } };
 
-  sheet.mergeCells(2, 1, 2, Math.max(report.columns.length, 2));
+  sheet.mergeCells(2, 1, 2, Math.max(columns.length, 2));
   const subtitleCell = sheet.getCell(2, 1);
   subtitleCell.value = `${report.subtitle}  ·  Generated ${format(new Date(report.generatedAt), 'dd MMM yyyy HH:mm')} by ${report.generatedBy}`;
   subtitleCell.font = { size: 9, color: { argb: 'FF777777' } };
@@ -249,7 +255,7 @@ export async function exportFinanceReportExcel(report: FinanceReport, companyNam
   }
 
   const headerRow = sheet.getRow(cursor);
-  report.columns.forEach((c, i) => {
+  columns.forEach((c, i) => {
     const cell = headerRow.getCell(i + 1);
     cell.value = c.label;
     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF97316' } };
@@ -258,14 +264,14 @@ export async function exportFinanceReportExcel(report: FinanceReport, companyNam
   });
   headerRow.height = 20;
 
-  report.columns.forEach((c, i) => {
+  columns.forEach((c, i) => {
     sheet.getColumn(i + 1).width = Math.max(10, (c.width ?? 16) + 2);
   });
 
   for (const row of report.rows) {
     cursor += 1;
     const r = sheet.getRow(cursor);
-    report.columns.forEach((c, i) => {
+    columns.forEach((c, i) => {
       const cell = r.getCell(i + 1);
       const raw = row[c.key];
       // Money and counts stay NUMBERS in the cell, formatted for display. Writing
@@ -285,7 +291,7 @@ export async function exportFinanceReportExcel(report: FinanceReport, companyNam
   if (Object.keys(report.totals).length > 0) {
     cursor += 1;
     const totalRow = sheet.getRow(cursor);
-    report.columns.forEach((c, i) => {
+    columns.forEach((c, i) => {
       const cell = totalRow.getCell(i + 1);
       const total = report.totals[c.key];
       if (total !== undefined) {
@@ -297,6 +303,58 @@ export async function exportFinanceReportExcel(report: FinanceReport, companyNam
       }
       cell.font = { bold: true, color: { argb: 'FF6B3B1E' } };
       cell.border = { top: { style: 'thin', color: { argb: 'FFF97316' } } };
+    });
+  }
+
+  // Pivot table — a grouped Debit/Credit roll-up, by Ledger Head and Branch,
+  // placed after the main table's totals row, in the same sheet.
+  if (report.pivot && report.pivot.rows.length > 0) {
+    cursor += 2;
+    sheet.mergeCells(cursor, 1, cursor, 4);
+    const pivotTitleCell = sheet.getCell(cursor, 1);
+    pivotTitleCell.value = report.pivot.title;
+    pivotTitleCell.font = { bold: true, size: 12, color: { argb: 'FF6B3B1E' } };
+
+    cursor += 1;
+    const pivotHeaderRow = sheet.getRow(cursor);
+    [report.pivot.rowLabel, 'Branch', 'Debit', 'Credit'].forEach((label, i) => {
+      const cell = pivotHeaderRow.getCell(i + 1);
+      cell.value = label;
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF97316' } };
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
+      cell.alignment = { vertical: 'middle', horizontal: i < 2 ? 'left' : 'right' };
+    });
+    pivotHeaderRow.height = 20;
+
+    let pivotDebitTotal = 0;
+    let pivotCreditTotal = 0;
+    for (const row of report.pivot.rows) {
+      cursor += 1;
+      const r = sheet.getRow(cursor);
+      r.getCell(1).value = row.label;
+      r.getCell(2).value = row.branchName;
+      r.getCell(3).value = row.debit;
+      r.getCell(3).numFmt = '#,##0.00';
+      r.getCell(3).alignment = { horizontal: 'right' };
+      r.getCell(4).value = row.credit;
+      r.getCell(4).numFmt = '#,##0.00';
+      r.getCell(4).alignment = { horizontal: 'right' };
+      pivotDebitTotal += row.debit;
+      pivotCreditTotal += row.credit;
+    }
+
+    cursor += 1;
+    const pivotTotalRow = sheet.getRow(cursor);
+    pivotTotalRow.getCell(1).value = 'TOTAL';
+    pivotTotalRow.getCell(3).value = round2(pivotDebitTotal);
+    pivotTotalRow.getCell(3).numFmt = '#,##0.00';
+    pivotTotalRow.getCell(3).alignment = { horizontal: 'right' };
+    pivotTotalRow.getCell(4).value = round2(pivotCreditTotal);
+    pivotTotalRow.getCell(4).numFmt = '#,##0.00';
+    pivotTotalRow.getCell(4).alignment = { horizontal: 'right' };
+    [1, 2, 3, 4].forEach((col) => {
+      pivotTotalRow.getCell(col).font = { bold: true, color: { argb: 'FF6B3B1E' } };
+      pivotTotalRow.getCell(col).border = { top: { style: 'thin', color: { argb: 'FFF97316' } } };
     });
   }
 
