@@ -35,6 +35,90 @@ function cellText(value: unknown, col: FinanceReportColumn): string {
   return String(value);
 }
 
+/** A Debit/Credit-style breakdown, auto-derived from whatever report it is being built for — see {@link buildAutoPivot}. */
+interface AutoPivot {
+  title: string;
+  rowLabel: string;
+  secondaryLabel?: string;
+  metricLabels: string[];
+  rows: { label: string; secondary?: string; metrics: number[] }[];
+}
+
+// Identity-style columns, in the order preferred as the pivot's grouping
+// dimension — whichever of these a report's columns actually has decides what
+// the pivot groups by, so the header and the grouping both "auto adjust" to
+// the report instead of being hardcoded per report type.
+const PRIMARY_DIMENSION_KEYS = [
+  'ledgerHeadName',
+  'category',
+  'employeeName',
+  'partnerName',
+  'department',
+  'designation',
+  'section',
+  'accountName',
+  'paymentMethod',
+];
+const SECONDARY_DIMENSION_KEY = 'branchName';
+
+/**
+ * Builds a grouped roll-up of a report's money columns — e.g. the cash
+ * book's Ledger Head × Branch Debit/Credit breakdown — directly from
+ * `report.columns`/`report.rows`, so every Excel export gets one without
+ * each of the ten report builders needing to construct it by hand.
+ *
+ * Both the grouping column(s) and the summed metric column(s) are picked
+ * from whatever the report actually has (see the priority lists above), so
+ * the pivot's own headers read correctly for whichever report it came from.
+ * Running-balance columns (key containing "balance") are never summed — a
+ * balance is a snapshot, not an addable quantity. Returns null when the
+ * report has no groupable column, no money column, or when grouping would
+ * not actually reduce the row count (already-aggregated reports like Trial
+ * Balance or Income Statement already have one row per group).
+ */
+function buildAutoPivot(report: FinanceReport): AutoPivot | null {
+  if (report.rows.length === 0) return null;
+  const colByKey = new Map(report.columns.map((c) => [c.key, c]));
+
+  const primaryKey = PRIMARY_DIMENSION_KEYS.find((k) => colByKey.has(k));
+  if (!primaryKey) return null;
+  const secondaryKey = primaryKey !== SECONDARY_DIMENSION_KEY && colByKey.has(SECONDARY_DIMENSION_KEY) ? SECONDARY_DIMENSION_KEY : undefined;
+
+  const metricKeys = report.columns.filter((c) => c.format === 'money' && !/balance/i.test(c.key)).map((c) => c.key);
+  if (metricKeys.length === 0) return null;
+
+  const groups = new Map<string, { label: string; secondary?: string; metrics: number[] }>();
+  for (const row of report.rows) {
+    const label = String(row[primaryKey] ?? '—');
+    const secondary = secondaryKey ? String(row[secondaryKey] ?? '—') : undefined;
+    const key = secondary !== undefined ? `${label}\u0000${secondary}` : label;
+    let g = groups.get(key);
+    if (!g) {
+      g = { label, secondary, metrics: metricKeys.map(() => 0) };
+      groups.set(key, g);
+    }
+    metricKeys.forEach((k, i) => {
+      const v = row[k];
+      if (typeof v === 'number') g!.metrics[i] += v;
+    });
+  }
+
+  // Not worth showing if grouping didn't actually reduce anything — an
+  // already one-row-per-head report (Trial Balance, Income Statement, …)
+  // would just reproduce its own table.
+  if (groups.size >= report.rows.length) return null;
+
+  const primaryLabel = colByKey.get(primaryKey)!.label;
+  const secondaryLabel = secondaryKey ? colByKey.get(secondaryKey)!.label : undefined;
+  return {
+    title: `Pivot Table — by ${primaryLabel}${secondaryLabel ? ` and ${secondaryLabel}` : ''}`,
+    rowLabel: primaryLabel,
+    secondaryLabel,
+    metricLabels: metricKeys.map((k) => colByKey.get(k)!.label),
+    rows: [...groups.values()].map((g) => ({ ...g, metrics: g.metrics.map(round2) })),
+  };
+}
+
 /**
  * Shrinks `text` to the longest prefix (plus "…") that fits `maxWidth` at the
  * document's current font/size, or returns it unchanged if it already fits.
@@ -306,66 +390,76 @@ export async function exportFinanceReportExcel(report: FinanceReport, companyNam
     });
   }
 
-  // Pivot table — a grouped Debit/Credit roll-up, by Ledger Head and Branch,
+  // Pivot table — a grouped roll-up of this report's own money columns,
   // placed to the RIGHT of the main table (one blank column after its last
-  // column, i.e. after Balance), top-aligned with the main column-header row
-  // rather than stacked underneath it.
-  if (report.pivot && report.pivot.rows.length > 0) {
+  // column) and top-aligned with the main column-header row rather than
+  // stacked underneath it. Which column it groups by and which money
+  // columns it sums are both auto-detected per report — see buildAutoPivot.
+  const pivot = buildAutoPivot(report);
+  if (pivot) {
+    const dimCount = pivot.secondaryLabel ? 2 : 1;
+    const metricCount = pivot.metricLabels.length;
     const pivotCol = columns.length + 2; // one blank gutter column after the last main column
     let pivotRow = headerRow.number;
 
-    sheet.mergeCells(pivotRow, pivotCol, pivotRow, pivotCol + 3);
+    sheet.mergeCells(pivotRow, pivotCol, pivotRow, pivotCol + dimCount + metricCount - 1);
     const pivotTitleCell = sheet.getCell(pivotRow, pivotCol);
-    pivotTitleCell.value = report.pivot.title;
+    pivotTitleCell.value = pivot.title;
     pivotTitleCell.font = { bold: true, size: 12, color: { argb: 'FF6B3B1E' } };
 
     pivotRow += 1;
     const pivotHeaderRow = sheet.getRow(pivotRow);
-    [report.pivot.rowLabel, 'Branch', 'Debit', 'Credit'].forEach((label, i) => {
+    const headLabels = [pivot.rowLabel, ...(pivot.secondaryLabel ? [pivot.secondaryLabel] : []), ...pivot.metricLabels];
+    headLabels.forEach((label, i) => {
       const cell = pivotHeaderRow.getCell(pivotCol + i);
       cell.value = label;
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF97316' } };
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
-      cell.alignment = { vertical: 'middle', horizontal: i < 2 ? 'left' : 'right' };
+      cell.alignment = { vertical: 'middle', horizontal: i < dimCount ? 'left' : 'right' };
     });
     pivotHeaderRow.height = 20;
 
-    let pivotDebitTotal = 0;
-    let pivotCreditTotal = 0;
-    for (const row of report.pivot.rows) {
+    const metricTotals = pivot.metricLabels.map(() => 0);
+    for (const row of pivot.rows) {
       pivotRow += 1;
       const r = sheet.getRow(pivotRow);
       r.getCell(pivotCol).value = row.label;
-      r.getCell(pivotCol + 1).value = row.branchName;
-      r.getCell(pivotCol + 2).value = row.debit;
-      r.getCell(pivotCol + 2).numFmt = '#,##0.00';
-      r.getCell(pivotCol + 2).alignment = { horizontal: 'right' };
-      r.getCell(pivotCol + 3).value = row.credit;
-      r.getCell(pivotCol + 3).numFmt = '#,##0.00';
-      r.getCell(pivotCol + 3).alignment = { horizontal: 'right' };
-      pivotDebitTotal += row.debit;
-      pivotCreditTotal += row.credit;
+      if (row.secondary !== undefined) r.getCell(pivotCol + 1).value = row.secondary;
+      row.metrics.forEach((m, i) => {
+        const cell = r.getCell(pivotCol + dimCount + i);
+        // A zero in a pivot cell means "nothing on this side of the ledger
+        // head/branch pair" — blank reads as that at a glance, where "0.00"
+        // reads as a value someone has to double-check.
+        cell.value = m === 0 ? null : m;
+        cell.numFmt = '#,##0.00';
+        cell.alignment = { horizontal: 'right' };
+        metricTotals[i] += m;
+      });
     }
 
     pivotRow += 1;
     const pivotTotalRow = sheet.getRow(pivotRow);
     pivotTotalRow.getCell(pivotCol).value = 'TOTAL';
-    pivotTotalRow.getCell(pivotCol + 2).value = round2(pivotDebitTotal);
-    pivotTotalRow.getCell(pivotCol + 2).numFmt = '#,##0.00';
-    pivotTotalRow.getCell(pivotCol + 2).alignment = { horizontal: 'right' };
-    pivotTotalRow.getCell(pivotCol + 3).value = round2(pivotCreditTotal);
-    pivotTotalRow.getCell(pivotCol + 3).numFmt = '#,##0.00';
-    pivotTotalRow.getCell(pivotCol + 3).alignment = { horizontal: 'right' };
-    [0, 1, 2, 3].forEach((offset) => {
+    metricTotals.forEach((total, i) => {
+      const rounded = round2(total);
+      const cell = pivotTotalRow.getCell(pivotCol + dimCount + i);
+      cell.value = rounded === 0 ? null : rounded;
+      cell.numFmt = '#,##0.00';
+      cell.alignment = { horizontal: 'right' };
+    });
+    for (let offset = 0; offset < dimCount + metricCount; offset += 1) {
       pivotTotalRow.getCell(pivotCol + offset).font = { bold: true, color: { argb: 'FF6B3B1E' } };
       pivotTotalRow.getCell(pivotCol + offset).border = { top: { style: 'thin', color: { argb: 'FFF97316' } } };
-    });
+    }
 
-    // Column widths for the pivot's own columns (ledger head / branch names run long).
+    // Column widths for the pivot's own columns — generous for the
+    // grouping label(s), which carry long names (ledger heads, branches,
+    // employees…), tighter for the numeric metric columns.
     sheet.getColumn(pivotCol).width = 26;
-    sheet.getColumn(pivotCol + 1).width = 28;
-    sheet.getColumn(pivotCol + 2).width = 14;
-    sheet.getColumn(pivotCol + 3).width = 14;
+    if (pivot.secondaryLabel) sheet.getColumn(pivotCol + 1).width = 28;
+    for (let i = 0; i < metricCount; i += 1) {
+      sheet.getColumn(pivotCol + dimCount + i).width = 14;
+    }
   }
 
   return workbook.xlsx.writeBuffer() as unknown as Promise<Buffer>;

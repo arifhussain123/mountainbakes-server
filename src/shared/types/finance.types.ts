@@ -1019,20 +1019,6 @@ export interface FinanceReportColumn {
 }
 
 /**
- * A grouped Debit/Credit roll-up — e.g. the cash book's "by Ledger Head"
- * table — appended to the Excel workbook only, below the main sheet's totals
- * row. Not a separate report type: it rides along on the same `FinanceReport`
- * the row-level table is already built from, so it can never disagree with it.
- */
-export interface FinanceReportPivot {
-  title: string;
-  /** Header label for the grouping column, e.g. "Ledger Head". */
-  rowLabel: string;
-  /** One row per (ledger head, branch) pair — branch is "—" when the report has no branch filter or the entry has none. */
-  rows: { label: string; branchName: string; debit: number; credit: number }[];
-}
-
-/**
  * One shape for all ten reports.
  *
  * The alternative — ten bespoke response types with ten bespoke PDF writers and
@@ -1063,8 +1049,6 @@ export interface FinanceReport {
    * (income statement, P&L, trial balance), which always return every row.
    */
   pagination?: { page: number; pageSize: number; total: number; totalPages: number; hasNext: boolean; hasPrevious: boolean };
-  /** Optional grouped Debit/Credit roll-up, rendered into the Excel workbook only — see {@link FinanceReportPivot}. */
-  pivot?: FinanceReportPivot;
 }
 
 export interface FinanceReportQuery {
