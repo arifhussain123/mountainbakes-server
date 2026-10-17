@@ -307,18 +307,22 @@ export async function exportFinanceReportExcel(report: FinanceReport, companyNam
   }
 
   // Pivot table — a grouped Debit/Credit roll-up, by Ledger Head and Branch,
-  // placed after the main table's totals row, in the same sheet.
+  // placed to the RIGHT of the main table (one blank column after its last
+  // column, i.e. after Balance), top-aligned with the main column-header row
+  // rather than stacked underneath it.
   if (report.pivot && report.pivot.rows.length > 0) {
-    cursor += 2;
-    sheet.mergeCells(cursor, 1, cursor, 4);
-    const pivotTitleCell = sheet.getCell(cursor, 1);
+    const pivotCol = columns.length + 2; // one blank gutter column after the last main column
+    let pivotRow = headerRow.number;
+
+    sheet.mergeCells(pivotRow, pivotCol, pivotRow, pivotCol + 3);
+    const pivotTitleCell = sheet.getCell(pivotRow, pivotCol);
     pivotTitleCell.value = report.pivot.title;
     pivotTitleCell.font = { bold: true, size: 12, color: { argb: 'FF6B3B1E' } };
 
-    cursor += 1;
-    const pivotHeaderRow = sheet.getRow(cursor);
+    pivotRow += 1;
+    const pivotHeaderRow = sheet.getRow(pivotRow);
     [report.pivot.rowLabel, 'Branch', 'Debit', 'Credit'].forEach((label, i) => {
-      const cell = pivotHeaderRow.getCell(i + 1);
+      const cell = pivotHeaderRow.getCell(pivotCol + i);
       cell.value = label;
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF97316' } };
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
@@ -329,33 +333,39 @@ export async function exportFinanceReportExcel(report: FinanceReport, companyNam
     let pivotDebitTotal = 0;
     let pivotCreditTotal = 0;
     for (const row of report.pivot.rows) {
-      cursor += 1;
-      const r = sheet.getRow(cursor);
-      r.getCell(1).value = row.label;
-      r.getCell(2).value = row.branchName;
-      r.getCell(3).value = row.debit;
-      r.getCell(3).numFmt = '#,##0.00';
-      r.getCell(3).alignment = { horizontal: 'right' };
-      r.getCell(4).value = row.credit;
-      r.getCell(4).numFmt = '#,##0.00';
-      r.getCell(4).alignment = { horizontal: 'right' };
+      pivotRow += 1;
+      const r = sheet.getRow(pivotRow);
+      r.getCell(pivotCol).value = row.label;
+      r.getCell(pivotCol + 1).value = row.branchName;
+      r.getCell(pivotCol + 2).value = row.debit;
+      r.getCell(pivotCol + 2).numFmt = '#,##0.00';
+      r.getCell(pivotCol + 2).alignment = { horizontal: 'right' };
+      r.getCell(pivotCol + 3).value = row.credit;
+      r.getCell(pivotCol + 3).numFmt = '#,##0.00';
+      r.getCell(pivotCol + 3).alignment = { horizontal: 'right' };
       pivotDebitTotal += row.debit;
       pivotCreditTotal += row.credit;
     }
 
-    cursor += 1;
-    const pivotTotalRow = sheet.getRow(cursor);
-    pivotTotalRow.getCell(1).value = 'TOTAL';
-    pivotTotalRow.getCell(3).value = round2(pivotDebitTotal);
-    pivotTotalRow.getCell(3).numFmt = '#,##0.00';
-    pivotTotalRow.getCell(3).alignment = { horizontal: 'right' };
-    pivotTotalRow.getCell(4).value = round2(pivotCreditTotal);
-    pivotTotalRow.getCell(4).numFmt = '#,##0.00';
-    pivotTotalRow.getCell(4).alignment = { horizontal: 'right' };
-    [1, 2, 3, 4].forEach((col) => {
-      pivotTotalRow.getCell(col).font = { bold: true, color: { argb: 'FF6B3B1E' } };
-      pivotTotalRow.getCell(col).border = { top: { style: 'thin', color: { argb: 'FFF97316' } } };
+    pivotRow += 1;
+    const pivotTotalRow = sheet.getRow(pivotRow);
+    pivotTotalRow.getCell(pivotCol).value = 'TOTAL';
+    pivotTotalRow.getCell(pivotCol + 2).value = round2(pivotDebitTotal);
+    pivotTotalRow.getCell(pivotCol + 2).numFmt = '#,##0.00';
+    pivotTotalRow.getCell(pivotCol + 2).alignment = { horizontal: 'right' };
+    pivotTotalRow.getCell(pivotCol + 3).value = round2(pivotCreditTotal);
+    pivotTotalRow.getCell(pivotCol + 3).numFmt = '#,##0.00';
+    pivotTotalRow.getCell(pivotCol + 3).alignment = { horizontal: 'right' };
+    [0, 1, 2, 3].forEach((offset) => {
+      pivotTotalRow.getCell(pivotCol + offset).font = { bold: true, color: { argb: 'FF6B3B1E' } };
+      pivotTotalRow.getCell(pivotCol + offset).border = { top: { style: 'thin', color: { argb: 'FFF97316' } } };
     });
+
+    // Column widths for the pivot's own columns (ledger head / branch names run long).
+    sheet.getColumn(pivotCol).width = 26;
+    sheet.getColumn(pivotCol + 1).width = 28;
+    sheet.getColumn(pivotCol + 2).width = 14;
+    sheet.getColumn(pivotCol + 3).width = 14;
   }
 
   return workbook.xlsx.writeBuffer() as unknown as Promise<Buffer>;
