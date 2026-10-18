@@ -53,6 +53,8 @@ import { rowToApi } from '../utils/case';
 
 const db = dbFor('stock');
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export const router = Router();
 
 router.use(authenticate);
@@ -432,6 +434,7 @@ router.get('/returns/summary', requireRole('super_admin', ...BRANCH_ROLES), asyn
       ? req.user!.branchId
       : ((req.query['branchId'] as string | undefined) ?? null);
     if (!branchId) { res.status(400).json({ error: 'Branch context required' }); return; }
+    if (!UUID_RE.test(branchId)) { res.status(400).json({ error: 'branchId must be a uuid' }); return; }
     res.json(await getMonthlyReturnsSummary({ branchId }));
   } catch (err) {
     next(err);

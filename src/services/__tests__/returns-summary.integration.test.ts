@@ -85,6 +85,7 @@ interface Actor { id: string; email: string; role: string; branchId: string | nu
 const ACTORS: Record<string, Actor> = {
   production: { id: '10000000-0000-4000-8000-000000000001', email: 'prod@mb.test', role: 'production_user', branchId: null, branchName: null },
   'branch-a': { id: '10000000-0000-4000-8000-000000000002', email: 'a@mb.test', role: 'branch_manager', branchId: BRANCH_A, branchName: 'DHA Branch' },
+  admin: { id: '10000000-0000-4000-8000-000000000003', email: 'admin@mb.test', role: 'super_admin', branchId: null, branchName: null },
 };
 const TOKENS: Record<string, string> = {};
 
@@ -351,6 +352,17 @@ describe('summary routes', () => {
     const prod = await call('production', `/api/production-returns?from=2026-10-07&to=2026-10-07&branchId=${BRANCH_B}`);
     assert.equal(prod.body.returns[0].unitPrice, null);
     assert.equal(prod.body.returns[0].amount, null);
+  });
+
+  test('super_admin names a branch on the branch route and gets that branch only', async () => {
+    const res = await call('admin', `/api/stock/returns/summary?branchId=${BRANCH_B}`);
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+    assert.deepEqual(res.body.branches.map((b: { branchId: string }) => b.branchId), [BRANCH_B]);
+  });
+
+  test('a malformed branchId on the branch route is a 400, not a database error', async () => {
+    const res = await call('admin', '/api/stock/returns/summary?branchId=nope');
+    assert.equal(res.status, 400);
   });
 
   test('Production has no branch of its own to read from the branch route', async () => {
