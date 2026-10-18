@@ -7,12 +7,13 @@ import {
   isBranchRole,
   businessDateStr,
   computeClosingTotals,
+  DAILY_SALE_METHODS,
   type Order,
   type Expense,
   type PaymentMethod,
 } from '../shared';
-import { computeBranchStockHistory } from '../services/stock.service';
-import { genericExcel, genericCSV } from '../services/production-export.service';
+import { computeBranchStockHistory, computeStockRows, UnreachableStockDateError } from '../services/stock.service';
+import { genericExcelMultiSheet, genericCSV } from '../services/production-export.service';
 import { rowToApi } from '../utils/case';
 
 const db = dbFor('branch-closing');
@@ -212,10 +213,29 @@ router.get('/export', async (req: AuthRequest, res, next) => {
       for (const row of history.rows) balanceByDay.set(row.date, row.balanceQty);
     }
 
+    // Takings by payment method — the same breakdown the screen's "Takings by
+    // Payment Method" card shows, one column per method, keyed the same way
+    // the screen filters it: cancelled orders excluded, 'staff' excluded
+    // (it takes no money and has no column of its own).
+    function paymentAmountsFor(orders: Order[]): Record<PaymentMethod, number> {
+      const amounts: Record<string, number> = {};
+      for (const o of orders) {
+        if (o.status === 'cancelled' || o.paymentMethod === 'staff') continue;
+        amounts[o.paymentMethod] = (amounts[o.paymentMethod] ?? 0) + (o.grandTotal || 0);
+      }
+      return amounts as Record<PaymentMethod, number>;
+    }
+
     const rows: (string | number)[][] = [];
     const totals = { sales: 0, discounts: 0, expenses: 0, net: 0, cashSales: 0, cashExpenses: 0, cashInHand: 0, orders: 0, cancelled: 0 };
+    const methodTotals: Record<string, number> = {};
+    // Closing Stock, per product, one block of rows per day — same figures
+    // and the same `activityOnly` filter as the screen's table, so a product
+    // with no movement and nothing on the shelf doesn't pad the sheet.
+    const stockRows: (string | number)[][] = [];
     for (let d = fromStr; d <= toStr; d = shiftDate(d, 1)) {
-      const t = computeClosingTotals(ordersByDay.get(d) ?? [], expensesByDay.get(d) ?? []);
+      const dayOrders = ordersByDay.get(d) ?? [];
+      const t = computeClosingTotals(dayOrders, expensesByDay.get(d) ?? []);
       totals.sales += t.sales;
       totals.discounts += t.discounts;
       totals.expenses += t.expenses;
@@ -225,6 +245,10 @@ router.get('/export', async (req: AuthRequest, res, next) => {
       totals.cashInHand += t.cashInHand;
       totals.orders += t.orderCount;
       totals.cancelled += t.cancelled;
+
+      const methodAmounts = paymentAmountsFor(dayOrders);
+      for (const m of DAILY_SALE_METHODS) methodTotals[m] = (methodTotals[m] ?? 0) + (methodAmounts[m] ?? 0);
+
       rows.push([
         d,
         Math.round(t.sales),
@@ -237,7 +261,23 @@ router.get('/export', async (req: AuthRequest, res, next) => {
         t.orderCount,
         t.cancelled,
         balanceByDay.get(d) ?? 0,
+        ...DAILY_SALE_METHODS.map((m) => Math.round(methodAmounts[m] ?? 0)),
       ]);
+
+      // computeStockRows refuses a date more than 365 days behind today (it
+      // walks the ledger back from today's live balance) — a window whose
+      // start is older than that is skipped on the stock sheet rather than
+      // failing the whole export, same soft-fail as `stockCapped` below.
+      if (d <= today) {
+        try {
+          const dayStock = await computeStockRows(branchId, d, { activityOnly: true });
+          for (const r of dayStock) {
+            stockRows.push([d, r.productName, r.opening, r.newQty, r.sold, r.returned, r.balance]);
+          }
+        } catch (e) {
+          if (!(e instanceof UnreachableStockDateError)) throw e;
+        }
+      }
     }
 
     // Stock on Hand is left blank on the TOTAL row on purpose: it is a balance,
@@ -255,12 +295,20 @@ router.get('/export', async (req: AuthRequest, res, next) => {
       totals.orders,
       totals.cancelled,
       '',
+      ...DAILY_SALE_METHODS.map((m) => Math.round(methodTotals[m] ?? 0)),
     ]);
     if (stockCapped) {
-      rows.push(['Stock history hit its row cap, so Stock on Hand may be short on the earliest days.', '', '', '', '', '', '', '', '', '', '']);
+      rows.push([
+        'Stock history hit its row cap, so Stock on Hand may be short on the earliest days.',
+        '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+      ]);
     }
 
-    const headers = ['Date', 'Sales', 'Discounts', 'Expenses', 'Net', 'Cash Sales', 'Cash Expenses', 'Cash in Hand', 'Orders', 'Cancelled', 'Stock on Hand'];
+    const headers = [
+      'Date', 'Sales', 'Discounts', 'Expenses', 'Net', 'Cash Sales', 'Cash Expenses', 'Cash in Hand', 'Orders', 'Cancelled', 'Stock on Hand',
+      ...DAILY_SALE_METHODS.map((m) => `Takings — ${m}`),
+    ];
+    const stockHeaders = ['Date', 'Product', 'Opening', 'Received', 'Sold', 'Returned', 'Balance'];
     const title = 'Branch Closing';
     const window = fromStr === toStr ? fromStr : `${fromStr}_to_${toStr}`;
     const filename = `mountain-bakes-closing-${window}`;
@@ -271,7 +319,10 @@ router.get('/export', async (req: AuthRequest, res, next) => {
       res.send(genericCSV(headers, rows));
       return;
     }
-    const buffer = await genericExcel(title, headers, rows);
+    const buffer = await genericExcelMultiSheet([
+      { title: 'Daily Summary', headers, rows },
+      { title: 'Closing Stock', headers: stockHeaders, rows: stockRows },
+    ]);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}.xlsx"`);
     res.send(buffer);
