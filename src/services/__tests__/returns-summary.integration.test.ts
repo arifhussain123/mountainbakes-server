@@ -333,6 +333,24 @@ describe('summary routes', () => {
     assert.deepEqual(res.body.branches.map((b: { branchId: string }) => b.branchId), [BRANCH_A]);
   });
 
+  test('a branch manager cannot list Production’s queue or record into it', async () => {
+    const list = await call('branch-a', `/api/production-returns?branchId=${BRANCH_B}`);
+    assert.equal(list.status, 403);
+    const res = await fetch(`${base}/api/production-returns`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${TOKENS['branch-a']}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ branchId: BRANCH_B, productId: FUDGE, qty: 1, reason: 'test' }),
+    });
+    assert.equal(res.status, 403);
+  });
+
+  test('a branch manager’s return rows are their own branch only, whatever branchId they send', async () => {
+    const res = await call('branch-a', `/api/stock/returns?from=2026-10-01&to=2026-10-18&branchId=${BRANCH_B}`);
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+    assert.ok(res.body.returns.length > 0);
+    assert.deepEqual([...new Set(res.body.returns.map((r: { branchId: string }) => r.branchId))], [BRANCH_A]);
+  });
+
   test('return rows carry their product code, unit price on the day, and line amount', async () => {
     const res = await call('production', `/api/production-returns?from=2026-10-01&to=2026-10-18&branchId=${BRANCH_A}&sortBy=date&sortDir=asc`);
     assert.equal(res.status, 200, JSON.stringify(res.body));
