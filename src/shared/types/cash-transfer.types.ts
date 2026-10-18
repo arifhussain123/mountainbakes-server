@@ -141,6 +141,42 @@ export type CashTransferSortKey =
   | 'fuelCharges'
   | 'status';
 
+/** How many transfers one status holds, and their Total Amount (fuel excluded). */
+export interface CashTransferStatusFigure {
+  count: number;
+  amount: number;
+}
+
+/**
+ * Finance's Cash Transfers board, summed over EVERY row its filters match —
+ * not the page on screen. GET /api/finance/cash-transfers/summary takes the
+ * list's filters with the list's defaults, so `totals.count` is the list's
+ * `total` for the same query string. Summed in Postgres; soft-deleted rows are
+ * in no figure, as they are in no list.
+ *
+ * Every count is rows, fuel-only deposits included, so the three statuses add
+ * up to `totals.count`. (The branch's monthly summary counts per channel
+ * instead — see shared/utils/cash-transfer-summary.ts.)
+ */
+export interface CashTransferListSummary {
+  /** The window applied, defaults included; null when open (a pending queue has no start). */
+  from: string | null;
+  to: string | null;
+  totals: {
+    count: number;
+    /** Total Amount = cash + easypaisa + bank. Never fuel. */
+    amount: number;
+    cash: number;
+    easypaisa: number;
+    bank: number;
+    /** Fuel Charges — beside the Total, never in it. */
+    fuel: number;
+  };
+  pending: CashTransferStatusFigure;
+  approved: CashTransferStatusFigure;
+  rejected: CashTransferStatusFigure;
+}
+
 /**
  * One approved transfer as the production slip lists it under "Payment
  * Received" — the lines the total was built from, itemised server-side so the

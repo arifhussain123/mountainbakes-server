@@ -1,4 +1,4 @@
-import { dbFor } from '../db';
+import { WhereClause, dbFor, getPrisma } from '../db';
 import {
   CASH_TRANSFER_METHODS,
   CASH_TRANSFER_STATUSES,
@@ -7,6 +7,7 @@ import {
   cashTransferTotal,
   type BranchDayDeposit,
   type CashTransfer,
+  type CashTransferListSummary,
   type CashTransferMethod,
   type CashTransferSortKey,
   type CashTransferStatus,
@@ -129,7 +130,8 @@ function asClientError(error: { code?: string; message: string }): Error & { sta
 // Reads
 // ---------------------------------------------------------------------------
 
-export interface CashTransferQuery {
+/** What narrows the transfers — shared by the list and its summary. */
+export interface CashTransferFilters {
   /** Pinned by the branch router; optional for Finance. */
   branchId?: string;
   from?: string;
@@ -137,10 +139,50 @@ export interface CashTransferQuery {
   status?: CashTransferStatus;
   paymentMethod?: CashTransferMethod;
   search?: string;
+}
+
+export interface CashTransferQuery extends CashTransferFilters {
   sortBy?: CashTransferSortKey;
   sortDir?: 'asc' | 'desc';
   limit: number;
   offset: number;
+}
+
+/** The filter calls `filterCashTransfers` makes — met by a builder chain and by a WhereClause. */
+interface CashTransferFilterable<T> {
+  eq(column: string, value: unknown): T;
+  gt(column: string, value: unknown): T;
+  gte(column: string, value: unknown): T;
+  lte(column: string, value: unknown): T;
+  or(filters: string): T;
+  is(column: string, value: null): T;
+}
+
+/**
+ * Which transfers a set of filters means, written once. The list applies it to
+ * its builder chain and the summary to a WhereClause under its aggregate, so a
+ * figure above the table can never count a different set of rows from the
+ * table's own total.
+ */
+function filterCashTransfers<T extends CashTransferFilterable<T>>(query: T, q: CashTransferFilters): T {
+  // Soft-deleted through the Help Desk (migration 120) → gone from every list.
+  let filtered = withoutDeleted(query);
+
+  if (q.branchId) filtered = filtered.eq('branch_id', q.branchId);
+  if (q.from) filtered = filtered.gte('business_date', q.from);
+  if (q.to) filtered = filtered.lte('business_date', q.to);
+  if (q.status) filtered = filtered.eq('status', q.status);
+  if (q.paymentMethod) filtered = filtered.gt(CHANNEL_COLUMNS[q.paymentMethod], 0);
+
+  // Free-text over the two numbers, the branch and the note — same convention
+  // as the discount list: strip `or` filter syntax, then ilike.
+  const term = q.search?.replace(/[(),*]/g, ' ').trim();
+  if (term) {
+    filtered = filtered.or(
+      `transfer_no.ilike.%${term}%,voucher_no.ilike.%${term}%,branch_name.ilike.%${term}%,note.ilike.%${term}%`,
+    );
+  }
+  return filtered;
 }
 
 export async function listCashTransfers(
@@ -149,32 +191,12 @@ export async function listCashTransfers(
   const sortCol = q.sortBy ? SORTABLE_COLUMNS[q.sortBy] : 'created_at';
   const ascending = q.sortDir === 'asc';
 
-  // Soft-deleted through the Help Desk (migration 120) → gone from every list.
-  let query = withoutDeleted(
-    db
-      .from('cash_transfers')
-      .select('*', { count: 'exact' }),
-  )
+  const query = filterCashTransfers(db.from('cash_transfers').select('*', { count: 'exact' }), q)
     .order(sortCol, { ascending })
     // A stable tiebreak so paging never repeats or skips a row that shares the
     // sort value with its neighbour (every row of one day, sorted by date).
     .order('created_at', { ascending: false })
     .range(q.offset, q.offset + q.limit - 1);
-
-  if (q.branchId) query = query.eq('branch_id', q.branchId);
-  if (q.from) query = query.gte('business_date', q.from);
-  if (q.to) query = query.lte('business_date', q.to);
-  if (q.status) query = query.eq('status', q.status);
-  if (q.paymentMethod) query = query.gt(CHANNEL_COLUMNS[q.paymentMethod], 0);
-
-  // Free-text over the two numbers, the branch and the note — same convention
-  // as the discount list: strip `or` filter syntax, then ilike.
-  const term = q.search?.replace(/[(),*]/g, ' ').trim();
-  if (term) {
-    query = query.or(
-      `transfer_no.ilike.%${term}%,voucher_no.ilike.%${term}%,branch_name.ilike.%${term}%,note.ilike.%${term}%`,
-    );
-  }
 
   const { data, error, count } = await query;
   if (error) throw error;
@@ -184,6 +206,62 @@ export async function listCashTransfers(
   return {
     transfers: transfers.map((t) => ({ ...t, attachments: photos.get(t.id) ?? [] })),
     total: count ?? 0,
+  };
+}
+
+/**
+ * The figures above Finance's board: one aggregate in Postgres over every row
+ * `filterCashTransfers` matches — never the rows fetched and added up here.
+ * `grouping sets` returns each status and the grand total from the same scan,
+ * so the total is Postgres's own sum rather than three floats added in JS.
+ */
+export async function summarizeCashTransfers(q: CashTransferFilters): Promise<CashTransferListSummary> {
+  type Row = {
+    status: CashTransferStatus | null;
+    isTotal: boolean;
+    count: number;
+    amount: number;
+    cash: number;
+    easypaisa: number;
+    bank: number;
+    fuel: number;
+  };
+
+  const params: unknown[] = [];
+  const where = filterCashTransfers(new WhereClause('cash_transfers'), q).render('t', params);
+  const rows = await getPrisma().$queryRawUnsafe<Row[]>(
+    `select t.status::text                               as "status",
+            (grouping(t.status) = 1)                     as "isTotal",
+            count(*)::int                                as "count",
+            coalesce(sum(t.amount), 0)::float8           as "amount",
+            coalesce(sum(t.cash_amount), 0)::float8      as "cash",
+            coalesce(sum(t.easypaisa_amount), 0)::float8 as "easypaisa",
+            coalesce(sum(t.bank_amount), 0)::float8      as "bank",
+            coalesce(sum(t.fuel_charges), 0)::float8     as "fuel"
+       from public.cash_transfers as t${where}
+      group by grouping sets ((t.status), ())`,
+    ...params,
+  );
+
+  const total = rows.find((r) => r.isTotal);
+  const status = (s: CashTransferStatus) => {
+    const r = rows.find((row) => !row.isTotal && row.status === s);
+    return { count: Number(r?.count ?? 0), amount: Number(r?.amount ?? 0) };
+  };
+  return {
+    from: q.from ?? null,
+    to: q.to ?? null,
+    totals: {
+      count: Number(total?.count ?? 0),
+      amount: Number(total?.amount ?? 0),
+      cash: Number(total?.cash ?? 0),
+      easypaisa: Number(total?.easypaisa ?? 0),
+      bank: Number(total?.bank ?? 0),
+      fuel: Number(total?.fuel ?? 0),
+    },
+    pending: status('pending'),
+    approved: status('approved'),
+    rejected: status('rejected'),
   };
 }
 

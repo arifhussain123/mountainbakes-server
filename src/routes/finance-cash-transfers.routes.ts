@@ -15,6 +15,8 @@ import {
   isCashTransferStatus,
   listCashTransfers,
   rejectCashTransfer,
+  summarizeCashTransfers,
+  type CashTransferFilters,
 } from '../services/cash-transfers.service';
 import { logFinanceAudit } from '../services/finance-audit.service';
 
@@ -36,6 +38,26 @@ router.use(authenticate);
 
 const actorOf = (req: AuthRequest) => ({ uid: req.user!.uid, name: req.user!.email });
 
+/**
+ * The board's filters from the query string, read once for the list and its
+ * summary so the figures above the table always describe the table's rows.
+ */
+function filtersFrom(q: Record<string, string | undefined>): CashTransferFilters {
+  // A pending queue is asked for whole — Finance must not miss a handover
+  // because it was submitted 31 days ago — so the rolling default applies
+  // only when no status is chosen. An explicit range always wins.
+  const from = q['from'] || (isCashTransferStatus(q['status']) && q['status'] === 'pending' ? undefined : businessDaysAgoStr(29));
+
+  return {
+    branchId: q['branchId'] || undefined,
+    from,
+    to: q['to'] || undefined,
+    status: isCashTransferStatus(q['status']) ? q['status'] : undefined,
+    paymentMethod: isCashTransferMethod(q['paymentMethod']) ? q['paymentMethod'] : undefined,
+    search: q['search']?.trim() || undefined,
+  };
+}
+
 // GET /api/finance/cash-transfers?from=&to=&branchId=&status=&paymentMethod=&search=&sortBy=&sortDir=&limit=&offset=
 router.get('/', requireFinance('view'), async (req: AuthRequest, res, next) => {
   try {
@@ -43,25 +65,26 @@ router.get('/', requireFinance('view'), async (req: AuthRequest, res, next) => {
     const limit = Math.min(Math.max(Number(q['limit'] ?? 50), 1), 200);
     const offset = Math.max(Number(q['offset'] ?? 0), 0);
 
-    // A pending queue is asked for whole — Finance must not miss a handover
-    // because it was submitted 31 days ago — so the rolling default applies
-    // only when no status is chosen. An explicit range always wins.
-    const from = q['from'] || (isCashTransferStatus(q['status']) && q['status'] === 'pending' ? undefined : businessDaysAgoStr(29));
-
     res.json(
       await listCashTransfers({
-        branchId: q['branchId'] || undefined,
-        from,
-        to: q['to'] || undefined,
-        status: isCashTransferStatus(q['status']) ? q['status'] : undefined,
-        paymentMethod: isCashTransferMethod(q['paymentMethod']) ? q['paymentMethod'] : undefined,
-        search: q['search']?.trim() || undefined,
+        ...filtersFrom(q),
         sortBy: isCashTransferSortKey(q['sortBy']) ? q['sortBy'] : undefined,
         sortDir: q['sortDir'] === 'asc' ? 'asc' : 'desc',
         limit,
         offset,
       }),
     );
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/finance/cash-transfers/summary?from=&to=&branchId=&status=&paymentMethod=&search=
+// The list's filters and defaults, summed over every matching row. Registered
+// before /:id, which would otherwise take "summary" for an id.
+router.get('/summary', requireFinance('view'), async (req: AuthRequest, res, next) => {
+  try {
+    res.json(await summarizeCashTransfers(filtersFrom(req.query as Record<string, string | undefined>)));
   } catch (err) {
     next(err);
   }

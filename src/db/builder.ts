@@ -1,6 +1,5 @@
 import { columnType, ident, tableInfo, tableRef } from './catalog';
 import { failed, notOneRow, ok, toDbError } from './errors';
-import { inFilter, notFilter, parseLogic, renderCond, textOf, type Cond } from './logic';
 import { parseSelect, renderOrder, renderSelectList, type EmbedOrder } from './select';
 import {
   DbError,
@@ -12,6 +11,7 @@ import {
   type UpsertOptions,
   type WriteOptions,
 } from './types';
+import { WhereClause } from './where';
 
 /**
  * The query builder: a PostgREST-style call chain in, one SQL statement out.
@@ -32,9 +32,6 @@ import {
 
 type Operation = 'select' | 'insert' | 'upsert' | 'update' | 'delete';
 
-/** A filter as the caller gave it; turned into a condition when the query is built. */
-type FilterSpec = () => Cond;
-
 const MUTATION_GUARD = /"PGRST116:(\d+)"/;
 
 export class SqlQueryBuilder implements QueryBuilder<any> {
@@ -46,7 +43,7 @@ export class SqlQueryBuilder implements QueryBuilder<any> {
   private head = false;
   private payload: Record<string, unknown> | Record<string, unknown>[] | null = null;
   private upsertOptions: UpsertOptions = {};
-  private readonly filters: FilterSpec[] = [];
+  private readonly filters: WhereClause;
   private readonly orders: EmbedOrder[] = [];
   private readonly embedOrders = new Map<string, EmbedOrder[]>();
   private limitRows: number | null = null;
@@ -57,7 +54,9 @@ export class SqlQueryBuilder implements QueryBuilder<any> {
     private readonly executor: Executor,
     private readonly table: string,
     private readonly maxRows: number,
-  ) {}
+  ) {
+    this.filters = new WhereClause(table);
+  }
 
   // ── what to do ───────────────────────────────────────────────────────────
 
@@ -99,39 +98,18 @@ export class SqlQueryBuilder implements QueryBuilder<any> {
 
   // ── which rows ───────────────────────────────────────────────────────────
 
-  eq(column: string, value: unknown): this { return this.compare('eq', column, value); }
-  neq(column: string, value: unknown): this { return this.compare('neq', column, value); }
-  gt(column: string, value: unknown): this { return this.compare('gt', column, value); }
-  gte(column: string, value: unknown): this { return this.compare('gte', column, value); }
-  lt(column: string, value: unknown): this { return this.compare('lt', column, value); }
-  lte(column: string, value: unknown): this { return this.compare('lte', column, value); }
-  like(column: string, pattern: string): this { return this.compare('like', column, pattern); }
-  ilike(column: string, pattern: string): this { return this.compare('ilike', column, pattern); }
-
-  private compare(op: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'ilike', column: string, value: unknown): this {
-    this.filters.push(() => ({ column, op, negate: false, value: textOf(value) }));
-    return this;
-  }
-
-  in(column: string, values: readonly unknown[]): this {
-    this.filters.push(() => inFilter(column, values));
-    return this;
-  }
-
-  is(column: string, value: boolean | null): this {
-    this.filters.push(() => ({ column, op: 'is', negate: false, value: value === null ? 'null' : value ? 'true' : 'false' }));
-    return this;
-  }
-
-  not(column: string, operator: string, value: unknown): this {
-    this.filters.push(() => notFilter(column, operator, value));
-    return this;
-  }
-
-  or(filters: string): this {
-    this.filters.push(() => ({ join: 'or', negate: false, items: parseLogic(filters) }));
-    return this;
-  }
+  eq(column: string, value: unknown): this { this.filters.eq(column, value); return this; }
+  neq(column: string, value: unknown): this { this.filters.neq(column, value); return this; }
+  gt(column: string, value: unknown): this { this.filters.gt(column, value); return this; }
+  gte(column: string, value: unknown): this { this.filters.gte(column, value); return this; }
+  lt(column: string, value: unknown): this { this.filters.lt(column, value); return this; }
+  lte(column: string, value: unknown): this { this.filters.lte(column, value); return this; }
+  like(column: string, pattern: string): this { this.filters.like(column, pattern); return this; }
+  ilike(column: string, pattern: string): this { this.filters.ilike(column, pattern); return this; }
+  in(column: string, values: readonly unknown[]): this { this.filters.in(column, values); return this; }
+  is(column: string, value: boolean | null): this { this.filters.is(column, value); return this; }
+  not(column: string, operator: string, value: unknown): this { this.filters.not(column, operator, value); return this; }
+  or(filters: string): this { this.filters.or(filters); return this; }
 
   // ── in what order, how many ──────────────────────────────────────────────
 
@@ -189,16 +167,7 @@ export class SqlQueryBuilder implements QueryBuilder<any> {
   }
 
   private where(alias: string, params: unknown[]): string {
-    if (this.filters.length === 0) return '';
-    const ctx = {
-      table: this.table,
-      alias,
-      bind: (value: string) => {
-        params.push(value);
-        return `$${params.length}`;
-      },
-    };
-    return ` where ${this.filters.map((spec) => renderCond(spec(), ctx)).join(' and ')}`;
+    return this.filters.render(alias, params);
   }
 
   private async runSelect(): Promise<DbResult> {
