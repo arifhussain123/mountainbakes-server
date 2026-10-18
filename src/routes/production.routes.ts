@@ -1,10 +1,19 @@
-import { Router } from 'express';
+import { Router, type Response } from 'express';
+import { z } from 'zod';
 import { dbFor } from '../db';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { notify } from '../services/push.service';
 import { getReturnStockTotal } from '../services/return-stock.service';
-import { businessDateStr, businessDaysAgoStr } from '../shared';
+import {
+  getBranchSummary,
+  getCurrentStock,
+  getPreparedTotals,
+  getReceivedDemand,
+  getRepairedStock,
+  getReturnStock,
+} from '../services/production-dashboard.service';
+import { businessDateStr, businessDaysAgoStr, dashboardWindow, shiftMonthsStr, DASHBOARD_PERIODS, type DashboardPeriod } from '../shared';
 import { rowToApi } from '../utils/case';
 
 const db = dbFor('production');
@@ -24,17 +33,6 @@ interface DemandOverview {
   topProducts: { productId: string | null; productName: string; qty: number }[];
 }
 
-type DashboardPeriod = 'today' | 'week' | 'month';
-
-/** `YYYY-MM-DD` shifted by whole months, the day clamped to the target month's length. */
-function shiftMonthsStr(dateStr: string, months: number, day?: number): string {
-  const [y, m, d] = dateStr.split('-').map(Number) as [number, number, number];
-  const first = new Date(Date.UTC(y, m - 1 + months, 1));
-  const last = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
-  first.setUTCDate(Math.min(day ?? d, last));
-  return first.toISOString().slice(0, 10);
-}
-
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // GET /api/production/overview — dashboard cards + chart series for Production.
@@ -43,34 +41,21 @@ router.get('/overview', async (req, res, next) => {
     const todayStr = businessDateStr();
     const dow = new Date(`${todayStr}T00:00:00Z`).getUTCDay(); // 0=Sun..6=Sat
     const monthStartStr = `${todayStr.slice(0, 7)}-01`;
-    const daysSinceMonday = (dow + 6) % 7;
-    const weekStartStr = businessDaysAgoStr(daysSinceMonday); // Monday of this week
-    // Week-to-date against the SAME weekdays of last week — Monday..Wednesday is
-    // compared with last Monday..Wednesday, never with a full seven days.
-    const prevWeekStartStr = businessDaysAgoStr(daysSinceMonday + 7);
-    const prevWeekEndStr = businessDaysAgoStr(7);
+    const weekStartStr = businessDaysAgoStr((dow + 6) % 7); // Monday of this week
     // Anything that is not a uuid is treated as "all branches" rather than a 400:
     // the filter is a chip on a dashboard, and a stale id should not blank it.
-    const period: DashboardPeriod = req.query.period === 'today' || req.query.period === 'month'
-      ? req.query.period
-      : 'week';
-    // Each period is compared with the same stretch of the one before it:
-    // today with yesterday, Monday..today with last Monday..the same weekday,
-    // the 1st..today with the 1st..the same day of last month.
-    const win = period === 'today'
-      ? { from: todayStr, prevFrom: businessDaysAgoStr(1), prevTo: businessDaysAgoStr(1) }
-      : period === 'month'
-        ? { from: monthStartStr, prevFrom: shiftMonthsStr(monthStartStr, -1), prevTo: shiftMonthsStr(todayStr, -1) }
-        : { from: weekStartStr, prevFrom: prevWeekStartStr, prevTo: prevWeekEndStr };
+    const period = req.query.period === 'today' || req.query.period === 'month' ? req.query.period : 'week';
+    // Each period beside the same stretch of the one before it — one definition,
+    // shared with the dashboard's sections (shared/utils/production-dashboard.ts).
+    const win = dashboardWindow(period, todayStr);
     const branchId = typeof req.query.branchId === 'string' && UUID_RE.test(req.query.branchId)
       ? req.query.branchId
       : null;
     const last7 = businessDaysAgoStr(6);
-    const historyFrom = weekStartStr < monthStartStr ? weekStartStr : monthStartStr;
     const demandFrom = businessDaysAgoStr(179); // ~6 months for the monthly chart
     const dayFrom = businessDaysAgoStr(29); // 30-day daily/weekly window
 
-    const [demandRes, weekRes, seriesRes, prepHistRes, availRes, returnsRes, branchesRes, productsRes] = await Promise.all([
+    const [demandRes, weekRes, seriesRes, prepared, availRes, returnsRes, branchesRes, productsRes] = await Promise.all([
       // Was: fetch every non-cancelled production_orders row (with embedded
       // items) in the 180-day window and reduce it in Node on every call — the
       // same shape GET /api/reports/summary had before it was fixed, except
@@ -86,7 +71,7 @@ router.get('/overview', async (req, res, next) => {
       // default period, the function itself takes any pair of windows).
       // Aggregated in SQL for the same reason as the call above.
       db.rpc('production_dashboard_week', {
-        p_from: win.from, p_to: todayStr,
+        p_from: win.from, p_to: win.to,
         p_prev_from: win.prevFrom, p_prev_to: win.prevTo,
         p_branch_id: branchId,
       }),
@@ -95,7 +80,9 @@ router.get('/overview', async (req, res, next) => {
         p_month_from: shiftMonthsStr(monthStartStr, -11), p_today: todayStr,
         p_branch_id: branchId,
       }),
-      db.from('production_stock_history').select('type, delta, business_date').gte('business_date', historyFrom),
+      // Summed in SQL, from the same ledger rows `produced` above counts. Selecting
+      // the month's movements and adding them up here was cut off at the row cap.
+      getPreparedTotals({ today: todayStr, weekStart: weekStartStr, monthStart: monthStartStr }),
       // AVAILABLE, not the raw pool balance: goods a branch has already been
       // promised are still on the shelf but are not free to sell or re-promise.
       // One SQL definition (migration 90) shared with the counter sale and the
@@ -106,7 +93,7 @@ router.get('/overview', async (req, res, next) => {
       db.from('branches').select('id, name').eq('is_active', true).order('name'),
       db.from('products').select('id', { count: 'exact', head: true }).eq('is_active', true).eq('is_special', false),
     ]);
-    for (const r of [demandRes, weekRes, seriesRes, prepHistRes, availRes, returnsRes, branchesRes, productsRes]) {
+    for (const r of [demandRes, weekRes, seriesRes, availRes, returnsRes, branchesRes, productsRes]) {
       if (r.error) throw r.error;
     }
     // Its own card, never added to `availableProductionStock`: returned goods are
@@ -117,14 +104,7 @@ router.get('/overview', async (req, res, next) => {
     const { waitingOrders, totalDemandQty, approvedOrders, changedOrders } = demand;
     const deliveredOrders = approvedOrders; // Approve = Delivered
 
-    let todayProduction = 0, weeklyProduction = 0, monthlyProduction = 0;
-    for (const h of (prepHistRes.data ?? []) as { type: string; delta: number; business_date: string }[]) {
-      if (h.type !== 'prepare') continue;
-      const q = Math.abs(Number(h.delta) || 0);
-      if (h.business_date === todayStr) todayProduction += q;
-      if (h.business_date >= weekStartStr) weeklyProduction += q;
-      if (h.business_date >= monthStartStr) monthlyProduction += q;
-    }
+    const { today: todayProduction, week: weeklyProduction, month: monthlyProduction } = prepared;
 
     // Can go NEGATIVE, and that is a real answer: branches are owed more than the
     // pool holds, and the difference is production still to do.
@@ -151,13 +131,89 @@ router.get('/overview', async (req, res, next) => {
       branches,
       week: {
         period,
-        from: win.from, to: todayStr,
+        from: win.from, to: win.to,
         prevFrom: win.prevFrom, prevTo: win.prevTo,
         branchId,
         ...(weekRes.data as unknown as Record<string, unknown>),
         ...(seriesRes.data as unknown as Record<string, unknown>),
       },
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ─── Dashboard sections ───────────────────────────────────────────────────────
+// One endpoint per section of the Production Dashboard, so each loads, fails
+// and retries on its own. Same roles as the rest of this router: Production and
+// super admin see every branch; no branch role reaches these at all.
+// What every figure means: shared/utils/production-dashboard.ts.
+
+const SectionQuerySchema = z.object({
+  period: z.enum(DASHBOARD_PERIODS as [DashboardPeriod, ...DashboardPeriod[]]).default('week'),
+  branchId: z.string().uuid().optional(),
+});
+
+/** Parses `?period=&branchId=`, answering 400 itself when they are not valid. */
+function sectionQuery(req: AuthRequest, res: Response): { period: DashboardPeriod; branchId: string | null; today: string } | null {
+  const parsed = SectionQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({
+      error: 'Validation error',
+      details: parsed.error.errors.map((e) => ({ field: e.path.join('.'), message: e.message })),
+    });
+    return null;
+  }
+  return { period: parsed.data.period, branchId: parsed.data.branchId ?? null, today: businessDateStr() };
+}
+
+// GET /api/production/dashboard/received-demand?period=&branchId=
+router.get('/dashboard/received-demand', async (req: AuthRequest, res, next) => {
+  try {
+    const q = sectionQuery(req, res);
+    if (q) res.json(await getReceivedDemand(q));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/production/dashboard/branch-summary?period= — every active branch, so
+// no branch filter: it is the list the filter is picked from.
+router.get('/dashboard/branch-summary', async (req: AuthRequest, res, next) => {
+  try {
+    const q = sectionQuery(req, res);
+    if (q) res.json(await getBranchSummary(q));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/production/dashboard/repaired-stock?period=&branchId=
+router.get('/dashboard/repaired-stock', async (req: AuthRequest, res, next) => {
+  try {
+    const q = sectionQuery(req, res);
+    if (q) res.json(await getRepairedStock(q));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/production/dashboard/return-stock?period=&branchId=
+router.get('/dashboard/return-stock', async (req: AuthRequest, res, next) => {
+  try {
+    const q = sectionQuery(req, res);
+    if (q) res.json(await getReturnStock(q));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/production/dashboard/current-stock?branchId= — stock right now, so a
+// period is accepted and ignored.
+router.get('/dashboard/current-stock', async (req: AuthRequest, res, next) => {
+  try {
+    const q = sectionQuery(req, res);
+    if (q) res.json(await getCurrentStock({ branchId: q.branchId }));
   } catch (err) {
     next(err);
   }

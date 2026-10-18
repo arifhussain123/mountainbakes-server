@@ -265,12 +265,15 @@ export interface ProductionShortfall {
  * record of the goods' condition, which is what whoever later considers
  * transferring them into production needs to know.
  */
-export type ProductionReturnDisposition = 'saleable' | 'damaged' | 'expired';
+export type ProductionReturnDisposition = 'saleable' | 'damaged' | 'expired' | 'repaired';
 
 export const RETURN_DISPOSITION_LABELS: Record<ProductionReturnDisposition, string> = {
   saleable: 'Saleable',
   damaged: 'Damaged',
   expired: 'Expired',
+  // Came back damaged and Production repaired it (migration 20261018000001).
+  // Read by the Production Dashboard's Repaired Stock section.
+  repaired: 'Repaired',
 };
 
 // ── Branch Return Stock ──────────────────────────────────────────────────────

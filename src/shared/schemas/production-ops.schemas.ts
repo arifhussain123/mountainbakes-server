@@ -103,14 +103,16 @@ export const ReviewProductionReturnSchema = z
      *
      * Defaults to 'saleable', which is what every accept did before this existed.
      */
-    disposition: z.enum(['saleable', 'damaged', 'expired']).optional(),
+    disposition: z.enum(['saleable', 'damaged', 'expired', 'repaired']).optional(),
     dispositionNote: z.string().trim().max(500).optional(),
   })
   .refine((r) => r.status === 'accepted' || !r.disposition || r.disposition === 'saleable', {
-    message: 'Only an accepted return can be marked damaged or expired — reject it instead.',
+    message: 'Only an accepted return can be marked damaged, expired or repaired — reject it instead.',
     path: ['disposition'],
   })
-  .refine((r) => r.disposition === undefined || r.disposition === 'saleable' || !!r.dispositionNote, {
+  // A repair is not a write-off: the goods are fit to sell again, so it needs
+  // no note any more than 'saleable' does.
+  .refine((r) => r.disposition === undefined || r.disposition === 'saleable' || r.disposition === 'repaired' || !!r.dispositionNote, {
     // Writing stock off is the one outcome here that destroys value, so it is the
     // one that has to say why — the same rule adjustments follow.
     message: 'Say why the stock is damaged or expired.',

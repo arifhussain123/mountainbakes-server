@@ -2658,6 +2658,7 @@ enum production_return_disposition {
   saleable
   damaged
   expired
+  repaired
 }
 
 enum production_return_status {

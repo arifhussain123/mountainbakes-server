@@ -8,6 +8,7 @@ import {
   ReviewProductionReturnSchema,
   businessDateStr,
   businessDaysAgoStr,
+  type ProductionReturnDisposition,
 } from '../shared';
 import { notify } from '../services/push.service';
 import { acceptReturnIntoReturnStock } from '../services/return-stock.service';
@@ -193,7 +194,7 @@ router.put('/:id/review', validate(ReviewProductionReturnSchema), async (req: Au
     const { status } = req.body as { status: 'accepted' | 'rejected' | 'returned' };
     const id = req.params['id']!;
     const { disposition = 'saleable', dispositionNote } = req.body as {
-      disposition?: 'saleable' | 'damaged' | 'expired';
+      disposition?: ProductionReturnDisposition;
       dispositionNote?: string;
     };
 

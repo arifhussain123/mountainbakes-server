@@ -399,7 +399,8 @@ export type production_expense_payment_method = (typeof production_expense_payme
 export const production_return_disposition = {
   saleable: 'saleable',
   damaged: 'damaged',
-  expired: 'expired'
+  expired: 'expired',
+  repaired: 'repaired'
 } as const
 
 export type production_return_disposition = (typeof production_return_disposition)[keyof typeof production_return_disposition]
