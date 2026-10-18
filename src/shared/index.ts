@@ -73,6 +73,7 @@ export * from './utils/geo';
 export * from './utils/share';
 export * from './utils/production-amounts';
 export * from './utils/closing';
+export * from './utils/returns-summary';
 export * from './utils/daily-sale';
 export * from './utils/deposit-reconciliation';
 export * from './utils/restriction';

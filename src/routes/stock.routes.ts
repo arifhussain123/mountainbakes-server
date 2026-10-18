@@ -45,6 +45,7 @@ import {
   ReturnNotFoundError,
 } from '../services/branch-returns.service';
 import { assertStagedAttachments, bindAttachments } from '../services/attachments.service';
+import { getMonthlyReturnsSummary } from '../services/returns-summary.service';
 import { idempotent, persistIfCommitted } from '../middleware/idempotency';
 import { resolveClientBusinessDate } from '../utils/clientBusinessDate';
 import { requireInsideGeofence } from '../middleware/requireInsideGeofence';
@@ -419,6 +420,23 @@ router.post('/return', requireRole('super_admin', ...BRANCH_ROLES), idempotent('
 // the extra rows even if it could. Here `branchId` comes off the JWT for a branch
 // role, exactly as it does for the rest of this router.
 // ───────────────────────────────────────────────────────────────────────────────
+
+// GET /api/stock/returns/summary — the branch's own returns, this business month
+// to date (1st → today), by status. Same branch rule as the list below: a branch
+// role is pinned to the branch on its token (a `branchId` it sends is ignored),
+// super_admin names one. Production's all-branch view of the same figures is
+// GET /api/production-returns/summary.
+router.get('/returns/summary', requireRole('super_admin', ...BRANCH_ROLES), async (req: AuthRequest, res, next) => {
+  try {
+    const branchId = isBranchRole(req.user!.role)
+      ? req.user!.branchId
+      : ((req.query['branchId'] as string | undefined) ?? null);
+    if (!branchId) { res.status(400).json({ error: 'Branch context required' }); return; }
+    res.json(await getMonthlyReturnsSummary({ branchId }));
+  } catch (err) {
+    next(err);
+  }
+});
 
 // GET /api/stock/returns?days=N&from=&to=&productId=&status=&search=&limit=&offset=
 // — the branch's returns, most recent first.
