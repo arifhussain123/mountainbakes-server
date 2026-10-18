@@ -40,7 +40,7 @@ const STUBS = `
 
   create type production_return_status as enum ('pending', 'accepted', 'rejected', 'returned');
   create type price_change_status as enum ('scheduled', 'active', 'superseded');
-  create table products (id uuid primary key default gen_random_uuid(), name text not null, price numeric(14,2));
+  create table products (id uuid primary key default gen_random_uuid(), name text not null, sku text, price numeric(14,2));
   create table product_price_history (
     id uuid primary key default gen_random_uuid(),
     product_id uuid not null references products (id),
@@ -53,6 +53,16 @@ const STUBS = `
     qty numeric(14,3) not null check (qty > 0), reason text,
     status production_return_status not null default 'pending',
     source text, business_date date not null,
+    created_by uuid, created_by_name text,
+    reviewed_by uuid, reviewed_by_name text, reviewed_at timestamptz,
+    disposition text, disposition_note text, legacy_id text, photo_attachment_id uuid,
+    created_at timestamptz not null default now());
+  create type attachment_entity as enum ('branch_return');
+  create table attachments (
+    id uuid primary key default gen_random_uuid(), entity attachment_entity not null,
+    entity_id uuid, storage_path text not null, mime_type text not null default 'image/webp',
+    size_bytes integer not null default 1, width integer, height integer,
+    uploaded_by uuid, uploaded_by_name text, bound_at timestamptz,
     created_at timestamptz not null default now());
 `;
 
@@ -112,7 +122,7 @@ before(async () => {
   // change that never took effect (superseded) and one not yet due — neither
   // may price anything.
   await db.query(
-    `insert into products (id, name, price) values ($1, 'Fudge Pastry', 200), ($2, 'Lotus Pastry', 150), ($3, 'Unpriced Item', null)`,
+    `insert into products (id, name, sku, price) values ($1, 'Fudge Pastry', 'FP-01', 200), ($2, 'Lotus Pastry', 'LP-01', 150), ($3, 'Unpriced Item', null, null)`,
     [FUDGE, LOTUS, NO_PRICE],
   );
   await db.query(
@@ -214,6 +224,33 @@ describe('getMonthlyReturnsSummary — all branches', () => {
   });
 });
 
+describe('getMonthlyReturnsSummary — item-wise and reporting', () => {
+  test('the same product returned several times is one line, valued row by row at each day\'s price', async () => {
+    const s = await getMonthlyReturnsSummary({ branchId: null, now: NOW });
+    const dha = s.branches.find((b) => b.branchId === BRANCH_A)!;
+    // DHA Fudge: 2 on 1 Oct at 150 (pending) + 1 on 12 Oct at 200 (rejected).
+    assert.deepEqual(dha.products.find((p) => p.productId === FUDGE), {
+      productId: FUDGE, productName: 'Fudge Pastry', productCode: 'FP-01', qty: 3, amount: 500, count: 2,
+    });
+    assert.equal(dha.products.reduce((t, p) => t + p.amount, 0), dha.submitted.amount);
+  });
+
+  test('overall item-wise lines add every branch, and only branches with returns are reporting', async () => {
+    const s = await getMonthlyReturnsSummary({ branchId: null, now: NOW });
+    // Fudge: DHA 3 (500) + Gulshan 1 (200). Lotus: DHA 3 (450) + Gulshan 2 (300).
+    assert.deepEqual(s.products.find((p) => p.productId === FUDGE)?.amount, 700);
+    assert.deepEqual(s.products.find((p) => p.productId === LOTUS)?.qty, 5);
+    assert.equal(s.branchesReporting, 2, 'DHA and Gulshan — not Bahria (nothing returned) or the inactive branch');
+  });
+
+  test('a month that has only just begun is empty, not an error', async () => {
+    const s = await getMonthlyReturnsSummary({ branchId: BRANCH_A, now: new Date('2026-11-01T09:00:00+05:00') });
+    assert.equal(s.from, '2026-11-01');
+    assert.deepEqual(s.totals.submitted, { qty: 0, amount: 0, count: 0 });
+    assert.equal(s.branchesReporting, 0);
+  });
+});
+
 describe('getMonthlyReturnsSummary — one branch', () => {
   test('a branch-scoped summary holds that branch alone', async () => {
     const s = await getMonthlyReturnsSummary({ branchId: BRANCH_A, now: NOW });
@@ -223,6 +260,19 @@ describe('getMonthlyReturnsSummary — one branch', () => {
 });
 
 describe('getMonthlyReturnsSummary — month turnover', () => {
+  test('October → November: the 31st stays in October and the 1st opens November', async () => {
+    await addReturn(BRANCH_A, LOTUS, 1, 'accepted', '2026-10-31');
+    await addReturn(BRANCH_A, LOTUS, 2, 'pending', '2026-11-01');
+    const oct = await getMonthlyReturnsSummary({ branchId: BRANCH_A, now: new Date('2026-11-01T01:00:00+05:00') });
+    assert.equal(oct.to, '2026-10-31');
+    // The whole of October now: the three 1–18 Oct rows (950), the 19 Oct
+    // Fudge that was "tomorrow" on the 18th (5 × 200), and the 31st (150) —
+    // never the 1 Nov row.
+    assert.deepEqual(oct.totals.submitted, { qty: 12, amount: 2100, count: 5 });
+    const nov = await getMonthlyReturnsSummary({ branchId: BRANCH_A, now: new Date('2026-11-01T02:00:00+05:00') });
+    assert.deepEqual(nov.totals.submitted, { qty: 2, amount: 300, count: 1 }, 'only the 1st — no October row leaks in');
+  });
+
   test('a new month starts empty and last month keeps its own figures', async () => {
     await addReturn(BRANCH_B, LOTUS, 1, 'accepted', '2026-12-31');
     await addReturn(BRANCH_B, LOTUS, 2, 'accepted', '2027-01-01');
@@ -280,6 +330,27 @@ describe('summary routes', () => {
     const res = await call('branch-a', `/api/stock/returns/summary?branchId=${BRANCH_B}`);
     assert.equal(res.status, 200, JSON.stringify(res.body));
     assert.deepEqual(res.body.branches.map((b: { branchId: string }) => b.branchId), [BRANCH_A]);
+  });
+
+  test('return rows carry their product code, unit price on the day, and line amount', async () => {
+    const res = await call('production', `/api/production-returns?from=2026-10-01&to=2026-10-18&branchId=${BRANCH_A}&sortBy=date&sortDir=asc`);
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+    const first = res.body.returns[0];
+    assert.equal(first.date, '2026-10-01');
+    assert.equal(first.productCode, 'FP-01');
+    assert.equal(first.unitPrice, 150, 'the price on 1 Oct, not today\'s');
+    assert.equal(first.amount, 300);
+  });
+
+  test('a branch\'s own rows carry the same pricing, and an unpriced row says so with null', async () => {
+    const res = await call('branch-a', '/api/stock/returns?from=2026-10-12&to=2026-10-12');
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+    assert.equal(res.body.returns.length, 1);
+    assert.equal(res.body.returns[0].unitPrice, 200);
+    assert.equal(res.body.returns[0].amount, 200);
+    const prod = await call('production', `/api/production-returns?from=2026-10-07&to=2026-10-07&branchId=${BRANCH_B}`);
+    assert.equal(prod.body.returns[0].unitPrice, null);
+    assert.equal(prod.body.returns[0].amount, null);
   });
 
   test('Production has no branch of its own to read from the branch route', async () => {

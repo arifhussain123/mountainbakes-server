@@ -3,6 +3,7 @@ import { dbFor } from '../db';
 import type { ProductionReturn } from '../shared';
 import { rowToApi } from '../utils/case';
 import { getAttachmentsByIds } from './attachments.service';
+import { priceReturnRows } from './returns-summary.service';
 import { applyStockMovement, commitBranchReturn } from './stock.service';
 import { isBusinessDayClosed } from './business-day.service';
 
@@ -109,7 +110,10 @@ const OPEN_OR_CLOSED_STATUSES = ['pending', 'accepted', 'rejected', 'returned'];
 
 /**
  * Shape a page of `production_returns` rows for the API: `business_date` becomes
- * `date`, and `photo_attachment_id` becomes a signed `photo`.
+ * `date`, `photo_attachment_id` becomes a signed `photo`, and each row gains its
+ * `productCode`, `unitPrice` and `amount` — priced by the same query the monthly
+ * summary uses (`returns-summary.service.ts`), so a row and the total it rolls
+ * up into always agree.
  *
  * Shared by the branch list here and Production's queue
  * (production-returns.routes.ts) so the two cannot disagree about what a return
@@ -122,15 +126,21 @@ const OPEN_OR_CLOSED_STATUSES = ['pending', 'accepted', 'rejected', 'returned'];
  */
 export async function toReturnsApi(data: unknown[]): Promise<ProductionReturn[]> {
   const rows = rowToApi<Record<string, unknown>[]>(data ?? []);
-  const photos = await getAttachmentsByIds(
-    'branch_return',
-    rows.map((r) => r['photoAttachmentId'] as string | null),
-  );
-  return rows.map(({ businessDate, photoAttachmentId, ...rest }) => ({
-    ...rest,
-    date: businessDate,
-    photo: photos.get(photoAttachmentId as string) ?? null,
-  })) as unknown as ProductionReturn[];
+  const [photos, pricing] = await Promise.all([
+    getAttachmentsByIds('branch_return', rows.map((r) => r['photoAttachmentId'] as string | null)),
+    priceReturnRows(rows.map((r) => r['id'] as string)),
+  ]);
+  return rows.map(({ businessDate, photoAttachmentId, ...rest }) => {
+    const price = pricing.get(rest['id'] as string);
+    return {
+      ...rest,
+      date: businessDate,
+      photo: photos.get(photoAttachmentId as string) ?? null,
+      productCode: price?.productCode ?? null,
+      unitPrice: price?.unitPrice ?? null,
+      amount: price?.amount ?? null,
+    };
+  }) as unknown as ProductionReturn[];
 }
 
 /** Allowlist for `?sortBy=` — `date` is this API's own rename of `business_date` (see below). */

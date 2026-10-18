@@ -37,7 +37,9 @@ describe('monthToDateRange', () => {
 
 const RANGE = { from: '2026-10-01', to: '2026-10-18' };
 const row = (o: Partial<ReturnsSummaryRow>): ReturnsSummaryRow => ({
-  branchId: 'a', branchName: 'DHA Branch', status: 'pending', count: 1, qty: 1, amount: 100, unpriced: 0, ...o,
+  branchId: 'a', branchName: 'DHA Branch', status: 'pending',
+  productId: 'p1', productName: 'Fudge Pastry', productCode: 'FP-01',
+  count: 1, qty: 1, amount: 100, unpriced: 0, ...o,
 });
 
 describe('buildReturnsSummary', () => {
@@ -87,15 +89,46 @@ describe('buildReturnsSummary', () => {
   });
 
   test('money stays at the paisa — no float drift across many lines', () => {
-    const rows = Array.from({ length: 10 }, () => row({ status: 'accepted', amount: 0.1, qty: 1 }));
+    const rows = Array.from({ length: 10 }, (_, i) => row({ status: 'accepted', amount: 0.1, qty: 1, productId: `p${i}` }));
     const s = buildReturnsSummary(rows, [{ id: 'a', name: 'DHA Branch' }], RANGE);
     assert.equal(s.totals.accepted.amount, 1);
     assert.equal(s.totals.submitted.amount, 1);
   });
 
+  test('item-wise lines add the same product across statuses, per branch and overall', () => {
+    const s = buildReturnsSummary(
+      [
+        row({ branchId: 'a', status: 'pending', productId: 'p1', qty: 2, amount: 300, count: 1 }),
+        row({ branchId: 'a', status: 'accepted', productId: 'p1', qty: 3, amount: 450, count: 2 }),
+        row({ branchId: 'a', status: 'accepted', productId: 'p2', productName: 'Lotus Pastry', productCode: null, qty: 1, amount: 150 }),
+        row({ branchId: 'b', branchName: 'Gulshan Branch', status: 'rejected', productId: 'p1', qty: 4, amount: 600 }),
+      ],
+      [{ id: 'a', name: 'DHA Branch' }, { id: 'b', name: 'Gulshan Branch' }],
+      RANGE,
+    );
+    const dha = s.branches.find((b) => b.branchId === 'a')!;
+    assert.deepEqual(dha.products, [
+      { productId: 'p1', productName: 'Fudge Pastry', productCode: 'FP-01', qty: 5, amount: 750, count: 3 },
+      { productId: 'p2', productName: 'Lotus Pastry', productCode: null, qty: 1, amount: 150, count: 1 },
+    ]);
+    // Product lines sum back to submitted — nothing counted twice or dropped.
+    const lineTotal = dha.products.reduce((t, p) => t + p.amount, 0);
+    assert.equal(lineTotal, dha.submitted.amount);
+    assert.deepEqual(s.products[0], { productId: 'p1', productName: 'Fudge Pastry', productCode: 'FP-01', qty: 9, amount: 1350, count: 4 });
+    assert.equal(s.branchesReporting, 2);
+  });
+
+  test('branchesReporting counts only branches with a return this month', () => {
+    const s = buildReturnsSummary([row({ branchId: 'a' })], [{ id: 'a', name: 'DHA Branch' }, { id: 'c', name: 'Bahria Branch' }], RANGE);
+    assert.equal(s.branches.length, 2);
+    assert.equal(s.branchesReporting, 1);
+  });
+
   test('no rows at all is an all-zero summary, not an error', () => {
     const s = buildReturnsSummary([], [], RANGE);
     assert.deepEqual(s.branches, []);
+    assert.deepEqual(s.products, []);
+    assert.equal(s.branchesReporting, 0);
     assert.deepEqual(s.totals.submitted, { qty: 0, amount: 0, count: 0 });
     assert.equal(s.totals.unpricedCount, 0);
   });
