@@ -33,6 +33,21 @@ describe('monthToDateRange', () => {
     assert.deepEqual(monthToDateRange(karachi('2027-01-01T01:59:00')), { from: '2026-12-01', to: '2026-12-31' });
     assert.deepEqual(monthToDateRange(karachi('2027-01-01T02:00:00')), { from: '2027-01-01', to: '2027-01-01' });
   });
+
+  test('a leap-year February runs to the 29th, and March opens after it', () => {
+    assert.deepEqual(monthToDateRange(karachi('2028-02-29T12:00:00')), { from: '2028-02-01', to: '2028-02-29' });
+    assert.deepEqual(monthToDateRange(karachi('2028-03-01T01:59:00')), { from: '2028-02-01', to: '2028-02-29' });
+    assert.deepEqual(monthToDateRange(karachi('2028-03-01T02:00:00')), { from: '2028-03-01', to: '2028-03-01' });
+  });
+
+  test('an ordinary February ends on the 28th', () => {
+    assert.deepEqual(monthToDateRange(karachi('2027-03-01T01:00:00')), { from: '2027-02-01', to: '2027-02-28' });
+  });
+
+  test('read in Karachi, not UTC: 21:00Z on the 31st is already 02:00 on the 1st', () => {
+    assert.deepEqual(monthToDateRange(new Date('2026-10-31T20:59:00Z')), { from: '2026-10-01', to: '2026-10-31' });
+    assert.deepEqual(monthToDateRange(new Date('2026-10-31T21:00:00Z')), { from: '2026-11-01', to: '2026-11-01' });
+  });
 });
 
 const RANGE = { from: '2026-10-01', to: '2026-10-18' };

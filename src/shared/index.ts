@@ -78,3 +78,4 @@ export * from './utils/daily-sale';
 export * from './utils/deposit-reconciliation';
 export * from './utils/restriction';
 export * from './utils/production-dashboard';
+export * from './utils/discount-summary';
