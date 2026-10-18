@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildReturnsSummary, monthToDateRange, type ReturnsSummaryRow } from '../../shared';
+import { branchReturnAmount, buildBranchReturnBoxes, buildReturnsSummary, monthToDateRange, type ReturnsSummaryRow } from '../../shared';
 
 /**
  * The pure half of the monthly Product Returns summary: the month-to-date
@@ -146,5 +146,54 @@ describe('buildReturnsSummary', () => {
     assert.equal(s.branchesReporting, 0);
     assert.deepEqual(s.totals.submitted, { qty: 0, amount: 0, count: 0 });
     assert.equal(s.totals.unpricedCount, 0);
+  });
+});
+
+describe('branch return boxes (Production → Product Returns)', () => {
+  const summary = buildReturnsSummary(
+    [
+      row({ branchId: 'a', branchName: 'DHA Branch', status: 'accepted', productId: 'p1', count: 2, qty: 3, amount: 450 }),
+      row({ branchId: 'a', branchName: 'DHA Branch', status: 'pending', productId: 'p2', count: 1, qty: 2, amount: 300.1 }),
+      row({ branchId: 'a', branchName: 'DHA Branch', status: 'returned', productId: 'p1', count: 1, qty: 1, amount: 150.2 }),
+      row({ branchId: 'a', branchName: 'DHA Branch', status: 'rejected', productId: 'p3', count: 1, qty: 9, amount: 999 }),
+      row({ branchId: 'b', branchName: 'Gulshan Branch', status: 'rejected', productId: 'p1', count: 1, qty: 1, amount: 150 }),
+      row({ branchId: 'x', branchName: 'Closed Branch', status: 'accepted', productId: 'p1', count: 1, qty: 1, amount: 75 }),
+    ],
+    [{ id: 'a', name: 'DHA Branch' }, { id: 'b', name: 'Gulshan Branch' }, { id: 'c', name: 'Bahria Branch' }],
+    RANGE,
+  );
+  const active = [
+    { id: 'b', name: 'Gulshan Branch', isActive: true },
+    { id: 'a', name: 'DHA Branch (renamed)', isActive: true },
+    { id: 'c', name: 'Bahria Branch', isActive: true },
+    { id: 'x', name: 'Closed Branch', isActive: false },
+  ];
+
+  test('approved + awaiting review + sent back, rejected left out, added in whole paisa', () => {
+    assert.equal(branchReturnAmount(summary.branches.find((b) => b.branchId === 'a')!), 900.3);
+  });
+
+  test('one box per active branch, alphabetical, matched by id not name', () => {
+    assert.deepEqual(buildBranchReturnBoxes(summary, active), [
+      { branchId: 'c', branchName: 'Bahria Branch', amount: 0 },
+      { branchId: 'a', branchName: 'DHA Branch (renamed)', amount: 900.3 },
+      { branchId: 'b', branchName: 'Gulshan Branch', amount: 0 },
+    ]);
+  });
+
+  test('a branch with only rejected returns, or none, is Rs. 0 — never left out', () => {
+    const boxes = buildBranchReturnBoxes(summary, active);
+    assert.equal(boxes.find((b) => b.branchId === 'b')!.amount, 0);
+    assert.equal(boxes.find((b) => b.branchId === 'c')!.amount, 0);
+  });
+
+  test('an inactive branch gets no box, but its returns stay in the overall total', () => {
+    assert.equal(buildBranchReturnBoxes(summary, active).some((b) => b.branchId === 'x'), false);
+    assert.equal(branchReturnAmount(summary.totals), 975.3);
+  });
+
+  test('an active branch the summary has no entry for still shows at 0', () => {
+    const boxes = buildBranchReturnBoxes(summary, [...active, { id: 'n', name: 'New Branch', isActive: true }]);
+    assert.deepEqual(boxes.find((b) => b.branchId === 'n'), { branchId: 'n', branchName: 'New Branch', amount: 0 });
   });
 });

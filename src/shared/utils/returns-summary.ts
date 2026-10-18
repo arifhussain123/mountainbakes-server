@@ -217,3 +217,48 @@ export function buildReturnsSummary(
     branchesReporting: list.filter((b) => b.submitted.count > 0).length,
   };
 }
+
+/**
+ * The statuses a branch's monthly return amount counts: every return still
+ * standing — approved, awaiting review, and sent back to the branch to correct.
+ * Rejected returns are left out: refused, their units went back on the branch's
+ * own balance, so nothing is being returned.
+ */
+export const BRANCH_RETURN_AMOUNT_STATUSES: readonly ProductionReturnStatus[] = ['accepted', 'pending', 'returned'];
+
+/**
+ * A branch's (or any total's) monthly return amount under that rule — the
+ * server's own status buckets added in whole paisa, so each row counts once and
+ * at its recorded price. Unpriced rows carry no amount (see `unpricedCount`).
+ */
+export function branchReturnAmount(totals: ReturnsSummaryTotals): number {
+  return BRANCH_RETURN_AMOUNT_STATUSES.reduce((sum, s) => addMoney(sum, totals[s].amount), 0);
+}
+
+export interface BranchReturnBox {
+  branchId: string;
+  /** The branch's current name, from branch records. */
+  branchName: string;
+  /** `branchReturnAmount` for this month; 0 for a branch with no returns. */
+  amount: number;
+}
+
+/**
+ * One box per ACTIVE branch for Production's monthly summary, alphabetical.
+ * Matched to the summary by branch id, never by name, so a renamed branch keeps
+ * its figures; an active branch the summary has no entry for shows 0. Inactive
+ * branches get no box — their returns still count in the overall totals.
+ */
+export function buildBranchReturnBoxes(
+  summary: MonthlyReturnsSummary,
+  branches: { id: string; name: string; isActive?: boolean }[],
+): BranchReturnBox[] {
+  const byId = new Map(summary.branches.map((b) => [b.branchId, b]));
+  return branches
+    .filter((b) => b.isActive !== false)
+    .map((b) => {
+      const entry = byId.get(b.id);
+      return { branchId: b.id, branchName: b.name, amount: entry ? branchReturnAmount(entry) : 0 };
+    })
+    .sort((a, b) => a.branchName.localeCompare(b.branchName));
+}
