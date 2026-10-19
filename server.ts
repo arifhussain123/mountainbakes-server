@@ -35,8 +35,10 @@ function assertConfigured() {
 async function main() {
   assertConfigured();
   const { app, allowedOrigins } = await import('./src/app');
+  const { startReturnPhotoSweepScheduler } = await import('./src/scheduler/return-photo-sweep.job');
   const PORT = parseInt(process.env.PORT || process.env.API_PORT || '3001', 10);
   app.listen(PORT, '0.0.0.0', () => {
+    startReturnPhotoSweepScheduler();
     if (process.env.NODE_ENV === 'production' && !process.env.CORS_ORIGINS) {
       console.warn(
         '[cors] CORS_ORIGINS is not set — only localhost is allowed. Set it to your ' +

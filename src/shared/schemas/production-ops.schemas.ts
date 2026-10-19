@@ -142,15 +142,21 @@ export const TransferReturnStockSchema = z.object({
 // One submission carries MANY products — a branch closing out an evening hands
 // back everything unsold at once. `reason` is shared across the whole return
 // (an end-of-day batch has one reason) and is copied onto each product's record.
+//
+// EACH LINE CARRIES ITS OWN PHOTO (`attachmentId`), uploaded first to
+// POST /api/attachments (entity `branch_return`). A qty of 0 is a line the
+// branch left empty: it is accepted and dropped, and needs no photo.
 export const BranchReturnItemSchema = z.object({
   productId: z.string().min(1, 'Product is required'),
-  qty: z.number().int().positive('Quantity must be at least 1'),
+  qty: z.number().int().nonnegative('Quantity cannot be negative'),
+  attachmentId: z.string().uuid().optional(),
 });
 
 export const CreateBranchReturnSchema = z.object({
   items: z
     .array(BranchReturnItemSchema)
     .min(1, 'Add at least one product to return')
+    .refine((items) => items.some((it) => it.qty > 0), 'Add at least one product to return')
     .superRefine((items, ctx) => {
       // One row per product, and this is a correctness guard rather than tidiness:
       // the balance check is per row, so two rows for the same product each pass
@@ -158,6 +164,10 @@ export const CreateBranchReturnSchema = z.object({
       // balance of 6 takes 10. This is the only input that can drive a branch
       // negative through rows that are each individually valid.
       const seen = new Set<string>();
+      // And one photo per line: the same picture sent for two products would be
+      // evidence for neither (and the database refuses it — migration
+      // 20261020000001's unique index).
+      const seenPhotos = new Set<string>();
       items.forEach((it, i) => {
         if (seen.has(it.productId)) {
           ctx.addIssue({
@@ -167,17 +177,24 @@ export const CreateBranchReturnSchema = z.object({
           });
         }
         seen.add(it.productId);
+        if (it.attachmentId) {
+          if (seenPhotos.has(it.attachmentId)) {
+            ctx.addIssue({
+              code: 'custom',
+              path: [i, 'attachmentId'],
+              message: 'Each product needs its own photo',
+            });
+          }
+          seenPhotos.add(it.attachmentId);
+        }
       });
     }),
   reason: z.string().max(500).optional().default(''),
-  // The return photo, uploaded first to POST /api/attachments (entity
-  // `branch_return`). One per return, not one per product.
-  //
-  // Optional HERE and required by the ROUTE (unless RETURN_PHOTO_REQUIRED=false).
-  // The schema cannot be the gate: a till that queued a return offline before
-  // this field existed would have it refused as malformed, with no way to edit
-  // the queued payload. The route's refusal names the photo instead, and the
-  // switch lets the API be deployed ahead of the clients that send one.
+  // LEGACY: the one photo for the whole return that clients sent before photos
+  // went per line. Still accepted, but only where it cannot be ambiguous — a
+  // return of a single product, whose one photo IS that line's photo — and never
+  // alongside per-line photos. The route decides (it can say so in words), and
+  // RETURN_PHOTO_PER_LINE=strict refuses it outright once every till has updated.
   attachmentIds: z.array(z.string().uuid()).max(1, 'Only one photo per return').optional().default([]),
   // Sent by the mobile app only; see business-date.schemas.ts.
   businessDate: optionalBusinessDate,

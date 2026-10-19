@@ -44,6 +44,32 @@ const EXTENSIONS: Record<string, string> = {
   'image/webp': 'webp',
 };
 
+/**
+ * What the bytes actually are, from their first few — never what the client
+ * said. Multer's `mimetype` is the part's Content-Type header, which is
+ * whatever the sender wrote; a file stored and later served as an image has to
+ * BE one.
+ *
+ * HEIC is recognised only so it can be refused by name. The phones and browsers
+ * that capture one also decode it, and the clients re-encode every capture to
+ * JPEG or WebP before upload; decoding HEIC here would need a native libheif
+ * build for a case the clients already cover.
+ */
+export function sniffImageType(buffer: Buffer): 'image/jpeg' | 'image/png' | 'image/webp' | 'image/heic' | null {
+  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) return 'image/jpeg';
+  if (buffer.length >= 8 && buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) {
+    return 'image/png';
+  }
+  if (buffer.length >= 12 && buffer.toString('latin1', 0, 4) === 'RIFF' && buffer.toString('latin1', 8, 12) === 'WEBP') {
+    return 'image/webp';
+  }
+  if (buffer.length >= 12 && buffer.toString('latin1', 4, 8) === 'ftyp') {
+    const brand = buffer.toString('latin1', 8, 12);
+    if (['heic', 'heix', 'hevc', 'hevx', 'heim', 'heis', 'mif1', 'msf1'].includes(brand)) return 'image/heic';
+  }
+  return null;
+}
+
 interface AttachmentRow {
   id: string;
   entity: AttachmentEntity;
@@ -131,8 +157,12 @@ export async function uploadAttachment(input: {
   height?: number | null;
   actor: { uid: string; email: string };
 }): Promise<Attachment> {
-  const extension = EXTENSIONS[input.mimeType];
-  if (!extension) {
+  const sniffed = sniffImageType(input.buffer);
+  if (sniffed === 'image/heic') {
+    throw clientError('HEIC photos cannot be stored. Take the photo again in the app, or choose a JPEG or PNG.', 415);
+  }
+  const extension = sniffed ? EXTENSIONS[sniffed] : undefined;
+  if (!sniffed || !extension) {
     throw clientError('A photo must be a JPEG, PNG or WebP image', 400);
   }
   if (input.buffer.length > (MAX_BYTES_BY_ENTITY[input.entity] ?? ATTACHMENT_MAX_BYTES)) {
@@ -143,14 +173,14 @@ export async function uploadAttachment(input: {
   // about the path is guessable or derived from user input.
   const storagePath = `${input.entity}/${randomUUID()}.${extension}`;
 
-  await fileStore().upload(BUCKET, storagePath, input.buffer, input.mimeType);
+  await fileStore().upload(BUCKET, storagePath, input.buffer, sniffed);
 
   const { data, error } = await db
     .from('attachments')
     .insert({
       entity: input.entity,
       storage_path: storagePath,
-      mime_type: input.mimeType,
+      mime_type: sniffed,
       size_bytes: input.buffer.length,
       width: input.width ?? null,
       height: input.height ?? null,
@@ -346,13 +376,20 @@ export async function assertStagedAttachments(input: {
     .is('entity_id', null);
   if (error) throw error;
 
-  if ((data ?? []).length !== ids.length) {
+  const found = new Set((data ?? []).map((r) => r.id as string));
+  const missing = ids.filter((id) => !found.has(id));
+  if (missing.length > 0) {
     throw Object.assign(
-      new Error('The attached photo is no longer available. Take it again and resubmit.'),
+      new Error(
+        missing.length === 1
+          ? 'An attached photo is no longer available. Take it again and resubmit.'
+          : `${missing.length} attached photos are no longer available. Take them again and resubmit.`,
+      ),
       // `details.code` is read by the mobile sync queue, which answers it by
-      // uploading the photo it still holds again rather than parking the return
-      // as a conflict. (`details` is the one extra field errorHandler passes on.)
-      { status: 409, details: { code: 'attachment_unavailable' } },
+      // uploading the photos it still holds again rather than parking the return
+      // as a conflict; `attachmentIds` says which ones. (`details` is the one
+      // extra field errorHandler passes on.)
+      { status: 409, details: { code: 'attachment_unavailable', attachmentIds: missing } },
     );
   }
 }
@@ -438,18 +475,24 @@ export async function discardStagedAttachment(input: {
 }
 
 /**
- * Sweep staged photos of one entity that nothing claimed within `olderThanDays`.
+ * Sweep staged photos of one entity that nothing claimed within the window
+ * (`olderThanHours`, or `olderThanDays`).
  *
- * Scoped to an entity and to an age, never "everything staged": a photo taken
- * for an offline return may wait days in a phone's queue before its return is
- * sent, and it is staged for all of them.
+ * Scoped to an entity and to an age, never "everything staged". A return photo
+ * gets 24 hours (RETURN_PHOTO_STAGED_TTL_HOURS): the mobile app keeps an offline
+ * return's photos on the phone and uploads them only as it sends the return, and
+ * one swept from under a queued return is answered with `attachment_unavailable`,
+ * which makes the app upload it again — so a short window costs nothing.
  */
 export async function purgeStagedAttachments(input: {
   entity: AttachmentEntity;
-  olderThanDays: number;
+  olderThanDays?: number;
+  olderThanHours?: number;
   dryRun?: boolean;
 }): Promise<number> {
-  const cutoff = new Date(Date.now() - input.olderThanDays * 24 * 60 * 60 * 1000).toISOString();
+  const hours = input.olderThanHours ?? (input.olderThanDays ?? NaN) * 24;
+  if (!Number.isFinite(hours) || hours <= 0) throw new Error('purgeStagedAttachments needs a positive window');
+  const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
 
   if (input.dryRun) {
     const { count, error } = await db

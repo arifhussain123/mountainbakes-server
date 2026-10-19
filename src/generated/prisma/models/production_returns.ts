@@ -56,6 +56,7 @@ export type Production_returnsMinAggregateOutputType = {
   disposition: $Enums.production_return_disposition | null
   disposition_note: string | null
   photo_attachment_id: string | null
+  legacy_single_photo: boolean | null
 }
 
 export type Production_returnsMaxAggregateOutputType = {
@@ -79,6 +80,7 @@ export type Production_returnsMaxAggregateOutputType = {
   disposition: $Enums.production_return_disposition | null
   disposition_note: string | null
   photo_attachment_id: string | null
+  legacy_single_photo: boolean | null
 }
 
 export type Production_returnsCountAggregateOutputType = {
@@ -102,6 +104,7 @@ export type Production_returnsCountAggregateOutputType = {
   disposition: number
   disposition_note: number
   photo_attachment_id: number
+  legacy_single_photo: number
   _all: number
 }
 
@@ -135,6 +138,7 @@ export type Production_returnsMinAggregateInputType = {
   disposition?: true
   disposition_note?: true
   photo_attachment_id?: true
+  legacy_single_photo?: true
 }
 
 export type Production_returnsMaxAggregateInputType = {
@@ -158,6 +162,7 @@ export type Production_returnsMaxAggregateInputType = {
   disposition?: true
   disposition_note?: true
   photo_attachment_id?: true
+  legacy_single_photo?: true
 }
 
 export type Production_returnsCountAggregateInputType = {
@@ -181,6 +186,7 @@ export type Production_returnsCountAggregateInputType = {
   disposition?: true
   disposition_note?: true
   photo_attachment_id?: true
+  legacy_single_photo?: true
   _all?: true
 }
 
@@ -291,6 +297,7 @@ export type Production_returnsGroupByOutputType = {
   disposition: $Enums.production_return_disposition
   disposition_note: string | null
   photo_attachment_id: string | null
+  legacy_single_photo: boolean
   _count: Production_returnsCountAggregateOutputType | null
   _avg: Production_returnsAvgAggregateOutputType | null
   _sum: Production_returnsSumAggregateOutputType | null
@@ -337,6 +344,7 @@ export type production_returnsWhereInput = {
   disposition?: Prisma.Enumproduction_return_dispositionFilter<"production_returns"> | $Enums.production_return_disposition
   disposition_note?: Prisma.StringNullableFilter<"production_returns"> | string | null
   photo_attachment_id?: Prisma.UuidNullableFilter<"production_returns"> | string | null
+  legacy_single_photo?: Prisma.BoolFilter<"production_returns"> | boolean
   branches?: Prisma.XOR<Prisma.BranchesScalarRelationFilter, Prisma.branchesWhereInput>
   users_production_returns_created_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   attachments?: Prisma.XOR<Prisma.AttachmentsNullableScalarRelationFilter, Prisma.attachmentsWhereInput> | null
@@ -366,6 +374,7 @@ export type production_returnsOrderByWithRelationInput = {
   disposition?: Prisma.SortOrder
   disposition_note?: Prisma.SortOrderInput | Prisma.SortOrder
   photo_attachment_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  legacy_single_photo?: Prisma.SortOrder
   branches?: Prisma.branchesOrderByWithRelationInput
   users_production_returns_created_byTousers?: Prisma.usersOrderByWithRelationInput
   attachments?: Prisma.attachmentsOrderByWithRelationInput
@@ -377,6 +386,7 @@ export type production_returnsOrderByWithRelationInput = {
 export type production_returnsWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   legacy_id?: string
+  photo_attachment_id?: string
   AND?: Prisma.production_returnsWhereInput | Prisma.production_returnsWhereInput[]
   OR?: Prisma.production_returnsWhereInput[]
   NOT?: Prisma.production_returnsWhereInput | Prisma.production_returnsWhereInput[]
@@ -397,14 +407,14 @@ export type production_returnsWhereUniqueInput = Prisma.AtLeast<{
   reviewed_at?: Prisma.DateTimeNullableFilter<"production_returns"> | Date | string | null
   disposition?: Prisma.Enumproduction_return_dispositionFilter<"production_returns"> | $Enums.production_return_disposition
   disposition_note?: Prisma.StringNullableFilter<"production_returns"> | string | null
-  photo_attachment_id?: Prisma.UuidNullableFilter<"production_returns"> | string | null
+  legacy_single_photo?: Prisma.BoolFilter<"production_returns"> | boolean
   branches?: Prisma.XOR<Prisma.BranchesScalarRelationFilter, Prisma.branchesWhereInput>
   users_production_returns_created_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   attachments?: Prisma.XOR<Prisma.AttachmentsNullableScalarRelationFilter, Prisma.attachmentsWhereInput> | null
   products?: Prisma.XOR<Prisma.ProductsScalarRelationFilter, Prisma.productsWhereInput>
   users_production_returns_reviewed_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   return_stock_history?: Prisma.Return_stock_historyListRelationFilter
-}, "id" | "legacy_id">
+}, "id" | "legacy_id" | "photo_attachment_id">
 
 export type production_returnsOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -427,6 +437,7 @@ export type production_returnsOrderByWithAggregationInput = {
   disposition?: Prisma.SortOrder
   disposition_note?: Prisma.SortOrderInput | Prisma.SortOrder
   photo_attachment_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  legacy_single_photo?: Prisma.SortOrder
   _count?: Prisma.production_returnsCountOrderByAggregateInput
   _avg?: Prisma.production_returnsAvgOrderByAggregateInput
   _max?: Prisma.production_returnsMaxOrderByAggregateInput
@@ -458,6 +469,7 @@ export type production_returnsScalarWhereWithAggregatesInput = {
   disposition?: Prisma.Enumproduction_return_dispositionWithAggregatesFilter<"production_returns"> | $Enums.production_return_disposition
   disposition_note?: Prisma.StringNullableWithAggregatesFilter<"production_returns"> | string | null
   photo_attachment_id?: Prisma.UuidNullableWithAggregatesFilter<"production_returns"> | string | null
+  legacy_single_photo?: Prisma.BoolWithAggregatesFilter<"production_returns"> | boolean
 }
 
 export type production_returnsCreateInput = {
@@ -476,6 +488,7 @@ export type production_returnsCreateInput = {
   reviewed_at?: Date | string | null
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
+  legacy_single_photo?: boolean
   branches: Prisma.branchesCreateNestedOneWithoutProduction_returnsInput
   users_production_returns_created_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_returns_production_returns_created_byTousersInput
   attachments?: Prisma.attachmentsCreateNestedOneWithoutProduction_returnsInput
@@ -505,6 +518,7 @@ export type production_returnsUncheckedCreateInput = {
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
   photo_attachment_id?: string | null
+  legacy_single_photo?: boolean
   return_stock_history?: Prisma.return_stock_historyUncheckedCreateNestedManyWithoutProduction_returnsInput
 }
 
@@ -524,6 +538,7 @@ export type production_returnsUpdateInput = {
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   branches?: Prisma.branchesUpdateOneRequiredWithoutProduction_returnsNestedInput
   users_production_returns_created_byTousers?: Prisma.usersUpdateOneWithoutProduction_returns_production_returns_created_byTousersNestedInput
   attachments?: Prisma.attachmentsUpdateOneWithoutProduction_returnsNestedInput
@@ -553,6 +568,7 @@ export type production_returnsUncheckedUpdateInput = {
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photo_attachment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   return_stock_history?: Prisma.return_stock_historyUncheckedUpdateManyWithoutProduction_returnsNestedInput
 }
 
@@ -577,6 +593,7 @@ export type production_returnsCreateManyInput = {
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
   photo_attachment_id?: string | null
+  legacy_single_photo?: boolean
 }
 
 export type production_returnsUpdateManyMutationInput = {
@@ -595,6 +612,7 @@ export type production_returnsUpdateManyMutationInput = {
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type production_returnsUncheckedUpdateManyInput = {
@@ -618,6 +636,7 @@ export type production_returnsUncheckedUpdateManyInput = {
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photo_attachment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type Production_returnsListRelationFilter = {
@@ -651,6 +670,7 @@ export type production_returnsCountOrderByAggregateInput = {
   disposition?: Prisma.SortOrder
   disposition_note?: Prisma.SortOrder
   photo_attachment_id?: Prisma.SortOrder
+  legacy_single_photo?: Prisma.SortOrder
 }
 
 export type production_returnsAvgOrderByAggregateInput = {
@@ -678,6 +698,7 @@ export type production_returnsMaxOrderByAggregateInput = {
   disposition?: Prisma.SortOrder
   disposition_note?: Prisma.SortOrder
   photo_attachment_id?: Prisma.SortOrder
+  legacy_single_photo?: Prisma.SortOrder
 }
 
 export type production_returnsMinOrderByAggregateInput = {
@@ -701,6 +722,7 @@ export type production_returnsMinOrderByAggregateInput = {
   disposition?: Prisma.SortOrder
   disposition_note?: Prisma.SortOrder
   photo_attachment_id?: Prisma.SortOrder
+  legacy_single_photo?: Prisma.SortOrder
 }
 
 export type production_returnsSumOrderByAggregateInput = {
@@ -962,6 +984,7 @@ export type production_returnsCreateWithoutAttachmentsInput = {
   reviewed_at?: Date | string | null
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
+  legacy_single_photo?: boolean
   branches: Prisma.branchesCreateNestedOneWithoutProduction_returnsInput
   users_production_returns_created_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_returns_production_returns_created_byTousersInput
   products: Prisma.productsCreateNestedOneWithoutProduction_returnsInput
@@ -989,6 +1012,7 @@ export type production_returnsUncheckedCreateWithoutAttachmentsInput = {
   reviewed_at?: Date | string | null
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
+  legacy_single_photo?: boolean
   return_stock_history?: Prisma.return_stock_historyUncheckedCreateNestedManyWithoutProduction_returnsInput
 }
 
@@ -1042,6 +1066,7 @@ export type production_returnsScalarWhereInput = {
   disposition?: Prisma.Enumproduction_return_dispositionFilter<"production_returns"> | $Enums.production_return_disposition
   disposition_note?: Prisma.StringNullableFilter<"production_returns"> | string | null
   photo_attachment_id?: Prisma.UuidNullableFilter<"production_returns"> | string | null
+  legacy_single_photo?: Prisma.BoolFilter<"production_returns"> | boolean
 }
 
 export type production_returnsCreateWithoutBranchesInput = {
@@ -1060,6 +1085,7 @@ export type production_returnsCreateWithoutBranchesInput = {
   reviewed_at?: Date | string | null
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
+  legacy_single_photo?: boolean
   users_production_returns_created_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_returns_production_returns_created_byTousersInput
   attachments?: Prisma.attachmentsCreateNestedOneWithoutProduction_returnsInput
   products: Prisma.productsCreateNestedOneWithoutProduction_returnsInput
@@ -1087,6 +1113,7 @@ export type production_returnsUncheckedCreateWithoutBranchesInput = {
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
   photo_attachment_id?: string | null
+  legacy_single_photo?: boolean
   return_stock_history?: Prisma.return_stock_historyUncheckedCreateNestedManyWithoutProduction_returnsInput
 }
 
@@ -1132,6 +1159,7 @@ export type production_returnsCreateWithoutProductsInput = {
   reviewed_at?: Date | string | null
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
+  legacy_single_photo?: boolean
   branches: Prisma.branchesCreateNestedOneWithoutProduction_returnsInput
   users_production_returns_created_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_returns_production_returns_created_byTousersInput
   attachments?: Prisma.attachmentsCreateNestedOneWithoutProduction_returnsInput
@@ -1159,6 +1187,7 @@ export type production_returnsUncheckedCreateWithoutProductsInput = {
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
   photo_attachment_id?: string | null
+  legacy_single_photo?: boolean
   return_stock_history?: Prisma.return_stock_historyUncheckedCreateNestedManyWithoutProduction_returnsInput
 }
 
@@ -1204,6 +1233,7 @@ export type production_returnsCreateWithoutReturn_stock_historyInput = {
   reviewed_at?: Date | string | null
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
+  legacy_single_photo?: boolean
   branches: Prisma.branchesCreateNestedOneWithoutProduction_returnsInput
   users_production_returns_created_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_returns_production_returns_created_byTousersInput
   attachments?: Prisma.attachmentsCreateNestedOneWithoutProduction_returnsInput
@@ -1232,6 +1262,7 @@ export type production_returnsUncheckedCreateWithoutReturn_stock_historyInput = 
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
   photo_attachment_id?: string | null
+  legacy_single_photo?: boolean
 }
 
 export type production_returnsCreateOrConnectWithoutReturn_stock_historyInput = {
@@ -1266,6 +1297,7 @@ export type production_returnsUpdateWithoutReturn_stock_historyInput = {
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   branches?: Prisma.branchesUpdateOneRequiredWithoutProduction_returnsNestedInput
   users_production_returns_created_byTousers?: Prisma.usersUpdateOneWithoutProduction_returns_production_returns_created_byTousersNestedInput
   attachments?: Prisma.attachmentsUpdateOneWithoutProduction_returnsNestedInput
@@ -1294,6 +1326,7 @@ export type production_returnsUncheckedUpdateWithoutReturn_stock_historyInput = 
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photo_attachment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type production_returnsCreateWithoutUsers_production_returns_created_byTousersInput = {
@@ -1312,6 +1345,7 @@ export type production_returnsCreateWithoutUsers_production_returns_created_byTo
   reviewed_at?: Date | string | null
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
+  legacy_single_photo?: boolean
   branches: Prisma.branchesCreateNestedOneWithoutProduction_returnsInput
   attachments?: Prisma.attachmentsCreateNestedOneWithoutProduction_returnsInput
   products: Prisma.productsCreateNestedOneWithoutProduction_returnsInput
@@ -1339,6 +1373,7 @@ export type production_returnsUncheckedCreateWithoutUsers_production_returns_cre
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
   photo_attachment_id?: string | null
+  legacy_single_photo?: boolean
   return_stock_history?: Prisma.return_stock_historyUncheckedCreateNestedManyWithoutProduction_returnsInput
 }
 
@@ -1368,6 +1403,7 @@ export type production_returnsCreateWithoutUsers_production_returns_reviewed_byT
   reviewed_at?: Date | string | null
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
+  legacy_single_photo?: boolean
   branches: Prisma.branchesCreateNestedOneWithoutProduction_returnsInput
   users_production_returns_created_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_returns_production_returns_created_byTousersInput
   attachments?: Prisma.attachmentsCreateNestedOneWithoutProduction_returnsInput
@@ -1395,6 +1431,7 @@ export type production_returnsUncheckedCreateWithoutUsers_production_returns_rev
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
   photo_attachment_id?: string | null
+  legacy_single_photo?: boolean
   return_stock_history?: Prisma.return_stock_historyUncheckedCreateNestedManyWithoutProduction_returnsInput
 }
 
@@ -1460,6 +1497,7 @@ export type production_returnsCreateManyAttachmentsInput = {
   reviewed_at?: Date | string | null
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
+  legacy_single_photo?: boolean
 }
 
 export type production_returnsUpdateWithoutAttachmentsInput = {
@@ -1478,6 +1516,7 @@ export type production_returnsUpdateWithoutAttachmentsInput = {
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   branches?: Prisma.branchesUpdateOneRequiredWithoutProduction_returnsNestedInput
   users_production_returns_created_byTousers?: Prisma.usersUpdateOneWithoutProduction_returns_production_returns_created_byTousersNestedInput
   products?: Prisma.productsUpdateOneRequiredWithoutProduction_returnsNestedInput
@@ -1505,6 +1544,7 @@ export type production_returnsUncheckedUpdateWithoutAttachmentsInput = {
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   return_stock_history?: Prisma.return_stock_historyUncheckedUpdateManyWithoutProduction_returnsNestedInput
 }
 
@@ -1528,6 +1568,7 @@ export type production_returnsUncheckedUpdateManyWithoutAttachmentsInput = {
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type production_returnsCreateManyBranchesInput = {
@@ -1550,6 +1591,7 @@ export type production_returnsCreateManyBranchesInput = {
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
   photo_attachment_id?: string | null
+  legacy_single_photo?: boolean
 }
 
 export type production_returnsUpdateWithoutBranchesInput = {
@@ -1568,6 +1610,7 @@ export type production_returnsUpdateWithoutBranchesInput = {
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   users_production_returns_created_byTousers?: Prisma.usersUpdateOneWithoutProduction_returns_production_returns_created_byTousersNestedInput
   attachments?: Prisma.attachmentsUpdateOneWithoutProduction_returnsNestedInput
   products?: Prisma.productsUpdateOneRequiredWithoutProduction_returnsNestedInput
@@ -1595,6 +1638,7 @@ export type production_returnsUncheckedUpdateWithoutBranchesInput = {
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photo_attachment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   return_stock_history?: Prisma.return_stock_historyUncheckedUpdateManyWithoutProduction_returnsNestedInput
 }
 
@@ -1618,6 +1662,7 @@ export type production_returnsUncheckedUpdateManyWithoutBranchesInput = {
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photo_attachment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type production_returnsCreateManyProductsInput = {
@@ -1640,6 +1685,7 @@ export type production_returnsCreateManyProductsInput = {
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
   photo_attachment_id?: string | null
+  legacy_single_photo?: boolean
 }
 
 export type production_returnsUpdateWithoutProductsInput = {
@@ -1658,6 +1704,7 @@ export type production_returnsUpdateWithoutProductsInput = {
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   branches?: Prisma.branchesUpdateOneRequiredWithoutProduction_returnsNestedInput
   users_production_returns_created_byTousers?: Prisma.usersUpdateOneWithoutProduction_returns_production_returns_created_byTousersNestedInput
   attachments?: Prisma.attachmentsUpdateOneWithoutProduction_returnsNestedInput
@@ -1685,6 +1732,7 @@ export type production_returnsUncheckedUpdateWithoutProductsInput = {
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photo_attachment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   return_stock_history?: Prisma.return_stock_historyUncheckedUpdateManyWithoutProduction_returnsNestedInput
 }
 
@@ -1708,6 +1756,7 @@ export type production_returnsUncheckedUpdateManyWithoutProductsInput = {
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photo_attachment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type production_returnsCreateManyUsers_production_returns_created_byTousersInput = {
@@ -1730,6 +1779,7 @@ export type production_returnsCreateManyUsers_production_returns_created_byTouse
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
   photo_attachment_id?: string | null
+  legacy_single_photo?: boolean
 }
 
 export type production_returnsCreateManyUsers_production_returns_reviewed_byTousersInput = {
@@ -1752,6 +1802,7 @@ export type production_returnsCreateManyUsers_production_returns_reviewed_byTous
   disposition?: $Enums.production_return_disposition
   disposition_note?: string | null
   photo_attachment_id?: string | null
+  legacy_single_photo?: boolean
 }
 
 export type production_returnsUpdateWithoutUsers_production_returns_created_byTousersInput = {
@@ -1770,6 +1821,7 @@ export type production_returnsUpdateWithoutUsers_production_returns_created_byTo
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   branches?: Prisma.branchesUpdateOneRequiredWithoutProduction_returnsNestedInput
   attachments?: Prisma.attachmentsUpdateOneWithoutProduction_returnsNestedInput
   products?: Prisma.productsUpdateOneRequiredWithoutProduction_returnsNestedInput
@@ -1797,6 +1849,7 @@ export type production_returnsUncheckedUpdateWithoutUsers_production_returns_cre
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photo_attachment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   return_stock_history?: Prisma.return_stock_historyUncheckedUpdateManyWithoutProduction_returnsNestedInput
 }
 
@@ -1820,6 +1873,7 @@ export type production_returnsUncheckedUpdateManyWithoutUsers_production_returns
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photo_attachment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type production_returnsUpdateWithoutUsers_production_returns_reviewed_byTousersInput = {
@@ -1838,6 +1892,7 @@ export type production_returnsUpdateWithoutUsers_production_returns_reviewed_byT
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   branches?: Prisma.branchesUpdateOneRequiredWithoutProduction_returnsNestedInput
   users_production_returns_created_byTousers?: Prisma.usersUpdateOneWithoutProduction_returns_production_returns_created_byTousersNestedInput
   attachments?: Prisma.attachmentsUpdateOneWithoutProduction_returnsNestedInput
@@ -1865,6 +1920,7 @@ export type production_returnsUncheckedUpdateWithoutUsers_production_returns_rev
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photo_attachment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
   return_stock_history?: Prisma.return_stock_historyUncheckedUpdateManyWithoutProduction_returnsNestedInput
 }
 
@@ -1888,6 +1944,7 @@ export type production_returnsUncheckedUpdateManyWithoutUsers_production_returns
   disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
   disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   photo_attachment_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 
@@ -1942,6 +1999,7 @@ export type production_returnsSelect<ExtArgs extends runtime.Types.Extensions.In
   disposition?: boolean
   disposition_note?: boolean
   photo_attachment_id?: boolean
+  legacy_single_photo?: boolean
   branches?: boolean | Prisma.branchesDefaultArgs<ExtArgs>
   users_production_returns_created_byTousers?: boolean | Prisma.production_returns$users_production_returns_created_byTousersArgs<ExtArgs>
   attachments?: boolean | Prisma.production_returns$attachmentsArgs<ExtArgs>
@@ -1972,6 +2030,7 @@ export type production_returnsSelectCreateManyAndReturn<ExtArgs extends runtime.
   disposition?: boolean
   disposition_note?: boolean
   photo_attachment_id?: boolean
+  legacy_single_photo?: boolean
   branches?: boolean | Prisma.branchesDefaultArgs<ExtArgs>
   users_production_returns_created_byTousers?: boolean | Prisma.production_returns$users_production_returns_created_byTousersArgs<ExtArgs>
   attachments?: boolean | Prisma.production_returns$attachmentsArgs<ExtArgs>
@@ -2000,6 +2059,7 @@ export type production_returnsSelectUpdateManyAndReturn<ExtArgs extends runtime.
   disposition?: boolean
   disposition_note?: boolean
   photo_attachment_id?: boolean
+  legacy_single_photo?: boolean
   branches?: boolean | Prisma.branchesDefaultArgs<ExtArgs>
   users_production_returns_created_byTousers?: boolean | Prisma.production_returns$users_production_returns_created_byTousersArgs<ExtArgs>
   attachments?: boolean | Prisma.production_returns$attachmentsArgs<ExtArgs>
@@ -2028,9 +2088,10 @@ export type production_returnsSelectScalar = {
   disposition?: boolean
   disposition_note?: boolean
   photo_attachment_id?: boolean
+  legacy_single_photo?: boolean
 }
 
-export type production_returnsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "legacy_id" | "branch_id" | "branch_name" | "product_id" | "product_name" | "qty" | "reason" | "status" | "source" | "business_date" | "created_by" | "created_by_name" | "created_at" | "reviewed_by" | "reviewed_by_name" | "reviewed_at" | "disposition" | "disposition_note" | "photo_attachment_id", ExtArgs["result"]["production_returns"]>
+export type production_returnsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "legacy_id" | "branch_id" | "branch_name" | "product_id" | "product_name" | "qty" | "reason" | "status" | "source" | "business_date" | "created_by" | "created_by_name" | "created_at" | "reviewed_by" | "reviewed_by_name" | "reviewed_at" | "disposition" | "disposition_note" | "photo_attachment_id" | "legacy_single_photo", ExtArgs["result"]["production_returns"]>
 export type production_returnsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branches?: boolean | Prisma.branchesDefaultArgs<ExtArgs>
   users_production_returns_created_byTousers?: boolean | Prisma.production_returns$users_production_returns_created_byTousersArgs<ExtArgs>
@@ -2086,6 +2147,7 @@ export type $production_returnsPayload<ExtArgs extends runtime.Types.Extensions.
     disposition: $Enums.production_return_disposition
     disposition_note: string | null
     photo_attachment_id: string | null
+    legacy_single_photo: boolean
   }, ExtArgs["result"]["production_returns"]>
   composites: {}
 }
@@ -2535,6 +2597,7 @@ export interface production_returnsFieldRefs {
   readonly disposition: Prisma.FieldRef<"production_returns", 'production_return_disposition'>
   readonly disposition_note: Prisma.FieldRef<"production_returns", 'String'>
   readonly photo_attachment_id: Prisma.FieldRef<"production_returns", 'String'>
+  readonly legacy_single_photo: Prisma.FieldRef<"production_returns", 'Boolean'>
 }
     
 

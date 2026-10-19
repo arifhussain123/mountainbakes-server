@@ -38,7 +38,14 @@ export type AuditAction =
   // Written ONLY for a super admin opening SOMEBODY ELSE'S session. An admin
   // opening their own would fill the log with rows about a person reading their
   // own record, which is not a privileged act and would bury the ones that are.
-  | 'session_viewed';
+  | 'session_viewed'
+  // Branch returns (migration 20261020000001). Written by the branch user who
+  // raised or corrected the return, targeting no user: `details` names the
+  // branch, and every line's return id, product, qty and PHOTO id — the photo is
+  // the evidence Production decides on, so which picture stood behind which line
+  // is what this entry exists to pin down.
+  | 'return_created'
+  | 'return_revised';
 
 export interface AuditLog {
   id: string;

@@ -1690,6 +1690,7 @@ model production_returns {
   disposition                                 production_return_disposition @default(saleable)
   disposition_note                            String?
   photo_attachment_id                         String?                       @db.Uuid
+  legacy_single_photo                         Boolean                       @default(false)
   branches                                    branches                      @relation(fields: [branch_id], references: [id], onUpdate: NoAction)
   users_production_returns_created_byTousers  users?                        @relation("production_returns_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
   attachments                                 attachments?                  @relation(fields: [photo_attachment_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -1701,6 +1702,7 @@ model production_returns {
   @@index([business_date(sort: Desc)], map: "production_returns_date_idx")
   @@index([disposition, business_date(sort: Desc)], map: "production_returns_disposition_idx")
   @@index([photo_attachment_id], map: "production_returns_photo_idx", where: raw("(photo_attachment_id IS NOT NULL)"))
+  @@unique([photo_attachment_id], map: "production_returns_photo_one_line", where: raw("((photo_attachment_id IS NOT NULL) AND (NOT legacy_single_photo))"))
   @@index([status], where: raw("(status = 'pending'::production_return_status)"))
 }
 

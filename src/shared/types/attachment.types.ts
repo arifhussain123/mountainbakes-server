@@ -33,9 +33,10 @@ export const ATTACHMENT_ENTITIES = [
   // the transfer and again from the RV- voucher it becomes.
   'cash_transfer',
   // Branch returns (migration 148): the picture of the goods a branch is sending
-  // back. ONE photo per Save Return, shared by every product row that submission
-  // creates — each row points at it through `production_returns.photo_attachment_id`
-  // rather than through `entity_id`, which can only name one parent.
+  // back. Since migration 20261020000001, ONE photo per returned product: each
+  // `production_returns` row points at its own through `photo_attachment_id`,
+  // and the photo is bound to that row (`entity_id`). Returns raised before then
+  // share one photo across their rows (`legacy_single_photo`).
   'branch_return',
 ] as const;
 
@@ -180,3 +181,11 @@ export const RETURN_PHOTO_MAX_BYTES = 1024 * 1024;
 
 /** The largest ORIGINAL a client will even try to process. */
 export const RETURN_PHOTO_MAX_ORIGINAL_BYTES = 20 * 1024 * 1024;
+
+/**
+ * How long an uploaded return photo may stay unclaimed before the API's sweep
+ * deletes it. A photo is uploaded the moment it is taken, before its return is
+ * saved; one whose return never arrived is removed after this. A client that
+ * submits later gets `attachment_unavailable` and uploads it again.
+ */
+export const RETURN_PHOTO_STAGED_TTL_HOURS = 24;

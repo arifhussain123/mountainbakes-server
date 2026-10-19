@@ -8111,7 +8111,8 @@ export const Production_returnsScalarFieldEnum = {
   reviewed_at: 'reviewed_at',
   disposition: 'disposition',
   disposition_note: 'disposition_note',
-  photo_attachment_id: 'photo_attachment_id'
+  photo_attachment_id: 'photo_attachment_id',
+  legacy_single_photo: 'legacy_single_photo'
 } as const
 
 export type Production_returnsScalarFieldEnum = (typeof Production_returnsScalarFieldEnum)[keyof typeof Production_returnsScalarFieldEnum]
