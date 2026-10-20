@@ -38,6 +38,8 @@ import {
 } from '../services/stock.service';
 import {
   listBranchReturns,
+  resolveReturnLinePhotos,
+  returnAuditDetails,
   resubmitBranchReturn,
   reviseBranchReturn,
   withdrawBranchReturn,
@@ -45,12 +47,16 @@ import {
   ReturnNotFoundError,
 } from '../services/branch-returns.service';
 import { assertStagedAttachments, bindAttachments } from '../services/attachments.service';
+import { logAudit } from '../services/audit.service';
+import { getMonthlyReturnsSummary } from '../services/returns-summary.service';
 import { idempotent, persistIfCommitted } from '../middleware/idempotency';
 import { resolveClientBusinessDate } from '../utils/clientBusinessDate';
 import { requireInsideGeofence } from '../middleware/requireInsideGeofence';
 import { rowToApi } from '../utils/case';
 
 const db = dbFor('stock');
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const router = Router();
 
@@ -234,23 +240,16 @@ router.post('/return', requireRole('super_admin', ...BRANCH_ROLES), idempotent('
       : ((req.body as { branchId?: string }).branchId ?? null);
     if (!branchId) { res.status(400).json({ error: 'Branch context required' }); return; }
 
-    const { items, reason, businessDate: claimedDate, attachmentIds = [] } = req.body as {
-      items: { productId: string; qty: number }[];
+    const { items: sentItems, reason, businessDate: claimedDate, attachmentIds = [] } = req.body as {
+      items: { productId: string; qty: number; attachmentId?: string }[];
       reason: string;
       // The day the return was made, as captured on the device.
       businessDate?: string;
-      // The return photo, staged by POST /api/attachments. At most one.
+      // LEGACY: one photo for the whole return (see CreateBranchReturnSchema).
       attachmentIds?: string[];
     };
-
-    // A PHOTO IS REQUIRED. Refused here rather than by the schema so the answer
-    // is a sentence a till can show, and so RETURN_PHOTO_REQUIRED=false can hold
-    // the rule off while clients that predate it are still in the field (see
-    // CreateBranchReturnSchema). Checked before anything is read or written.
-    if (attachmentIds.length === 0 && process.env['RETURN_PHOTO_REQUIRED'] !== 'false') {
-      res.status(400).json({ error: 'A photo of the returned items is required.', code: 'photo_required' });
-      return;
-    }
+    // A line left at 0 is not part of the return, and needs no photo.
+    const items = sentItems.filter((it) => it.qty > 0);
 
     const businessDate = await resolveClientBusinessDate(claimedDate, req.user!.role);
 
@@ -269,6 +268,22 @@ router.post('/return', requireRole('super_admin', ...BRANCH_ROLES), idempotent('
     const nameById = new Map((productsRes.data ?? []).map((p) => [p.id as string, p.name as string]));
     const missing = productIds.filter((id) => !nameById.has(id));
     if (missing.length) { res.status(400).json({ error: 'Product not found', details: missing }); return; }
+
+    // A PHOTO OF EVERY LINE IS REQUIRED. Refused here rather than by the schema
+    // so the answer names the product ("Photo missing for Classic Brownie"), and
+    // so RETURN_PHOTO_REQUIRED=false can hold the rule off. After the name
+    // lookup, before anything is written.
+    const photos = resolveReturnLinePhotos({
+      lines: items.map((it) => ({ ...it, productName: nameById.get(it.productId)! })),
+      legacyAttachmentIds: attachmentIds,
+      required: process.env['RETURN_PHOTO_REQUIRED'] !== 'false',
+      strict: process.env['RETURN_PHOTO_PER_LINE'] === 'strict',
+    });
+    if (!photos.ok) {
+      res.status(photos.status).json({ error: photos.error, code: photos.code, ...(photos.details ? { details: photos.details } : {}) });
+      return;
+    }
+    const photoByProduct = new Map(photos.lines.map((l) => [l.productId, l.photoId]));
 
     // PRE-VALIDATE EVERY ROW BEFORE WRITING ANYTHING. One balance read covers the
     // whole return, and every offending line is reported together — previously the
@@ -292,19 +307,18 @@ router.post('/return', requireRole('super_admin', ...BRANCH_ROLES), idempotent('
       return;
     }
 
-    // THE PHOTO IS PROVEN USABLE BEFORE ANY STOCK MOVES. It is bound last, once
-    // the rows it belongs to exist — but a photo that turns out to be someone
-    // else's, already used, or swept away must stop the return here, while
-    // stopping is still free. Discovering it at bind time would leave units off
-    // the branch balance for a return the caller was told had failed.
+    // EVERY PHOTO IS PROVEN USABLE BEFORE ANY STOCK MOVES. Each is bound last,
+    // once the row it belongs to exists — but a photo that turns out to be
+    // someone else's, already used, or swept away must stop the return here,
+    // while stopping is still free. Discovering it at bind time would leave units
+    // off the branch balance for a return the caller was told had failed.
     await assertStagedAttachments({
       entity: 'branch_return',
-      attachmentIds,
+      attachmentIds: photos.lines.flatMap((l) => (l.photoId ? [l.photoId] : [])),
       actor: { uid: req.user!.uid },
     });
-    const photoId = attachmentIds[0] ?? null;
 
-    const committed: { id: string; productId: string; productName: string; qty: number }[] = [];
+    const committed: { id: string; productId: string; productName: string; qty: number; photoId: string | null }[] = [];
 
     for (const it of items) {
       const productName = nameById.get(it.productId)!;
@@ -334,7 +348,7 @@ router.post('/return', requireRole('super_admin', ...BRANCH_ROLES), idempotent('
         throw err;
       }
 
-      committed.push({ id: returnId, productId: it.productId, productName, qty: it.qty });
+      committed.push({ id: returnId, productId: it.productId, productName, qty: it.qty, photoId: photoByProduct.get(it.productId) ?? null });
     }
 
     // 2) Record the returns as PENDING so they land on Production's queue.
@@ -359,32 +373,40 @@ router.post('/return', requireRole('super_admin', ...BRANCH_ROLES), idempotent('
         business_date: businessDate,
         created_by: req.user!.uid,
         created_by_name: req.user!.email,
-        // One photo, cited by every product row of this submission.
-        photo_attachment_id: photoId,
+        // This product's own photo.
+        photo_attachment_id: c.photoId,
       })),
     );
     if (insertErr) throw insertErr;
 
-    // 2b) Bind the photo, which is what makes it immutable and takes it out of
-    //     reach of the staged-photo cleanup. `entity_id` can name one parent, so
-    //     it names the first row; the rest reach it through the column above.
+    // 2b) Bind each photo to its own row, which is what makes it immutable and
+    //     takes it out of reach of the staged-photo sweep.
     //
     //     A failure here is logged, not thrown. The stock has moved and the rows
     //     are written — the return HAPPENED — and answering 500 would have a
     //     client retry it or clean up a photo the rows now cite. The pre-check
     //     above leaves only a same-user double submit able to get here.
-    if (photoId) {
+    for (const c of committed) {
+      if (!c.photoId) continue;
       try {
         await bindAttachments({
           entity: 'branch_return',
-          entityId: committed[0].id,
-          attachmentIds: [photoId],
+          entityId: c.id,
+          attachmentIds: [c.photoId],
           actor: { uid: req.user!.uid },
         });
       } catch (bindErr) {
-        console.error(`[stock.return] return ${committed[0].id} saved but photo ${photoId} did not bind:`, bindErr);
+        console.error(`[stock.return] return ${c.id} saved but photo ${c.photoId} did not bind:`, bindErr);
       }
     }
+
+    // 2c) The Audit Trail: every line with the photo it was raised on.
+    await logAudit({
+      action: 'return_created',
+      adminId: req.user!.uid,
+      adminName: req.user!.email,
+      details: returnAuditDetails(branchName, businessDate, committed),
+    });
 
     // 3) Notify Production in real time — ONCE for the whole return. branchId
     // null: production_user has no branch claim, and the notifications RLS filters
@@ -419,6 +441,24 @@ router.post('/return', requireRole('super_admin', ...BRANCH_ROLES), idempotent('
 // the extra rows even if it could. Here `branchId` comes off the JWT for a branch
 // role, exactly as it does for the rest of this router.
 // ───────────────────────────────────────────────────────────────────────────────
+
+// GET /api/stock/returns/summary — the branch's own returns, this business month
+// to date (1st → today), by status. Same branch rule as the list below: a branch
+// role is pinned to the branch on its token (a `branchId` it sends is ignored),
+// super_admin names one. Production's all-branch view of the same figures is
+// GET /api/production-returns/summary.
+router.get('/returns/summary', requireRole('super_admin', ...BRANCH_ROLES), async (req: AuthRequest, res, next) => {
+  try {
+    const branchId = isBranchRole(req.user!.role)
+      ? req.user!.branchId
+      : ((req.query['branchId'] as string | undefined) ?? null);
+    if (!branchId) { res.status(400).json({ error: 'Branch context required' }); return; }
+    if (!UUID_RE.test(branchId)) { res.status(400).json({ error: 'branchId must be a uuid' }); return; }
+    res.json(await getMonthlyReturnsSummary({ branchId }));
+  } catch (err) {
+    next(err);
+  }
+});
 
 // GET /api/stock/returns?days=N&from=&to=&productId=&status=&search=&limit=&offset=
 // — the branch's returns, most recent first.
@@ -478,6 +518,7 @@ router.put(
         branchId: isBranchRole(req.user!.role) ? req.user!.branchId : null,
         qty,
         ...(reason !== undefined ? { reason } : {}),
+        actor: { uid: req.user!.uid, email: req.user!.email },
       });
       res.json(updated);
     } catch (err) {

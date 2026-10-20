@@ -44,4 +44,5 @@ export function dbFor(module: string): Db {
 
 export { getPrisma, disconnectPrisma } from './prisma';
 export { DbError } from './types';
+export { WhereClause } from './where';
 export type { Db, DbResult, Executor, QueryBuilder } from './types';

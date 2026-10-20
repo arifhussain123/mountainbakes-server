@@ -281,7 +281,7 @@ export type attachmentsWhereInput = {
   bound_at?: Prisma.DateTimeNullableFilter<"attachments"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"attachments"> | Date | string
   users?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
-  production_returns?: Prisma.Production_returnsListRelationFilter
+  production_returns?: Prisma.XOR<Prisma.Production_returnsNullableScalarRelationFilter, Prisma.production_returnsWhereInput> | null
 }
 
 export type attachmentsOrderByWithRelationInput = {
@@ -298,7 +298,7 @@ export type attachmentsOrderByWithRelationInput = {
   bound_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   users?: Prisma.usersOrderByWithRelationInput
-  production_returns?: Prisma.production_returnsOrderByRelationAggregateInput
+  production_returns?: Prisma.production_returnsOrderByWithRelationInput
 }
 
 export type attachmentsWhereUniqueInput = Prisma.AtLeast<{
@@ -318,7 +318,7 @@ export type attachmentsWhereUniqueInput = Prisma.AtLeast<{
   bound_at?: Prisma.DateTimeNullableFilter<"attachments"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"attachments"> | Date | string
   users?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
-  production_returns?: Prisma.Production_returnsListRelationFilter
+  production_returns?: Prisma.XOR<Prisma.Production_returnsNullableScalarRelationFilter, Prisma.production_returnsWhereInput> | null
 }, "id" | "storage_path">
 
 export type attachmentsOrderByWithAggregationInput = {
@@ -372,7 +372,7 @@ export type attachmentsCreateInput = {
   bound_at?: Date | string | null
   created_at?: Date | string
   users?: Prisma.usersCreateNestedOneWithoutAttachmentsInput
-  production_returns?: Prisma.production_returnsCreateNestedManyWithoutAttachmentsInput
+  production_returns?: Prisma.production_returnsCreateNestedOneWithoutAttachmentsInput
 }
 
 export type attachmentsUncheckedCreateInput = {
@@ -388,7 +388,7 @@ export type attachmentsUncheckedCreateInput = {
   uploaded_by_name?: string | null
   bound_at?: Date | string | null
   created_at?: Date | string
-  production_returns?: Prisma.production_returnsUncheckedCreateNestedManyWithoutAttachmentsInput
+  production_returns?: Prisma.production_returnsUncheckedCreateNestedOneWithoutAttachmentsInput
 }
 
 export type attachmentsUpdateInput = {
@@ -404,7 +404,7 @@ export type attachmentsUpdateInput = {
   bound_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.usersUpdateOneWithoutAttachmentsNestedInput
-  production_returns?: Prisma.production_returnsUpdateManyWithoutAttachmentsNestedInput
+  production_returns?: Prisma.production_returnsUpdateOneWithoutAttachmentsNestedInput
 }
 
 export type attachmentsUncheckedUpdateInput = {
@@ -420,7 +420,7 @@ export type attachmentsUncheckedUpdateInput = {
   uploaded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bound_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  production_returns?: Prisma.production_returnsUncheckedUpdateManyWithoutAttachmentsNestedInput
+  production_returns?: Prisma.production_returnsUncheckedUpdateOneWithoutAttachmentsNestedInput
 }
 
 export type attachmentsCreateManyInput = {
@@ -721,7 +721,7 @@ export type attachmentsCreateWithoutUsersInput = {
   uploaded_by_name?: string | null
   bound_at?: Date | string | null
   created_at?: Date | string
-  production_returns?: Prisma.production_returnsCreateNestedManyWithoutAttachmentsInput
+  production_returns?: Prisma.production_returnsCreateNestedOneWithoutAttachmentsInput
 }
 
 export type attachmentsUncheckedCreateWithoutUsersInput = {
@@ -736,7 +736,7 @@ export type attachmentsUncheckedCreateWithoutUsersInput = {
   uploaded_by_name?: string | null
   bound_at?: Date | string | null
   created_at?: Date | string
-  production_returns?: Prisma.production_returnsUncheckedCreateNestedManyWithoutAttachmentsInput
+  production_returns?: Prisma.production_returnsUncheckedCreateNestedOneWithoutAttachmentsInput
 }
 
 export type attachmentsCreateOrConnectWithoutUsersInput = {
@@ -809,7 +809,7 @@ export type attachmentsUpdateWithoutUsersInput = {
   uploaded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bound_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  production_returns?: Prisma.production_returnsUpdateManyWithoutAttachmentsNestedInput
+  production_returns?: Prisma.production_returnsUpdateOneWithoutAttachmentsNestedInput
 }
 
 export type attachmentsUncheckedUpdateWithoutUsersInput = {
@@ -824,7 +824,7 @@ export type attachmentsUncheckedUpdateWithoutUsersInput = {
   uploaded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bound_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  production_returns?: Prisma.production_returnsUncheckedUpdateManyWithoutAttachmentsNestedInput
+  production_returns?: Prisma.production_returnsUncheckedUpdateOneWithoutAttachmentsNestedInput
 }
 
 export type attachmentsUncheckedUpdateManyWithoutUsersInput = {
@@ -842,35 +842,6 @@ export type attachmentsUncheckedUpdateManyWithoutUsersInput = {
 }
 
 
-/**
- * Count Type AttachmentsCountOutputType
- */
-
-export type AttachmentsCountOutputType = {
-  production_returns: number
-}
-
-export type AttachmentsCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  production_returns?: boolean | AttachmentsCountOutputTypeCountProduction_returnsArgs
-}
-
-/**
- * AttachmentsCountOutputType without action
- */
-export type AttachmentsCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the AttachmentsCountOutputType
-   */
-  select?: Prisma.AttachmentsCountOutputTypeSelect<ExtArgs> | null
-}
-
-/**
- * AttachmentsCountOutputType without action
- */
-export type AttachmentsCountOutputTypeCountProduction_returnsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.production_returnsWhereInput
-}
-
 
 export type attachmentsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -887,7 +858,6 @@ export type attachmentsSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   created_at?: boolean
   users?: boolean | Prisma.attachments$usersArgs<ExtArgs>
   production_returns?: boolean | Prisma.attachments$production_returnsArgs<ExtArgs>
-  _count?: boolean | Prisma.AttachmentsCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["attachments"]>
 
 export type attachmentsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -941,7 +911,6 @@ export type attachmentsOmit<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type attachmentsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | Prisma.attachments$usersArgs<ExtArgs>
   production_returns?: boolean | Prisma.attachments$production_returnsArgs<ExtArgs>
-  _count?: boolean | Prisma.AttachmentsCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type attachmentsIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | Prisma.attachments$usersArgs<ExtArgs>
@@ -954,7 +923,7 @@ export type $attachmentsPayload<ExtArgs extends runtime.Types.Extensions.Interna
   name: "attachments"
   objects: {
     users: Prisma.$usersPayload<ExtArgs> | null
-    production_returns: Prisma.$production_returnsPayload<ExtArgs>[]
+    production_returns: Prisma.$production_returnsPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1364,7 +1333,7 @@ readonly fields: attachmentsFieldRefs;
 export interface Prisma__attachmentsClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   users<T extends Prisma.attachments$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.attachments$usersArgs<ExtArgs>>): Prisma.Prisma__usersClient<runtime.Types.Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  production_returns<T extends Prisma.attachments$production_returnsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.attachments$production_returnsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$production_returnsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  production_returns<T extends Prisma.attachments$production_returnsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.attachments$production_returnsArgs<ExtArgs>>): Prisma.Prisma__production_returnsClient<runtime.Types.Result.GetResult<Prisma.$production_returnsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1842,11 +1811,6 @@ export type attachments$production_returnsArgs<ExtArgs extends runtime.Types.Ext
    */
   include?: Prisma.production_returnsInclude<ExtArgs> | null
   where?: Prisma.production_returnsWhereInput
-  orderBy?: Prisma.production_returnsOrderByWithRelationInput | Prisma.production_returnsOrderByWithRelationInput[]
-  cursor?: Prisma.production_returnsWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.Production_returnsScalarFieldEnum | Prisma.Production_returnsScalarFieldEnum[]
 }
 
 /**

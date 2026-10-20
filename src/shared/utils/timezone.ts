@@ -124,6 +124,11 @@ export function businessDaysAgoStr(n: number, now: Date = new Date()): string {
   return addDaysStr(businessDateStr(now), -n);
 }
 
+/** 'YYYY-MM-01' of the business date's calendar month — the start of a month-to-date window that rolls to day 1 on its own once the month turns over. */
+export function businessMonthStartStr(now: Date = new Date()): string {
+  return `${businessDateStr(now).slice(0, 7)}-01`;
+}
+
 /** UTC ISO bounds for a named period anchored on the *business* date. Week starts Monday. */
 export function businessRange(
   period: 'daily' | 'weekly' | 'monthly' | 'yearly',

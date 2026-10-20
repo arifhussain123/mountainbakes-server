@@ -243,8 +243,8 @@ async function dailyCashBook(
     { key: 'debit', label: 'Debit', format: 'money', align: 'right', width: 14 },
     { key: 'credit', label: 'Credit', format: 'money', align: 'right', width: 14 },
     { key: 'balance', label: 'Balance', format: 'money', align: 'right', width: 16 },
-    { key: 'status', label: 'Status', width: 12 },
-    { key: 'approvedByName', label: 'Approved By', width: 22 },
+    { key: 'status', label: 'Status', width: 12, pdfOmit: true, excelOmit: true },
+    { key: 'approvedByName', label: 'Approved By', width: 22, pdfOmit: true, excelOmit: true },
   ];
 
   const totalDebit = round2(entries.reduce((s, e) => s + e.debit, 0));

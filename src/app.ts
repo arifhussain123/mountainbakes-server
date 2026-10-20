@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import { setupRoutes } from './routes/index';
 import { errorHandler } from './middleware/errorHandler';
 import { dbFor } from './db';
+import { router as whatsappWebhookRouter } from './routes/whatsapp-webhook.routes';
 
 const db = dbFor('health');
 
@@ -34,6 +35,9 @@ app.use(cors({
   },
   credentials: true,
 }));
+// The WhatsApp webhook reads its body raw — Meta signs the exact bytes — so it
+// is mounted ahead of the JSON parser, which would otherwise consume them.
+app.use('/api/whatsapp/webhook', whatsappWebhookRouter);
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(rateLimit({

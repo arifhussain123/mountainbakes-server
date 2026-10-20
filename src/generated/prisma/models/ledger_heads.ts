@@ -276,6 +276,7 @@ export type ledger_headsWhereInput = {
   ledger_entries?: Prisma.Ledger_entriesListRelationFilter
   users?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   partner_expenses?: Prisma.Partner_expensesListRelationFilter
+  supplier_payments?: Prisma.Supplier_paymentsListRelationFilter
 }
 
 export type ledger_headsOrderByWithRelationInput = {
@@ -295,6 +296,7 @@ export type ledger_headsOrderByWithRelationInput = {
   ledger_entries?: Prisma.ledger_entriesOrderByRelationAggregateInput
   users?: Prisma.usersOrderByWithRelationInput
   partner_expenses?: Prisma.partner_expensesOrderByRelationAggregateInput
+  supplier_payments?: Prisma.supplier_paymentsOrderByRelationAggregateInput
 }
 
 export type ledger_headsWhereUniqueInput = Prisma.AtLeast<{
@@ -317,6 +319,7 @@ export type ledger_headsWhereUniqueInput = Prisma.AtLeast<{
   ledger_entries?: Prisma.Ledger_entriesListRelationFilter
   users?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   partner_expenses?: Prisma.Partner_expensesListRelationFilter
+  supplier_payments?: Prisma.Supplier_paymentsListRelationFilter
 }, "id" | "code">
 
 export type ledger_headsOrderByWithAggregationInput = {
@@ -373,6 +376,7 @@ export type ledger_headsCreateInput = {
   ledger_entries?: Prisma.ledger_entriesCreateNestedManyWithoutLedger_headsInput
   users?: Prisma.usersCreateNestedOneWithoutLedger_headsInput
   partner_expenses?: Prisma.partner_expensesCreateNestedManyWithoutLedger_headsInput
+  supplier_payments?: Prisma.supplier_paymentsCreateNestedManyWithoutLedger_headsInput
 }
 
 export type ledger_headsUncheckedCreateInput = {
@@ -391,6 +395,7 @@ export type ledger_headsUncheckedCreateInput = {
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutLedger_headsInput
   ledger_entries?: Prisma.ledger_entriesUncheckedCreateNestedManyWithoutLedger_headsInput
   partner_expenses?: Prisma.partner_expensesUncheckedCreateNestedManyWithoutLedger_headsInput
+  supplier_payments?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutLedger_headsInput
 }
 
 export type ledger_headsUpdateInput = {
@@ -409,6 +414,7 @@ export type ledger_headsUpdateInput = {
   ledger_entries?: Prisma.ledger_entriesUpdateManyWithoutLedger_headsNestedInput
   users?: Prisma.usersUpdateOneWithoutLedger_headsNestedInput
   partner_expenses?: Prisma.partner_expensesUpdateManyWithoutLedger_headsNestedInput
+  supplier_payments?: Prisma.supplier_paymentsUpdateManyWithoutLedger_headsNestedInput
 }
 
 export type ledger_headsUncheckedUpdateInput = {
@@ -427,6 +433,7 @@ export type ledger_headsUncheckedUpdateInput = {
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutLedger_headsNestedInput
   ledger_entries?: Prisma.ledger_entriesUncheckedUpdateManyWithoutLedger_headsNestedInput
   partner_expenses?: Prisma.partner_expensesUncheckedUpdateManyWithoutLedger_headsNestedInput
+  supplier_payments?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutLedger_headsNestedInput
 }
 
 export type ledger_headsCreateManyInput = {
@@ -632,6 +639,22 @@ export type ledger_headsUncheckedUpdateManyWithoutUsersNestedInput = {
   deleteMany?: Prisma.ledger_headsScalarWhereInput | Prisma.ledger_headsScalarWhereInput[]
 }
 
+export type ledger_headsCreateNestedOneWithoutSupplier_paymentsInput = {
+  create?: Prisma.XOR<Prisma.ledger_headsCreateWithoutSupplier_paymentsInput, Prisma.ledger_headsUncheckedCreateWithoutSupplier_paymentsInput>
+  connectOrCreate?: Prisma.ledger_headsCreateOrConnectWithoutSupplier_paymentsInput
+  connect?: Prisma.ledger_headsWhereUniqueInput
+}
+
+export type ledger_headsUpdateOneWithoutSupplier_paymentsNestedInput = {
+  create?: Prisma.XOR<Prisma.ledger_headsCreateWithoutSupplier_paymentsInput, Prisma.ledger_headsUncheckedCreateWithoutSupplier_paymentsInput>
+  connectOrCreate?: Prisma.ledger_headsCreateOrConnectWithoutSupplier_paymentsInput
+  upsert?: Prisma.ledger_headsUpsertWithoutSupplier_paymentsInput
+  disconnect?: Prisma.ledger_headsWhereInput | boolean
+  delete?: Prisma.ledger_headsWhereInput | boolean
+  connect?: Prisma.ledger_headsWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ledger_headsUpdateToOneWithWhereWithoutSupplier_paymentsInput, Prisma.ledger_headsUpdateWithoutSupplier_paymentsInput>, Prisma.ledger_headsUncheckedUpdateWithoutSupplier_paymentsInput>
+}
+
 export type ledger_headsCreateWithoutFinance_transactionsInput = {
   id?: string
   code: string
@@ -647,6 +670,7 @@ export type ledger_headsCreateWithoutFinance_transactionsInput = {
   ledger_entries?: Prisma.ledger_entriesCreateNestedManyWithoutLedger_headsInput
   users?: Prisma.usersCreateNestedOneWithoutLedger_headsInput
   partner_expenses?: Prisma.partner_expensesCreateNestedManyWithoutLedger_headsInput
+  supplier_payments?: Prisma.supplier_paymentsCreateNestedManyWithoutLedger_headsInput
 }
 
 export type ledger_headsUncheckedCreateWithoutFinance_transactionsInput = {
@@ -664,6 +688,7 @@ export type ledger_headsUncheckedCreateWithoutFinance_transactionsInput = {
   updated_at?: Date | string
   ledger_entries?: Prisma.ledger_entriesUncheckedCreateNestedManyWithoutLedger_headsInput
   partner_expenses?: Prisma.partner_expensesUncheckedCreateNestedManyWithoutLedger_headsInput
+  supplier_payments?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutLedger_headsInput
 }
 
 export type ledger_headsCreateOrConnectWithoutFinance_transactionsInput = {
@@ -697,6 +722,7 @@ export type ledger_headsUpdateWithoutFinance_transactionsInput = {
   ledger_entries?: Prisma.ledger_entriesUpdateManyWithoutLedger_headsNestedInput
   users?: Prisma.usersUpdateOneWithoutLedger_headsNestedInput
   partner_expenses?: Prisma.partner_expensesUpdateManyWithoutLedger_headsNestedInput
+  supplier_payments?: Prisma.supplier_paymentsUpdateManyWithoutLedger_headsNestedInput
 }
 
 export type ledger_headsUncheckedUpdateWithoutFinance_transactionsInput = {
@@ -714,6 +740,7 @@ export type ledger_headsUncheckedUpdateWithoutFinance_transactionsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ledger_entries?: Prisma.ledger_entriesUncheckedUpdateManyWithoutLedger_headsNestedInput
   partner_expenses?: Prisma.partner_expensesUncheckedUpdateManyWithoutLedger_headsNestedInput
+  supplier_payments?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutLedger_headsNestedInput
 }
 
 export type ledger_headsCreateWithoutLedger_entriesInput = {
@@ -731,6 +758,7 @@ export type ledger_headsCreateWithoutLedger_entriesInput = {
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutLedger_headsInput
   users?: Prisma.usersCreateNestedOneWithoutLedger_headsInput
   partner_expenses?: Prisma.partner_expensesCreateNestedManyWithoutLedger_headsInput
+  supplier_payments?: Prisma.supplier_paymentsCreateNestedManyWithoutLedger_headsInput
 }
 
 export type ledger_headsUncheckedCreateWithoutLedger_entriesInput = {
@@ -748,6 +776,7 @@ export type ledger_headsUncheckedCreateWithoutLedger_entriesInput = {
   updated_at?: Date | string
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutLedger_headsInput
   partner_expenses?: Prisma.partner_expensesUncheckedCreateNestedManyWithoutLedger_headsInput
+  supplier_payments?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutLedger_headsInput
 }
 
 export type ledger_headsCreateOrConnectWithoutLedger_entriesInput = {
@@ -781,6 +810,7 @@ export type ledger_headsUpdateWithoutLedger_entriesInput = {
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutLedger_headsNestedInput
   users?: Prisma.usersUpdateOneWithoutLedger_headsNestedInput
   partner_expenses?: Prisma.partner_expensesUpdateManyWithoutLedger_headsNestedInput
+  supplier_payments?: Prisma.supplier_paymentsUpdateManyWithoutLedger_headsNestedInput
 }
 
 export type ledger_headsUncheckedUpdateWithoutLedger_entriesInput = {
@@ -798,6 +828,7 @@ export type ledger_headsUncheckedUpdateWithoutLedger_entriesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutLedger_headsNestedInput
   partner_expenses?: Prisma.partner_expensesUncheckedUpdateManyWithoutLedger_headsNestedInput
+  supplier_payments?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutLedger_headsNestedInput
 }
 
 export type ledger_headsCreateWithoutPartner_expensesInput = {
@@ -815,6 +846,7 @@ export type ledger_headsCreateWithoutPartner_expensesInput = {
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutLedger_headsInput
   ledger_entries?: Prisma.ledger_entriesCreateNestedManyWithoutLedger_headsInput
   users?: Prisma.usersCreateNestedOneWithoutLedger_headsInput
+  supplier_payments?: Prisma.supplier_paymentsCreateNestedManyWithoutLedger_headsInput
 }
 
 export type ledger_headsUncheckedCreateWithoutPartner_expensesInput = {
@@ -832,6 +864,7 @@ export type ledger_headsUncheckedCreateWithoutPartner_expensesInput = {
   updated_at?: Date | string
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutLedger_headsInput
   ledger_entries?: Prisma.ledger_entriesUncheckedCreateNestedManyWithoutLedger_headsInput
+  supplier_payments?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutLedger_headsInput
 }
 
 export type ledger_headsCreateOrConnectWithoutPartner_expensesInput = {
@@ -865,6 +898,7 @@ export type ledger_headsUpdateWithoutPartner_expensesInput = {
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutLedger_headsNestedInput
   ledger_entries?: Prisma.ledger_entriesUpdateManyWithoutLedger_headsNestedInput
   users?: Prisma.usersUpdateOneWithoutLedger_headsNestedInput
+  supplier_payments?: Prisma.supplier_paymentsUpdateManyWithoutLedger_headsNestedInput
 }
 
 export type ledger_headsUncheckedUpdateWithoutPartner_expensesInput = {
@@ -882,6 +916,7 @@ export type ledger_headsUncheckedUpdateWithoutPartner_expensesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutLedger_headsNestedInput
   ledger_entries?: Prisma.ledger_entriesUncheckedUpdateManyWithoutLedger_headsNestedInput
+  supplier_payments?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutLedger_headsNestedInput
 }
 
 export type ledger_headsCreateWithoutUsersInput = {
@@ -899,6 +934,7 @@ export type ledger_headsCreateWithoutUsersInput = {
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutLedger_headsInput
   ledger_entries?: Prisma.ledger_entriesCreateNestedManyWithoutLedger_headsInput
   partner_expenses?: Prisma.partner_expensesCreateNestedManyWithoutLedger_headsInput
+  supplier_payments?: Prisma.supplier_paymentsCreateNestedManyWithoutLedger_headsInput
 }
 
 export type ledger_headsUncheckedCreateWithoutUsersInput = {
@@ -916,6 +952,7 @@ export type ledger_headsUncheckedCreateWithoutUsersInput = {
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutLedger_headsInput
   ledger_entries?: Prisma.ledger_entriesUncheckedCreateNestedManyWithoutLedger_headsInput
   partner_expenses?: Prisma.partner_expensesUncheckedCreateNestedManyWithoutLedger_headsInput
+  supplier_payments?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutLedger_headsInput
 }
 
 export type ledger_headsCreateOrConnectWithoutUsersInput = {
@@ -962,6 +999,94 @@ export type ledger_headsScalarWhereInput = {
   updated_at?: Prisma.DateTimeFilter<"ledger_heads"> | Date | string
 }
 
+export type ledger_headsCreateWithoutSupplier_paymentsInput = {
+  id?: string
+  code: string
+  name: string
+  type: $Enums.ledger_head_type
+  description?: string | null
+  group_name?: string | null
+  is_active?: boolean
+  is_system?: boolean
+  sort_order?: number
+  created_at?: Date | string
+  updated_at?: Date | string
+  finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutLedger_headsInput
+  ledger_entries?: Prisma.ledger_entriesCreateNestedManyWithoutLedger_headsInput
+  users?: Prisma.usersCreateNestedOneWithoutLedger_headsInput
+  partner_expenses?: Prisma.partner_expensesCreateNestedManyWithoutLedger_headsInput
+}
+
+export type ledger_headsUncheckedCreateWithoutSupplier_paymentsInput = {
+  id?: string
+  code: string
+  name: string
+  type: $Enums.ledger_head_type
+  description?: string | null
+  group_name?: string | null
+  is_active?: boolean
+  is_system?: boolean
+  sort_order?: number
+  created_by?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutLedger_headsInput
+  ledger_entries?: Prisma.ledger_entriesUncheckedCreateNestedManyWithoutLedger_headsInput
+  partner_expenses?: Prisma.partner_expensesUncheckedCreateNestedManyWithoutLedger_headsInput
+}
+
+export type ledger_headsCreateOrConnectWithoutSupplier_paymentsInput = {
+  where: Prisma.ledger_headsWhereUniqueInput
+  create: Prisma.XOR<Prisma.ledger_headsCreateWithoutSupplier_paymentsInput, Prisma.ledger_headsUncheckedCreateWithoutSupplier_paymentsInput>
+}
+
+export type ledger_headsUpsertWithoutSupplier_paymentsInput = {
+  update: Prisma.XOR<Prisma.ledger_headsUpdateWithoutSupplier_paymentsInput, Prisma.ledger_headsUncheckedUpdateWithoutSupplier_paymentsInput>
+  create: Prisma.XOR<Prisma.ledger_headsCreateWithoutSupplier_paymentsInput, Prisma.ledger_headsUncheckedCreateWithoutSupplier_paymentsInput>
+  where?: Prisma.ledger_headsWhereInput
+}
+
+export type ledger_headsUpdateToOneWithWhereWithoutSupplier_paymentsInput = {
+  where?: Prisma.ledger_headsWhereInput
+  data: Prisma.XOR<Prisma.ledger_headsUpdateWithoutSupplier_paymentsInput, Prisma.ledger_headsUncheckedUpdateWithoutSupplier_paymentsInput>
+}
+
+export type ledger_headsUpdateWithoutSupplier_paymentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.Enumledger_head_typeFieldUpdateOperationsInput | $Enums.ledger_head_type
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  group_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sort_order?: Prisma.IntFieldUpdateOperationsInput | number
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutLedger_headsNestedInput
+  ledger_entries?: Prisma.ledger_entriesUpdateManyWithoutLedger_headsNestedInput
+  users?: Prisma.usersUpdateOneWithoutLedger_headsNestedInput
+  partner_expenses?: Prisma.partner_expensesUpdateManyWithoutLedger_headsNestedInput
+}
+
+export type ledger_headsUncheckedUpdateWithoutSupplier_paymentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.Enumledger_head_typeFieldUpdateOperationsInput | $Enums.ledger_head_type
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  group_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  is_system?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  sort_order?: Prisma.IntFieldUpdateOperationsInput | number
+  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutLedger_headsNestedInput
+  ledger_entries?: Prisma.ledger_entriesUncheckedUpdateManyWithoutLedger_headsNestedInput
+  partner_expenses?: Prisma.partner_expensesUncheckedUpdateManyWithoutLedger_headsNestedInput
+}
+
 export type ledger_headsCreateManyUsersInput = {
   id?: string
   code: string
@@ -991,6 +1116,7 @@ export type ledger_headsUpdateWithoutUsersInput = {
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutLedger_headsNestedInput
   ledger_entries?: Prisma.ledger_entriesUpdateManyWithoutLedger_headsNestedInput
   partner_expenses?: Prisma.partner_expensesUpdateManyWithoutLedger_headsNestedInput
+  supplier_payments?: Prisma.supplier_paymentsUpdateManyWithoutLedger_headsNestedInput
 }
 
 export type ledger_headsUncheckedUpdateWithoutUsersInput = {
@@ -1008,6 +1134,7 @@ export type ledger_headsUncheckedUpdateWithoutUsersInput = {
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutLedger_headsNestedInput
   ledger_entries?: Prisma.ledger_entriesUncheckedUpdateManyWithoutLedger_headsNestedInput
   partner_expenses?: Prisma.partner_expensesUncheckedUpdateManyWithoutLedger_headsNestedInput
+  supplier_payments?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutLedger_headsNestedInput
 }
 
 export type ledger_headsUncheckedUpdateManyWithoutUsersInput = {
@@ -1033,12 +1160,14 @@ export type Ledger_headsCountOutputType = {
   finance_transactions: number
   ledger_entries: number
   partner_expenses: number
+  supplier_payments: number
 }
 
 export type Ledger_headsCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   finance_transactions?: boolean | Ledger_headsCountOutputTypeCountFinance_transactionsArgs
   ledger_entries?: boolean | Ledger_headsCountOutputTypeCountLedger_entriesArgs
   partner_expenses?: boolean | Ledger_headsCountOutputTypeCountPartner_expensesArgs
+  supplier_payments?: boolean | Ledger_headsCountOutputTypeCountSupplier_paymentsArgs
 }
 
 /**
@@ -1072,6 +1201,13 @@ export type Ledger_headsCountOutputTypeCountPartner_expensesArgs<ExtArgs extends
   where?: Prisma.partner_expensesWhereInput
 }
 
+/**
+ * Ledger_headsCountOutputType without action
+ */
+export type Ledger_headsCountOutputTypeCountSupplier_paymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.supplier_paymentsWhereInput
+}
+
 
 export type ledger_headsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1090,6 +1226,7 @@ export type ledger_headsSelect<ExtArgs extends runtime.Types.Extensions.Internal
   ledger_entries?: boolean | Prisma.ledger_heads$ledger_entriesArgs<ExtArgs>
   users?: boolean | Prisma.ledger_heads$usersArgs<ExtArgs>
   partner_expenses?: boolean | Prisma.ledger_heads$partner_expensesArgs<ExtArgs>
+  supplier_payments?: boolean | Prisma.ledger_heads$supplier_paymentsArgs<ExtArgs>
   _count?: boolean | Prisma.Ledger_headsCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["ledger_heads"]>
 
@@ -1146,6 +1283,7 @@ export type ledger_headsInclude<ExtArgs extends runtime.Types.Extensions.Interna
   ledger_entries?: boolean | Prisma.ledger_heads$ledger_entriesArgs<ExtArgs>
   users?: boolean | Prisma.ledger_heads$usersArgs<ExtArgs>
   partner_expenses?: boolean | Prisma.ledger_heads$partner_expensesArgs<ExtArgs>
+  supplier_payments?: boolean | Prisma.ledger_heads$supplier_paymentsArgs<ExtArgs>
   _count?: boolean | Prisma.Ledger_headsCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ledger_headsIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1162,6 +1300,7 @@ export type $ledger_headsPayload<ExtArgs extends runtime.Types.Extensions.Intern
     ledger_entries: Prisma.$ledger_entriesPayload<ExtArgs>[]
     users: Prisma.$usersPayload<ExtArgs> | null
     partner_expenses: Prisma.$partner_expensesPayload<ExtArgs>[]
+    supplier_payments: Prisma.$supplier_paymentsPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1574,6 +1713,7 @@ export interface Prisma__ledger_headsClient<T, Null = never, ExtArgs extends run
   ledger_entries<T extends Prisma.ledger_heads$ledger_entriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ledger_heads$ledger_entriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ledger_entriesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   users<T extends Prisma.ledger_heads$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ledger_heads$usersArgs<ExtArgs>>): Prisma.Prisma__usersClient<runtime.Types.Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   partner_expenses<T extends Prisma.ledger_heads$partner_expensesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ledger_heads$partner_expensesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$partner_expensesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  supplier_payments<T extends Prisma.ledger_heads$supplier_paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ledger_heads$supplier_paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$supplier_paymentsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2104,6 +2244,30 @@ export type ledger_heads$partner_expensesArgs<ExtArgs extends runtime.Types.Exte
   take?: number
   skip?: number
   distinct?: Prisma.Partner_expensesScalarFieldEnum | Prisma.Partner_expensesScalarFieldEnum[]
+}
+
+/**
+ * ledger_heads.supplier_payments
+ */
+export type ledger_heads$supplier_paymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the supplier_payments
+   */
+  select?: Prisma.supplier_paymentsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the supplier_payments
+   */
+  omit?: Prisma.supplier_paymentsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.supplier_paymentsInclude<ExtArgs> | null
+  where?: Prisma.supplier_paymentsWhereInput
+  orderBy?: Prisma.supplier_paymentsOrderByWithRelationInput | Prisma.supplier_paymentsOrderByWithRelationInput[]
+  cursor?: Prisma.supplier_paymentsWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Supplier_paymentsScalarFieldEnum | Prisma.Supplier_paymentsScalarFieldEnum[]
 }
 
 /**

@@ -12,6 +12,7 @@ import {
   isBranchRole,
 } from '../shared';
 import { notify } from '../services/push.service';
+import { getMonthlyDiscountSummary } from '../services/discount-summary.service';
 import { rowToApi } from '../utils/case';
 
 const db = dbFor('branch-discounts');
@@ -88,6 +89,24 @@ const BRANCH_DISCOUNT_SORTABLE_COLUMNS: Record<string, string> = {
   reason: 'reason',
   status: 'status',
 };
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// GET /api/branch-discounts/summary — this branch's claims, this business month
+// to date (1st → today), by status. Same branch rule as every route here: a
+// branch role is pinned to its token's branch (a `branchId` it sends is
+// ignored), super_admin names one. Every branch at once is
+// GET /api/production-discounts/summary.
+router.get('/summary', async (req: AuthRequest, res, next) => {
+  try {
+    const branchId = scopeBranch(req);
+    if (!branchId) { res.status(400).json({ error: 'Branch context required' }); return; }
+    if (!UUID_RE.test(branchId)) { res.status(400).json({ error: 'branchId must be a uuid' }); return; }
+    res.json(await getMonthlyDiscountSummary({ branchId }));
+  } catch (err) {
+    next(err);
+  }
+});
 
 // GET /api/branch-discounts?days=N&status=&limit=&offset= — this branch's
 // claims, most recent first.

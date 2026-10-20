@@ -11,20 +11,20 @@ datasource db {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model attachments {
-  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   entity             attachment_entity
-  entity_id          String?              @db.Uuid
-  storage_path       String               @unique
+  entity_id          String?             @db.Uuid
+  storage_path       String              @unique
   mime_type          String
   size_bytes         Int
   width              Int?
   height             Int?
-  uploaded_by        String?              @db.Uuid
+  uploaded_by        String?             @db.Uuid
   uploaded_by_name   String?
-  bound_at           DateTime?            @db.Timestamptz(6)
-  created_at         DateTime             @default(now()) @db.Timestamptz(6)
-  users              users?               @relation(fields: [uploaded_by], references: [id], onUpdate: NoAction)
-  production_returns production_returns[]
+  bound_at           DateTime?           @db.Timestamptz(6)
+  created_at         DateTime            @default(now()) @db.Timestamptz(6)
+  users              users?              @relation(fields: [uploaded_by], references: [id], onUpdate: NoAction)
+  production_returns production_returns?
 
   @@index([entity, entity_id], map: "attachments_entity_idx", where: raw("(entity_id IS NOT NULL)"))
   @@index([created_at], map: "attachments_orphan_idx", where: raw("(entity_id IS NULL)"))
@@ -1188,6 +1188,7 @@ model ledger_heads {
   ledger_entries       ledger_entries[]
   users                users?                 @relation(fields: [created_by], references: [id], onUpdate: NoAction)
   partner_expenses     partner_expenses[]
+  supplier_payments    supplier_payments[]
 
   @@index([type, sort_order, name], map: "ledger_heads_type_idx", where: raw("is_active"))
 }
@@ -1689,7 +1690,8 @@ model production_returns {
   reviewed_at                                 DateTime?                     @db.Timestamptz(6)
   disposition                                 production_return_disposition @default(saleable)
   disposition_note                            String?
-  photo_attachment_id                         String?                       @db.Uuid
+  photo_attachment_id                         String?                       @unique(map: "production_returns_photo_one_line", where: raw("((photo_attachment_id IS NOT NULL) AND (NOT legacy_single_photo))")) @db.Uuid
+  legacy_single_photo                         Boolean                       @default(false)
   branches                                    branches                      @relation(fields: [branch_id], references: [id], onUpdate: NoAction)
   users_production_returns_created_byTousers  users?                        @relation("production_returns_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
   attachments                                 attachments?                  @relation(fields: [photo_attachment_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -2221,122 +2223,144 @@ model user_credentials {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model users {
-  id                                                                   String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email                                                                String                     @unique
+  id                                                                   String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                                                                String                       @unique
   display_name                                                         String?
   phone                                                                String?
-  username                                                             String?                    @unique
+  username                                                             String?                      @unique
   role                                                                 user_role
-  branch_id                                                            String?                    @db.Uuid
+  branch_id                                                            String?                      @db.Uuid
   branch_name                                                          String?
-  status                                                               user_status                @default(active)
-  last_login_at                                                        DateTime?                  @db.Timestamptz(6)
-  must_change_password                                                 Boolean                    @default(false)
-  last_password_reset                                                  DateTime?                  @db.Timestamptz(6)
-  password_reset_by                                                    String?                    @db.Uuid
+  status                                                               user_status                  @default(active)
+  last_login_at                                                        DateTime?                    @db.Timestamptz(6)
+  must_change_password                                                 Boolean                      @default(false)
+  last_password_reset                                                  DateTime?                    @db.Timestamptz(6)
+  password_reset_by                                                    String?                      @db.Uuid
   password_reset_by_name                                               String?
-  created_at                                                           DateTime                   @default(now()) @db.Timestamptz(6)
-  updated_at                                                           DateTime                   @default(now()) @db.Timestamptz(6)
-  user_code                                                            String                     @unique @default(dbgenerated("next_user_number()"))
+  created_at                                                           DateTime                     @default(now()) @db.Timestamptz(6)
+  updated_at                                                           DateTime                     @default(now()) @db.Timestamptz(6)
+  user_code                                                            String                       @unique @default(dbgenerated("next_user_number()"))
   attachments                                                          attachments[]
-  audit_logs_audit_logs_admin_idTousers                                audit_logs[]               @relation("audit_logs_admin_idTousers")
-  audit_logs_audit_logs_target_user_idTousers                          audit_logs[]               @relation("audit_logs_target_user_idTousers")
+  audit_logs_audit_logs_admin_idTousers                                audit_logs[]                 @relation("audit_logs_admin_idTousers")
+  audit_logs_audit_logs_target_user_idTousers                          audit_logs[]                 @relation("audit_logs_target_user_idTousers")
   auth_sessions                                                        auth_sessions[]
   backup_jobs                                                          backup_jobs[]
-  branch_discounts_branch_discounts_created_byTousers                  branch_discounts[]         @relation("branch_discounts_created_byTousers")
-  branch_discounts_branch_discounts_reviewed_byTousers                 branch_discounts[]         @relation("branch_discounts_reviewed_byTousers")
+  branch_discounts_branch_discounts_created_byTousers                  branch_discounts[]           @relation("branch_discounts_created_byTousers")
+  branch_discounts_branch_discounts_reviewed_byTousers                 branch_discounts[]           @relation("branch_discounts_reviewed_byTousers")
   branch_locations                                                     branch_locations[]
-  branch_share_payments_branch_share_payments_approved_byTousers       branch_share_payments[]    @relation("branch_share_payments_approved_byTousers")
-  branch_share_payments_branch_share_payments_deleted_byTousers        branch_share_payments[]    @relation("branch_share_payments_deleted_byTousers")
-  branch_share_payments_branch_share_payments_requested_byTousers      branch_share_payments[]    @relation("branch_share_payments_requested_byTousers")
-  branches_branches_manager_idTousers                                  branches[]                 @relation("branches_manager_idTousers")
-  cash_transfers_cash_transfers_approved_byTousers                     cash_transfers[]           @relation("cash_transfers_approved_byTousers")
-  cash_transfers_cash_transfers_created_byTousers                      cash_transfers[]           @relation("cash_transfers_created_byTousers")
-  cash_transfers_cash_transfers_deleted_byTousers                      cash_transfers[]           @relation("cash_transfers_deleted_byTousers")
-  cash_transfers_cash_transfers_updated_byTousers                      cash_transfers[]           @relation("cash_transfers_updated_byTousers")
+  branch_share_payments_branch_share_payments_approved_byTousers       branch_share_payments[]      @relation("branch_share_payments_approved_byTousers")
+  branch_share_payments_branch_share_payments_deleted_byTousers        branch_share_payments[]      @relation("branch_share_payments_deleted_byTousers")
+  branch_share_payments_branch_share_payments_requested_byTousers      branch_share_payments[]      @relation("branch_share_payments_requested_byTousers")
+  branches_branches_manager_idTousers                                  branches[]                   @relation("branches_manager_idTousers")
+  cash_transfers_cash_transfers_approved_byTousers                     cash_transfers[]             @relation("cash_transfers_approved_byTousers")
+  cash_transfers_cash_transfers_created_byTousers                      cash_transfers[]             @relation("cash_transfers_created_byTousers")
+  cash_transfers_cash_transfers_deleted_byTousers                      cash_transfers[]             @relation("cash_transfers_deleted_byTousers")
+  cash_transfers_cash_transfers_updated_byTousers                      cash_transfers[]             @relation("cash_transfers_updated_byTousers")
   daily_sale_record_audits                                             daily_sale_record_audits[]
-  daily_sale_records_daily_sale_records_created_byTousers              daily_sale_records[]       @relation("daily_sale_records_created_byTousers")
-  daily_sale_records_daily_sale_records_fed_byTousers                  daily_sale_records[]       @relation("daily_sale_records_fed_byTousers")
-  daily_sale_records_daily_sale_records_locked_byTousers               daily_sale_records[]       @relation("daily_sale_records_locked_byTousers")
-  daily_sale_records_daily_sale_records_verified_byTousers             daily_sale_records[]       @relation("daily_sale_records_verified_byTousers")
-  employee_advances_employee_advances_approved_byTousers               employee_advances[]        @relation("employee_advances_approved_byTousers")
-  employee_advances_employee_advances_created_byTousers                employee_advances[]        @relation("employee_advances_created_byTousers")
-  employee_advances_employee_advances_deleted_byTousers                employee_advances[]        @relation("employee_advances_deleted_byTousers")
-  employee_resignations_employee_resignations_cancelled_byTousers      employee_resignations[]    @relation("employee_resignations_cancelled_byTousers")
-  employee_resignations_employee_resignations_submitted_byTousers      employee_resignations[]    @relation("employee_resignations_submitted_byTousers")
-  event_branch_demands_event_branch_demands_reviewed_byTousers         event_branch_demands[]     @relation("event_branch_demands_reviewed_byTousers")
-  event_branch_demands_event_branch_demands_submitted_byTousers        event_branch_demands[]     @relation("event_branch_demands_submitted_byTousers")
+  daily_sale_records_daily_sale_records_created_byTousers              daily_sale_records[]         @relation("daily_sale_records_created_byTousers")
+  daily_sale_records_daily_sale_records_fed_byTousers                  daily_sale_records[]         @relation("daily_sale_records_fed_byTousers")
+  daily_sale_records_daily_sale_records_locked_byTousers               daily_sale_records[]         @relation("daily_sale_records_locked_byTousers")
+  daily_sale_records_daily_sale_records_verified_byTousers             daily_sale_records[]         @relation("daily_sale_records_verified_byTousers")
+  employee_advances_employee_advances_approved_byTousers               employee_advances[]          @relation("employee_advances_approved_byTousers")
+  employee_advances_employee_advances_created_byTousers                employee_advances[]          @relation("employee_advances_created_byTousers")
+  employee_advances_employee_advances_deleted_byTousers                employee_advances[]          @relation("employee_advances_deleted_byTousers")
+  employee_resignations_employee_resignations_cancelled_byTousers      employee_resignations[]      @relation("employee_resignations_cancelled_byTousers")
+  employee_resignations_employee_resignations_submitted_byTousers      employee_resignations[]      @relation("employee_resignations_submitted_byTousers")
+  event_branch_demands_event_branch_demands_reviewed_byTousers         event_branch_demands[]       @relation("event_branch_demands_reviewed_byTousers")
+  event_branch_demands_event_branch_demands_submitted_byTousers        event_branch_demands[]       @relation("event_branch_demands_submitted_byTousers")
   event_production_status                                              event_production_status[]
   expenses                                                             expenses[]
   finance_amendments                                                   finance_amendments[]
   finance_audit_logs                                                   finance_audit_logs[]
   finance_day_closings                                                 finance_day_closings[]
-  finance_income_approvals_finance_income_approvals_approved_byTousers finance_income_approvals[] @relation("finance_income_approvals_approved_byTousers")
-  finance_income_approvals_finance_income_approvals_deleted_byTousers  finance_income_approvals[] @relation("finance_income_approvals_deleted_byTousers")
-  finance_income_approvals_finance_income_approvals_verified_byTousers finance_income_approvals[] @relation("finance_income_approvals_verified_byTousers")
-  finance_queries_finance_queries_created_byTousers                    finance_queries[]          @relation("finance_queries_created_byTousers")
-  finance_queries_finance_queries_updated_byTousers                    finance_queries[]          @relation("finance_queries_updated_byTousers")
+  finance_income_approvals_finance_income_approvals_approved_byTousers finance_income_approvals[]   @relation("finance_income_approvals_approved_byTousers")
+  finance_income_approvals_finance_income_approvals_deleted_byTousers  finance_income_approvals[]   @relation("finance_income_approvals_deleted_byTousers")
+  finance_income_approvals_finance_income_approvals_verified_byTousers finance_income_approvals[]   @relation("finance_income_approvals_verified_byTousers")
+  finance_queries_finance_queries_created_byTousers                    finance_queries[]            @relation("finance_queries_created_byTousers")
+  finance_queries_finance_queries_updated_byTousers                    finance_queries[]            @relation("finance_queries_updated_byTousers")
   finance_ticket_messages                                              finance_ticket_messages[]
   finance_ticket_versions                                              finance_ticket_versions[]
-  finance_tickets_finance_tickets_amended_byTousers                    finance_tickets[]          @relation("finance_tickets_amended_byTousers")
-  finance_tickets_finance_tickets_assigned_toTousers                   finance_tickets[]          @relation("finance_tickets_assigned_toTousers")
-  finance_tickets_finance_tickets_deleted_byTousers                    finance_tickets[]          @relation("finance_tickets_deleted_byTousers")
-  finance_tickets_finance_tickets_raised_byTousers                     finance_tickets[]          @relation("finance_tickets_raised_byTousers")
-  finance_tickets_finance_tickets_reopened_byTousers                   finance_tickets[]          @relation("finance_tickets_reopened_byTousers")
-  finance_tickets_finance_tickets_resolved_byTousers                   finance_tickets[]          @relation("finance_tickets_resolved_byTousers")
-  finance_tickets_finance_tickets_responded_byTousers                  finance_tickets[]          @relation("finance_tickets_responded_byTousers")
-  finance_tickets_finance_tickets_restored_byTousers                   finance_tickets[]          @relation("finance_tickets_restored_byTousers")
-  finance_transactions_finance_transactions_approved_byTousers         finance_transactions[]     @relation("finance_transactions_approved_byTousers")
-  finance_transactions_finance_transactions_created_byTousers          finance_transactions[]     @relation("finance_transactions_created_byTousers")
-  finance_transactions_finance_transactions_deleted_byTousers          finance_transactions[]     @relation("finance_transactions_deleted_byTousers")
+  finance_tickets_finance_tickets_amended_byTousers                    finance_tickets[]            @relation("finance_tickets_amended_byTousers")
+  finance_tickets_finance_tickets_assigned_toTousers                   finance_tickets[]            @relation("finance_tickets_assigned_toTousers")
+  finance_tickets_finance_tickets_deleted_byTousers                    finance_tickets[]            @relation("finance_tickets_deleted_byTousers")
+  finance_tickets_finance_tickets_raised_byTousers                     finance_tickets[]            @relation("finance_tickets_raised_byTousers")
+  finance_tickets_finance_tickets_reopened_byTousers                   finance_tickets[]            @relation("finance_tickets_reopened_byTousers")
+  finance_tickets_finance_tickets_resolved_byTousers                   finance_tickets[]            @relation("finance_tickets_resolved_byTousers")
+  finance_tickets_finance_tickets_responded_byTousers                  finance_tickets[]            @relation("finance_tickets_responded_byTousers")
+  finance_tickets_finance_tickets_restored_byTousers                   finance_tickets[]            @relation("finance_tickets_restored_byTousers")
+  finance_transactions_finance_transactions_approved_byTousers         finance_transactions[]       @relation("finance_transactions_approved_byTousers")
+  finance_transactions_finance_transactions_created_byTousers          finance_transactions[]       @relation("finance_transactions_created_byTousers")
+  finance_transactions_finance_transactions_deleted_byTousers          finance_transactions[]       @relation("finance_transactions_deleted_byTousers")
   geofence_logs                                                        geofence_logs[]
-  ledger_entries_ledger_entries_approved_byTousers                     ledger_entries[]           @relation("ledger_entries_approved_byTousers")
-  ledger_entries_ledger_entries_created_byTousers                      ledger_entries[]           @relation("ledger_entries_created_byTousers")
-  ledger_entries_ledger_entries_deleted_byTousers                      ledger_entries[]           @relation("ledger_entries_deleted_byTousers")
-  ledger_entries_ledger_entries_updated_byTousers                      ledger_entries[]           @relation("ledger_entries_updated_byTousers")
+  ingredient_stock_movements                                           ingredient_stock_movements[]
+  ledger_entries_ledger_entries_approved_byTousers                     ledger_entries[]             @relation("ledger_entries_approved_byTousers")
+  ledger_entries_ledger_entries_created_byTousers                      ledger_entries[]             @relation("ledger_entries_created_byTousers")
+  ledger_entries_ledger_entries_deleted_byTousers                      ledger_entries[]             @relation("ledger_entries_deleted_byTousers")
+  ledger_entries_ledger_entries_updated_byTousers                      ledger_entries[]             @relation("ledger_entries_updated_byTousers")
   ledger_heads                                                         ledger_heads[]
-  login_sessions_login_sessions_revoked_byTousers                      login_sessions[]           @relation("login_sessions_revoked_byTousers")
-  login_sessions_login_sessions_user_idTousers                         login_sessions[]           @relation("login_sessions_user_idTousers")
+  login_sessions_login_sessions_revoked_byTousers                      login_sessions[]             @relation("login_sessions_revoked_byTousers")
+  login_sessions_login_sessions_user_idTousers                         login_sessions[]             @relation("login_sessions_user_idTousers")
   notification_reads                                                   notification_reads[]
   notifications                                                        notifications[]
   orders                                                               orders[]
   packing_materials                                                    packing_materials[]
-  partner_expenses_partner_expenses_approved_byTousers                 partner_expenses[]         @relation("partner_expenses_approved_byTousers")
-  partner_expenses_partner_expenses_deleted_byTousers                  partner_expenses[]         @relation("partner_expenses_deleted_byTousers")
-  partner_expenses_partner_expenses_requested_byTousers                partner_expenses[]         @relation("partner_expenses_requested_byTousers")
+  partner_expenses_partner_expenses_approved_byTousers                 partner_expenses[]           @relation("partner_expenses_approved_byTousers")
+  partner_expenses_partner_expenses_deleted_byTousers                  partner_expenses[]           @relation("partner_expenses_deleted_byTousers")
+  partner_expenses_partner_expenses_requested_byTousers                partner_expenses[]           @relation("partner_expenses_requested_byTousers")
   password_reset_tokens                                                password_reset_tokens[]
   payment_method_settings                                              payment_method_settings[]
   product_price_history                                                product_price_history[]
-  production_orders_production_orders_approved_byTousers               production_orders[]        @relation("production_orders_approved_byTousers")
-  production_orders_production_orders_cancelled_byTousers              production_orders[]        @relation("production_orders_cancelled_byTousers")
-  production_orders_production_orders_created_byTousers                production_orders[]        @relation("production_orders_created_byTousers")
-  production_orders_production_orders_verified_byTousers               production_orders[]        @relation("production_orders_verified_byTousers")
-  production_returns_production_returns_created_byTousers              production_returns[]       @relation("production_returns_created_byTousers")
-  production_returns_production_returns_reviewed_byTousers             production_returns[]       @relation("production_returns_reviewed_byTousers")
+  production_orders_production_orders_approved_byTousers               production_orders[]          @relation("production_orders_approved_byTousers")
+  production_orders_production_orders_cancelled_byTousers              production_orders[]          @relation("production_orders_cancelled_byTousers")
+  production_orders_production_orders_created_byTousers                production_orders[]          @relation("production_orders_created_byTousers")
+  production_orders_production_orders_verified_byTousers               production_orders[]          @relation("production_orders_verified_byTousers")
+  production_returns_production_returns_created_byTousers              production_returns[]         @relation("production_returns_created_byTousers")
+  production_returns_production_returns_reviewed_byTousers             production_returns[]         @relation("production_returns_reviewed_byTousers")
   production_stock_history                                             production_stock_history[]
+  purchase_bills_purchase_bills_decided_byTousers                      purchase_bills[]             @relation("purchase_bills_decided_byTousers")
+  purchase_bills_purchase_bills_entered_byTousers                      purchase_bills[]             @relation("purchase_bills_entered_byTousers")
+  purchase_deliveries                                                  purchase_deliveries[]
+  purchase_demands_purchase_demands_closed_byTousers                   purchase_demands[]           @relation("purchase_demands_closed_byTousers")
+  purchase_demands_purchase_demands_created_byTousers                  purchase_demands[]           @relation("purchase_demands_created_byTousers")
+  purchase_demands_purchase_demands_sent_byTousers                     purchase_demands[]           @relation("purchase_demands_sent_byTousers")
+  purchase_demands_purchase_demands_verified_byTousers                 purchase_demands[]           @relation("purchase_demands_verified_byTousers")
+  purchase_items                                                       purchase_items[]
+  purchase_quotations_purchase_quotations_decided_byTousers            purchase_quotations[]        @relation("purchase_quotations_decided_byTousers")
+  purchase_quotations_purchase_quotations_entered_byTousers            purchase_quotations[]        @relation("purchase_quotations_entered_byTousers")
+  purchase_receipts                                                    purchase_receipts[]
   push_subscriptions                                                   push_subscriptions[]
   restriction_events                                                   restriction_events[]
-  restriction_requests_restriction_requests_decided_byTousers          restriction_requests[]     @relation("restriction_requests_decided_byTousers")
-  restriction_requests_restriction_requests_requested_byTousers        restriction_requests[]     @relation("restriction_requests_requested_byTousers")
+  restriction_requests_restriction_requests_decided_byTousers          restriction_requests[]       @relation("restriction_requests_decided_byTousers")
+  restriction_requests_restriction_requests_requested_byTousers        restriction_requests[]       @relation("restriction_requests_requested_byTousers")
   restriction_rules                                                    restriction_rules[]
   return_stock_history                                                 return_stock_history[]
-  salary_payments_salary_payments_approved_byTousers                   salary_payments[]          @relation("salary_payments_approved_byTousers")
-  salary_payments_salary_payments_created_byTousers                    salary_payments[]          @relation("salary_payments_created_byTousers")
-  salary_payments_salary_payments_deleted_byTousers                    salary_payments[]          @relation("salary_payments_deleted_byTousers")
+  salary_payments_salary_payments_approved_byTousers                   salary_payments[]            @relation("salary_payments_approved_byTousers")
+  salary_payments_salary_payments_created_byTousers                    salary_payments[]            @relation("salary_payments_created_byTousers")
+  salary_payments_salary_payments_deleted_byTousers                    salary_payments[]            @relation("salary_payments_deleted_byTousers")
   salary_revisions                                                     salary_revisions[]
   settings                                                             settings[]
   special_events                                                       special_events[]
-  special_orders_special_orders_approved_byTousers                     special_orders[]           @relation("special_orders_approved_byTousers")
-  special_orders_special_orders_created_byTousers                      special_orders[]           @relation("special_orders_created_byTousers")
-  special_orders_special_orders_prepared_byTousers                     special_orders[]           @relation("special_orders_prepared_byTousers")
-  special_orders_special_orders_verified_byTousers                     special_orders[]           @relation("special_orders_verified_byTousers")
+  special_orders_special_orders_approved_byTousers                     special_orders[]             @relation("special_orders_approved_byTousers")
+  special_orders_special_orders_created_byTousers                      special_orders[]             @relation("special_orders_created_byTousers")
+  special_orders_special_orders_prepared_byTousers                     special_orders[]             @relation("special_orders_prepared_byTousers")
+  special_orders_special_orders_verified_byTousers                     special_orders[]             @relation("special_orders_verified_byTousers")
   stock_audit_log                                                      stock_audit_log[]
-  support_tickets_support_tickets_raised_byTousers                     support_tickets[]          @relation("support_tickets_raised_byTousers")
-  support_tickets_support_tickets_resolved_byTousers                   support_tickets[]          @relation("support_tickets_resolved_byTousers")
+  supplier_access_tokens                                               supplier_access_tokens[]
+  supplier_credits_supplier_credits_decided_byTousers                  supplier_credits[]           @relation("supplier_credits_decided_byTousers")
+  supplier_credits_supplier_credits_requested_byTousers                supplier_credits[]           @relation("supplier_credits_requested_byTousers")
+  supplier_payments_supplier_payments_approved_byTousers               supplier_payments[]          @relation("supplier_payments_approved_byTousers")
+  supplier_payments_supplier_payments_recorded_byTousers               supplier_payments[]          @relation("supplier_payments_recorded_byTousers")
+  supplier_payments_supplier_payments_reversed_byTousers               supplier_payments[]          @relation("supplier_payments_reversed_byTousers")
+  suppliers_suppliers_created_byTousers                                suppliers[]                  @relation("suppliers_created_byTousers")
+  suppliers_suppliers_deleted_byTousers                                suppliers[]                  @relation("suppliers_deleted_byTousers")
+  support_tickets_support_tickets_raised_byTousers                     support_tickets[]            @relation("support_tickets_raised_byTousers")
+  support_tickets_support_tickets_resolved_byTousers                   support_tickets[]            @relation("support_tickets_resolved_byTousers")
   user_credentials                                                     user_credentials?
-  branches_users_branch_idTobranches                                   branches?                  @relation("users_branch_idTobranches", fields: [branch_id], references: [id], onUpdate: NoAction)
-  users                                                                users?                     @relation("usersTousers", fields: [password_reset_by], references: [id], onUpdate: NoAction)
-  other_users                                                          users[]                    @relation("usersTousers")
+  branches_users_branch_idTobranches                                   branches?                    @relation("users_branch_idTobranches", fields: [branch_id], references: [id], onUpdate: NoAction)
+  users                                                                users?                       @relation("usersTousers", fields: [password_reset_by], references: [id], onUpdate: NoAction)
+  other_users                                                          users[]                      @relation("usersTousers")
+  whatsapp_messages_whatsapp_messages_created_byTousers                whatsapp_messages[]          @relation("whatsapp_messages_created_byTousers")
+  whatsapp_messages_whatsapp_messages_reviewed_byTousers               whatsapp_messages[]          @relation("whatsapp_messages_reviewed_byTousers")
 
   @@index([branch_id], map: "users_branch_idx", where: raw("(branch_id IS NOT NULL)"))
   @@index([created_at(sort: Desc)], map: "users_created_idx")
@@ -2367,6 +2391,573 @@ model employee_resignations {
   users_employee_resignations_submitted_byTousers users?            @relation("employee_resignations_submitted_byTousers", fields: [submitted_by], references: [id], onUpdate: NoAction)
 
   @@index([employee_id, created_at(sort: Desc)], map: "employee_resignations_employee_idx")
+}
+
+model ingredient_stock {
+  item_id        String         @id @db.Uuid
+  balance        Decimal        @default(0) @db.Decimal(14, 3)
+  updated_at     DateTime       @default(now()) @db.Timestamptz(6)
+  purchase_items purchase_items @relation(fields: [item_id], references: [id], onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model ingredient_stock_movements {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  movement_no     String         @unique @default(dbgenerated("app.next_finance_number('ingredient_stock_move'::text, 'ISM'::text)"))
+  item_id         String         @db.Uuid
+  item_name       String
+  unit            String
+  type            String
+  delta           Decimal        @db.Decimal(14, 3)
+  balance_after   Decimal        @db.Decimal(14, 3)
+  demand_id       String?        @db.Uuid
+  receipt_id      String?        @db.Uuid
+  receipt_item_id String?        @unique @db.Uuid
+  reason          String?
+  business_date   DateTime       @db.Date
+  created_by      String?        @db.Uuid
+  created_by_name String?
+  created_at      DateTime       @default(now()) @db.Timestamptz(6)
+  users           users?         @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  purchase_items  purchase_items @relation(fields: [item_id], references: [id], onUpdate: NoAction)
+
+  @@index([item_id, created_at(sort: Desc)], map: "ingredient_moves_item_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model purchase_bill_items {
+  id                       String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bill_id                  String                    @db.Uuid
+  line_no                  Int
+  quotation_item_id        String?                   @db.Uuid
+  item_name                String
+  unit                     String
+  qty                      Decimal                   @db.Decimal(14, 3)
+  unit_rate                Decimal                   @db.Decimal(14, 2)
+  line_total               Decimal                   @db.Decimal(14, 2)
+  purchase_bills           purchase_bills            @relation(fields: [bill_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  purchase_quotation_items purchase_quotation_items? @relation(fields: [quotation_item_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  purchase_receipt_items   purchase_receipt_items[]
+
+  @@unique([bill_id, line_no])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model purchase_bills {
+  id                                     String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  demand_id                              String                @unique(map: "purchase_bills_one_approved", where: raw("(status = 'approved'::text)")) @db.Uuid
+  quotation_id                           String                @db.Uuid
+  quotation_version                      Int
+  supplier_bill_no                       String
+  status                                 String                @default("submitted")
+  submitted_via                          String
+  entered_by                             String?               @db.Uuid
+  entered_by_name                        String?
+  invoice_date                           DateTime              @db.Date
+  delivery_date                          DateTime?             @db.Date
+  subtotal                               Decimal               @db.Decimal(14, 2)
+  delivery_charge                        Decimal               @default(0) @db.Decimal(14, 2)
+  discount                               Decimal               @default(0) @db.Decimal(14, 2)
+  other_charges                          Decimal               @default(0) @db.Decimal(14, 2)
+  other_charges_note                     String?
+  grand_total                            Decimal               @db.Decimal(14, 2)
+  supplier_payment_method                String?
+  supplier_stated_paid                   Decimal               @default(0) @db.Decimal(14, 2)
+  notes                                  String?
+  differs_from_quotation                 Boolean               @default(false)
+  differences                            Json                  @default("[]")
+  accepted_differences                   Boolean               @default(false)
+  submitted_at                           DateTime              @default(now()) @db.Timestamptz(6)
+  decided_by                             String?               @db.Uuid
+  decided_by_name                        String?
+  decided_at                             DateTime?             @db.Timestamptz(6)
+  decision_reason                        String?
+  client_request_id                      String?               @unique
+  purchase_bill_items                    purchase_bill_items[]
+  users_purchase_bills_decided_byTousers users?                @relation("purchase_bills_decided_byTousers", fields: [decided_by], references: [id], onUpdate: NoAction)
+  purchase_demands                       purchase_demands      @relation(fields: [demand_id], references: [id], onUpdate: NoAction)
+  users_purchase_bills_entered_byTousers users?                @relation("purchase_bills_entered_byTousers", fields: [entered_by], references: [id], onUpdate: NoAction)
+  purchase_quotations                    purchase_quotations   @relation(fields: [quotation_id], references: [id], onUpdate: NoAction)
+  purchase_receipts                      purchase_receipts[]
+  supplier_credits                       supplier_credits?
+  supplier_payments                      supplier_payments[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model purchase_deliveries {
+  id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  demand_id         String           @unique @db.Uuid
+  provider          String
+  provider_name     String?
+  booking_reference String?
+  estimated_fee     Decimal?         @db.Decimal(14, 2)
+  actual_fee        Decimal?         @db.Decimal(14, 2)
+  fee_paid_by       String           @default("mountain_bakes")
+  pickup_details    String?
+  delivery_notes    String?
+  status            String           @default("booked")
+  dispatched_at     DateTime?        @db.Timestamptz(6)
+  delivered_at      DateTime?        @db.Timestamptz(6)
+  received_by_name  String?
+  updated_by        String?          @db.Uuid
+  updated_by_name   String?
+  created_at        DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime         @default(now()) @db.Timestamptz(6)
+  purchase_demands  purchase_demands @relation(fields: [demand_id], references: [id], onUpdate: NoAction)
+  users             users?           @relation(fields: [updated_by], references: [id], onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model purchase_demand_events {
+  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  demand_id        String           @db.Uuid
+  event            String
+  from_status      String?
+  to_status        String?
+  actor_type       String
+  actor_id         String?          @db.Uuid
+  actor_name       String?
+  quotation_id     String?          @db.Uuid
+  bill_id          String?          @db.Uuid
+  reason           String?
+  details          Json             @default("{}")
+  created_at       DateTime         @default(now()) @db.Timestamptz(6)
+  purchase_demands purchase_demands @relation(fields: [demand_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([demand_id, created_at], map: "purchase_demand_events_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model purchase_demand_items {
+  id                                                                                                     String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  demand_id                                                                                              String                     @db.Uuid
+  line_no                                                                                                Int
+  item_id                                                                                                String?                    @db.Uuid
+  item_name                                                                                              String
+  item_code                                                                                              String?
+  requested_qty                                                                                          Decimal                    @db.Decimal(14, 3)
+  unit                                                                                                   String
+  note                                                                                                   String?
+  purchase_demands                                                                                       purchase_demands           @relation(fields: [demand_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  purchase_items                                                                                         purchase_items?            @relation(fields: [item_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  purchase_quotation_items_purchase_quotation_items_demand_item_idTopurchase_demand_items                purchase_quotation_items[] @relation("purchase_quotation_items_demand_item_idTopurchase_demand_items")
+  purchase_quotation_items_purchase_quotation_items_substitute_for_demand_item_idTopurchase_demand_items purchase_quotation_items[] @relation("purchase_quotation_items_substitute_for_demand_item_idTopurchase_demand_items")
+
+  @@unique([demand_id, line_no])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model purchase_demands {
+  id                                        String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  demand_no                                 String                   @unique
+  status                                    String                   @default("draft")
+  priority                                  String
+  required_date                             DateTime                 @db.Date
+  supplier_id                               String                   @db.Uuid
+  supplier_name                             String
+  supplier_whatsapp                         String
+  notes                                     String?
+  delivery_instructions                     String?
+  payment_preference                        String                   @default("cash")
+  credit_reference                          String?
+  credit_amount_requested                   Decimal?                 @db.Decimal(14, 2)
+  credit_terms                              String?
+  credit_due_date                           DateTime?                @db.Date
+  credit_notes                              String?
+  payment_status                            String                   @default("unpaid")
+  delivery_status                           String                   @default("not_booked")
+  current_quotation_id                      String?                  @db.Uuid
+  approved_quotation_id                     String?                  @db.Uuid
+  approved_bill_id                          String?                  @db.Uuid
+  client_request_id                         String?                  @unique
+  revision                                  Int                      @default(1)
+  verified_revision                         Int?
+  verified_at                               DateTime?                @db.Timestamptz(6)
+  verified_by                               String?                  @db.Uuid
+  verified_by_name                          String?
+  sent_at                                   DateTime?                @db.Timestamptz(6)
+  sent_by                                   String?                  @db.Uuid
+  sent_by_name                              String?
+  closed_reason                             String?
+  closed_at                                 DateTime?                @db.Timestamptz(6)
+  closed_by                                 String?                  @db.Uuid
+  closed_by_name                            String?
+  created_by                                String?                  @db.Uuid
+  created_by_name                           String?
+  created_at                                DateTime                 @default(now()) @db.Timestamptz(6)
+  updated_at                                DateTime                 @default(now()) @db.Timestamptz(6)
+  purchase_bills                            purchase_bills?
+  purchase_deliveries                       purchase_deliveries?
+  purchase_demand_events                    purchase_demand_events[]
+  purchase_demand_items                     purchase_demand_items[]
+  users_purchase_demands_closed_byTousers   users?                   @relation("purchase_demands_closed_byTousers", fields: [closed_by], references: [id], onUpdate: NoAction)
+  users_purchase_demands_created_byTousers  users?                   @relation("purchase_demands_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
+  users_purchase_demands_sent_byTousers     users?                   @relation("purchase_demands_sent_byTousers", fields: [sent_by], references: [id], onUpdate: NoAction)
+  suppliers                                 suppliers                @relation(fields: [supplier_id], references: [id], onUpdate: NoAction)
+  users_purchase_demands_verified_byTousers users?                   @relation("purchase_demands_verified_byTousers", fields: [verified_by], references: [id], onUpdate: NoAction)
+  purchase_quotations                       purchase_quotations[]
+  purchase_receipts                         purchase_receipts[]
+  supplier_access_tokens                    supplier_access_tokens[]
+  supplier_credits                          supplier_credits[]
+  supplier_payments                         supplier_payments[]
+  whatsapp_messages                         whatsapp_messages[]
+
+  @@index([created_at(sort: Desc)], map: "purchase_demands_created_idx")
+  @@index([status, created_at(sort: Desc)], map: "purchase_demands_status_idx")
+  @@index([supplier_id, created_at(sort: Desc)], map: "purchase_demands_supplier_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model purchase_items {
+  id                         String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  item_code                  String                       @unique @default(dbgenerated("app.next_finance_number('purchase_item'::text, 'PIT'::text)"))
+  name                       String
+  unit                       String
+  category                   String?
+  is_active                  Boolean                      @default(true)
+  created_by                 String?                      @db.Uuid
+  created_by_name            String?
+  created_at                 DateTime                     @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime                     @default(now()) @db.Timestamptz(6)
+  ingredient_stock           ingredient_stock?
+  ingredient_stock_movements ingredient_stock_movements[]
+  purchase_demand_items      purchase_demand_items[]
+  users                      users?                       @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  purchase_receipt_items     purchase_receipt_items[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model purchase_quotation_items {
+  id                                                                                                  String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  quotation_id                                                                                        String                 @db.Uuid
+  line_no                                                                                             Int
+  demand_item_id                                                                                      String?                @db.Uuid
+  substitute_for_demand_item_id                                                                       String?                @db.Uuid
+  item_name                                                                                           String
+  unit                                                                                                String
+  requested_qty                                                                                       Decimal?               @db.Decimal(14, 3)
+  available_qty                                                                                       Decimal                @db.Decimal(14, 3)
+  unit_rate                                                                                           Decimal                @db.Decimal(14, 2)
+  line_total                                                                                          Decimal                @db.Decimal(14, 2)
+  availability                                                                                        String
+  note                                                                                                String?
+  purchase_bill_items                                                                                 purchase_bill_items[]
+  purchase_demand_items_purchase_quotation_items_demand_item_idTopurchase_demand_items                purchase_demand_items? @relation("purchase_quotation_items_demand_item_idTopurchase_demand_items", fields: [demand_item_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  purchase_quotations                                                                                 purchase_quotations    @relation(fields: [quotation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  purchase_demand_items_purchase_quotation_items_substitute_for_demand_item_idTopurchase_demand_items purchase_demand_items? @relation("purchase_quotation_items_substitute_for_demand_item_idTopurchase_demand_items", fields: [substitute_for_demand_item_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@unique([quotation_id, line_no])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model purchase_quotations {
+  id                                          String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  demand_id                                   String                     @db.Uuid
+  version                                     Int
+  status                                      String                     @default("submitted")
+  submitted_via                               String
+  entered_by                                  String?                    @db.Uuid
+  entered_by_name                             String?
+  subtotal                                    Decimal                    @db.Decimal(14, 2)
+  delivery_charge                             Decimal                    @default(0) @db.Decimal(14, 2)
+  total                                       Decimal                    @db.Decimal(14, 2)
+  estimated_delivery_date                     DateTime?                  @db.Date
+  delivery_notes                              String?
+  notes                                       String?
+  submitted_at                                DateTime                   @default(now()) @db.Timestamptz(6)
+  decided_by                                  String?                    @db.Uuid
+  decided_by_name                             String?
+  decided_at                                  DateTime?                  @db.Timestamptz(6)
+  decision_reason                             String?
+  client_request_id                           String?                    @unique
+  purchase_bills                              purchase_bills[]
+  purchase_quotation_items                    purchase_quotation_items[]
+  users_purchase_quotations_decided_byTousers users?                     @relation("purchase_quotations_decided_byTousers", fields: [decided_by], references: [id], onUpdate: NoAction)
+  purchase_demands                            purchase_demands           @relation(fields: [demand_id], references: [id], onUpdate: NoAction)
+  users_purchase_quotations_entered_byTousers users?                     @relation("purchase_quotations_entered_byTousers", fields: [entered_by], references: [id], onUpdate: NoAction)
+
+  @@unique([demand_id, version])
+  @@index([demand_id, version(sort: Desc)], map: "purchase_quotations_demand_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model purchase_receipt_items {
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  receipt_id          String              @db.Uuid
+  bill_item_id        String              @db.Uuid
+  item_id             String              @db.Uuid
+  item_name           String
+  unit                String
+  received_qty        Decimal             @db.Decimal(14, 3)
+  damaged_qty         Decimal             @default(0) @db.Decimal(14, 3)
+  accepted_qty        Decimal?            @default(dbgenerated("(received_qty - damaged_qty)")) @db.Decimal(14, 3)
+  note                String?
+  purchase_bill_items purchase_bill_items @relation(fields: [bill_item_id], references: [id], onUpdate: NoAction)
+  purchase_items      purchase_items      @relation(fields: [item_id], references: [id], onUpdate: NoAction)
+  purchase_receipts   purchase_receipts   @relation(fields: [receipt_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([receipt_id, bill_item_id])
+}
+
+model purchase_receipts {
+  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  receipt_no             String                   @unique @default(dbgenerated("app.next_finance_number('purchase_receipt'::text, 'GRN'::text)"))
+  demand_id              String                   @db.Uuid
+  bill_id                String                   @db.Uuid
+  business_date          DateTime                 @db.Date
+  is_final               Boolean                  @default(false)
+  received_by            String?                  @db.Uuid
+  received_by_name       String?
+  received_at            DateTime                 @default(now()) @db.Timestamptz(6)
+  notes                  String?
+  client_request_id      String?                  @unique
+  purchase_receipt_items purchase_receipt_items[]
+  purchase_bills         purchase_bills           @relation(fields: [bill_id], references: [id], onUpdate: NoAction)
+  purchase_demands       purchase_demands         @relation(fields: [demand_id], references: [id], onUpdate: NoAction)
+  users                  users?                   @relation(fields: [received_by], references: [id], onUpdate: NoAction)
+
+  @@index([demand_id], map: "purchase_receipts_demand_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model supplier_access_tokens {
+  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  demand_id        String           @db.Uuid
+  token_hash       String           @unique
+  expires_at       DateTime         @db.Timestamptz(6)
+  revoked_at       DateTime?        @db.Timestamptz(6)
+  revoked_reason   String?
+  last_used_at     DateTime?        @db.Timestamptz(6)
+  use_count        Int              @default(0)
+  created_by       String?          @db.Uuid
+  created_at       DateTime         @default(now()) @db.Timestamptz(6)
+  users            users?           @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  purchase_demands purchase_demands @relation(fields: [demand_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([demand_id], map: "supplier_access_tokens_demand_idx", where: raw("(revoked_at IS NULL)"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model supplier_credits {
+  id                                         String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  credit_no                                  String              @unique @default(dbgenerated("app.next_finance_number('supplier_credit'::text, 'SCR'::text)"))
+  supplier_id                                String              @db.Uuid
+  demand_id                                  String              @db.Uuid
+  bill_id                                    String              @unique(map: "supplier_credits_one_open", where: raw("(status = ANY (ARRAY['pending_approval'::text, 'active'::text]))")) @db.Uuid
+  requested_amount                           Decimal             @db.Decimal(14, 2)
+  approved_amount                            Decimal?            @db.Decimal(14, 2)
+  terms                                      String?
+  due_date                                   DateTime?           @db.Date
+  reference                                  String?
+  notes                                      String?
+  status                                     String              @default("pending_approval")
+  requested_by                               String?             @db.Uuid
+  requested_by_name                          String?
+  requested_at                               DateTime            @default(now()) @db.Timestamptz(6)
+  decided_by                                 String?             @db.Uuid
+  decided_by_name                            String?
+  decided_at                                 DateTime?           @db.Timestamptz(6)
+  decision_reason                            String?
+  purchase_bills                             purchase_bills      @relation(fields: [bill_id], references: [id], onUpdate: NoAction)
+  users_supplier_credits_decided_byTousers   users?              @relation("supplier_credits_decided_byTousers", fields: [decided_by], references: [id], onUpdate: NoAction)
+  purchase_demands                           purchase_demands    @relation(fields: [demand_id], references: [id], onUpdate: NoAction)
+  users_supplier_credits_requested_byTousers users?              @relation("supplier_credits_requested_byTousers", fields: [requested_by], references: [id], onUpdate: NoAction)
+  suppliers                                  suppliers           @relation(fields: [supplier_id], references: [id], onUpdate: NoAction)
+  supplier_payments                          supplier_payments[]
+
+  @@index([supplier_id, status], map: "supplier_credits_supplier_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model supplier_payments {
+  id                                         String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payment_no                                 String            @unique @default(dbgenerated("app.next_finance_number('supplier_payment'::text, 'SPY'::text)"))
+  supplier_id                                String            @db.Uuid
+  demand_id                                  String            @db.Uuid
+  bill_id                                    String            @db.Uuid
+  credit_id                                  String?           @db.Uuid
+  method                                     String
+  account                                    finance_account
+  amount                                     Decimal           @db.Decimal(14, 2)
+  reference_no                               String?
+  paid_on                                    DateTime          @db.Date
+  notes                                      String?
+  status                                     String            @default("pending_approval")
+  recorded_by                                String?           @db.Uuid
+  recorded_by_name                           String?
+  recorded_at                                DateTime          @default(now()) @db.Timestamptz(6)
+  ledger_head_id                             String?           @db.Uuid
+  ledger_entry_id                            String?           @db.Uuid
+  voucher_no                                 String?
+  approved_by                                String?           @db.Uuid
+  approved_by_name                           String?
+  approved_at                                DateTime?         @db.Timestamptz(6)
+  rejection_reason                           String?
+  reversal_entry_id                          String?           @db.Uuid
+  reversal_voucher_no                        String?
+  reversed_by                                String?           @db.Uuid
+  reversed_by_name                           String?
+  reversed_at                                DateTime?         @db.Timestamptz(6)
+  reversal_reason                            String?
+  client_request_id                          String?           @unique
+  users_supplier_payments_approved_byTousers users?            @relation("supplier_payments_approved_byTousers", fields: [approved_by], references: [id], onUpdate: NoAction)
+  purchase_bills                             purchase_bills    @relation(fields: [bill_id], references: [id], onUpdate: NoAction)
+  supplier_credits                           supplier_credits? @relation(fields: [credit_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  purchase_demands                           purchase_demands  @relation(fields: [demand_id], references: [id], onUpdate: NoAction)
+  ledger_heads                               ledger_heads?     @relation(fields: [ledger_head_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  users_supplier_payments_recorded_byTousers users?            @relation("supplier_payments_recorded_byTousers", fields: [recorded_by], references: [id], onUpdate: NoAction)
+  users_supplier_payments_reversed_byTousers users?            @relation("supplier_payments_reversed_byTousers", fields: [reversed_by], references: [id], onUpdate: NoAction)
+  suppliers                                  suppliers         @relation(fields: [supplier_id], references: [id], onUpdate: NoAction)
+
+  @@index([bill_id], map: "supplier_payments_bill_idx")
+  @@index([status, recorded_at(sort: Desc)], map: "supplier_payments_status_idx")
+  @@index([supplier_id], map: "supplier_payments_supplier_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model suppliers {
+  id                                String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  supplier_code                     String                   @unique @default(dbgenerated("app.next_finance_number('supplier'::text, 'SPL'::text)"))
+  name                              String
+  contact_person                    String?
+  whatsapp_number                   String                   @unique(map: "suppliers_whatsapp_live", where: raw("(deleted_at IS NULL)"))
+  phone                             String?
+  category                          String?
+  address                           String?
+  payment_terms                     String?
+  notes                             String?
+  is_active                         Boolean                  @default(true)
+  whatsapp_opt_in_at                DateTime?                @db.Timestamptz(6)
+  whatsapp_opt_in_source            String?
+  created_by                        String?                  @db.Uuid
+  created_by_name                   String?
+  created_at                        DateTime                 @default(now()) @db.Timestamptz(6)
+  updated_at                        DateTime                 @default(now()) @db.Timestamptz(6)
+  deleted_at                        DateTime?                @db.Timestamptz(6)
+  deleted_by                        String?                  @db.Uuid
+  deleted_by_name                   String?
+  delete_reason                     String?
+  purchase_demands                  purchase_demands[]
+  supplier_credits                  supplier_credits[]
+  supplier_payments                 supplier_payments[]
+  users_suppliers_created_byTousers users?                   @relation("suppliers_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
+  users_suppliers_deleted_byTousers users?                   @relation("suppliers_deleted_byTousers", fields: [deleted_by], references: [id], onUpdate: NoAction)
+  whatsapp_conversations            whatsapp_conversations[]
+  whatsapp_messages                 whatsapp_messages[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model whatsapp_business_numbers {
+  phone_number_id      String    @id
+  display_phone_number String?
+  purpose              String    @default("production")
+  is_authorized        Boolean   @default(false)
+  last_webhook_at      DateTime? @db.Timestamptz(6)
+  created_at           DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime  @default(now()) @db.Timestamptz(6)
+}
+
+model whatsapp_conversations {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  wa_id             String              @unique
+  supplier_id       String?             @db.Uuid
+  profile_name      String?
+  last_inbound_at   DateTime?           @db.Timestamptz(6)
+  last_outbound_at  DateTime?           @db.Timestamptz(6)
+  last_message_at   DateTime?           @db.Timestamptz(6)
+  unread_count      Int                 @default(0)
+  created_at        DateTime            @default(now()) @db.Timestamptz(6)
+  suppliers         suppliers?          @relation(fields: [supplier_id], references: [id], onUpdate: NoAction)
+  whatsapp_messages whatsapp_messages[]
+
+  @@index([supplier_id], map: "whatsapp_conversations_supplier_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model whatsapp_messages {
+  id                                         String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversation_id                            String                 @db.Uuid
+  direction                                  String
+  provider                                   String?
+  provider_message_id                        String?                @unique
+  type                                       String                 @default("text")
+  template_name                              String?
+  body                                       String?
+  media                                      Json?
+  status                                     String
+  error_code                                 String?
+  error_title                                String?
+  error_detail                               String?
+  demand_id                                  String?                @db.Uuid
+  supplier_id                                String?                @db.Uuid
+  reply_to_provider_id                       String?
+  match_status                               String?
+  reviewed_by                                String?                @db.Uuid
+  reviewed_by_name                           String?
+  reviewed_at                                DateTime?              @db.Timestamptz(6)
+  created_by                                 String?                @db.Uuid
+  created_by_name                            String?
+  phone_number_id                            String?
+  provider_timestamp                         DateTime?              @db.Timestamptz(6)
+  created_at                                 DateTime               @default(now()) @db.Timestamptz(6)
+  accepted_at                                DateTime?              @db.Timestamptz(6)
+  sent_at                                    DateTime?              @db.Timestamptz(6)
+  delivered_at                               DateTime?              @db.Timestamptz(6)
+  read_at                                    DateTime?              @db.Timestamptz(6)
+  failed_at                                  DateTime?              @db.Timestamptz(6)
+  whatsapp_conversations                     whatsapp_conversations @relation(fields: [conversation_id], references: [id], onUpdate: NoAction)
+  users_whatsapp_messages_created_byTousers  users?                 @relation("whatsapp_messages_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
+  purchase_demands                           purchase_demands?      @relation(fields: [demand_id], references: [id], onUpdate: NoAction)
+  users_whatsapp_messages_reviewed_byTousers users?                 @relation("whatsapp_messages_reviewed_byTousers", fields: [reviewed_by], references: [id], onUpdate: NoAction)
+  suppliers                                  suppliers?             @relation(fields: [supplier_id], references: [id], onUpdate: NoAction)
+  whatsapp_outbox                            whatsapp_outbox?
+
+  @@index([conversation_id, created_at(sort: Desc)], map: "whatsapp_messages_conv_idx")
+  @@index([demand_id, created_at], map: "whatsapp_messages_demand_idx", where: raw("(demand_id IS NOT NULL)"))
+  @@index([created_at(sort: Desc)], map: "whatsapp_messages_failed_idx", where: raw("(status = 'failed'::text)"))
+  @@index([created_at(sort: Desc)], map: "whatsapp_messages_unmatched_idx", where: raw("(match_status = 'unmatched'::text)"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model whatsapp_outbox {
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dedupe_key        String            @unique
+  message_id        String            @unique @db.Uuid
+  to_wa_id          String
+  text_body         String?
+  template_name     String?
+  template_language String            @default("en")
+  template_params   Json              @default("[]")
+  masked_text_body  String?
+  masked_params     Json?
+  status            String            @default("pending")
+  attempts          Int               @default(0)
+  max_attempts      Int               @default(5)
+  next_attempt_at   DateTime          @default(now()) @db.Timestamptz(6)
+  locked_until      DateTime?         @db.Timestamptz(6)
+  last_error        String?
+  last_error_code   String?
+  created_at        DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime          @default(now()) @db.Timestamptz(6)
+  whatsapp_messages whatsapp_messages @relation(fields: [message_id], references: [id], onUpdate: NoAction)
+
+  @@index([next_attempt_at], map: "whatsapp_outbox_due_idx", where: raw("(status = ANY (ARRAY['pending'::text, 'processing'::text]))"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model whatsapp_webhook_events {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dedupe_key   String    @unique
+  kind         String
+  payload      Json
+  received_at  DateTime  @default(now()) @db.Timestamptz(6)
+  processed_at DateTime? @db.Timestamptz(6)
+  attempts     Int       @default(0)
+  last_error   String?
+
+  @@index([received_at], map: "whatsapp_webhook_events_pending", where: raw("(processed_at IS NULL)"))
 }
 
 enum app_theme {
@@ -2555,6 +3146,7 @@ enum finance_ledger_source {
   branch_share_bonus
   employee_advance
   cash_transfer
+  vendor_payment
 }
 
 enum ledger_entry_status {
@@ -2619,6 +3211,11 @@ enum notification_type {
   security_alert
   cash_transfer
   cash_transfer_reviewed
+  purchase_quotation
+  purchase_bill
+  purchase_message
+  purchase_payment
+  purchase_payment_reviewed
 }
 
 enum order_status {
@@ -2658,6 +3255,7 @@ enum production_return_disposition {
   saleable
   damaged
   expired
+  repaired
 }
 
 enum production_return_status {

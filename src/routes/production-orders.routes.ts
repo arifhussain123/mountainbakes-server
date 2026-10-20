@@ -15,6 +15,7 @@ import {
   karachiMinutesOfDay,
   isWithinOrderWindow,
   BRANCH_ROLES,
+  FINANCE_ROLES,
   isBranchRole,
   type ProductionShortfall,
   enforcesProductionStock,
@@ -364,7 +365,8 @@ router.get('/', async (req: AuthRequest, res, next) => {
 
 // GET /api/production-orders/balances — outstanding pending balances per product.
 // Branch managers are scoped to their own branch; others may pass ?branchId=.
-// Defined as a literal path (no GET '/:id' route exists) so it never shadows.
+// Defined as a literal path BEFORE the GET '/:id' route below, so Express
+// matches this one first and ':id' never shadows it.
 router.get('/balances', async (req: AuthRequest, res, next) => {
   try {
     // pending_qty > 0 is served by production_balances_outstanding_idx.
@@ -385,13 +387,50 @@ router.get('/balances', async (req: AuthRequest, res, next) => {
   }
 });
 
+// GET /api/production-orders/:id — a single demand's complete record: the
+// company's Finance Income drill-down opens a voucher's related demand through
+// this (Demand Amount → demand number), and it is the same read Production/the
+// branch get from the list above, just for one id instead of the last 7 days.
+// Must be registered AFTER the literal '/balances' route above.
+router.get('/:id', async (req: AuthRequest, res, next) => {
+  try {
+    const { data, error } = await db
+      .from('production_orders')
+      .select(ORDER_SELECT)
+      .order('line_no', ITEMS_ORDER)
+      .order('line_no', PACKING_ITEMS_ORDER)
+      .eq('id', req.params['id']!)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) {
+      res.status(404).json({ error: 'Demand not found' });
+      return;
+    }
+
+    if (isBranchRole(req.user!.role) && req.user!.branchId && (data as { branch_id: string }).branch_id !== req.user!.branchId) {
+      res.status(403).json({ error: 'Access denied' });
+      return;
+    }
+
+    const { businessDate, submittedTime, ...rest } = rowToApi<Record<string, unknown>>(data);
+    const [order] = await withPhotos([{ ...rest, date: businessDate, time: submittedTime }]);
+    res.json({ order });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // GET /api/production-orders/:id/previous-balance — what the branch owes for its
 // PREVIOUS delivery, for the company copy of this order's slip.
 //
 // The computation, and the reasoning behind its billing window, live in
 // services/previous-balance.service.ts — the Collections export bills off the
 // same function, so the slip and the spreadsheet cannot disagree.
-router.get('/:id/previous-balance', requireRole('super_admin', 'production_user'), async (req, res, next) => {
+//
+// Finance roles were added so the Income drill-down's demand detail can show
+// the same previous/return/received figures the slip prints, without a second
+// implementation of this window logic.
+router.get('/:id/previous-balance', requireRole('super_admin', 'production_user', ...FINANCE_ROLES), async (req, res, next) => {
   try {
     const balance = await getPreviousOrderBalance(req.params['id']!);
     if (!balance) { res.status(404).json({ error: 'Production order not found' }); return; }

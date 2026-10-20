@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { RETURN_PHOTO_STAGED_TTL_HOURS } from '../shared';
 import { purgeStagedAttachments } from '../services/attachments.service';
 
 /**
@@ -17,31 +18,31 @@ import { purgeStagedAttachments } from '../services/attachments.service';
  *  - Only STAGED rows (`entity_id is null`) of entity `branch_return`. A photo a
  *    return cites is bound, and a bound attachment cannot be deleted by anything
  *    — the database refuses it.
- *  - Only rows older than the window. The default is deliberately long: a phone
- *    can hold an offline return, and its already-uploaded photo, for days.
+ *  - Only rows older than the window — by default the same 24 hours the API's
+ *    hourly sweep uses (scheduler/return-photo-sweep.job.ts). This script is
+ *    for running it by hand.
  *
  * Usage (from backend/):
- *   pnpm purge:return-photos                       # dry run, 14-day default
+ *   pnpm purge:return-photos                       # dry run, 24-hour default
  *   pnpm purge:return-photos -- --days=30          # dry run, custom window
  *   pnpm purge:return-photos -- --confirm          # delete them
  */
 
-const DEFAULT_DAYS = 14;
 const confirmed = process.argv.includes('--confirm');
 const daysArg = process.argv.find((a) => a.startsWith('--days='));
-const days = daysArg ? Number(daysArg.split('=')[1]) : DEFAULT_DAYS;
+const days = daysArg ? Number(daysArg.split('=')[1]) : RETURN_PHOTO_STAGED_TTL_HOURS / 24;
 
 async function main() {
   console.log('Mountain Bakes ERP — Purge Staged Return Photos');
   console.log('===============================================');
 
-  if (!Number.isInteger(days) || days < 1) {
-    console.error(`--days must be a positive whole number (got "${daysArg}")`);
+  if (!Number.isFinite(days) || days <= 0) {
+    console.error(`--days must be a positive number (got "${daysArg}")`);
     process.exit(1);
   }
 
   const total = await purgeStagedAttachments({ entity: 'branch_return', olderThanDays: days, dryRun: true });
-  console.log(`Found ${total} unused return photos older than ${days} days`);
+  console.log(`Found ${total} unused return photos older than ${days * 24} hours`);
 
   if (total === 0) {
     console.log('Nothing to delete.');

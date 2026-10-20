@@ -477,3 +477,115 @@ export type users = Prisma.usersModel
  * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
  */
 export type employee_resignations = Prisma.employee_resignationsModel
+/**
+ * Model ingredient_stock
+ * 
+ */
+export type ingredient_stock = Prisma.ingredient_stockModel
+/**
+ * Model ingredient_stock_movements
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type ingredient_stock_movements = Prisma.ingredient_stock_movementsModel
+/**
+ * Model purchase_bill_items
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type purchase_bill_items = Prisma.purchase_bill_itemsModel
+/**
+ * Model purchase_bills
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type purchase_bills = Prisma.purchase_billsModel
+/**
+ * Model purchase_deliveries
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type purchase_deliveries = Prisma.purchase_deliveriesModel
+/**
+ * Model purchase_demand_events
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type purchase_demand_events = Prisma.purchase_demand_eventsModel
+/**
+ * Model purchase_demand_items
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type purchase_demand_items = Prisma.purchase_demand_itemsModel
+/**
+ * Model purchase_demands
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type purchase_demands = Prisma.purchase_demandsModel
+/**
+ * Model purchase_items
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ * This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+ */
+export type purchase_items = Prisma.purchase_itemsModel
+/**
+ * Model purchase_quotation_items
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type purchase_quotation_items = Prisma.purchase_quotation_itemsModel
+/**
+ * Model purchase_quotations
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type purchase_quotations = Prisma.purchase_quotationsModel
+/**
+ * Model purchase_receipt_items
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type purchase_receipt_items = Prisma.purchase_receipt_itemsModel
+/**
+ * Model purchase_receipts
+ * 
+ */
+export type purchase_receipts = Prisma.purchase_receiptsModel
+/**
+ * Model supplier_access_tokens
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type supplier_access_tokens = Prisma.supplier_access_tokensModel
+/**
+ * Model supplier_credits
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type supplier_credits = Prisma.supplier_creditsModel
+/**
+ * Model supplier_payments
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type supplier_payments = Prisma.supplier_paymentsModel
+/**
+ * Model suppliers
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ * This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+ */
+export type suppliers = Prisma.suppliersModel
+/**
+ * Model whatsapp_business_numbers
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type whatsapp_business_numbers = Prisma.whatsapp_business_numbersModel
+/**
+ * Model whatsapp_conversations
+ * 
+ */
+export type whatsapp_conversations = Prisma.whatsapp_conversationsModel
+/**
+ * Model whatsapp_messages
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type whatsapp_messages = Prisma.whatsapp_messagesModel
+/**
+ * Model whatsapp_outbox
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type whatsapp_outbox = Prisma.whatsapp_outboxModel
+/**
+ * Model whatsapp_webhook_events
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type whatsapp_webhook_events = Prisma.whatsapp_webhook_eventsModel

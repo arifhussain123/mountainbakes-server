@@ -8,11 +8,13 @@ import {
   ReviewProductionReturnSchema,
   businessDateStr,
   businessDaysAgoStr,
+  type ProductionReturnDisposition,
 } from '../shared';
 import { notify } from '../services/push.service';
 import { acceptReturnIntoReturnStock } from '../services/return-stock.service';
 import { applyStockMovement } from '../services/stock.service';
 import { toReturnsApi } from '../services/branch-returns.service';
+import { getMonthlyReturnsSummary } from '../services/returns-summary.service';
 import { rowToApi } from '../utils/case';
 
 const db = dbFor('production-returns');
@@ -34,6 +36,24 @@ const PRODUCTION_RETURN_SORTABLE_COLUMNS: Record<string, string> = {
   reason: 'reason',
   status: 'status',
 };
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// GET /api/production-returns/summary?branchId=
+// — this business month to date (1st → today), per branch × status, summed in
+// Postgres. No branchId = every branch plus an overall total; a branchId narrows
+// both to that branch, the same filter the list below takes. The window is the
+// server's own clock, never a client-supplied range, so every surface states the
+// same month. See shared/utils/returns-summary.ts for what each figure means.
+router.get('/summary', async (req: AuthRequest, res, next) => {
+  try {
+    const branchId = (req.query['branchId'] as string | undefined) || null;
+    if (branchId && !UUID_RE.test(branchId)) { res.status(400).json({ error: 'branchId must be a uuid' }); return; }
+    res.json(await getMonthlyReturnsSummary({ branchId }));
+  } catch (err) {
+    next(err);
+  }
+});
 
 // GET /api/production-returns?from=&to=&branchId=&productId=&status=&search=&limit=&offset=
 // — 30 days by default, most recent first, filtered and paginated in Postgres.
@@ -174,7 +194,7 @@ router.put('/:id/review', validate(ReviewProductionReturnSchema), async (req: Au
     const { status } = req.body as { status: 'accepted' | 'rejected' | 'returned' };
     const id = req.params['id']!;
     const { disposition = 'saleable', dispositionNote } = req.body as {
-      disposition?: 'saleable' | 'damaged' | 'expired';
+      disposition?: ProductionReturnDisposition;
       dispositionNote?: string;
     };
 

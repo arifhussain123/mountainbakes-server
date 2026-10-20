@@ -258,9 +258,17 @@ describe('uploadAttachment — the storage ceiling', () => {
   const actor = { uid: '', email: 'till@branch.test' };
   before(() => { actor.uid = me; });
 
+  /** `bytes` long and, by its first bytes, really the image type named. */
+  const image = (bytes: number, type: 'jpeg' | 'webp') => {
+    const head = type === 'jpeg'
+      ? Buffer.from([0xff, 0xd8, 0xff, 0xe0])
+      : Buffer.concat([Buffer.from('RIFF'), Buffer.alloc(4), Buffer.from('WEBP')]);
+    return Buffer.concat([head, Buffer.alloc(bytes - head.length)]);
+  };
+
   test('refuses a return photo over 1 MB, and stores nothing', async () => {
     await assert.rejects(
-      svc.uploadAttachment({ entity: 'branch_return', buffer: Buffer.alloc(1024 * 1024 + 1), mimeType: 'image/jpeg', actor }),
+      svc.uploadAttachment({ entity: 'branch_return', buffer: image(1024 * 1024 + 1, 'jpeg'), mimeType: 'image/jpeg', actor }),
       (err: { status?: number }) => err.status === 413,
     );
     assert.deepEqual(uploadedToStorage, []);
@@ -268,7 +276,7 @@ describe('uploadAttachment — the storage ceiling', () => {
 
   test('stores a compressed return photo, staged', async () => {
     const a = await svc.uploadAttachment({
-      entity: 'branch_return', buffer: Buffer.alloc(180 * 1024), mimeType: 'image/webp', width: 1280, height: 960, actor,
+      entity: 'branch_return', buffer: image(180 * 1024, 'webp'), mimeType: 'image/webp', width: 1280, height: 960, actor,
     });
     assert.equal(a.entityId, null);
     assert.equal(a.sizeBytes, 180 * 1024);
@@ -276,7 +284,7 @@ describe('uploadAttachment — the storage ceiling', () => {
   });
 
   test('leaves the 5 MB ceiling in place for every other entity', async () => {
-    const a = await svc.uploadAttachment({ entity: 'finance_transaction', buffer: Buffer.alloc(2 * 1024 * 1024), mimeType: 'image/jpeg', actor });
+    const a = await svc.uploadAttachment({ entity: 'finance_transaction', buffer: image(2 * 1024 * 1024, 'jpeg'), mimeType: 'image/jpeg', actor });
     assert.equal(a.sizeBytes, 2 * 1024 * 1024);
   });
 });

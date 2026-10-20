@@ -5,6 +5,7 @@ import { requireRole } from '../middleware/requireRole';
 import { validate } from '../middleware/validate';
 import { ReviewBranchDiscountSchema, businessDaysAgoStr } from '../shared';
 import { notify } from '../services/push.service';
+import { getMonthlyDiscountSummary } from '../services/discount-summary.service';
 import { rowToApi } from '../utils/case';
 
 const db = dbFor('production-discounts');
@@ -67,6 +68,23 @@ function toApi(rows: unknown): Record<string, unknown>[] {
     date: businessDate,
   }));
 }
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// GET /api/production-discounts/summary?branchId=
+// — this business month to date (1st → today), per branch × status, summed in
+// Postgres. No branchId = every active branch plus an overall total; a branchId
+// narrows both to that branch. The window is the server's own clock, never a
+// client-supplied range. See shared/utils/discount-summary.ts.
+router.get('/summary', async (req: AuthRequest, res, next) => {
+  try {
+    const branchId = (req.query['branchId'] as string | undefined) || null;
+    if (branchId && !UUID_RE.test(branchId)) { res.status(400).json({ error: 'branchId must be a uuid' }); return; }
+    res.json(await getMonthlyDiscountSummary({ branchId }));
+  } catch (err) {
+    next(err);
+  }
+});
 
 // GET /api/production-discounts?from=&to=&branchId=&status=&search=&limit=&offset=
 // — 30 days by default, most recent first, filtered and paginated in Postgres.

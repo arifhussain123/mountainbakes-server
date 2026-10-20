@@ -66,6 +66,36 @@ export async function genericExcel(title: string, headers: string[], rows: Cell[
   return wb.xlsx.writeBuffer() as unknown as Promise<Buffer>;
 }
 
+/**
+ * Same styling as `genericExcel`, one sheet per entry — for an export whose
+ * on-screen page has more than one table (e.g. a daily summary plus a
+ * per-product breakdown) and needs them to land as separate tabs rather than
+ * concatenated into one.
+ */
+export async function genericExcelMultiSheet(
+  sheets: { title: string; headers: string[]; rows: Cell[][] }[],
+): Promise<Buffer> {
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'Mountain Bakes ERP';
+
+  for (const { title, headers, rows } of sheets) {
+    const sheet = wb.addWorksheet(title.slice(0, 31));
+    sheet.addRow(headers);
+    const headerRow = sheet.getRow(1);
+    headerRow.eachCell((cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF97316' } };
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+      cell.alignment = { vertical: 'middle', horizontal: 'center' };
+    });
+    headerRow.height = 20;
+
+    for (const row of rows) sheet.addRow(row);
+    sheet.columns.forEach((c) => { c.width = 18; });
+  }
+
+  return wb.xlsx.writeBuffer() as unknown as Promise<Buffer>;
+}
+
 export function genericCSV(headers: string[], rows: Cell[][]): string {
   return [headers, ...rows]
     .map((row) => row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))

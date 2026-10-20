@@ -1012,6 +1012,10 @@ export interface FinanceReportColumn {
   align?: 'left' | 'right' | 'center';
   /** Relative width hint, used by the PDF/Excel writers. */
   width?: number;
+  /** Dropped from the PDF only — Excel/CSV still carry it, since those are printed and filed. */
+  pdfOmit?: boolean;
+  /** Dropped from the Excel workbook only — CSV still carries it. */
+  excelOmit?: boolean;
 }
 
 /**

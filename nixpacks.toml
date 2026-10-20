@@ -1,0 +1,10 @@
+# Adds the PostgreSQL 18 client tools (pg_dump / pg_restore / psql) to the
+# Railway build image — used by the database backup jobs (src/scripts/backup.ts).
+# The live database runs PostgreSQL 18, and a dump client older than the server
+# refuses to run against it, same rule Heroku's Aptfile enforced (postgresql-client-18
+# via the PGDG apt repo, since Ubuntu noble's own client is 16).
+#
+# Nixpacks still auto-detects this as a Node app from package.json; this file
+# only extends the setup phase with one extra nix package.
+[phases.setup]
+nixPkgs = ["postgresql_18"]

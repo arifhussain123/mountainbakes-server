@@ -265,12 +265,15 @@ export interface ProductionShortfall {
  * record of the goods' condition, which is what whoever later considers
  * transferring them into production needs to know.
  */
-export type ProductionReturnDisposition = 'saleable' | 'damaged' | 'expired';
+export type ProductionReturnDisposition = 'saleable' | 'damaged' | 'expired' | 'repaired';
 
 export const RETURN_DISPOSITION_LABELS: Record<ProductionReturnDisposition, string> = {
   saleable: 'Saleable',
   damaged: 'Damaged',
   expired: 'Expired',
+  // Came back damaged and Production repaired it (migration 20261018000001).
+  // Read by the Production Dashboard's Repaired Stock section.
+  repaired: 'Repaired',
 };
 
 // ── Branch Return Stock ──────────────────────────────────────────────────────
@@ -394,12 +397,28 @@ export interface ProductionReturn {
   reviewedByName: string | null;
   reviewedAt: string | null;
   /**
-   * The photo taken when the branch raised the return, or null — returns older
-   * than migration 148, and ones Production recorded itself, have none. Every
-   * product row of one submission carries the SAME photo.
+   * The photo of THIS returned product, or null — returns older than migration
+   * 148, and ones Production recorded itself, have none.
    *
    * `photo.url` is a signed URL with an hour to live (see Attachment); it is
    * re-minted on every read, so key any client-side cache on `photo.id`.
    */
   photo?: Attachment | null;
+  /**
+   * True for a return raised before photos went per line (migration
+   * 20261020000001) whose one photo covers every product of its submission.
+   * Screens show it with "One photo for all items (older return)" rather than
+   * as a picture of this product alone.
+   */
+  legacySinglePhoto?: boolean;
+  /** The product's SKU at read time, or null where none is set. */
+  productCode?: string | null;
+  /**
+   * Rs. per unit — the product's price in force on `date`, from the price
+   * history (a return row stores no price of its own). Null when no price
+   * exists anywhere. Same rule as the monthly summary's amounts.
+   */
+  unitPrice?: number | null;
+  /** qty × unitPrice, rounded to the paisa; null exactly when unitPrice is. */
+  amount?: number | null;
 }

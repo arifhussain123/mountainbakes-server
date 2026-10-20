@@ -56,6 +56,11 @@ export const TYPE_URL: Record<string, string> = {
   // 'cash_transfer_reviewed' only by the branch.
   cash_transfer: '/finance-cash-transfers',
   cash_transfer_reviewed: '/branch-cash-transfers',
+  purchase_quotation: '/production-whatsapp',
+  purchase_bill: '/production-whatsapp',
+  purchase_message: '/production-whatsapp',
+  purchase_payment: '/finance-supplier-payments',
+  purchase_payment_reviewed: '/production-whatsapp',
   // Special Events. NOTE this map is role-blind — the admin, branch and
   // production event screens live at three different paths, so these entries can
   // only ever be right for one role. Whoever reimplements push has to key the

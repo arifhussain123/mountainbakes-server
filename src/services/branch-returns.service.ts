@@ -3,8 +3,10 @@ import { dbFor } from '../db';
 import type { ProductionReturn } from '../shared';
 import { rowToApi } from '../utils/case';
 import { getAttachmentsByIds } from './attachments.service';
+import { priceReturnRows } from './returns-summary.service';
 import { applyStockMovement, commitBranchReturn } from './stock.service';
 import { isBusinessDayClosed } from './business-day.service';
+import { logAudit } from './audit.service';
 
 const db = dbFor('branch-returns');
 
@@ -54,12 +56,14 @@ const db = dbFor('branch-returns');
 interface ReturnRow {
   id: string;
   branch_id: string;
+  branch_name: string | null;
   product_id: string;
   product_name: string;
   qty: number | string;
   status: string;
   source: string | null;
   business_date: string;
+  photo_attachment_id: string | null;
 }
 
 /**
@@ -109,12 +113,16 @@ const OPEN_OR_CLOSED_STATUSES = ['pending', 'accepted', 'rejected', 'returned'];
 
 /**
  * Shape a page of `production_returns` rows for the API: `business_date` becomes
- * `date`, and `photo_attachment_id` becomes a signed `photo`.
+ * `date`, `photo_attachment_id` becomes a signed `photo`, and each row gains its
+ * `productCode`, `unitPrice` and `amount` — priced by the same query the monthly
+ * summary uses (`returns-summary.service.ts`), so a row and the total it rolls
+ * up into always agree.
  *
  * Shared by the branch list here and Production's queue
  * (production-returns.routes.ts) so the two cannot disagree about what a return
- * looks like. One attachment query and one signing call for the whole page,
- * however many rows share a photo — every product of one submission does.
+ * looks like. One attachment query and one signing call for the whole page.
+ * Each row carries its own photo; a legacy row (`legacySinglePhoto`) shares
+ * its submission's one photo, which is signed once however many rows cite it.
  *
  * WHO MAY SEE A PHOTO is decided by the caller's own row filter, not here: a
  * branch only ever reaches this with its own branch's rows, and the URL minted
@@ -122,15 +130,116 @@ const OPEN_OR_CLOSED_STATUSES = ['pending', 'accepted', 'rejected', 'returned'];
  */
 export async function toReturnsApi(data: unknown[]): Promise<ProductionReturn[]> {
   const rows = rowToApi<Record<string, unknown>[]>(data ?? []);
-  const photos = await getAttachmentsByIds(
-    'branch_return',
-    rows.map((r) => r['photoAttachmentId'] as string | null),
-  );
-  return rows.map(({ businessDate, photoAttachmentId, ...rest }) => ({
-    ...rest,
-    date: businessDate,
-    photo: photos.get(photoAttachmentId as string) ?? null,
-  })) as unknown as ProductionReturn[];
+  const [photos, pricing] = await Promise.all([
+    getAttachmentsByIds('branch_return', rows.map((r) => r['photoAttachmentId'] as string | null)),
+    priceReturnRows(rows.map((r) => r['id'] as string)),
+  ]);
+  return rows.map(({ businessDate, photoAttachmentId, ...rest }) => {
+    const price = pricing.get(rest['id'] as string);
+    return {
+      ...rest,
+      date: businessDate,
+      photo: photos.get(photoAttachmentId as string) ?? null,
+      productCode: price?.productCode ?? null,
+      unitPrice: price?.unitPrice ?? null,
+      amount: price?.amount ?? null,
+    };
+  }) as unknown as ProductionReturn[];
+}
+
+/** One line of a new return, product name resolved, before any stock moves. */
+export interface ReturnLineInput {
+  productId: string;
+  productName: string;
+  qty: number;
+  attachmentId?: string;
+}
+
+export type ReturnLinePhotos =
+  | { ok: true; lines: (ReturnLineInput & { photoId: string | null })[] }
+  | { ok: false; status: number; code: string; error: string; details?: unknown };
+
+/**
+ * Decide which photo stands behind each line of a new return — or why the
+ * return is refused — before anything is written.
+ *
+ * ONE PHOTO PER LINE. Every product a branch sends back is photographed on its
+ * own, and its row cites that photo alone; the refusal names the products that
+ * have none, so the till can say "Photo missing for Classic Brownie" rather
+ * than "a photo is required".
+ *
+ * The one-photo-per-return shape that clients sent before this is still read,
+ * but only where it is unambiguous: a return of ONE product, whose one photo is
+ * that line's photo. For several products there is no saying which product the
+ * picture shows, so it is refused with a message that tells the branch to update
+ * the app. `strict` (RETURN_PHOTO_PER_LINE=strict) refuses the old shape even
+ * for one product, once every till sends the new one.
+ *
+ * `required` false (RETURN_PHOTO_REQUIRED=false) lets lines through without a
+ * photo, as the old switch did for the whole return.
+ *
+ * Pure: no reads, no writes. Whether each photo id is really a usable upload of
+ * this caller's is `assertStagedAttachments`' question, asked next.
+ */
+export function resolveReturnLinePhotos(input: {
+  lines: ReturnLineInput[];
+  legacyAttachmentIds: string[];
+  required: boolean;
+  strict: boolean;
+}): ReturnLinePhotos {
+  const { lines, legacyAttachmentIds, required, strict } = input;
+  const perLine = lines.some((l) => l.attachmentId);
+  const legacyId = legacyAttachmentIds[0];
+
+  if (legacyId && perLine) {
+    return {
+      ok: false,
+      status: 400,
+      code: 'photo_shape_mixed',
+      error: 'Send each product’s photo with its own line, not one photo for the whole return.',
+    };
+  }
+
+  if (legacyId) {
+    if (strict || lines.length > 1) {
+      return {
+        ok: false,
+        status: 400,
+        code: 'photo_per_line_required',
+        error:
+          lines.length > 1
+            ? 'Each product needs its own photo. Update the app to save a return of several products.'
+            : 'Each product needs its own photo. Update the app and try again.',
+      };
+    }
+    return { ok: true, lines: [{ ...lines[0]!, photoId: legacyId }] };
+  }
+
+  const missing = lines.filter((l) => !l.attachmentId);
+  if (missing.length > 0 && required) {
+    return {
+      ok: false,
+      status: 400,
+      code: 'photo_required',
+      error: `Photo missing for ${missing.map((l) => l.productName).join(', ')}`,
+      details: missing.map((l) => ({ productId: l.productId, productName: l.productName })),
+    };
+  }
+
+  return { ok: true, lines: lines.map((l) => ({ ...l, photoId: l.attachmentId ?? null })) };
+}
+
+/**
+ * The Audit Trail line for a saved return: who, which branch, and — line by
+ * line — the return id, product, quantity and the photo it was raised on.
+ */
+export function returnAuditDetails(
+  branchName: string,
+  businessDate: string,
+  lines: { id: string; productName: string; qty: number; photoId: string | null }[],
+): string {
+  const each = lines.map((l) => `${l.productName} × ${l.qty} (return ${l.id}, photo ${l.photoId ?? 'none'})`);
+  return `Return from ${branchName} for ${businessDate}: ${each.join('; ')}`;
 }
 
 /** Allowlist for `?sortBy=` — `date` is this API's own rename of `business_date` (see below). */
@@ -223,7 +332,7 @@ export async function listBranchReturns(
 async function loadEditable(id: string, branchId: string | null): Promise<ReturnRow> {
   const { data, error } = await db
     .from('production_returns')
-    .select('id, branch_id, product_id, product_name, qty, status, source, business_date')
+    .select('id, branch_id, branch_name, product_id, product_name, qty, status, source, business_date, photo_attachment_id')
     .eq('id', id)
     .maybeSingle();
   if (error) throw error;
@@ -339,6 +448,8 @@ export async function reviseBranchReturn(params: {
   branchId: string | null;
   qty: number;
   reason?: string;
+  /** Who made the correction, for the Audit Trail. */
+  actor?: { uid: string; email: string };
 }): Promise<ProductionReturn> {
   const row = await loadEditable(params.id, params.branchId);
   const branchId = row.branch_id;
@@ -361,6 +472,19 @@ export async function reviseBranchReturn(params: {
     .select('*')
     .single();
   if (error) throw error;
+
+  // The photo cannot change on a correction, but the entry names it anyway: the
+  // trail should say which picture the corrected figure still stands on.
+  if (params.actor) {
+    await logAudit({
+      action: 'return_revised',
+      adminId: params.actor.uid,
+      adminName: params.actor.email,
+      details:
+        `Return ${row.id} from ${row.branch_name ?? 'branch'}: ${row.product_name} ${Number(row.qty)} → ${params.qty}` +
+        `${params.reason !== undefined ? `, reason "${params.reason}"` : ''} (photo ${row.photo_attachment_id ?? 'none'})`,
+    });
+  }
 
   const { businessDate, ...rest } = rowToApi<Record<string, unknown>>(data);
   return { ...rest, date: businessDate } as ProductionReturn;
