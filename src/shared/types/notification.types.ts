@@ -33,6 +33,12 @@ export type NotificationType =
   // Cash transfers (migration 119) — money a branch handed to the company.
   | 'cash_transfer' // a branch recorded a handover → Finance
   | 'cash_transfer_reviewed' // Finance approved/rejected it → branch
+  // WhatsApp Purchasing (migration 20261020000002).
+  | 'purchase_quotation' // a supplier sent a quotation → Production
+  | 'purchase_bill' // a supplier sent a bill → Production
+  | 'purchase_message' // a supplier wrote on WhatsApp (matched or not) → Production
+  | 'purchase_payment' // Production recorded a supplier payment or credit → Finance
+  | 'purchase_payment_reviewed' // Finance approved/rejected/reversed it → Production
   // Help Desk → Support Center queries (migration 25)
   | 'support_query' // a branch/production user raised a query → Admin
   | 'support_resolved' // Admin resolved/rejected or corrected the figures → raiser

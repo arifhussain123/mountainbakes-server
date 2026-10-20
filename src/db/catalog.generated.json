@@ -1047,6 +1047,39 @@
   },
   {
    "columns": [
+    "item_id"
+   ],
+   "name": "ingredient_stock_item_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_items",
+   "table": "ingredient_stock"
+  },
+  {
+   "columns": [
+    "created_by"
+   ],
+   "name": "ingredient_stock_movements_created_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "ingredient_stock_movements"
+  },
+  {
+   "columns": [
+    "item_id"
+   ],
+   "name": "ingredient_stock_movements_item_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_items",
+   "table": "ingredient_stock_movements"
+  },
+  {
+   "columns": [
     "approved_by"
    ],
    "name": "ledger_entries_approved_by_fkey",
@@ -1718,6 +1751,325 @@
   },
   {
    "columns": [
+    "bill_id"
+   ],
+   "name": "purchase_bill_items_bill_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_bills",
+   "table": "purchase_bill_items"
+  },
+  {
+   "columns": [
+    "quotation_item_id"
+   ],
+   "name": "purchase_bill_items_quotation_item_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_quotation_items",
+   "table": "purchase_bill_items"
+  },
+  {
+   "columns": [
+    "decided_by"
+   ],
+   "name": "purchase_bills_decided_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "purchase_bills"
+  },
+  {
+   "columns": [
+    "demand_id"
+   ],
+   "name": "purchase_bills_demand_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_demands",
+   "table": "purchase_bills"
+  },
+  {
+   "columns": [
+    "entered_by"
+   ],
+   "name": "purchase_bills_entered_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "purchase_bills"
+  },
+  {
+   "columns": [
+    "quotation_id"
+   ],
+   "name": "purchase_bills_quotation_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_quotations",
+   "table": "purchase_bills"
+  },
+  {
+   "columns": [
+    "demand_id"
+   ],
+   "name": "purchase_deliveries_demand_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_demands",
+   "table": "purchase_deliveries"
+  },
+  {
+   "columns": [
+    "updated_by"
+   ],
+   "name": "purchase_deliveries_updated_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "purchase_deliveries"
+  },
+  {
+   "columns": [
+    "demand_id"
+   ],
+   "name": "purchase_demand_events_demand_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_demands",
+   "table": "purchase_demand_events"
+  },
+  {
+   "columns": [
+    "demand_id"
+   ],
+   "name": "purchase_demand_items_demand_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_demands",
+   "table": "purchase_demand_items"
+  },
+  {
+   "columns": [
+    "item_id"
+   ],
+   "name": "purchase_demand_items_item_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_items",
+   "table": "purchase_demand_items"
+  },
+  {
+   "columns": [
+    "closed_by"
+   ],
+   "name": "purchase_demands_closed_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "purchase_demands"
+  },
+  {
+   "columns": [
+    "created_by"
+   ],
+   "name": "purchase_demands_created_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "purchase_demands"
+  },
+  {
+   "columns": [
+    "sent_by"
+   ],
+   "name": "purchase_demands_sent_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "purchase_demands"
+  },
+  {
+   "columns": [
+    "supplier_id"
+   ],
+   "name": "purchase_demands_supplier_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "suppliers",
+   "table": "purchase_demands"
+  },
+  {
+   "columns": [
+    "verified_by"
+   ],
+   "name": "purchase_demands_verified_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "purchase_demands"
+  },
+  {
+   "columns": [
+    "created_by"
+   ],
+   "name": "purchase_items_created_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "purchase_items"
+  },
+  {
+   "columns": [
+    "demand_item_id"
+   ],
+   "name": "purchase_quotation_items_demand_item_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_demand_items",
+   "table": "purchase_quotation_items"
+  },
+  {
+   "columns": [
+    "quotation_id"
+   ],
+   "name": "purchase_quotation_items_quotation_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_quotations",
+   "table": "purchase_quotation_items"
+  },
+  {
+   "columns": [
+    "substitute_for_demand_item_id"
+   ],
+   "name": "purchase_quotation_items_substitute_for_demand_item_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_demand_items",
+   "table": "purchase_quotation_items"
+  },
+  {
+   "columns": [
+    "decided_by"
+   ],
+   "name": "purchase_quotations_decided_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "purchase_quotations"
+  },
+  {
+   "columns": [
+    "demand_id"
+   ],
+   "name": "purchase_quotations_demand_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_demands",
+   "table": "purchase_quotations"
+  },
+  {
+   "columns": [
+    "entered_by"
+   ],
+   "name": "purchase_quotations_entered_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "purchase_quotations"
+  },
+  {
+   "columns": [
+    "bill_item_id"
+   ],
+   "name": "purchase_receipt_items_bill_item_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_bill_items",
+   "table": "purchase_receipt_items"
+  },
+  {
+   "columns": [
+    "item_id"
+   ],
+   "name": "purchase_receipt_items_item_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_items",
+   "table": "purchase_receipt_items"
+  },
+  {
+   "columns": [
+    "receipt_id"
+   ],
+   "name": "purchase_receipt_items_receipt_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_receipts",
+   "table": "purchase_receipt_items"
+  },
+  {
+   "columns": [
+    "bill_id"
+   ],
+   "name": "purchase_receipts_bill_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_bills",
+   "table": "purchase_receipts"
+  },
+  {
+   "columns": [
+    "demand_id"
+   ],
+   "name": "purchase_receipts_demand_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_demands",
+   "table": "purchase_receipts"
+  },
+  {
+   "columns": [
+    "received_by"
+   ],
+   "name": "purchase_receipts_received_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "purchase_receipts"
+  },
+  {
+   "columns": [
     "user_id"
    ],
    "name": "push_subscriptions_user_id_fkey",
@@ -2114,6 +2466,193 @@
   },
   {
    "columns": [
+    "created_by"
+   ],
+   "name": "supplier_access_tokens_created_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "supplier_access_tokens"
+  },
+  {
+   "columns": [
+    "demand_id"
+   ],
+   "name": "supplier_access_tokens_demand_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_demands",
+   "table": "supplier_access_tokens"
+  },
+  {
+   "columns": [
+    "bill_id"
+   ],
+   "name": "supplier_credits_bill_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_bills",
+   "table": "supplier_credits"
+  },
+  {
+   "columns": [
+    "decided_by"
+   ],
+   "name": "supplier_credits_decided_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "supplier_credits"
+  },
+  {
+   "columns": [
+    "demand_id"
+   ],
+   "name": "supplier_credits_demand_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_demands",
+   "table": "supplier_credits"
+  },
+  {
+   "columns": [
+    "requested_by"
+   ],
+   "name": "supplier_credits_requested_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "supplier_credits"
+  },
+  {
+   "columns": [
+    "supplier_id"
+   ],
+   "name": "supplier_credits_supplier_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "suppliers",
+   "table": "supplier_credits"
+  },
+  {
+   "columns": [
+    "approved_by"
+   ],
+   "name": "supplier_payments_approved_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "supplier_payments"
+  },
+  {
+   "columns": [
+    "bill_id"
+   ],
+   "name": "supplier_payments_bill_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_bills",
+   "table": "supplier_payments"
+  },
+  {
+   "columns": [
+    "credit_id"
+   ],
+   "name": "supplier_payments_credit_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "supplier_credits",
+   "table": "supplier_payments"
+  },
+  {
+   "columns": [
+    "demand_id"
+   ],
+   "name": "supplier_payments_demand_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_demands",
+   "table": "supplier_payments"
+  },
+  {
+   "columns": [
+    "ledger_head_id"
+   ],
+   "name": "supplier_payments_ledger_head_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "ledger_heads",
+   "table": "supplier_payments"
+  },
+  {
+   "columns": [
+    "recorded_by"
+   ],
+   "name": "supplier_payments_recorded_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "supplier_payments"
+  },
+  {
+   "columns": [
+    "reversed_by"
+   ],
+   "name": "supplier_payments_reversed_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "supplier_payments"
+  },
+  {
+   "columns": [
+    "supplier_id"
+   ],
+   "name": "supplier_payments_supplier_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "suppliers",
+   "table": "supplier_payments"
+  },
+  {
+   "columns": [
+    "created_by"
+   ],
+   "name": "suppliers_created_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "suppliers"
+  },
+  {
+   "columns": [
+    "deleted_by"
+   ],
+   "name": "suppliers_deleted_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "suppliers"
+  },
+  {
+   "columns": [
     "branch_id"
    ],
    "name": "support_tickets_branch_id_fkey",
@@ -2177,6 +2716,83 @@
    ],
    "refTable": "users",
    "table": "users"
+  },
+  {
+   "columns": [
+    "supplier_id"
+   ],
+   "name": "whatsapp_conversations_supplier_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "suppliers",
+   "table": "whatsapp_conversations"
+  },
+  {
+   "columns": [
+    "conversation_id"
+   ],
+   "name": "whatsapp_messages_conversation_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "whatsapp_conversations",
+   "table": "whatsapp_messages"
+  },
+  {
+   "columns": [
+    "created_by"
+   ],
+   "name": "whatsapp_messages_created_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "whatsapp_messages"
+  },
+  {
+   "columns": [
+    "demand_id"
+   ],
+   "name": "whatsapp_messages_demand_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_demands",
+   "table": "whatsapp_messages"
+  },
+  {
+   "columns": [
+    "reviewed_by"
+   ],
+   "name": "whatsapp_messages_reviewed_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "whatsapp_messages"
+  },
+  {
+   "columns": [
+    "supplier_id"
+   ],
+   "name": "whatsapp_messages_supplier_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "suppliers",
+   "table": "whatsapp_messages"
+  },
+  {
+   "columns": [
+    "message_id"
+   ],
+   "name": "whatsapp_outbox_message_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "whatsapp_messages",
+   "table": "whatsapp_outbox"
   }
  ],
  "functions": {
@@ -3924,6 +4540,47 @@
     "volatility": "v"
    }
   ],
+  "ingredient_stock_adjust": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_item_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_delta",
+      "type": "numeric"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_reason",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_business_date",
+      "type": "date"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "ingredient_stock_adjust",
+    "returnType": "public.ingredient_stock_movements",
+    "returns": "composite",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
   "list_public_base_tables": [
    {
     "args": [],
@@ -4299,6 +4956,590 @@
     "returns": "composite",
     "returnsSet": true,
     "volatility": "s"
+   }
+  ],
+  "purchase_cancel_demand": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_reason",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_message",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "purchase_cancel_demand",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "purchase_create_demand": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_demand",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_items",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_today",
+      "type": "date"
+     }
+    ],
+    "name": "purchase_create_demand",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "purchase_decide_bill": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_demand_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_bill_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_decision",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_reason",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_accept_differences",
+      "type": "boolean"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_token_hash",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_token_expires",
+      "type": "timestamp with time zone"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_message",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "purchase_decide_bill",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "purchase_decide_quotation": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_demand_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_quotation_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_version",
+      "type": "integer"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_decision",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_reason",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_token_hash",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_token_expires",
+      "type": "timestamp with time zone"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_message",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "purchase_decide_quotation",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "purchase_mark_verified": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_revision",
+      "type": "integer"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "purchase_mark_verified",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "purchase_record_payment": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_demand_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_payment",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "purchase_record_payment",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "purchase_record_receipt": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_demand_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_receipt",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_items",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_final",
+      "type": "boolean"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_business_date",
+      "type": "date"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "purchase_record_receipt",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "purchase_request_credit": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_demand_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_credit",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "purchase_request_credit",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "purchase_resend_link": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_token_hash",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_token_expires",
+      "type": "timestamp with time zone"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_message",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "purchase_resend_link",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "purchase_save_delivery": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_demand_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_delivery",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "purchase_save_delivery",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "purchase_send_demand": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_revision",
+      "type": "integer"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_token_hash",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_token_expires",
+      "type": "timestamp with time zone"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_message",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "purchase_send_demand",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "purchase_submit_bill": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_demand_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_via",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_bill",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_items",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "purchase_submit_bill",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "purchase_submit_quotation": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_demand_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_via",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_quotation",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_items",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "purchase_submit_quotation",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "purchase_summary": [
+   {
+    "args": [],
+    "name": "purchase_summary",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "s"
+   }
+  ],
+  "purchase_update_demand": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_revision",
+      "type": "integer"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_demand",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_items",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "purchase_update_demand",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
    }
   ],
   "purge_idempotency_keys": [
@@ -4697,6 +5938,182 @@
     "volatility": "v"
    }
   ],
+  "supplier_balances": [
+   {
+    "args": [
+     {
+      "hasDefault": true,
+      "name": "p_supplier_id",
+      "type": "uuid"
+     }
+    ],
+    "name": "supplier_balances",
+    "returnType": "record",
+    "returns": "composite",
+    "returnsSet": true,
+    "volatility": "s"
+   }
+  ],
+  "supplier_credit_decide": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_decision",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_approved_amount",
+      "type": "numeric"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_reason",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "supplier_credit_decide",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "supplier_payment_approve": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_ledger_head_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_today",
+      "type": "date"
+     }
+    ],
+    "name": "supplier_payment_approve",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "supplier_payment_reject": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_reason",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "supplier_payment_reject",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "supplier_payment_reverse": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_reason",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_today",
+      "type": "date"
+     }
+    ],
+    "name": "supplier_payment_reverse",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "supplier_token_resolve": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_hash",
+      "type": "text"
+     }
+    ],
+    "name": "supplier_token_resolve",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
   "transfer_return_stock_to_production": [
    {
     "args": [
@@ -4860,6 +6277,254 @@
      }
     ],
     "name": "verify_special_order",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "whatsapp_apply_status": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_provider_message_id",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_status",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_at",
+      "type": "timestamp with time zone"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_error_code",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_error_title",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_error_detail",
+      "type": "text"
+     }
+    ],
+    "name": "whatsapp_apply_status",
+    "returnType": "boolean",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "whatsapp_claim_outbox": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_limit",
+      "type": "integer"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_lease_seconds",
+      "type": "integer"
+     }
+    ],
+    "name": "whatsapp_claim_outbox",
+    "returnType": "public.whatsapp_outbox",
+    "returns": "composite",
+    "returnsSet": true,
+    "volatility": "v"
+   }
+  ],
+  "whatsapp_complete_outbox": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_ok",
+      "type": "boolean"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_provider",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_provider_message_id",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_used_template",
+      "type": "boolean"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_retryable",
+      "type": "boolean"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_error_code",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_error",
+      "type": "text"
+     }
+    ],
+    "name": "whatsapp_complete_outbox",
+    "returnType": "void",
+    "returns": "void",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "whatsapp_enqueue": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_message",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "whatsapp_enqueue",
+    "returnType": "uuid",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "whatsapp_queue_reply": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_message",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "whatsapp_queue_reply",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "whatsapp_record_inbound": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p",
+      "type": "jsonb"
+     }
+    ],
+    "name": "whatsapp_record_inbound",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "whatsapp_retry_message": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_message_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "whatsapp_retry_message",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "whatsapp_review_message": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_message_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_action",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_supplier_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_demand_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "whatsapp_review_message",
     "returnType": "jsonb",
     "returns": "scalar",
     "returnsSet": false,
@@ -6133,6 +7798,55 @@
     ]
    ]
   },
+  "ingredient_stock": {
+   "columns": {
+    "item_id": "uuid",
+    "balance": "numeric",
+    "updated_at": "timestamp with time zone"
+   },
+   "pk": [
+    "item_id"
+   ],
+   "unique": [
+    [
+     "item_id"
+    ]
+   ]
+  },
+  "ingredient_stock_movements": {
+   "columns": {
+    "id": "uuid",
+    "movement_no": "text",
+    "item_id": "uuid",
+    "item_name": "text",
+    "unit": "text",
+    "type": "text",
+    "delta": "numeric",
+    "balance_after": "numeric",
+    "demand_id": "uuid",
+    "receipt_id": "uuid",
+    "receipt_item_id": "uuid",
+    "reason": "text",
+    "business_date": "date",
+    "created_by": "uuid",
+    "created_by_name": "text",
+    "created_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ],
+    [
+     "movement_no"
+    ],
+    [
+     "receipt_item_id"
+    ]
+   ]
+  },
   "ledger_entries": {
    "columns": {
     "id": "uuid",
@@ -6894,6 +8608,410 @@
     ]
    ]
   },
+  "purchase_bill_items": {
+   "columns": {
+    "id": "uuid",
+    "bill_id": "uuid",
+    "line_no": "integer",
+    "quotation_item_id": "uuid",
+    "item_name": "text",
+    "unit": "text",
+    "qty": "numeric",
+    "unit_rate": "numeric",
+    "line_total": "numeric"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "bill_id",
+     "line_no"
+    ],
+    [
+     "id"
+    ]
+   ]
+  },
+  "purchase_bills": {
+   "columns": {
+    "id": "uuid",
+    "demand_id": "uuid",
+    "quotation_id": "uuid",
+    "quotation_version": "integer",
+    "supplier_bill_no": "text",
+    "status": "text",
+    "submitted_via": "text",
+    "entered_by": "uuid",
+    "entered_by_name": "text",
+    "invoice_date": "date",
+    "delivery_date": "date",
+    "subtotal": "numeric",
+    "delivery_charge": "numeric",
+    "discount": "numeric",
+    "other_charges": "numeric",
+    "other_charges_note": "text",
+    "grand_total": "numeric",
+    "supplier_payment_method": "text",
+    "supplier_stated_paid": "numeric",
+    "notes": "text",
+    "differs_from_quotation": "boolean",
+    "differences": "jsonb",
+    "accepted_differences": "boolean",
+    "submitted_at": "timestamp with time zone",
+    "decided_by": "uuid",
+    "decided_by_name": "text",
+    "decided_at": "timestamp with time zone",
+    "decision_reason": "text",
+    "client_request_id": "text"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "client_request_id"
+    ],
+    [
+     "id"
+    ]
+   ]
+  },
+  "purchase_deliveries": {
+   "columns": {
+    "id": "uuid",
+    "demand_id": "uuid",
+    "provider": "text",
+    "provider_name": "text",
+    "booking_reference": "text",
+    "estimated_fee": "numeric",
+    "actual_fee": "numeric",
+    "fee_paid_by": "text",
+    "pickup_details": "text",
+    "delivery_notes": "text",
+    "status": "text",
+    "dispatched_at": "timestamp with time zone",
+    "delivered_at": "timestamp with time zone",
+    "received_by_name": "text",
+    "updated_by": "uuid",
+    "updated_by_name": "text",
+    "created_at": "timestamp with time zone",
+    "updated_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "demand_id"
+    ],
+    [
+     "id"
+    ]
+   ]
+  },
+  "purchase_demand_events": {
+   "columns": {
+    "id": "uuid",
+    "demand_id": "uuid",
+    "event": "text",
+    "from_status": "text",
+    "to_status": "text",
+    "actor_type": "text",
+    "actor_id": "uuid",
+    "actor_name": "text",
+    "quotation_id": "uuid",
+    "bill_id": "uuid",
+    "reason": "text",
+    "details": "jsonb",
+    "created_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ]
+   ]
+  },
+  "purchase_demand_items": {
+   "columns": {
+    "id": "uuid",
+    "demand_id": "uuid",
+    "line_no": "integer",
+    "item_id": "uuid",
+    "item_name": "text",
+    "item_code": "text",
+    "requested_qty": "numeric",
+    "unit": "text",
+    "note": "text"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "demand_id",
+     "line_no"
+    ],
+    [
+     "id"
+    ]
+   ]
+  },
+  "purchase_demand_list": {
+   "columns": {
+    "id": "uuid",
+    "demand_no": "text",
+    "status": "text",
+    "priority": "text",
+    "required_date": "date",
+    "supplier_id": "uuid",
+    "supplier_name": "text",
+    "supplier_whatsapp": "text",
+    "notes": "text",
+    "delivery_instructions": "text",
+    "payment_preference": "text",
+    "credit_reference": "text",
+    "credit_amount_requested": "numeric",
+    "credit_terms": "text",
+    "credit_due_date": "date",
+    "credit_notes": "text",
+    "payment_status": "text",
+    "delivery_status": "text",
+    "current_quotation_id": "uuid",
+    "approved_quotation_id": "uuid",
+    "approved_bill_id": "uuid",
+    "client_request_id": "text",
+    "revision": "integer",
+    "verified_revision": "integer",
+    "verified_at": "timestamp with time zone",
+    "verified_by": "uuid",
+    "verified_by_name": "text",
+    "sent_at": "timestamp with time zone",
+    "sent_by": "uuid",
+    "sent_by_name": "text",
+    "closed_reason": "text",
+    "closed_at": "timestamp with time zone",
+    "closed_by": "uuid",
+    "closed_by_name": "text",
+    "created_by": "uuid",
+    "created_by_name": "text",
+    "created_at": "timestamp with time zone",
+    "updated_at": "timestamp with time zone",
+    "item_count": "integer",
+    "quoted_total": "numeric",
+    "bill_total": "numeric",
+    "paid_total": "numeric",
+    "last_message_status": "text"
+   },
+   "pk": [],
+   "unique": []
+  },
+  "purchase_demands": {
+   "columns": {
+    "id": "uuid",
+    "demand_no": "text",
+    "status": "text",
+    "priority": "text",
+    "required_date": "date",
+    "supplier_id": "uuid",
+    "supplier_name": "text",
+    "supplier_whatsapp": "text",
+    "notes": "text",
+    "delivery_instructions": "text",
+    "payment_preference": "text",
+    "credit_reference": "text",
+    "credit_amount_requested": "numeric",
+    "credit_terms": "text",
+    "credit_due_date": "date",
+    "credit_notes": "text",
+    "payment_status": "text",
+    "delivery_status": "text",
+    "current_quotation_id": "uuid",
+    "approved_quotation_id": "uuid",
+    "approved_bill_id": "uuid",
+    "client_request_id": "text",
+    "revision": "integer",
+    "verified_revision": "integer",
+    "verified_at": "timestamp with time zone",
+    "verified_by": "uuid",
+    "verified_by_name": "text",
+    "sent_at": "timestamp with time zone",
+    "sent_by": "uuid",
+    "sent_by_name": "text",
+    "closed_reason": "text",
+    "closed_at": "timestamp with time zone",
+    "closed_by": "uuid",
+    "closed_by_name": "text",
+    "created_by": "uuid",
+    "created_by_name": "text",
+    "created_at": "timestamp with time zone",
+    "updated_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "client_request_id"
+    ],
+    [
+     "demand_no"
+    ],
+    [
+     "id"
+    ]
+   ]
+  },
+  "purchase_items": {
+   "columns": {
+    "id": "uuid",
+    "item_code": "text",
+    "name": "text",
+    "unit": "text",
+    "category": "text",
+    "is_active": "boolean",
+    "created_by": "uuid",
+    "created_by_name": "text",
+    "created_at": "timestamp with time zone",
+    "updated_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ],
+    [
+     "item_code"
+    ]
+   ]
+  },
+  "purchase_quotation_items": {
+   "columns": {
+    "id": "uuid",
+    "quotation_id": "uuid",
+    "line_no": "integer",
+    "demand_item_id": "uuid",
+    "substitute_for_demand_item_id": "uuid",
+    "item_name": "text",
+    "unit": "text",
+    "requested_qty": "numeric",
+    "available_qty": "numeric",
+    "unit_rate": "numeric",
+    "line_total": "numeric",
+    "availability": "text",
+    "note": "text"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ],
+    [
+     "line_no",
+     "quotation_id"
+    ]
+   ]
+  },
+  "purchase_quotations": {
+   "columns": {
+    "id": "uuid",
+    "demand_id": "uuid",
+    "version": "integer",
+    "status": "text",
+    "submitted_via": "text",
+    "entered_by": "uuid",
+    "entered_by_name": "text",
+    "subtotal": "numeric",
+    "delivery_charge": "numeric",
+    "total": "numeric",
+    "estimated_delivery_date": "date",
+    "delivery_notes": "text",
+    "notes": "text",
+    "submitted_at": "timestamp with time zone",
+    "decided_by": "uuid",
+    "decided_by_name": "text",
+    "decided_at": "timestamp with time zone",
+    "decision_reason": "text",
+    "client_request_id": "text"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "client_request_id"
+    ],
+    [
+     "demand_id",
+     "version"
+    ],
+    [
+     "id"
+    ]
+   ]
+  },
+  "purchase_receipt_items": {
+   "columns": {
+    "id": "uuid",
+    "receipt_id": "uuid",
+    "bill_item_id": "uuid",
+    "item_id": "uuid",
+    "item_name": "text",
+    "unit": "text",
+    "received_qty": "numeric",
+    "damaged_qty": "numeric",
+    "accepted_qty": "numeric",
+    "note": "text"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "bill_item_id",
+     "receipt_id"
+    ],
+    [
+     "id"
+    ]
+   ]
+  },
+  "purchase_receipts": {
+   "columns": {
+    "id": "uuid",
+    "receipt_no": "text",
+    "demand_id": "uuid",
+    "bill_id": "uuid",
+    "business_date": "date",
+    "is_final": "boolean",
+    "received_by": "uuid",
+    "received_by_name": "text",
+    "received_at": "timestamp with time zone",
+    "notes": "text",
+    "client_request_id": "text"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "client_request_id"
+    ],
+    [
+     "id"
+    ],
+    [
+     "receipt_no"
+    ]
+   ]
+  },
   "push_subscriptions": {
    "columns": {
     "id": "uuid",
@@ -7396,6 +9514,149 @@
     ]
    ]
   },
+  "supplier_access_tokens": {
+   "columns": {
+    "id": "uuid",
+    "demand_id": "uuid",
+    "token_hash": "text",
+    "expires_at": "timestamp with time zone",
+    "revoked_at": "timestamp with time zone",
+    "revoked_reason": "text",
+    "last_used_at": "timestamp with time zone",
+    "use_count": "integer",
+    "created_by": "uuid",
+    "created_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ],
+    [
+     "token_hash"
+    ]
+   ]
+  },
+  "supplier_credits": {
+   "columns": {
+    "id": "uuid",
+    "credit_no": "text",
+    "supplier_id": "uuid",
+    "demand_id": "uuid",
+    "bill_id": "uuid",
+    "requested_amount": "numeric",
+    "approved_amount": "numeric",
+    "terms": "text",
+    "due_date": "date",
+    "reference": "text",
+    "notes": "text",
+    "status": "text",
+    "requested_by": "uuid",
+    "requested_by_name": "text",
+    "requested_at": "timestamp with time zone",
+    "decided_by": "uuid",
+    "decided_by_name": "text",
+    "decided_at": "timestamp with time zone",
+    "decision_reason": "text"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "credit_no"
+    ],
+    [
+     "id"
+    ]
+   ]
+  },
+  "supplier_payments": {
+   "columns": {
+    "id": "uuid",
+    "payment_no": "text",
+    "supplier_id": "uuid",
+    "demand_id": "uuid",
+    "bill_id": "uuid",
+    "credit_id": "uuid",
+    "method": "text",
+    "account": "public.finance_account",
+    "amount": "numeric",
+    "reference_no": "text",
+    "paid_on": "date",
+    "notes": "text",
+    "status": "text",
+    "recorded_by": "uuid",
+    "recorded_by_name": "text",
+    "recorded_at": "timestamp with time zone",
+    "ledger_head_id": "uuid",
+    "ledger_entry_id": "uuid",
+    "voucher_no": "text",
+    "approved_by": "uuid",
+    "approved_by_name": "text",
+    "approved_at": "timestamp with time zone",
+    "rejection_reason": "text",
+    "reversal_entry_id": "uuid",
+    "reversal_voucher_no": "text",
+    "reversed_by": "uuid",
+    "reversed_by_name": "text",
+    "reversed_at": "timestamp with time zone",
+    "reversal_reason": "text",
+    "client_request_id": "text"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "client_request_id"
+    ],
+    [
+     "id"
+    ],
+    [
+     "payment_no"
+    ]
+   ]
+  },
+  "suppliers": {
+   "columns": {
+    "id": "uuid",
+    "supplier_code": "text",
+    "name": "text",
+    "contact_person": "text",
+    "whatsapp_number": "text",
+    "phone": "text",
+    "category": "text",
+    "address": "text",
+    "payment_terms": "text",
+    "notes": "text",
+    "is_active": "boolean",
+    "whatsapp_opt_in_at": "timestamp with time zone",
+    "whatsapp_opt_in_source": "text",
+    "created_by": "uuid",
+    "created_by_name": "text",
+    "created_at": "timestamp with time zone",
+    "updated_at": "timestamp with time zone",
+    "deleted_at": "timestamp with time zone",
+    "deleted_by": "uuid",
+    "deleted_by_name": "text",
+    "delete_reason": "text"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ],
+    [
+     "supplier_code"
+    ]
+   ]
+  },
   "support_tickets": {
    "columns": {
     "id": "uuid",
@@ -7482,6 +9743,154 @@
     ],
     [
      "username"
+    ]
+   ]
+  },
+  "whatsapp_business_numbers": {
+   "columns": {
+    "phone_number_id": "text",
+    "display_phone_number": "text",
+    "purpose": "text",
+    "is_authorized": "boolean",
+    "last_webhook_at": "timestamp with time zone",
+    "created_at": "timestamp with time zone",
+    "updated_at": "timestamp with time zone"
+   },
+   "pk": [
+    "phone_number_id"
+   ],
+   "unique": [
+    [
+     "phone_number_id"
+    ]
+   ]
+  },
+  "whatsapp_conversations": {
+   "columns": {
+    "id": "uuid",
+    "wa_id": "text",
+    "supplier_id": "uuid",
+    "profile_name": "text",
+    "last_inbound_at": "timestamp with time zone",
+    "last_outbound_at": "timestamp with time zone",
+    "last_message_at": "timestamp with time zone",
+    "unread_count": "integer",
+    "created_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ],
+    [
+     "wa_id"
+    ]
+   ]
+  },
+  "whatsapp_messages": {
+   "columns": {
+    "id": "uuid",
+    "conversation_id": "uuid",
+    "direction": "text",
+    "provider": "text",
+    "provider_message_id": "text",
+    "type": "text",
+    "template_name": "text",
+    "body": "text",
+    "media": "jsonb",
+    "status": "text",
+    "error_code": "text",
+    "error_title": "text",
+    "error_detail": "text",
+    "demand_id": "uuid",
+    "supplier_id": "uuid",
+    "reply_to_provider_id": "text",
+    "match_status": "text",
+    "reviewed_by": "uuid",
+    "reviewed_by_name": "text",
+    "reviewed_at": "timestamp with time zone",
+    "created_by": "uuid",
+    "created_by_name": "text",
+    "phone_number_id": "text",
+    "provider_timestamp": "timestamp with time zone",
+    "created_at": "timestamp with time zone",
+    "accepted_at": "timestamp with time zone",
+    "sent_at": "timestamp with time zone",
+    "delivered_at": "timestamp with time zone",
+    "read_at": "timestamp with time zone",
+    "failed_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ],
+    [
+     "provider_message_id"
+    ]
+   ]
+  },
+  "whatsapp_outbox": {
+   "columns": {
+    "id": "uuid",
+    "dedupe_key": "text",
+    "message_id": "uuid",
+    "to_wa_id": "text",
+    "text_body": "text",
+    "template_name": "text",
+    "template_language": "text",
+    "template_params": "jsonb",
+    "masked_text_body": "text",
+    "masked_params": "jsonb",
+    "status": "text",
+    "attempts": "integer",
+    "max_attempts": "integer",
+    "next_attempt_at": "timestamp with time zone",
+    "locked_until": "timestamp with time zone",
+    "last_error": "text",
+    "last_error_code": "text",
+    "created_at": "timestamp with time zone",
+    "updated_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "dedupe_key"
+    ],
+    [
+     "id"
+    ],
+    [
+     "message_id"
+    ]
+   ]
+  },
+  "whatsapp_webhook_events": {
+   "columns": {
+    "id": "uuid",
+    "dedupe_key": "text",
+    "kind": "text",
+    "payload": "jsonb",
+    "received_at": "timestamp with time zone",
+    "processed_at": "timestamp with time zone",
+    "attempts": "integer",
+    "last_error": "text"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "dedupe_key"
+    ],
+    [
+     "id"
     ]
    ]
   }

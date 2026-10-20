@@ -48,6 +48,9 @@ import { router as backupsRouter } from './backups.routes';
 import { router as restrictionsRouter } from './restrictions.routes';
 import { router as notificationsRouter } from './notifications.routes';
 import { router as publicBrandingRouter } from './public-branding.routes';
+import { router as purchasingRouter } from './purchasing.routes';
+import { router as supplierPortalRouter } from './supplier-portal.routes';
+import { router as financeSupplierPaymentsRouter } from './finance-supplier-payments.routes';
 import { PUBLIC_BRANDING_PATH } from '../services/file-store';
 
 export function setupRoutes(app: Express) {
@@ -129,6 +132,11 @@ export function setupRoutes(app: Express) {
   // resource (src/data-engine/registry.ts). The URL names a resource, never
   // a table.
   app.use('/api/data', dataRouter);
+  // WhatsApp Purchasing (migration 20261020000002): Production's demands to
+  // outside suppliers, and the supplier's own link-only side. The webhook is
+  // mounted in app.ts, ahead of the JSON parser.
+  app.use('/api/purchasing', purchasingRouter);
+  app.use('/api/supplier-portal', supplierPortalRouter);
 
   // ── Finance Ledger ──
   // PREFIX ORDER MATTERS here exactly as it does for /api/products/price above:
@@ -145,6 +153,7 @@ export function setupRoutes(app: Express) {
   app.use('/api/finance/tickets', financeTicketsRouter);
   app.use('/api/finance/cash-transfers', financeCashTransfersRouter);
   app.use('/api/finance/daily-sales', financeDailySalesRouter);
+  app.use('/api/finance/supplier-payments', financeSupplierPaymentsRouter);
   app.use('/api/finance', financeRouter);
   // Database backups — super_admin only. Lives under /api/admin/ because it is
   // operations tooling, not a business resource: it reports on pg_dump → S3
