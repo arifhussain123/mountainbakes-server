@@ -263,7 +263,8 @@ export const finance_ledger_source = {
   branch_share_payout: 'branch_share_payout',
   branch_share_bonus: 'branch_share_bonus',
   employee_advance: 'employee_advance',
-  cash_transfer: 'cash_transfer'
+  cash_transfer: 'cash_transfer',
+  vendor_payment: 'vendor_payment'
 } as const
 
 export type finance_ledger_source = (typeof finance_ledger_source)[keyof typeof finance_ledger_source]
@@ -342,7 +343,12 @@ export const notification_type = {
   finance_query_amended: 'finance_query_amended',
   security_alert: 'security_alert',
   cash_transfer: 'cash_transfer',
-  cash_transfer_reviewed: 'cash_transfer_reviewed'
+  cash_transfer_reviewed: 'cash_transfer_reviewed',
+  purchase_quotation: 'purchase_quotation',
+  purchase_bill: 'purchase_bill',
+  purchase_message: 'purchase_message',
+  purchase_payment: 'purchase_payment',
+  purchase_payment_reviewed: 'purchase_payment_reviewed'
 } as const
 
 export type notification_type = (typeof notification_type)[keyof typeof notification_type]

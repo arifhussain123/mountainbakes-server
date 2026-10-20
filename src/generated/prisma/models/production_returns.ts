@@ -639,6 +639,11 @@ export type production_returnsUncheckedUpdateManyInput = {
   legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
+export type Production_returnsNullableScalarRelationFilter = {
+  is?: Prisma.production_returnsWhereInput | null
+  isNot?: Prisma.production_returnsWhereInput | null
+}
+
 export type Production_returnsListRelationFilter = {
   every?: Prisma.production_returnsWhereInput
   some?: Prisma.production_returnsWhereInput
@@ -729,51 +734,36 @@ export type production_returnsSumOrderByAggregateInput = {
   qty?: Prisma.SortOrder
 }
 
-export type Production_returnsNullableScalarRelationFilter = {
-  is?: Prisma.production_returnsWhereInput | null
-  isNot?: Prisma.production_returnsWhereInput | null
+export type production_returnsCreateNestedOneWithoutAttachmentsInput = {
+  create?: Prisma.XOR<Prisma.production_returnsCreateWithoutAttachmentsInput, Prisma.production_returnsUncheckedCreateWithoutAttachmentsInput>
+  connectOrCreate?: Prisma.production_returnsCreateOrConnectWithoutAttachmentsInput
+  connect?: Prisma.production_returnsWhereUniqueInput
 }
 
-export type production_returnsCreateNestedManyWithoutAttachmentsInput = {
-  create?: Prisma.XOR<Prisma.production_returnsCreateWithoutAttachmentsInput, Prisma.production_returnsUncheckedCreateWithoutAttachmentsInput> | Prisma.production_returnsCreateWithoutAttachmentsInput[] | Prisma.production_returnsUncheckedCreateWithoutAttachmentsInput[]
-  connectOrCreate?: Prisma.production_returnsCreateOrConnectWithoutAttachmentsInput | Prisma.production_returnsCreateOrConnectWithoutAttachmentsInput[]
-  createMany?: Prisma.production_returnsCreateManyAttachmentsInputEnvelope
-  connect?: Prisma.production_returnsWhereUniqueInput | Prisma.production_returnsWhereUniqueInput[]
+export type production_returnsUncheckedCreateNestedOneWithoutAttachmentsInput = {
+  create?: Prisma.XOR<Prisma.production_returnsCreateWithoutAttachmentsInput, Prisma.production_returnsUncheckedCreateWithoutAttachmentsInput>
+  connectOrCreate?: Prisma.production_returnsCreateOrConnectWithoutAttachmentsInput
+  connect?: Prisma.production_returnsWhereUniqueInput
 }
 
-export type production_returnsUncheckedCreateNestedManyWithoutAttachmentsInput = {
-  create?: Prisma.XOR<Prisma.production_returnsCreateWithoutAttachmentsInput, Prisma.production_returnsUncheckedCreateWithoutAttachmentsInput> | Prisma.production_returnsCreateWithoutAttachmentsInput[] | Prisma.production_returnsUncheckedCreateWithoutAttachmentsInput[]
-  connectOrCreate?: Prisma.production_returnsCreateOrConnectWithoutAttachmentsInput | Prisma.production_returnsCreateOrConnectWithoutAttachmentsInput[]
-  createMany?: Prisma.production_returnsCreateManyAttachmentsInputEnvelope
-  connect?: Prisma.production_returnsWhereUniqueInput | Prisma.production_returnsWhereUniqueInput[]
+export type production_returnsUpdateOneWithoutAttachmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.production_returnsCreateWithoutAttachmentsInput, Prisma.production_returnsUncheckedCreateWithoutAttachmentsInput>
+  connectOrCreate?: Prisma.production_returnsCreateOrConnectWithoutAttachmentsInput
+  upsert?: Prisma.production_returnsUpsertWithoutAttachmentsInput
+  disconnect?: Prisma.production_returnsWhereInput | boolean
+  delete?: Prisma.production_returnsWhereInput | boolean
+  connect?: Prisma.production_returnsWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.production_returnsUpdateToOneWithWhereWithoutAttachmentsInput, Prisma.production_returnsUpdateWithoutAttachmentsInput>, Prisma.production_returnsUncheckedUpdateWithoutAttachmentsInput>
 }
 
-export type production_returnsUpdateManyWithoutAttachmentsNestedInput = {
-  create?: Prisma.XOR<Prisma.production_returnsCreateWithoutAttachmentsInput, Prisma.production_returnsUncheckedCreateWithoutAttachmentsInput> | Prisma.production_returnsCreateWithoutAttachmentsInput[] | Prisma.production_returnsUncheckedCreateWithoutAttachmentsInput[]
-  connectOrCreate?: Prisma.production_returnsCreateOrConnectWithoutAttachmentsInput | Prisma.production_returnsCreateOrConnectWithoutAttachmentsInput[]
-  upsert?: Prisma.production_returnsUpsertWithWhereUniqueWithoutAttachmentsInput | Prisma.production_returnsUpsertWithWhereUniqueWithoutAttachmentsInput[]
-  createMany?: Prisma.production_returnsCreateManyAttachmentsInputEnvelope
-  set?: Prisma.production_returnsWhereUniqueInput | Prisma.production_returnsWhereUniqueInput[]
-  disconnect?: Prisma.production_returnsWhereUniqueInput | Prisma.production_returnsWhereUniqueInput[]
-  delete?: Prisma.production_returnsWhereUniqueInput | Prisma.production_returnsWhereUniqueInput[]
-  connect?: Prisma.production_returnsWhereUniqueInput | Prisma.production_returnsWhereUniqueInput[]
-  update?: Prisma.production_returnsUpdateWithWhereUniqueWithoutAttachmentsInput | Prisma.production_returnsUpdateWithWhereUniqueWithoutAttachmentsInput[]
-  updateMany?: Prisma.production_returnsUpdateManyWithWhereWithoutAttachmentsInput | Prisma.production_returnsUpdateManyWithWhereWithoutAttachmentsInput[]
-  deleteMany?: Prisma.production_returnsScalarWhereInput | Prisma.production_returnsScalarWhereInput[]
-}
-
-export type production_returnsUncheckedUpdateManyWithoutAttachmentsNestedInput = {
-  create?: Prisma.XOR<Prisma.production_returnsCreateWithoutAttachmentsInput, Prisma.production_returnsUncheckedCreateWithoutAttachmentsInput> | Prisma.production_returnsCreateWithoutAttachmentsInput[] | Prisma.production_returnsUncheckedCreateWithoutAttachmentsInput[]
-  connectOrCreate?: Prisma.production_returnsCreateOrConnectWithoutAttachmentsInput | Prisma.production_returnsCreateOrConnectWithoutAttachmentsInput[]
-  upsert?: Prisma.production_returnsUpsertWithWhereUniqueWithoutAttachmentsInput | Prisma.production_returnsUpsertWithWhereUniqueWithoutAttachmentsInput[]
-  createMany?: Prisma.production_returnsCreateManyAttachmentsInputEnvelope
-  set?: Prisma.production_returnsWhereUniqueInput | Prisma.production_returnsWhereUniqueInput[]
-  disconnect?: Prisma.production_returnsWhereUniqueInput | Prisma.production_returnsWhereUniqueInput[]
-  delete?: Prisma.production_returnsWhereUniqueInput | Prisma.production_returnsWhereUniqueInput[]
-  connect?: Prisma.production_returnsWhereUniqueInput | Prisma.production_returnsWhereUniqueInput[]
-  update?: Prisma.production_returnsUpdateWithWhereUniqueWithoutAttachmentsInput | Prisma.production_returnsUpdateWithWhereUniqueWithoutAttachmentsInput[]
-  updateMany?: Prisma.production_returnsUpdateManyWithWhereWithoutAttachmentsInput | Prisma.production_returnsUpdateManyWithWhereWithoutAttachmentsInput[]
-  deleteMany?: Prisma.production_returnsScalarWhereInput | Prisma.production_returnsScalarWhereInput[]
+export type production_returnsUncheckedUpdateOneWithoutAttachmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.production_returnsCreateWithoutAttachmentsInput, Prisma.production_returnsUncheckedCreateWithoutAttachmentsInput>
+  connectOrCreate?: Prisma.production_returnsCreateOrConnectWithoutAttachmentsInput
+  upsert?: Prisma.production_returnsUpsertWithoutAttachmentsInput
+  disconnect?: Prisma.production_returnsWhereInput | boolean
+  delete?: Prisma.production_returnsWhereInput | boolean
+  connect?: Prisma.production_returnsWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.production_returnsUpdateToOneWithWhereWithoutAttachmentsInput, Prisma.production_returnsUpdateWithoutAttachmentsInput>, Prisma.production_returnsUncheckedUpdateWithoutAttachmentsInput>
 }
 
 export type production_returnsCreateNestedManyWithoutBranchesInput = {
@@ -1021,52 +1011,63 @@ export type production_returnsCreateOrConnectWithoutAttachmentsInput = {
   create: Prisma.XOR<Prisma.production_returnsCreateWithoutAttachmentsInput, Prisma.production_returnsUncheckedCreateWithoutAttachmentsInput>
 }
 
-export type production_returnsCreateManyAttachmentsInputEnvelope = {
-  data: Prisma.production_returnsCreateManyAttachmentsInput | Prisma.production_returnsCreateManyAttachmentsInput[]
-  skipDuplicates?: boolean
-}
-
-export type production_returnsUpsertWithWhereUniqueWithoutAttachmentsInput = {
-  where: Prisma.production_returnsWhereUniqueInput
+export type production_returnsUpsertWithoutAttachmentsInput = {
   update: Prisma.XOR<Prisma.production_returnsUpdateWithoutAttachmentsInput, Prisma.production_returnsUncheckedUpdateWithoutAttachmentsInput>
   create: Prisma.XOR<Prisma.production_returnsCreateWithoutAttachmentsInput, Prisma.production_returnsUncheckedCreateWithoutAttachmentsInput>
+  where?: Prisma.production_returnsWhereInput
 }
 
-export type production_returnsUpdateWithWhereUniqueWithoutAttachmentsInput = {
-  where: Prisma.production_returnsWhereUniqueInput
+export type production_returnsUpdateToOneWithWhereWithoutAttachmentsInput = {
+  where?: Prisma.production_returnsWhereInput
   data: Prisma.XOR<Prisma.production_returnsUpdateWithoutAttachmentsInput, Prisma.production_returnsUncheckedUpdateWithoutAttachmentsInput>
 }
 
-export type production_returnsUpdateManyWithWhereWithoutAttachmentsInput = {
-  where: Prisma.production_returnsScalarWhereInput
-  data: Prisma.XOR<Prisma.production_returnsUpdateManyMutationInput, Prisma.production_returnsUncheckedUpdateManyWithoutAttachmentsInput>
+export type production_returnsUpdateWithoutAttachmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legacy_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  product_name?: Prisma.StringFieldUpdateOperationsInput | string
+  qty?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.Enumproduction_return_statusFieldUpdateOperationsInput | $Enums.production_return_status
+  source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
+  disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  branches?: Prisma.branchesUpdateOneRequiredWithoutProduction_returnsNestedInput
+  users_production_returns_created_byTousers?: Prisma.usersUpdateOneWithoutProduction_returns_production_returns_created_byTousersNestedInput
+  products?: Prisma.productsUpdateOneRequiredWithoutProduction_returnsNestedInput
+  users_production_returns_reviewed_byTousers?: Prisma.usersUpdateOneWithoutProduction_returns_production_returns_reviewed_byTousersNestedInput
+  return_stock_history?: Prisma.return_stock_historyUpdateManyWithoutProduction_returnsNestedInput
 }
 
-export type production_returnsScalarWhereInput = {
-  AND?: Prisma.production_returnsScalarWhereInput | Prisma.production_returnsScalarWhereInput[]
-  OR?: Prisma.production_returnsScalarWhereInput[]
-  NOT?: Prisma.production_returnsScalarWhereInput | Prisma.production_returnsScalarWhereInput[]
-  id?: Prisma.UuidFilter<"production_returns"> | string
-  legacy_id?: Prisma.StringNullableFilter<"production_returns"> | string | null
-  branch_id?: Prisma.UuidFilter<"production_returns"> | string
-  branch_name?: Prisma.StringNullableFilter<"production_returns"> | string | null
-  product_id?: Prisma.UuidFilter<"production_returns"> | string
-  product_name?: Prisma.StringFilter<"production_returns"> | string
-  qty?: Prisma.DecimalFilter<"production_returns"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  reason?: Prisma.StringNullableFilter<"production_returns"> | string | null
-  status?: Prisma.Enumproduction_return_statusFilter<"production_returns"> | $Enums.production_return_status
-  source?: Prisma.StringNullableFilter<"production_returns"> | string | null
-  business_date?: Prisma.DateTimeFilter<"production_returns"> | Date | string
-  created_by?: Prisma.UuidNullableFilter<"production_returns"> | string | null
-  created_by_name?: Prisma.StringNullableFilter<"production_returns"> | string | null
-  created_at?: Prisma.DateTimeFilter<"production_returns"> | Date | string
-  reviewed_by?: Prisma.UuidNullableFilter<"production_returns"> | string | null
-  reviewed_by_name?: Prisma.StringNullableFilter<"production_returns"> | string | null
-  reviewed_at?: Prisma.DateTimeNullableFilter<"production_returns"> | Date | string | null
-  disposition?: Prisma.Enumproduction_return_dispositionFilter<"production_returns"> | $Enums.production_return_disposition
-  disposition_note?: Prisma.StringNullableFilter<"production_returns"> | string | null
-  photo_attachment_id?: Prisma.UuidNullableFilter<"production_returns"> | string | null
-  legacy_single_photo?: Prisma.BoolFilter<"production_returns"> | boolean
+export type production_returnsUncheckedUpdateWithoutAttachmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legacy_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branch_id?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  product_id?: Prisma.StringFieldUpdateOperationsInput | string
+  product_name?: Prisma.StringFieldUpdateOperationsInput | string
+  qty?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.Enumproduction_return_statusFieldUpdateOperationsInput | $Enums.production_return_status
+  source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reviewed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
+  disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  return_stock_history?: Prisma.return_stock_historyUncheckedUpdateManyWithoutProduction_returnsNestedInput
 }
 
 export type production_returnsCreateWithoutBranchesInput = {
@@ -1141,6 +1142,33 @@ export type production_returnsUpdateWithWhereUniqueWithoutBranchesInput = {
 export type production_returnsUpdateManyWithWhereWithoutBranchesInput = {
   where: Prisma.production_returnsScalarWhereInput
   data: Prisma.XOR<Prisma.production_returnsUpdateManyMutationInput, Prisma.production_returnsUncheckedUpdateManyWithoutBranchesInput>
+}
+
+export type production_returnsScalarWhereInput = {
+  AND?: Prisma.production_returnsScalarWhereInput | Prisma.production_returnsScalarWhereInput[]
+  OR?: Prisma.production_returnsScalarWhereInput[]
+  NOT?: Prisma.production_returnsScalarWhereInput | Prisma.production_returnsScalarWhereInput[]
+  id?: Prisma.UuidFilter<"production_returns"> | string
+  legacy_id?: Prisma.StringNullableFilter<"production_returns"> | string | null
+  branch_id?: Prisma.UuidFilter<"production_returns"> | string
+  branch_name?: Prisma.StringNullableFilter<"production_returns"> | string | null
+  product_id?: Prisma.UuidFilter<"production_returns"> | string
+  product_name?: Prisma.StringFilter<"production_returns"> | string
+  qty?: Prisma.DecimalFilter<"production_returns"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  reason?: Prisma.StringNullableFilter<"production_returns"> | string | null
+  status?: Prisma.Enumproduction_return_statusFilter<"production_returns"> | $Enums.production_return_status
+  source?: Prisma.StringNullableFilter<"production_returns"> | string | null
+  business_date?: Prisma.DateTimeFilter<"production_returns"> | Date | string
+  created_by?: Prisma.UuidNullableFilter<"production_returns"> | string | null
+  created_by_name?: Prisma.StringNullableFilter<"production_returns"> | string | null
+  created_at?: Prisma.DateTimeFilter<"production_returns"> | Date | string
+  reviewed_by?: Prisma.UuidNullableFilter<"production_returns"> | string | null
+  reviewed_by_name?: Prisma.StringNullableFilter<"production_returns"> | string | null
+  reviewed_at?: Prisma.DateTimeNullableFilter<"production_returns"> | Date | string | null
+  disposition?: Prisma.Enumproduction_return_dispositionFilter<"production_returns"> | $Enums.production_return_disposition
+  disposition_note?: Prisma.StringNullableFilter<"production_returns"> | string | null
+  photo_attachment_id?: Prisma.UuidNullableFilter<"production_returns"> | string | null
+  legacy_single_photo?: Prisma.BoolFilter<"production_returns"> | boolean
 }
 
 export type production_returnsCreateWithoutProductsInput = {
@@ -1475,100 +1503,6 @@ export type production_returnsUpdateWithWhereUniqueWithoutUsers_production_retur
 export type production_returnsUpdateManyWithWhereWithoutUsers_production_returns_reviewed_byTousersInput = {
   where: Prisma.production_returnsScalarWhereInput
   data: Prisma.XOR<Prisma.production_returnsUpdateManyMutationInput, Prisma.production_returnsUncheckedUpdateManyWithoutUsers_production_returns_reviewed_byTousersInput>
-}
-
-export type production_returnsCreateManyAttachmentsInput = {
-  id?: string
-  legacy_id?: string | null
-  branch_id: string
-  branch_name?: string | null
-  product_id: string
-  product_name: string
-  qty: runtime.Decimal | runtime.DecimalJsLike | number | string
-  reason?: string | null
-  status?: $Enums.production_return_status
-  source?: string | null
-  business_date: Date | string
-  created_by?: string | null
-  created_by_name?: string | null
-  created_at?: Date | string
-  reviewed_by?: string | null
-  reviewed_by_name?: string | null
-  reviewed_at?: Date | string | null
-  disposition?: $Enums.production_return_disposition
-  disposition_note?: string | null
-  legacy_single_photo?: boolean
-}
-
-export type production_returnsUpdateWithoutAttachmentsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legacy_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  product_name?: Prisma.StringFieldUpdateOperationsInput | string
-  qty?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.Enumproduction_return_statusFieldUpdateOperationsInput | $Enums.production_return_status
-  source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
-  disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  branches?: Prisma.branchesUpdateOneRequiredWithoutProduction_returnsNestedInput
-  users_production_returns_created_byTousers?: Prisma.usersUpdateOneWithoutProduction_returns_production_returns_created_byTousersNestedInput
-  products?: Prisma.productsUpdateOneRequiredWithoutProduction_returnsNestedInput
-  users_production_returns_reviewed_byTousers?: Prisma.usersUpdateOneWithoutProduction_returns_production_returns_reviewed_byTousersNestedInput
-  return_stock_history?: Prisma.return_stock_historyUpdateManyWithoutProduction_returnsNestedInput
-}
-
-export type production_returnsUncheckedUpdateWithoutAttachmentsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legacy_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  branch_id?: Prisma.StringFieldUpdateOperationsInput | string
-  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  product_id?: Prisma.StringFieldUpdateOperationsInput | string
-  product_name?: Prisma.StringFieldUpdateOperationsInput | string
-  qty?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.Enumproduction_return_statusFieldUpdateOperationsInput | $Enums.production_return_status
-  source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  reviewed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
-  disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  return_stock_history?: Prisma.return_stock_historyUncheckedUpdateManyWithoutProduction_returnsNestedInput
-}
-
-export type production_returnsUncheckedUpdateManyWithoutAttachmentsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  legacy_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  branch_id?: Prisma.StringFieldUpdateOperationsInput | string
-  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  product_id?: Prisma.StringFieldUpdateOperationsInput | string
-  product_name?: Prisma.StringFieldUpdateOperationsInput | string
-  qty?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  status?: Prisma.Enumproduction_return_statusFieldUpdateOperationsInput | $Enums.production_return_status
-  source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  reviewed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  disposition?: Prisma.Enumproduction_return_dispositionFieldUpdateOperationsInput | $Enums.production_return_disposition
-  disposition_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  legacy_single_photo?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type production_returnsCreateManyBranchesInput = {

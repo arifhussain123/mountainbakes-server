@@ -134,7 +134,29 @@ export const ModelName = {
   support_tickets: 'support_tickets',
   user_credentials: 'user_credentials',
   users: 'users',
-  employee_resignations: 'employee_resignations'
+  employee_resignations: 'employee_resignations',
+  ingredient_stock: 'ingredient_stock',
+  ingredient_stock_movements: 'ingredient_stock_movements',
+  purchase_bill_items: 'purchase_bill_items',
+  purchase_bills: 'purchase_bills',
+  purchase_deliveries: 'purchase_deliveries',
+  purchase_demand_events: 'purchase_demand_events',
+  purchase_demand_items: 'purchase_demand_items',
+  purchase_demands: 'purchase_demands',
+  purchase_items: 'purchase_items',
+  purchase_quotation_items: 'purchase_quotation_items',
+  purchase_quotations: 'purchase_quotations',
+  purchase_receipt_items: 'purchase_receipt_items',
+  purchase_receipts: 'purchase_receipts',
+  supplier_access_tokens: 'supplier_access_tokens',
+  supplier_credits: 'supplier_credits',
+  supplier_payments: 'supplier_payments',
+  suppliers: 'suppliers',
+  whatsapp_business_numbers: 'whatsapp_business_numbers',
+  whatsapp_conversations: 'whatsapp_conversations',
+  whatsapp_messages: 'whatsapp_messages',
+  whatsapp_outbox: 'whatsapp_outbox',
+  whatsapp_webhook_events: 'whatsapp_webhook_events'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1979,6 +2001,489 @@ export const Employee_resignationsScalarFieldEnum = {
 } as const
 
 export type Employee_resignationsScalarFieldEnum = (typeof Employee_resignationsScalarFieldEnum)[keyof typeof Employee_resignationsScalarFieldEnum]
+
+
+export const Ingredient_stockScalarFieldEnum = {
+  item_id: 'item_id',
+  balance: 'balance',
+  updated_at: 'updated_at'
+} as const
+
+export type Ingredient_stockScalarFieldEnum = (typeof Ingredient_stockScalarFieldEnum)[keyof typeof Ingredient_stockScalarFieldEnum]
+
+
+export const Ingredient_stock_movementsScalarFieldEnum = {
+  id: 'id',
+  movement_no: 'movement_no',
+  item_id: 'item_id',
+  item_name: 'item_name',
+  unit: 'unit',
+  type: 'type',
+  delta: 'delta',
+  balance_after: 'balance_after',
+  demand_id: 'demand_id',
+  receipt_id: 'receipt_id',
+  receipt_item_id: 'receipt_item_id',
+  reason: 'reason',
+  business_date: 'business_date',
+  created_by: 'created_by',
+  created_by_name: 'created_by_name',
+  created_at: 'created_at'
+} as const
+
+export type Ingredient_stock_movementsScalarFieldEnum = (typeof Ingredient_stock_movementsScalarFieldEnum)[keyof typeof Ingredient_stock_movementsScalarFieldEnum]
+
+
+export const Purchase_bill_itemsScalarFieldEnum = {
+  id: 'id',
+  bill_id: 'bill_id',
+  line_no: 'line_no',
+  quotation_item_id: 'quotation_item_id',
+  item_name: 'item_name',
+  unit: 'unit',
+  qty: 'qty',
+  unit_rate: 'unit_rate',
+  line_total: 'line_total'
+} as const
+
+export type Purchase_bill_itemsScalarFieldEnum = (typeof Purchase_bill_itemsScalarFieldEnum)[keyof typeof Purchase_bill_itemsScalarFieldEnum]
+
+
+export const Purchase_billsScalarFieldEnum = {
+  id: 'id',
+  demand_id: 'demand_id',
+  quotation_id: 'quotation_id',
+  quotation_version: 'quotation_version',
+  supplier_bill_no: 'supplier_bill_no',
+  status: 'status',
+  submitted_via: 'submitted_via',
+  entered_by: 'entered_by',
+  entered_by_name: 'entered_by_name',
+  invoice_date: 'invoice_date',
+  delivery_date: 'delivery_date',
+  subtotal: 'subtotal',
+  delivery_charge: 'delivery_charge',
+  discount: 'discount',
+  other_charges: 'other_charges',
+  other_charges_note: 'other_charges_note',
+  grand_total: 'grand_total',
+  supplier_payment_method: 'supplier_payment_method',
+  supplier_stated_paid: 'supplier_stated_paid',
+  notes: 'notes',
+  differs_from_quotation: 'differs_from_quotation',
+  differences: 'differences',
+  accepted_differences: 'accepted_differences',
+  submitted_at: 'submitted_at',
+  decided_by: 'decided_by',
+  decided_by_name: 'decided_by_name',
+  decided_at: 'decided_at',
+  decision_reason: 'decision_reason',
+  client_request_id: 'client_request_id'
+} as const
+
+export type Purchase_billsScalarFieldEnum = (typeof Purchase_billsScalarFieldEnum)[keyof typeof Purchase_billsScalarFieldEnum]
+
+
+export const Purchase_deliveriesScalarFieldEnum = {
+  id: 'id',
+  demand_id: 'demand_id',
+  provider: 'provider',
+  provider_name: 'provider_name',
+  booking_reference: 'booking_reference',
+  estimated_fee: 'estimated_fee',
+  actual_fee: 'actual_fee',
+  fee_paid_by: 'fee_paid_by',
+  pickup_details: 'pickup_details',
+  delivery_notes: 'delivery_notes',
+  status: 'status',
+  dispatched_at: 'dispatched_at',
+  delivered_at: 'delivered_at',
+  received_by_name: 'received_by_name',
+  updated_by: 'updated_by',
+  updated_by_name: 'updated_by_name',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Purchase_deliveriesScalarFieldEnum = (typeof Purchase_deliveriesScalarFieldEnum)[keyof typeof Purchase_deliveriesScalarFieldEnum]
+
+
+export const Purchase_demand_eventsScalarFieldEnum = {
+  id: 'id',
+  demand_id: 'demand_id',
+  event: 'event',
+  from_status: 'from_status',
+  to_status: 'to_status',
+  actor_type: 'actor_type',
+  actor_id: 'actor_id',
+  actor_name: 'actor_name',
+  quotation_id: 'quotation_id',
+  bill_id: 'bill_id',
+  reason: 'reason',
+  details: 'details',
+  created_at: 'created_at'
+} as const
+
+export type Purchase_demand_eventsScalarFieldEnum = (typeof Purchase_demand_eventsScalarFieldEnum)[keyof typeof Purchase_demand_eventsScalarFieldEnum]
+
+
+export const Purchase_demand_itemsScalarFieldEnum = {
+  id: 'id',
+  demand_id: 'demand_id',
+  line_no: 'line_no',
+  item_id: 'item_id',
+  item_name: 'item_name',
+  item_code: 'item_code',
+  requested_qty: 'requested_qty',
+  unit: 'unit',
+  note: 'note'
+} as const
+
+export type Purchase_demand_itemsScalarFieldEnum = (typeof Purchase_demand_itemsScalarFieldEnum)[keyof typeof Purchase_demand_itemsScalarFieldEnum]
+
+
+export const Purchase_demandsScalarFieldEnum = {
+  id: 'id',
+  demand_no: 'demand_no',
+  status: 'status',
+  priority: 'priority',
+  required_date: 'required_date',
+  supplier_id: 'supplier_id',
+  supplier_name: 'supplier_name',
+  supplier_whatsapp: 'supplier_whatsapp',
+  notes: 'notes',
+  delivery_instructions: 'delivery_instructions',
+  payment_preference: 'payment_preference',
+  credit_reference: 'credit_reference',
+  credit_amount_requested: 'credit_amount_requested',
+  credit_terms: 'credit_terms',
+  credit_due_date: 'credit_due_date',
+  credit_notes: 'credit_notes',
+  payment_status: 'payment_status',
+  delivery_status: 'delivery_status',
+  current_quotation_id: 'current_quotation_id',
+  approved_quotation_id: 'approved_quotation_id',
+  approved_bill_id: 'approved_bill_id',
+  client_request_id: 'client_request_id',
+  revision: 'revision',
+  verified_revision: 'verified_revision',
+  verified_at: 'verified_at',
+  verified_by: 'verified_by',
+  verified_by_name: 'verified_by_name',
+  sent_at: 'sent_at',
+  sent_by: 'sent_by',
+  sent_by_name: 'sent_by_name',
+  closed_reason: 'closed_reason',
+  closed_at: 'closed_at',
+  closed_by: 'closed_by',
+  closed_by_name: 'closed_by_name',
+  created_by: 'created_by',
+  created_by_name: 'created_by_name',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Purchase_demandsScalarFieldEnum = (typeof Purchase_demandsScalarFieldEnum)[keyof typeof Purchase_demandsScalarFieldEnum]
+
+
+export const Purchase_itemsScalarFieldEnum = {
+  id: 'id',
+  item_code: 'item_code',
+  name: 'name',
+  unit: 'unit',
+  category: 'category',
+  is_active: 'is_active',
+  created_by: 'created_by',
+  created_by_name: 'created_by_name',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Purchase_itemsScalarFieldEnum = (typeof Purchase_itemsScalarFieldEnum)[keyof typeof Purchase_itemsScalarFieldEnum]
+
+
+export const Purchase_quotation_itemsScalarFieldEnum = {
+  id: 'id',
+  quotation_id: 'quotation_id',
+  line_no: 'line_no',
+  demand_item_id: 'demand_item_id',
+  substitute_for_demand_item_id: 'substitute_for_demand_item_id',
+  item_name: 'item_name',
+  unit: 'unit',
+  requested_qty: 'requested_qty',
+  available_qty: 'available_qty',
+  unit_rate: 'unit_rate',
+  line_total: 'line_total',
+  availability: 'availability',
+  note: 'note'
+} as const
+
+export type Purchase_quotation_itemsScalarFieldEnum = (typeof Purchase_quotation_itemsScalarFieldEnum)[keyof typeof Purchase_quotation_itemsScalarFieldEnum]
+
+
+export const Purchase_quotationsScalarFieldEnum = {
+  id: 'id',
+  demand_id: 'demand_id',
+  version: 'version',
+  status: 'status',
+  submitted_via: 'submitted_via',
+  entered_by: 'entered_by',
+  entered_by_name: 'entered_by_name',
+  subtotal: 'subtotal',
+  delivery_charge: 'delivery_charge',
+  total: 'total',
+  estimated_delivery_date: 'estimated_delivery_date',
+  delivery_notes: 'delivery_notes',
+  notes: 'notes',
+  submitted_at: 'submitted_at',
+  decided_by: 'decided_by',
+  decided_by_name: 'decided_by_name',
+  decided_at: 'decided_at',
+  decision_reason: 'decision_reason',
+  client_request_id: 'client_request_id'
+} as const
+
+export type Purchase_quotationsScalarFieldEnum = (typeof Purchase_quotationsScalarFieldEnum)[keyof typeof Purchase_quotationsScalarFieldEnum]
+
+
+export const Purchase_receipt_itemsScalarFieldEnum = {
+  id: 'id',
+  receipt_id: 'receipt_id',
+  bill_item_id: 'bill_item_id',
+  item_id: 'item_id',
+  item_name: 'item_name',
+  unit: 'unit',
+  received_qty: 'received_qty',
+  damaged_qty: 'damaged_qty',
+  accepted_qty: 'accepted_qty',
+  note: 'note'
+} as const
+
+export type Purchase_receipt_itemsScalarFieldEnum = (typeof Purchase_receipt_itemsScalarFieldEnum)[keyof typeof Purchase_receipt_itemsScalarFieldEnum]
+
+
+export const Purchase_receiptsScalarFieldEnum = {
+  id: 'id',
+  receipt_no: 'receipt_no',
+  demand_id: 'demand_id',
+  bill_id: 'bill_id',
+  business_date: 'business_date',
+  is_final: 'is_final',
+  received_by: 'received_by',
+  received_by_name: 'received_by_name',
+  received_at: 'received_at',
+  notes: 'notes',
+  client_request_id: 'client_request_id'
+} as const
+
+export type Purchase_receiptsScalarFieldEnum = (typeof Purchase_receiptsScalarFieldEnum)[keyof typeof Purchase_receiptsScalarFieldEnum]
+
+
+export const Supplier_access_tokensScalarFieldEnum = {
+  id: 'id',
+  demand_id: 'demand_id',
+  token_hash: 'token_hash',
+  expires_at: 'expires_at',
+  revoked_at: 'revoked_at',
+  revoked_reason: 'revoked_reason',
+  last_used_at: 'last_used_at',
+  use_count: 'use_count',
+  created_by: 'created_by',
+  created_at: 'created_at'
+} as const
+
+export type Supplier_access_tokensScalarFieldEnum = (typeof Supplier_access_tokensScalarFieldEnum)[keyof typeof Supplier_access_tokensScalarFieldEnum]
+
+
+export const Supplier_creditsScalarFieldEnum = {
+  id: 'id',
+  credit_no: 'credit_no',
+  supplier_id: 'supplier_id',
+  demand_id: 'demand_id',
+  bill_id: 'bill_id',
+  requested_amount: 'requested_amount',
+  approved_amount: 'approved_amount',
+  terms: 'terms',
+  due_date: 'due_date',
+  reference: 'reference',
+  notes: 'notes',
+  status: 'status',
+  requested_by: 'requested_by',
+  requested_by_name: 'requested_by_name',
+  requested_at: 'requested_at',
+  decided_by: 'decided_by',
+  decided_by_name: 'decided_by_name',
+  decided_at: 'decided_at',
+  decision_reason: 'decision_reason'
+} as const
+
+export type Supplier_creditsScalarFieldEnum = (typeof Supplier_creditsScalarFieldEnum)[keyof typeof Supplier_creditsScalarFieldEnum]
+
+
+export const Supplier_paymentsScalarFieldEnum = {
+  id: 'id',
+  payment_no: 'payment_no',
+  supplier_id: 'supplier_id',
+  demand_id: 'demand_id',
+  bill_id: 'bill_id',
+  credit_id: 'credit_id',
+  method: 'method',
+  account: 'account',
+  amount: 'amount',
+  reference_no: 'reference_no',
+  paid_on: 'paid_on',
+  notes: 'notes',
+  status: 'status',
+  recorded_by: 'recorded_by',
+  recorded_by_name: 'recorded_by_name',
+  recorded_at: 'recorded_at',
+  ledger_head_id: 'ledger_head_id',
+  ledger_entry_id: 'ledger_entry_id',
+  voucher_no: 'voucher_no',
+  approved_by: 'approved_by',
+  approved_by_name: 'approved_by_name',
+  approved_at: 'approved_at',
+  rejection_reason: 'rejection_reason',
+  reversal_entry_id: 'reversal_entry_id',
+  reversal_voucher_no: 'reversal_voucher_no',
+  reversed_by: 'reversed_by',
+  reversed_by_name: 'reversed_by_name',
+  reversed_at: 'reversed_at',
+  reversal_reason: 'reversal_reason',
+  client_request_id: 'client_request_id'
+} as const
+
+export type Supplier_paymentsScalarFieldEnum = (typeof Supplier_paymentsScalarFieldEnum)[keyof typeof Supplier_paymentsScalarFieldEnum]
+
+
+export const SuppliersScalarFieldEnum = {
+  id: 'id',
+  supplier_code: 'supplier_code',
+  name: 'name',
+  contact_person: 'contact_person',
+  whatsapp_number: 'whatsapp_number',
+  phone: 'phone',
+  category: 'category',
+  address: 'address',
+  payment_terms: 'payment_terms',
+  notes: 'notes',
+  is_active: 'is_active',
+  whatsapp_opt_in_at: 'whatsapp_opt_in_at',
+  whatsapp_opt_in_source: 'whatsapp_opt_in_source',
+  created_by: 'created_by',
+  created_by_name: 'created_by_name',
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  deleted_at: 'deleted_at',
+  deleted_by: 'deleted_by',
+  deleted_by_name: 'deleted_by_name',
+  delete_reason: 'delete_reason'
+} as const
+
+export type SuppliersScalarFieldEnum = (typeof SuppliersScalarFieldEnum)[keyof typeof SuppliersScalarFieldEnum]
+
+
+export const Whatsapp_business_numbersScalarFieldEnum = {
+  phone_number_id: 'phone_number_id',
+  display_phone_number: 'display_phone_number',
+  purpose: 'purpose',
+  is_authorized: 'is_authorized',
+  last_webhook_at: 'last_webhook_at',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Whatsapp_business_numbersScalarFieldEnum = (typeof Whatsapp_business_numbersScalarFieldEnum)[keyof typeof Whatsapp_business_numbersScalarFieldEnum]
+
+
+export const Whatsapp_conversationsScalarFieldEnum = {
+  id: 'id',
+  wa_id: 'wa_id',
+  supplier_id: 'supplier_id',
+  profile_name: 'profile_name',
+  last_inbound_at: 'last_inbound_at',
+  last_outbound_at: 'last_outbound_at',
+  last_message_at: 'last_message_at',
+  unread_count: 'unread_count',
+  created_at: 'created_at'
+} as const
+
+export type Whatsapp_conversationsScalarFieldEnum = (typeof Whatsapp_conversationsScalarFieldEnum)[keyof typeof Whatsapp_conversationsScalarFieldEnum]
+
+
+export const Whatsapp_messagesScalarFieldEnum = {
+  id: 'id',
+  conversation_id: 'conversation_id',
+  direction: 'direction',
+  provider: 'provider',
+  provider_message_id: 'provider_message_id',
+  type: 'type',
+  template_name: 'template_name',
+  body: 'body',
+  media: 'media',
+  status: 'status',
+  error_code: 'error_code',
+  error_title: 'error_title',
+  error_detail: 'error_detail',
+  demand_id: 'demand_id',
+  supplier_id: 'supplier_id',
+  reply_to_provider_id: 'reply_to_provider_id',
+  match_status: 'match_status',
+  reviewed_by: 'reviewed_by',
+  reviewed_by_name: 'reviewed_by_name',
+  reviewed_at: 'reviewed_at',
+  created_by: 'created_by',
+  created_by_name: 'created_by_name',
+  phone_number_id: 'phone_number_id',
+  provider_timestamp: 'provider_timestamp',
+  created_at: 'created_at',
+  accepted_at: 'accepted_at',
+  sent_at: 'sent_at',
+  delivered_at: 'delivered_at',
+  read_at: 'read_at',
+  failed_at: 'failed_at'
+} as const
+
+export type Whatsapp_messagesScalarFieldEnum = (typeof Whatsapp_messagesScalarFieldEnum)[keyof typeof Whatsapp_messagesScalarFieldEnum]
+
+
+export const Whatsapp_outboxScalarFieldEnum = {
+  id: 'id',
+  dedupe_key: 'dedupe_key',
+  message_id: 'message_id',
+  to_wa_id: 'to_wa_id',
+  text_body: 'text_body',
+  template_name: 'template_name',
+  template_language: 'template_language',
+  template_params: 'template_params',
+  masked_text_body: 'masked_text_body',
+  masked_params: 'masked_params',
+  status: 'status',
+  attempts: 'attempts',
+  max_attempts: 'max_attempts',
+  next_attempt_at: 'next_attempt_at',
+  locked_until: 'locked_until',
+  last_error: 'last_error',
+  last_error_code: 'last_error_code',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Whatsapp_outboxScalarFieldEnum = (typeof Whatsapp_outboxScalarFieldEnum)[keyof typeof Whatsapp_outboxScalarFieldEnum]
+
+
+export const Whatsapp_webhook_eventsScalarFieldEnum = {
+  id: 'id',
+  dedupe_key: 'dedupe_key',
+  kind: 'kind',
+  payload: 'payload',
+  received_at: 'received_at',
+  processed_at: 'processed_at',
+  attempts: 'attempts',
+  last_error: 'last_error'
+} as const
+
+export type Whatsapp_webhook_eventsScalarFieldEnum = (typeof Whatsapp_webhook_eventsScalarFieldEnum)[keyof typeof Whatsapp_webhook_eventsScalarFieldEnum]
 
 
 export const SortOrder = {
