@@ -177,6 +177,12 @@ export const AddProductionOrderItemSchema = z.object({
   remarks: z.string().max(500).default(''),
 });
 
+/** Production adding a packing material line to a still-'pending' order. */
+export const AddProductionOrderPackingItemSchema = z.object({
+  packingMaterialId: z.string().min(1, 'Packing material is required'),
+  qty: z.number().int().positive('Quantity must be at least 1'),
+});
+
 // Per-item quantity the branch confirms it physically received, correcting for
 // any shortage/overage against what Production recorded. Omitted items keep
 // their approved quantity unchanged.
