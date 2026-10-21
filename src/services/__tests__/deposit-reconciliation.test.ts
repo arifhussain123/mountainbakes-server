@@ -152,12 +152,42 @@ describe('each deposit is used once', () => {
 });
 
 describe('no deposit of the same amount', () => {
-  test('the nearest approved deposit is shown, flagged, with a positive difference when it is short', () => {
-    const r = reconcile([day('2026-10-05', 28575)], [deposit('2026-10-06', 23587)]).of('2026-10-05');
+  test('the nearest approved deposit, under 1,000 away, is shown, flagged, with a positive difference when it is short', () => {
+    const r = reconcile([day('2026-10-05', 28575)], [deposit('2026-10-06', 27587)]).of('2026-10-05');
     assert.equal(r.status, 'discrepancy');
     assert.equal(r.match, 'nearest');
-    assert.equal(r.received, 23587);
-    assert.equal(r.difference, 4988);
+    assert.equal(r.received, 27587);
+    assert.equal(r.difference, 988);
+  });
+
+  test('1,000 or more away is not the nearest: the gap is shown on the deposit\'s own day', () => {
+    const { of, unclaimed } = reconcile(
+      [day('2026-10-05', 28575), day('2026-10-06', 30000)],
+      [deposit('2026-10-06', 23587)],
+    );
+    assert.equal(of('2026-10-05').status, 'not_received');
+    assert.equal(of('2026-10-05').difference, 28575);
+    assert.equal(of('2026-10-06').status, 'discrepancy');
+    assert.equal(of('2026-10-06').match, 'same_day');
+    assert.equal(of('2026-10-06').difference, 6413);
+    assert.deepEqual(unclaimed, []);
+  });
+
+  test('999 away is still the nearest, 1,000 away is not', () => {
+    assert.equal(reconcile([day('2026-10-05', 2000)], [deposit('2026-10-06', 1001)]).of('2026-10-05').match, 'nearest');
+    const r = reconcile([day('2026-10-05', 2000)], [deposit('2026-10-06', 1000)]);
+    assert.equal(r.of('2026-10-05').status, 'not_received');
+    assert.equal(r.unclaimed.length, 1);
+  });
+
+  test('a deposit goes to the day it is nearest, not to the earlier day', () => {
+    const { of } = reconcile(
+      [day('2026-10-05', 1400), day('2026-10-06', 1460)],
+      [deposit('2026-10-06', 1450), deposit('2026-10-07', 1100)],
+    );
+    // 1,450 is 50 from the 5th's share but 10 from the 6th's.
+    assert.equal(of('2026-10-06').received, 1450);
+    assert.equal(of('2026-10-05').received, 1100);
   });
 
   test('more received than the share → discrepancy with a negative difference', () => {
@@ -166,13 +196,19 @@ describe('no deposit of the same amount', () => {
     assert.equal(r.difference, -250);
   });
 
-  test('nearest means the earliest date with a deposit, taken whole', () => {
-    const r = reconcile(
+  test('nearest means nearest in amount: one deposit, or one date\'s together', () => {
+    const alone = reconcile(
       [day('2026-10-05', 1000)],
       [deposit('2026-10-07', 900), deposit('2026-10-06', 300), deposit('2026-10-06', 200)],
     ).of('2026-10-05');
-    assert.equal(r.received, 500);
-    assert.deepEqual(r.deposits.map((d) => d.businessDate), ['2026-10-06', '2026-10-06']);
+    assert.equal(alone.received, 900);
+
+    const together = reconcile(
+      [day('2026-10-05', 1000)],
+      [deposit('2026-10-07', 800), deposit('2026-10-06', 600), deposit('2026-10-06', 350)],
+    ).of('2026-10-05');
+    assert.equal(together.received, 950);
+    assert.deepEqual(together.deposits.map((d) => d.businessDate), ['2026-10-06', '2026-10-06']);
   });
 
   test('nothing in the window → not received, the whole share outstanding', () => {
