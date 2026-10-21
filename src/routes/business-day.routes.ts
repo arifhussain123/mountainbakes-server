@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { runDailyClosing, listClosures, currentBusinessDate } from '../services/daily-closing.service';
+import { backupAfterDailyClosing } from '../scheduler/database-backup.job';
 
 export const router = Router();
 
@@ -29,6 +30,8 @@ router.post('/close', requireRole('super_admin'), async (req: AuthRequest, res, 
   try {
     const businessDate = typeof req.body?.businessDate === 'string' ? req.body.businessDate : undefined;
     const result = await runDailyClosing({ trigger: 'manual', actor: req.user!.email, businessDate });
+    // The closing has just rolled the day's stock over: back it up now.
+    if (result.status === 'success') backupAfterDailyClosing();
     res.json(result);
   } catch (err) {
     next(err);

@@ -36,10 +36,12 @@ async function main() {
   assertConfigured();
   const { app, allowedOrigins } = await import('./src/app');
   const { startReturnPhotoSweepScheduler } = await import('./src/scheduler/return-photo-sweep.job');
+  const { startDatabaseBackupScheduler } = await import('./src/scheduler/database-backup.job');
   const { startWhatsAppOutboxWorker } = await import('./src/services/whatsapp/outbox');
   const PORT = parseInt(process.env.PORT || process.env.API_PORT || '3001', 10);
   app.listen(PORT, '0.0.0.0', () => {
     startReturnPhotoSweepScheduler();
+    startDatabaseBackupScheduler();
     startWhatsAppOutboxWorker();
     if (process.env.NODE_ENV === 'production' && !process.env.CORS_ORIGINS) {
       console.warn(
