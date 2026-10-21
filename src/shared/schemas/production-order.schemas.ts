@@ -170,6 +170,53 @@ export const CancelProductionOrderSchema = z.object({
     .max(500, 'Reason is too long'),
 });
 
+/**
+ * The branch editing its own demand while it is still 'pending' — before
+ * Production submits it for verification.
+ *
+ * The WHOLE of the branch's side, not a patch: every product line it wants and
+ * every packing line, with the quantity it wants now. A product or material left
+ * out is removed; one not on the demand yet is added. Lines Production added
+ * itself are not the branch's to change and are left as they are.
+ */
+export const EditProductionOrderSchema = z
+  .object({
+    items: z
+      .array(z.object({
+        productId: z.string().min(1, 'Product is required'),
+        qty: z.number().int().positive('Quantity must be at least 1'),
+      }))
+      .default([]),
+    packingItems: z.array(ProductionOrderPackingItemSchema).default([]),
+  })
+  .superRefine((val, ctx) => {
+    if (val.items.length === 0 && val.packingItems.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['items'],
+        message: 'A demand needs at least one item — delete the demand instead',
+      });
+    }
+    const products = new Set<string>();
+    val.items.forEach((item, i) => {
+      if (products.has(item.productId)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['items', i, 'productId'], message: 'This product is already on the demand' });
+      }
+      products.add(item.productId);
+    });
+    const materials = new Set<string>();
+    val.packingItems.forEach((item, i) => {
+      if (materials.has(item.packingMaterialId)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['packingItems', i, 'packingMaterialId'],
+          message: 'This packing material is already on the demand',
+        });
+      }
+      materials.add(item.packingMaterialId);
+    });
+  });
+
 /** Production adding an extra line to a still-'pending' order before submitting it. */
 export const AddProductionOrderItemSchema = z.object({
   productId: z.string().min(1, 'Product is required'),

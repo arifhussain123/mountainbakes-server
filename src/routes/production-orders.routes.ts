@@ -10,6 +10,7 @@ import {
   AddProductionOrderPackingItemSchema,
   VerifyProductionOrderSchema,
   CancelProductionOrderSchema,
+  EditProductionOrderSchema,
   businessDateStr,
   businessDaysAgoStr,
   karachiTimeStr,
@@ -26,6 +27,7 @@ import { bindAttachments, listAttachmentsFor } from '../services/attachments.ser
 import { notify } from '../services/push.service';
 import { applyProductionToStock } from '../services/stock.service';
 import { getPreviousOrderBalance } from '../services/previous-balance.service';
+import { editBranchDemand } from '../services/production-order-edit.service';
 import { transferOutOnApproval } from '../services/production-stock.service';
 import { getAppSettings, orderWindowMinutes } from '../services/settings.service';
 import { assertBusinessDayOpen } from '../middleware/assertBusinessDayOpen';
@@ -701,6 +703,55 @@ router.put('/:id/cancel', requireRole(...BRANCH_ROLES), validate(CancelProductio
       type: 'production_demand_cancelled',
       title: 'Production Demand Deleted',
       message: `${req.user!.branchName || 'A branch'} deleted demand ${data.demand_number} — ${reason}`,
+      targetRole: 'production_user',
+      branchId: null,
+      relatedId: id,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /api/production-orders/:id/items — the branch edits a demand it has sent,
+// while it is still 'pending': change quantities, remove lines, add products or
+// packing materials. The body is the branch's whole demand as it now wants it;
+// see services/production-order-edit.service.ts for the locking that keeps this
+// from racing Production's review.
+//
+// Gated by the same order window as a new demand: adding to a demand is
+// ordering, and outside the window Production is already working from it.
+router.put('/:id/items', requireRole(...BRANCH_ROLES), validate(EditProductionOrderSchema), async (req: AuthRequest, res, next) => {
+  try {
+    const settings = await getAppSettings();
+    const { openMin, closeMin } = orderWindowMinutes(settings);
+    if (!isWithinOrderWindow(karachiMinutesOfDay(), openMin, closeMin)) {
+      res.status(403).json({ error: `Ordering time has ended. Demands can be edited again from ${settings.orderStartTime}.` });
+      return;
+    }
+
+    const branchId = req.user!.branchId;
+    if (!branchId) { res.status(400).json({ error: 'No branch assigned to this account' }); return; }
+
+    const id = req.params['id']!;
+    const { items, packingItems } = req.body as {
+      items: { productId: string; qty: number }[];
+      packingItems: { packingMaterialId: string; qty: number }[];
+    };
+
+    const result = await editBranchDemand({ orderId: id, branchId, items, packingItems });
+
+    // branchId null, as on submission — see the note there.
+    await notify({
+      type: 'production_demand',
+      title: 'Production Demand Edited',
+      message:
+        `${req.user!.branchName || 'A branch'} edited demand ${result.demandNumber} — now ` +
+        `${result.productLines} item${result.productLines === 1 ? '' : 's'}` +
+        (result.packingLines > 0
+          ? `, ${result.packingLines} packing material${result.packingLines === 1 ? '' : 's'}`
+          : ''),
       targetRole: 'production_user',
       branchId: null,
       relatedId: id,
