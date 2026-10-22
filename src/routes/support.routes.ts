@@ -1740,6 +1740,31 @@ router.delete('/:id/demand', requireRole('super_admin'), validate(DeleteDemandSc
     // ledger entries and the query that authorised them all agree.
     const refId = `${orderId}:del:${ticket.id}`;
 
+    // A discount claim holds its demand with ON DELETE RESTRICT (migration 93) —
+    // deliberately, the claim is evidence about the delivery. Left to the RPC the
+    // refusal surfaced as a bare foreign-key error, masked in production as
+    // "Internal server error". Say why, and what to do about it.
+    const { data: discounts, error: discErr } = await db
+      .from('branch_discounts')
+      .select('status')
+      .eq('production_order_id', orderId);
+    if (discErr) throw discErr;
+    if (discounts && discounts.length > 0) {
+      const open = discounts.filter((d) => d.status === 'pending' || d.status === 'returned').length;
+      const decided = discounts.length - open;
+      const parts = [
+        open ? `${open} open` : '',
+        decided ? `${decided} approved/rejected` : '',
+      ].filter(Boolean).join(' and ');
+      res.status(409).json({
+        error: `${ticket.reference_id} cannot be deleted: it has ${parts} discount claim${discounts.length === 1 ? '' : 's'} against it. `
+          + (decided
+            ? 'A decided discount keeps its demand on the record.'
+            : 'The branch must withdraw the discount first.'),
+      });
+      return;
+    }
+
     const { data: result, error } = await db.rpc('delete_production_order', {
       p_order_id: orderId,
       p_reason: reason,
@@ -1747,6 +1772,12 @@ router.delete('/:id/demand', requireRole('super_admin'), validate(DeleteDemandSc
       p_actor_id: req.user!.uid,
       p_actor_name: req.user!.email ?? '',
     });
+    // Anything else still pointing at the demand (or a discount raised between the
+    // check above and the delete). The transaction rolled back, so nothing moved.
+    if (error && (error as { code?: string }).code === '23503') {
+      res.status(409).json({ error: `${ticket.reference_id} cannot be deleted: other records still refer to it. Nothing was changed.` });
+      return;
+    }
     if (error) throw error;
 
     const outcome = (result ?? {}) as {

@@ -24,20 +24,33 @@ import { round2 } from './daily-sale';
  * so a deposit that is exactly Tuesday's share is not taken by Monday as a near
  * miss first:
  *
- *   1. approved, same amount      → matched
- *   2. pending,  same amount      → awaiting approval
- *   3. approved, nearest in date  → discrepancy
- *   4. pending,  nearest in date  → awaiting approval
+ *   1. approved, same amount        → matched
+ *   2. pending,  same amount        → awaiting approval
+ *   3. approved, nearest amount     → discrepancy
+ *   4. pending,  nearest amount     → awaiting approval
+ *   5. approved, dated the same day → discrepancy
+ *   6. pending,  dated the same day → awaiting approval
  *
- * "Nearest" is the earliest date in the window that still has an unclaimed
- * deposit, taken whole. It is a likely pairing shown so the gap is visible, and
- * is labelled as such (`match: 'nearest'`); it is never called matched.
+ * "Nearest amount" is the deposit (or one date's deposits together) closest to
+ * the share, and only when it is less than `NEAREST_AMOUNT_GAP` away — 1 to 999
+ * rupees. The closest pairings across all of a branch's days are made first, so
+ * a deposit goes to the day it is nearest. It is a likely pairing shown so the
+ * gap is visible, and is labelled as such (`match: 'nearest'`); it is never
+ * called matched.
+ *
+ * A gap of a thousand or more is not a near miss of that day's share; it is
+ * more likely some other day's money. So a day left without a deposit then takes
+ * the ones dated on the sale day itself (`match: 'same_day'`), and the gap is
+ * shown on that day.
  *
  * Nothing here changes a sale, a record or a deposit.
  */
 
 /** How many days after a sale day its deposit may be dated. */
 export const DEPOSIT_MATCH_DAYS = 2;
+
+/** A deposit this many rupees or more from a share is not its nearest amount. */
+export const NEAREST_AMOUNT_GAP = 1000;
 
 /** The part of a record the reconciliation reads. */
 export type DepositReconRecord = Pick<
@@ -67,12 +80,6 @@ const dayKey = (branchId: string, businessDate: string) => `${branchId}|${busine
 
 const total = (deposits: BranchDayDeposit[]) => round2(deposits.reduce((s, d) => s + d.amount, 0));
 
-/** One date's deposits out of a list that is already in date order. */
-function firstDate(deposits: BranchDayDeposit[]): BranchDayDeposit[] {
-  const date = deposits[0]?.businessDate;
-  return deposits.filter((d) => d.businessDate === date);
-}
-
 /** The deposits of the same amount as `share`: one alone, else one date's together. */
 function sameAmount(candidates: BranchDayDeposit[], share: number): BranchDayDeposit[] {
   const single = candidates.find((d) => amountsAgree(d.amount, share));
@@ -83,6 +90,24 @@ function sameAmount(candidates: BranchDayDeposit[], share: number): BranchDayDep
     if (onDate.length > 1 && amountsAgree(total(onDate), share)) return onDate;
   }
   return [];
+}
+
+/**
+ * The ways `candidates` could pay `share` within `NEAREST_AMOUNT_GAP`: one
+ * deposit alone, or one date's deposits together, each with its gap.
+ */
+function nearAmounts(
+  candidates: BranchDayDeposit[],
+  share: number,
+): { deposits: BranchDayDeposit[]; gap: number }[] {
+  const options = candidates.map((d) => [d]);
+  for (const date of [...new Set(candidates.map((d) => d.businessDate))]) {
+    const onDate = candidates.filter((d) => d.businessDate === date);
+    if (onDate.length > 1) options.push(onDate);
+  }
+  return options
+    .map((deposits) => ({ deposits, gap: Math.abs(round2(total(deposits) - share)) }))
+    .filter((o) => o.gap < NEAREST_AMOUNT_GAP);
 }
 
 function compose(
@@ -144,25 +169,47 @@ export function reconcileDeposits(
     );
   };
 
-  const pass = (status: 'approved' | 'pending', match: 'amount' | 'nearest') => {
-    for (const record of days) {
-      const key = dayKey(record.branchId, record.businessDate);
-      // A day with no share is owed nothing and takes no deposit.
-      if (found.has(key) || record.companyShare <= 0) continue;
+  // A day with no share is owed nothing and takes no deposit.
+  const waiting = () =>
+    days.filter((r) => r.companyShare > 0 && !found.has(dayKey(r.branchId, r.businessDate)));
 
+  const take = (record: DepositReconRecord, deposits: BranchDayDeposit[], match: DepositMatchKind) => {
+    for (const d of deposits) claimed.add(d.id);
+    found.set(dayKey(record.branchId, record.businessDate), { deposits, match });
+  };
+
+  const pass = (status: 'approved' | 'pending', match: 'amount' | 'same_day') => {
+    for (const record of waiting()) {
       const open = candidates(record, status);
-      const taken = match === 'amount' ? sameAmount(open, record.companyShare) : firstDate(open);
-      if (taken.length === 0) continue;
+      const taken =
+        match === 'amount'
+          ? sameAmount(open, record.companyShare)
+          : open.filter((d) => d.businessDate === record.businessDate);
+      if (taken.length > 0) take(record, taken, match);
+    }
+  };
 
-      for (const d of taken) claimed.add(d.id);
-      found.set(key, { deposits: taken, match });
+  /** Smallest gap first over every day at once, so each deposit goes where it is nearest. */
+  const nearestPass = (status: 'approved' | 'pending') => {
+    const options = waiting()
+      .flatMap((record) =>
+        nearAmounts(candidates(record, status), record.companyShare).map((o) => ({ record, ...o })),
+      )
+      // Stable: equal gaps keep the oldest day, then the earliest deposit, first.
+      .sort((a, b) => a.gap - b.gap);
+    for (const { record, deposits } of options) {
+      if (found.has(dayKey(record.branchId, record.businessDate))) continue;
+      if (deposits.some((d) => claimed.has(d.id))) continue;
+      take(record, deposits, 'nearest');
     }
   };
 
   pass('approved', 'amount');
   pass('pending', 'amount');
-  pass('approved', 'nearest');
-  pass('pending', 'nearest');
+  nearestPass('approved');
+  nearestPass('pending');
+  pass('approved', 'same_day');
+  pass('pending', 'same_day');
 
   const byDay = new Map<string, DailySaleReconciliation>();
   for (const record of records) {

@@ -5,8 +5,10 @@ import { requireRole } from '../middleware/requireRole';
 import { validate } from '../middleware/validate';
 import {
   CreateProductionReturnSchema,
+  RETURN_MONTH_RE,
   ReviewProductionReturnSchema,
   businessDateStr,
+  currentBusinessMonth,
   businessDaysAgoStr,
   type ProductionReturnDisposition,
 } from '../shared';
@@ -14,7 +16,7 @@ import { notify } from '../services/push.service';
 import { acceptReturnIntoReturnStock } from '../services/return-stock.service';
 import { applyStockMovement } from '../services/stock.service';
 import { toReturnsApi } from '../services/branch-returns.service';
-import { getMonthlyReturnsSummary } from '../services/returns-summary.service';
+import { getMonthlyReturnsSummary, getReturnMonthSummary } from '../services/returns-summary.service';
 import { rowToApi } from '../utils/case';
 
 const db = dbFor('production-returns');
@@ -50,6 +52,23 @@ router.get('/summary', async (req: AuthRequest, res, next) => {
     const branchId = (req.query['branchId'] as string | undefined) || null;
     if (branchId && !UUID_RE.test(branchId)) { res.status(400).json({ error: 'branchId must be a uuid' }); return; }
     res.json(await getMonthlyReturnsSummary({ branchId }));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/production-returns/month-summary?month=YYYY-MM
+// — Return Summary: one whole business month, every branch, consolidated per
+// branch × item × reason and per item, summed in Postgres. `month` defaults to
+// the current business month and may not be later than it: there is nothing to
+// report for a month that has not begun.
+router.get('/month-summary', async (req: AuthRequest, res, next) => {
+  try {
+    const current = currentBusinessMonth();
+    const month = (req.query['month'] as string | undefined) || current;
+    if (!RETURN_MONTH_RE.test(month)) { res.status(400).json({ error: 'month must be YYYY-MM' }); return; }
+    if (month > current) { res.status(400).json({ error: 'That month has not started yet.' }); return; }
+    res.json(await getReturnMonthSummary({ month }));
   } catch (err) {
     next(err);
   }

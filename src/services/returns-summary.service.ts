@@ -1,8 +1,12 @@
 import { getPrisma } from '../db';
 import {
+  buildReturnMonthSummary,
   buildReturnsSummary,
+  businessMonthRange,
   monthToDateRange,
   type MonthlyReturnsSummary,
+  type ProductionReturnMonthSummary,
+  type ReturnMonthSqlRow,
   type ReturnsSummaryRow,
 } from '../shared';
 
@@ -107,6 +111,39 @@ export async function getMonthlyReturnsSummary(
     prisma.$queryRawUnsafe<{ id: string; name: string }[]>(BRANCHES_SQL, branchId),
   ]);
   return buildReturnsSummary(rows, branches, range);
+}
+
+// Return Summary: one whole business month, per branch × product × reason
+// text, rejected returns left out (see shared/utils/return-month-summary.ts).
+// The reason is grouped on its trimmed, lower-cased text here; sorting those
+// texts into reason buckets is the shared builder's job, so the SQL stays a
+// plain aggregate.
+const MONTH_SQL = `
+  select r.branch_id::text                                    as "branchId",
+         max(coalesce(r.branch_name, b.name))                 as "branchName",
+         r.product_id::text                                   as "productId",
+         max(coalesce(p.name, r.product_name))                as "productName",
+         lower(btrim(coalesce(r.reason, '')))                 as "reason",
+         count(*)::int                                        as "count",
+         coalesce(sum(r.qty), 0)::float8                      as "qty",
+         coalesce(sum(round(r.qty * px.unit_price, 2)), 0)::float8 as "amount",
+         (count(*) filter (where px.unit_price is null))::int as "unpriced"
+    from public.production_returns r
+    left join public.products p on p.id = r.product_id
+    left join public.branches b on b.id = r.branch_id
+    ${UNIT_PRICE_LATERAL}
+   where r.business_date between $1::date and $2::date
+     and r.status::text <> 'rejected'
+   group by r.branch_id, r.product_id, lower(btrim(coalesce(r.reason, '')))
+`;
+
+/** Every branch's returns for one business month ('YYYY-MM'), consolidated. The caller validates `month`. */
+export async function getReturnMonthSummary(
+  { month, now = new Date() }: { month: string; now?: Date },
+): Promise<ProductionReturnMonthSummary> {
+  const range = businessMonthRange(month);
+  const rows = await getPrisma().$queryRawUnsafe<ReturnMonthSqlRow[]>(MONTH_SQL, range.from, range.to);
+  return buildReturnMonthSummary(rows, month, now);
 }
 
 export interface ReturnRowPricing {

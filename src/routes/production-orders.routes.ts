@@ -7,8 +7,10 @@ import {
   CreateProductionOrderSchema,
   ReviewProductionOrderSchema,
   AddProductionOrderItemSchema,
+  AddProductionOrderPackingItemSchema,
   VerifyProductionOrderSchema,
   CancelProductionOrderSchema,
+  EditProductionOrderSchema,
   businessDateStr,
   businessDaysAgoStr,
   karachiTimeStr,
@@ -25,6 +27,7 @@ import { bindAttachments, listAttachmentsFor } from '../services/attachments.ser
 import { notify } from '../services/push.service';
 import { applyProductionToStock } from '../services/stock.service';
 import { getPreviousOrderBalance } from '../services/previous-balance.service';
+import { editBranchDemand } from '../services/production-order-edit.service';
 import { transferOutOnApproval } from '../services/production-stock.service';
 import { getAppSettings, orderWindowMinutes } from '../services/settings.service';
 import { assertBusinessDayOpen } from '../middleware/assertBusinessDayOpen';
@@ -711,6 +714,55 @@ router.put('/:id/cancel', requireRole(...BRANCH_ROLES), validate(CancelProductio
   }
 });
 
+// PUT /api/production-orders/:id/items — the branch edits a demand it has sent,
+// while it is still 'pending': change quantities, remove lines, add products or
+// packing materials. The body is the branch's whole demand as it now wants it;
+// see services/production-order-edit.service.ts for the locking that keeps this
+// from racing Production's review.
+//
+// Gated by the same order window as a new demand: adding to a demand is
+// ordering, and outside the window Production is already working from it.
+router.put('/:id/items', requireRole(...BRANCH_ROLES), validate(EditProductionOrderSchema), async (req: AuthRequest, res, next) => {
+  try {
+    const settings = await getAppSettings();
+    const { openMin, closeMin } = orderWindowMinutes(settings);
+    if (!isWithinOrderWindow(karachiMinutesOfDay(), openMin, closeMin)) {
+      res.status(403).json({ error: `Ordering time has ended. Demands can be edited again from ${settings.orderStartTime}.` });
+      return;
+    }
+
+    const branchId = req.user!.branchId;
+    if (!branchId) { res.status(400).json({ error: 'No branch assigned to this account' }); return; }
+
+    const id = req.params['id']!;
+    const { items, packingItems } = req.body as {
+      items: { productId: string; qty: number }[];
+      packingItems: { packingMaterialId: string; qty: number }[];
+    };
+
+    const result = await editBranchDemand({ orderId: id, branchId, items, packingItems });
+
+    // branchId null, as on submission — see the note there.
+    await notify({
+      type: 'production_demand',
+      title: 'Production Demand Edited',
+      message:
+        `${req.user!.branchName || 'A branch'} edited demand ${result.demandNumber} — now ` +
+        `${result.productLines} item${result.productLines === 1 ? '' : 's'}` +
+        (result.packingLines > 0
+          ? `, ${result.packingLines} packing material${result.packingLines === 1 ? '' : 's'}`
+          : ''),
+      targetRole: 'production_user',
+      branchId: null,
+      relatedId: id,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // PUT /api/production-orders/:id/printed — mark the slip printed. Idempotent;
 // printing never mutates stock or creates records, so re-printing is a safe no-op.
 router.put('/:id/printed', requireRole('super_admin', 'production_user'), async (req: AuthRequest, res, next) => {
@@ -790,6 +842,75 @@ router.post('/:id/items', requireRole('super_admin', 'production_user'), validat
       added_by_production: true,
       remarks: remarks || '',
       line_no: nextLineNo,
+    });
+    if (insErr) throw insErr;
+
+    res.status(201).json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/production-orders/:id/packing-items — the packing-material twin of
+// /items above: Production adds a material the branch did not ask for (or tops up
+// one it did) on a still-'pending' order. Review then approves it with the rest
+// of the packing lines; packing material is not stock, so nothing moves here.
+router.post('/:id/packing-items', requireRole('super_admin', 'production_user'), validate(AddProductionOrderPackingItemSchema), async (req: AuthRequest, res, next) => {
+  try {
+    const id = req.params['id']!;
+    const { packingMaterialId, qty } = req.body as { packingMaterialId: string; qty: number };
+
+    const { data: order, error: orderErr } = await db
+      .from('production_orders')
+      .select('id, status')
+      .eq('id', id)
+      .maybeSingle();
+    if (orderErr) throw orderErr;
+    if (!order) { res.status(404).json({ error: 'Production order not found' }); return; }
+    if (order.status !== 'pending') {
+      res.status(409).json({ error: 'This order has already been submitted — items can no longer be added' });
+      return;
+    }
+
+    // Active only, as on order creation: a material disabled while the dialog was
+    // open must not land on a demand.
+    const { data: material, error: matErr } = await db
+      .from('packing_materials')
+      .select('material_name')
+      .eq('id', packingMaterialId)
+      .eq('is_active', true)
+      .maybeSingle();
+    if (matErr) throw matErr;
+    if (!material) { res.status(400).json({ error: 'Packing material not found or no longer active' }); return; }
+
+    // One line per material per order (production_order_packing_items_unique_material).
+    const { data: existing, error: exErr } = await db
+      .from('production_order_packing_items')
+      .select('id')
+      .eq('production_order_id', id)
+      .eq('packing_material_id', packingMaterialId)
+      .maybeSingle();
+    if (exErr) throw exErr;
+    if (existing) {
+      res.status(409).json({ error: 'This packing material is already on the demand — change its quantity instead' });
+      return;
+    }
+
+    const { data: maxRow, error: maxErr } = await db
+      .from('production_order_packing_items')
+      .select('line_no')
+      .eq('production_order_id', id)
+      .order('line_no', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (maxErr) throw maxErr;
+
+    const { error: insErr } = await db.from('production_order_packing_items').insert({
+      production_order_id: id,
+      packing_material_id: packingMaterialId,
+      material_name: material.material_name,
+      qty,
+      line_no: (maxRow?.line_no ?? 0) + 1,
     });
     if (insErr) throw insErr;
 

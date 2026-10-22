@@ -46,12 +46,14 @@ export const DEPOSIT_RECON_STATUS_LABELS: Record<DepositReconStatus, string> = {
  *
  *   amount   — a deposit (or one date's deposits together) of the same amount as
  *              the day's Company Share
- *   nearest  — no deposit of that amount; the earliest unclaimed deposits in the
- *              window, shown so the gap can be seen. A likely pairing, not a
+ *   nearest  — no deposit of that amount; the one nearest it, 1 to 999 rupees
+ *              away, shown so the gap can be seen. A likely pairing, not a
  *              certain one.
+ *   same_day — nothing within 999 rupees; the deposits dated on the sale day
+ *              itself, shown so the gap can be seen
  *   none     — nothing in the window
  */
-export type DepositMatchKind = 'amount' | 'nearest' | 'none';
+export type DepositMatchKind = 'amount' | 'nearest' | 'same_day' | 'none';
 
 /** A deposit as the reconciliation reads it — the amounts and how to find it. */
 export interface ReconciliationDeposit {

@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { runDailyClosing } from '../services/daily-closing.service';
 import { dispatchClosingSummaries } from '../services/closing-notifications.service';
+import { backupAfterDailyClosing } from './database-backup.job';
 
 /**
  * Arm the automatic end-of-day closing at 2:00 AM Asia/Karachi. node-cron's
@@ -27,6 +28,7 @@ export function startDailyClosingScheduler(): void {
             console.log(`[daily-closing] ${result.businessDate}: ${result.status} (${result.reason ?? 'no reason'}) — skipping summaries.`);
             return;
           }
+          backupAfterDailyClosing();
           return dispatchClosingSummaries({ businessDate: result.businessDate, trigger: 'scheduler' }).then(() => undefined);
         })
         .catch((err) => {
