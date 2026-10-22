@@ -38,11 +38,17 @@ async function main() {
   const { startReturnPhotoSweepScheduler } = await import('./src/scheduler/return-photo-sweep.job');
   const { startDatabaseBackupScheduler } = await import('./src/scheduler/database-backup.job');
   const { startWhatsAppOutboxWorker } = await import('./src/services/whatsapp/outbox');
+  const { startDailyClosingScheduler } = await import('./src/scheduler/daily-closing.job');
+  const { startPriceActivationScheduler } = await import('./src/scheduler/price-activation.job');
+  const { activateDuePrices } = await import('./src/services/price.service');
   const PORT = parseInt(process.env.PORT || process.env.API_PORT || '3001', 10);
   app.listen(PORT, '0.0.0.0', () => {
     startReturnPhotoSweepScheduler();
     startDatabaseBackupScheduler();
     startWhatsAppOutboxWorker();
+    startDailyClosingScheduler();
+    startPriceActivationScheduler();
+    activateDuePrices({ trigger: 'startup' }).catch((err) => console.error('[price-activation] startup catch-up threw:', err));
     if (process.env.NODE_ENV === 'production' && !process.env.CORS_ORIGINS) {
       console.warn(
         '[cors] CORS_ORIGINS is not set — only localhost is allowed. Set it to your ' +
