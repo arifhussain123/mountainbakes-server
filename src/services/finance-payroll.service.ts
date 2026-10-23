@@ -370,42 +370,11 @@ export async function listSalaryPayments(
   if (error) throw error;
 
   const rows = rowToApi<SalaryPayment[]>(data ?? []).map(normalise);
-  const ids = rows.map((s) => s.id);
-  const [photos, advances] = await Promise.all([
-    listAttachmentsFor('salary_payment', ids),
-    advancesRecoveredBy(ids),
-  ]);
-  return {
-    salaries: rows.map((s) => ({
-      ...s,
-      advancesRecovered: advances.get(s.id) ?? 0,
-      attachments: photos.get(s.id) ?? [],
-    })),
-    total: count ?? 0,
-  };
-}
-
-/**
- * Per payslip, the total handed over on the advances it recovered.
- *
- * One batched query for the page. Reads the claim as it stands: a rejected
- * payslip shows what it held until a replacement takes those advances over.
- */
-async function advancesRecoveredBy(salaryIds: string[]): Promise<Map<string, number>> {
-  const totals = new Map<string, number>();
-  if (salaryIds.length === 0) return totals;
-  const { data, error } = await withoutDeleted(
-    db
-      .from('employee_advances')
-      .select('recovered_by_salary_id, total_amount')
-      .in('recovered_by_salary_id', salaryIds),
+  const photos = await listAttachmentsFor(
+    'salary_payment',
+    rows.map((s) => s.id),
   );
-  if (error) throw error;
-  for (const r of data ?? []) {
-    const id = r['recovered_by_salary_id'] as string;
-    totals.set(id, round2((totals.get(id) ?? 0) + num(r['total_amount'])));
-  }
-  return totals;
+  return { salaries: rows.map((s) => ({ ...s, attachments: photos.get(s.id) ?? [] })), total: count ?? 0 };
 }
 
 function normalise(s: SalaryPayment): SalaryPayment {
@@ -424,14 +393,9 @@ export async function getSalaryPayment(id: string): Promise<SalaryPayment | null
   ).maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  const [attachments, advances] = await Promise.all([
-    listAttachments('salary_payment', id),
-    advancesRecoveredBy([id]),
-  ]);
   return {
     ...normalise(rowToApi<SalaryPayment>(data)),
-    advancesRecovered: advances.get(id) ?? 0,
-    attachments,
+    attachments: await listAttachments('salary_payment', id),
   };
 }
 

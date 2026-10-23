@@ -561,11 +561,6 @@ export interface SalaryPayment {
   deductions: number;
   /** grossSalary + bonus − deductions, computed server-side. */
   netSalary: number;
-  /**
-   * Total handed over on the advances this payslip recovered — read off the
-   * advance rows, not stored, so it is what Deduction was prefilled from.
-   */
-  advancesRecovered?: number;
   paymentDate: string | null;
   paymentMethod: string;
   account: FinanceAccount;
