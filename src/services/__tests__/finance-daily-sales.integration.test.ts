@@ -618,14 +618,31 @@ describe('the Company Share against the deposit that paid it', () => {
     assert.equal(r.deposits[0].businessDate, D1);
   });
 
-  test('a deposit that matches no day is reported, not forced onto one', async () => {
+  test('a deposit handed over on a day with no sales gets a zero row, the deposit under Received', async () => {
     const orphan = await deposit({ branch: A, date: EMPTY_DAY, status: 'approved', cash: 250 });
     const list = await financeList(EMPTY_DAY, EMPTY_DAY);
-    assert.deepEqual(list.records, []);
-    assert.equal(list.unmatchedDeposits.length, 1);
-    assert.equal(list.unmatchedDeposits[0].id, orphan);
-    assert.equal(list.unmatchedDeposits[0].branchName, 'Gulberg');
-    assert.equal(list.unmatchedDeposits[0].businessDate, EMPTY_DAY);
+    assert.equal(list.records.length, 1);
+    const row = rowOf(list, A, EMPTY_DAY);
+    assert.equal(row.id, null);
+    assert.equal(row.branchName, 'Gulberg');
+    assert.equal(row.autoTotalSale, 0);
+    assert.equal(row.reconciliation.expected, 0);
+    assert.equal(row.reconciliation.received, 250);
+    assert.equal(row.reconciliation.difference, -250);
+    assert.equal(row.reconciliation.extraCount, 1);
+    assert.equal(row.reconciliation.status, 'discrepancy');
+    assert.equal(row.reconciliation.deposits[0].id, orphan);
+    assert.deepEqual(list.unmatchedDeposits, []);
+    // No sales to count: the sales cards stay at zero.
+    assert.equal(list.summary.totalSale, 0);
+    assert.equal(list.summary.uncounted, 0);
+    assert.equal(list.reconciliation.received, 250);
+
+    // The day opens in full too, with nothing written for it.
+    const day = await call('auditor', 'GET', `${FINANCE}/day?branchId=${A}&date=${EMPTY_DAY}`);
+    assert.equal(day.status, 200, JSON.stringify(day.body));
+    assert.equal(day.body.record.id, null);
+    assert.deepEqual(day.body.audits, []);
 
     // And it does not leak into another day.
     assert.equal(rowOf(await financeList(D1, D1), A, D1).reconciliation.deposits.length, 1);
