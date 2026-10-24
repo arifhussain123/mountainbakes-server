@@ -2,10 +2,10 @@ import { Router } from 'express';
 import { dbFor } from '../db';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
-import { businessDateStr, businessDaysAgoStr, toPaisa } from '../shared';
+import { balanceStanding, businessDateStr, businessDaysAgoStr, toPaisa } from '../shared';
 import { getProductionStockRows } from '../services/production-stock.service';
 import { getReturnStockRows } from '../services/return-stock.service';
-import { genericPDF, genericExcel, genericExcelMultiSheet, genericCSV } from '../services/production-export.service';
+import { genericPDF, genericExcel, genericExcelMultiSheet, genericCSV, type ExcelColumn, type ExcelSheet } from '../services/production-export.service';
 import { getPreviousOrderBalance } from '../services/previous-balance.service';
 import { getCollectionsReturnRows } from '../services/returns-summary.service';
 import { getDemandRecordPeriod } from '../services/branch-account.service';
@@ -241,81 +241,76 @@ async function collectionsReconciliation(args: {
   };
 }
 
-type ReportSheet = { title: string; headers: string[]; rows: (string | number)[][] };
+/** Whole rupees with separators; a negative balance reads -Rs. 2,000. */
+const RS = '"Rs. "#,##0;-"Rs. "#,##0;"Rs. "0';
+/** The same, with a zero shown as a dash (Return, Discount). */
+const RS_OR_DASH = '"Rs. "#,##0;-"Rs. "#,##0;"—"';
 
 /**
- * The Collections export on the Demand Record's rules (Finance → Demand
- * Record, `shared/utils/branch-account.ts`) — the same rows, so the sheet and
- * that page cannot disagree:
+ * The Collections export: the Demand Record page's table (Finance → Demand
+ * Record, `shared/utils/branch-account.ts`), row for row — the same rows from
+ * the same query, so the sheet and that page cannot disagree:
  *
- *   Demand        = Total Demand Amount − Return Amount − Discount
- *   Company Share = Demand × the demand's frozen % ÷ 100
- *   Amount Due    = Previous Balance + Company Share + Adjustments
- *   Remaining     = Amount Due − Payment Received
+ *   G. Total  = Delivered − Return − Discount
+ *   Co. Share = G. Total × the demand's frozen Share % ÷ 100
+ *   Closing   = Previous + Co. Share − Received, carried to the branch's next
+ *               demand (each branch its own chain); negative is a credit
  *
- * Column names are the Demand Record restructure's
- * (docs/demand-record-accounting-migration.md).
+ * Received is the approved cash transfers in the row's window, as on the page.
+ * Finance's adjustments also feed the page's Closing; the sheet has no column
+ * for them (there were none when it was laid out, 2026-10-24), so a row with
+ * one does not add up across.
  *
- * The balance carries from each demand to the branch's next, and a negative
- * closing (paid ahead) is kept, not floored. Money stays to the paisa, as the
- * page has it, so each row's Previous → Closing adds up exactly.
+ * Money stays numeric to the paisa and is shown in whole rupees by the cell
+ * format, so each figure equals the page's exactly.
  *
  * Actual Sales is left out: this export is open to production users, who do
  * not see sales (see the router's note), and it is never a collection figure.
  *
- * Sheets: Collections (every row), By Branch, then one tab per branch. In a
- * TOTAL, activity is summed down the rows but Previous Balance / Remaining
- * are each branch's balance before and after the period — a carried balance summed row
- * by row would count the same money once per demand.
+ * Sheets: Collections (every row, by date then demand number), By Branch, then
+ * one tab per branch. A TOTAL sums the activity columns only — a carried
+ * balance summed row by row would count the same money once per demand.
  */
 function collectionsFromDemandRecord(
   record: NonNullable<Awaited<ReturnType<typeof getDemandRecordPeriod>>>,
-  requestedFrom: string,
-): { title: string; headers: string[]; rows: (string | number)[][]; specialRowCount: number; extraSheets: ReportSheet[] } {
+): { title: string; headers: string[]; rows: (string | number)[][]; specialRowCount: number; columns: ExcelColumn[]; boldRows: number[]; extraSheets: ExcelSheet[] } {
   type Row = (typeof record.rows)[number];
-  const money = ['Total Demand Amount', 'Return Qty', 'Return Amount', 'Discount', 'Demand', 'Share %', 'Company Share', 'Previous Balance', 'Adjustments', 'Amount Due', 'Payment Received', 'Remaining'];
-  const line = (r: Row): (string | number)[] => [
-    r.businessDate,
-    r.demandNumber ?? 'Opening',
-    r.orderId ? (r.status ?? '') : 'opening',
-    r.totalDemandAmount, r.returnsQty, r.returns, r.discount, r.demand, r.sharePct,
-    r.companyShare, r.previousBalance, r.adjustments, r.amountDue, r.received, r.remaining,
-    noteFor(r),
+  const headers = ['Date', 'Demand No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Share %', 'Received', 'Previous', 'Closing', 'Closing Status'];
+  const columns: ExcelColumn[] = [
+    { date: true, numFmt: 'dd mmm yyyy', width: 13 }, { width: 13 }, { width: 22 },
+    { numFmt: RS }, { numFmt: RS_OR_DASH }, { numFmt: RS_OR_DASH }, { numFmt: RS }, { numFmt: RS },
+    { numFmt: 'General"%"', width: 9 }, { numFmt: RS }, { numFmt: RS }, { numFmt: RS }, { width: 15 },
   ];
-  function noteFor(r: Row): string {
-    const notes: string[] = [];
-    if (r.open) notes.push('Open: later returns and deposits still land on this row');
-    if (r.remaining < 0) notes.push('Credit: paid ahead');
-    else if (r.remaining === 0) notes.push('Settled');
-    if (r.orderId && !r.pctFrozen) notes.push("No frozen share %, today's used");
-    if (r.unpricedLines > 0) notes.push(`${r.unpricedLines} line(s) with no price, counted at 0`);
-    return notes.join('; ');
-  }
+  const STATUS = { owed: 'OUTSTANDING', settled: 'SETTLED', credit: 'CREDIT' } as const;
+  const line = (r: Row): (string | number)[] => [
+    r.businessDate, r.demandNumber ?? 'Opening', r.branchName,
+    r.delivered, r.returns, r.discount, r.gTotal, r.companyShare, r.sharePct, r.received,
+    r.previousBalance, r.closingBalance, STATUS[balanceStanding(r.closingBalance)],
+  ];
   const sumOf = (rows: Row[]) => {
-    const t = { delivered: 0, retQty: 0, returns: 0, discount: 0, demand: 0, share: 0, received: 0, adjustments: 0 };
+    const t = { delivered: 0, returns: 0, discount: 0, gTotal: 0, share: 0, received: 0 };
     for (const r of rows) {
-      t.delivered += r.totalDemandAmount; t.retQty += r.returnsQty; t.returns += r.returns;
-      t.discount += r.discount; t.demand += r.demand; t.share += r.companyShare; t.received += r.received; t.adjustments += r.adjustments;
+      t.delivered += r.delivered; t.returns += r.returns; t.discount += r.discount;
+      t.gTotal += r.gTotal; t.share += r.companyShare; t.received += r.received;
     }
     for (const k of Object.keys(t) as (keyof typeof t)[]) t[k] = toPaisa(t[k]);
     return t;
   };
-  // Previous Balance is the balance carried into the period, Amount Due adds
-  // the period's share and adjustments to it, Remaining is the balance after.
-  const totalLine = (rows: Row[], opening: number, closing: number): (string | number)[] => {
+  const totalLine = (rows: Row[]): (string | number)[] => {
     const t = sumOf(rows);
-    const due = toPaisa(opening + t.share + t.adjustments);
-    return ['TOTAL', '', '', t.delivered, t.retQty, t.returns, t.discount, t.demand, '', t.share, opening, t.adjustments, due, t.received, closing, ''];
+    return ['TOTAL', '', '', t.delivered, t.returns, t.discount, t.gTotal, t.share, '', t.received, '', '', ''];
   };
-  const blank = (n: number) => new Array<string>(n).fill('');
-  // Previous + Share + Adjustments − Received must land on Remaining. Read off
-  // two separate things (the row sums and the balances either side), so it is
-  // a real check: it fails if a branch's rows in the period are not contiguous.
-  const checkText = (rows: Row[], opening: number, closing: number) => {
-    const t = sumOf(rows);
-    const due = toPaisa(opening + t.share + t.adjustments);
-    const diff = toPaisa(due - t.received - closing);
-    return `Previous Balance ${opening} + Company Share ${t.share} + Adjustments ${t.adjustments} = Amount Due ${due}; − Payment Received ${t.received} = Remaining ${closing}: ${Math.abs(diff) < 0.01 ? 'OK' : `differs by ${diff}`}`;
+  // Date, then demand number; a branch's opening row (no number) before its demands.
+  const byDate = (a: Row, b: Row) =>
+    a.businessDate.localeCompare(b.businessDate)
+    || (a.demandNumber ?? '').localeCompare(b.demandNumber ?? '')
+    || a.branchName.localeCompare(b.branchName);
+  /** A sheet of rows with its TOTAL in bold. */
+  const sheetOf = (title: string, list: Row[]): ExcelSheet & { specialRowCount: number } => {
+    const rows = [...list].sort(byDate).map(line);
+    if (list.length === 0) return { title, headers, rows, columns, specialRowCount: 0 };
+    rows.push(totalLine(list));
+    return { title, headers, rows, columns, boldRows: [rows.length - 1], specialRowCount: 1 };
   };
 
   const rowsByBranch = new Map<string, Row[]>();
@@ -327,58 +322,44 @@ function collectionsFromDemandRecord(
   // keeps its line and tab unless that is zero too.
   const branches = record.branches.filter((b) => rowsByBranch.has(b.branchId) || b.openingBalance !== 0 || b.closingBalance !== 0);
 
-  const notes: string[] = [];
-  if (requestedFrom < record.start) notes.push(`The Demand Record starts on ${record.start}; nothing before that day is in this export.`);
-  notes.push('Demand = Total Demand Amount − Return Amount − Discount. Company Share = Demand × Share %. Amount Due = Previous Balance + Company Share + Adjustments. Remaining = Amount Due − Payment Received, carried to the next demand; a negative balance is a credit (paid ahead).');
-
-  const mainCols = 1 + 3 + money.length + 1;
-  const rows: (string | number)[][] = record.rows.map((r) => [r.branchName, ...line(r)]);
-  let specialRowCount = 0;
-  if (record.rows.length > 0) {
-    // TOTAL sits under Branch here, so the Date cell it takes on a branch tab goes blank.
-    rows.push(['TOTAL', '', ...totalLine(record.rows, record.totals.openingBalance, record.totals.closingBalance).slice(1)]);
-    rows.push([checkText(record.rows, record.totals.openingBalance, record.totals.closingBalance), ...blank(mainCols - 1)]);
-    specialRowCount += 2;
-  }
-  for (const n of notes) { rows.push([n, ...blank(mainCols - 1)]); specialRowCount++; }
-
+  // Previous / Closing here are each branch's balance before and after the period.
+  const byBranchHeaders = ['Branch', 'Demands', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Received', 'Previous', 'Closing', 'Closing Status'];
+  const byBranchColumns: ExcelColumn[] = [
+    { width: 22 }, { width: 9 }, { numFmt: RS }, { numFmt: RS_OR_DASH }, { numFmt: RS_OR_DASH },
+    { numFmt: RS }, { numFmt: RS }, { numFmt: RS }, { numFmt: RS }, { numFmt: RS }, { width: 15 },
+  ];
   const byBranchRows: (string | number)[][] = branches.map((b) => {
     const list = rowsByBranch.get(b.branchId) ?? [];
     const t = sumOf(list);
-    return [b.branchName, list.filter((r) => r.orderId).length, t.delivered, t.returns, t.discount, t.demand, t.share,
-      b.openingBalance, t.adjustments, toPaisa(b.openingBalance + t.share + t.adjustments), t.received, b.closingBalance];
+    return [b.branchName, list.filter((r) => r.orderId).length, t.delivered, t.returns, t.discount, t.gTotal, t.share,
+      t.received, b.openingBalance, b.closingBalance, STATUS[balanceStanding(b.closingBalance)]];
   });
   if (byBranchRows.length > 0) {
     const t = sumOf(record.rows);
     const opening = toPaisa(branches.reduce((a, b) => a + b.openingBalance, 0));
     const closing = toPaisa(branches.reduce((a, b) => a + b.closingBalance, 0));
-    byBranchRows.push(['GRAND TOTAL', record.rows.filter((r) => r.orderId).length, t.delivered, t.returns, t.discount, t.demand, t.share,
-      opening, t.adjustments, toPaisa(opening + t.share + t.adjustments), t.received, closing]);
+    byBranchRows.push(['GRAND TOTAL', record.rows.filter((r) => r.orderId).length, t.delivered, t.returns, t.discount, t.gTotal, t.share,
+      t.received, opening, closing, STATUS[balanceStanding(closing)]]);
   }
 
-  const branchHeaders = ['Date', 'Demand Number', 'Status', ...money, 'Note'];
-  const branchSheets: ReportSheet[] = branches.map((b) => {
-    const list = rowsByBranch.get(b.branchId) ?? [];
-    const sheetRows: (string | number)[][] = list.map(line);
-    if (list.length > 0) {
-      sheetRows.push(totalLine(list, b.openingBalance, b.closingBalance));
-      sheetRows.push([checkText(list, b.openingBalance, b.closingBalance), ...blank(branchHeaders.length - 1)]);
-    } else {
-      sheetRows.push([`No demand in this period. Balance carried: ${b.closingBalance}`, ...blank(branchHeaders.length - 1)]);
-    }
-    return { title: b.branchName || 'Branch', headers: branchHeaders, rows: sheetRows };
+  const branchSheets: ExcelSheet[] = branches.map((b) => {
+    const sheet = sheetOf(b.branchName || 'Branch', rowsByBranch.get(b.branchId) ?? []);
+    if (sheet.rows.length === 0) sheet.rows.push([`No demand in this period. Balance carried: ${b.closingBalance}`, ...new Array<string>(headers.length - 1).fill('')]);
+    return sheet;
   });
 
+  const { rows, boldRows = [], specialRowCount } = sheetOf('Collections', record.rows);
   return {
     title: 'Collections',
-    headers: ['Branch', ...branchHeaders],
+    headers,
     rows,
     specialRowCount,
-    extraSheets: [{
-      title: 'By Branch',
-      headers: ['Branch', 'Demands', 'Total Demand Amount', 'Return Amount', 'Discount', 'Demand', 'Company Share', 'Previous Balance', 'Adjustments', 'Amount Due', 'Payment Received', 'Remaining'],
-      rows: byBranchRows,
-    }, ...branchSheets],
+    columns,
+    boldRows,
+    extraSheets: [
+      { title: 'By Branch', headers: byBranchHeaders, rows: byBranchRows, columns: byBranchColumns, boldRows: byBranchRows.length > 0 ? [byBranchRows.length - 1] : [] },
+      ...branchSheets,
+    ],
   };
 }
 
@@ -412,7 +393,10 @@ async function buildReport(
    * the JSON preview carry just the main table. Only `collections` sets it:
    * By Branch, Reconciliation, then one tab per branch.
    */
-  extraSheets?: { title: string; headers: string[]; rows: (string | number)[][] }[];
+  extraSheets?: ExcelSheet[];
+  /** Excel styling for the main sheet (see `ExcelSheet`). Only `collections` sets it. */
+  columns?: ExcelColumn[];
+  boldRows?: number[];
 }> {
   // `prepared-detail` and `collections` are driven by an explicit from/to window
   // rather than the period dropdown; every other report still anchors to the
@@ -645,7 +629,7 @@ async function buildReport(
       // collectionsFromDemandRecord). Until then, the delivery-slip figures
       // below, with a line saying so.
       const record = await getDemandRecordPeriod({ branchId: branchId || null, from: fromStr, to: toStr });
-      if (record) return collectionsFromDemandRecord(record, fromStr);
+      if (record) return collectionsFromDemandRecord(record);
 
       // One row per DELIVERY, carrying what the branch owes for it — the same
       // figures the company copy of the next slip prints.
@@ -913,7 +897,7 @@ router.get('/summary', async (req: AuthRequest, res, next) => {
     const range = usesDateRange(report) ? explicitDateRange(req.query['from'], req.query['to']) : undefined;
     const branchId = typeof req.query['branchId'] === 'string' ? req.query['branchId'] : '';
     // Extra Excel tabs are for the file, not the on-screen preview.
-    const { extraSheets: _extraSheets, ...data } = await buildReport(report, period, range, branchId);
+    const { extraSheets: _extraSheets, columns: _columns, boldRows: _boldRows, ...data } = await buildReport(report, period, range, branchId);
 
     // Column-INDEX sort, not a key — these rows are positional arrays with no
     // per-cell name (unlike the keyed Finance Reports). A trailing TOTAL/
@@ -959,7 +943,7 @@ router.get('/export', async (req: AuthRequest, res, next) => {
     const exportType = String(req.query['type'] || 'excel');
     const range = usesDateRange(report) ? explicitDateRange(req.query['from'], req.query['to']) : undefined;
     const branchId = typeof req.query['branchId'] === 'string' ? req.query['branchId'] : '';
-    const { title, headers, rows, extraSheets } = await buildReport(report, period, range, branchId);
+    const { title, headers, rows, extraSheets, columns, boldRows } = await buildReport(report, period, range, branchId);
     // A range report names the window it covers, so two exports taken the same
     // day for different windows don't land on the same filename.
     const dateLabel = range
@@ -978,7 +962,7 @@ router.get('/export', async (req: AuthRequest, res, next) => {
       res.send(genericCSV(headers, rows));
     } else {
       const buffer = extraSheets?.length
-        ? await genericExcelMultiSheet([{ title, headers, rows }, ...extraSheets])
+        ? await genericExcelMultiSheet([{ title, headers, rows, columns, boldRows }, ...extraSheets])
         : await genericExcel(title, headers, rows);
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}.xlsx"`);

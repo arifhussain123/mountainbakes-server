@@ -519,29 +519,26 @@ test('the Collections export carries the Demand Record figures, per branch', asy
   assert.equal(h.includes('Actual Sales'), false); // production users never see sales
   const at = (name: string) => h.indexOf(name);
   for (const r of record.rows as Json[]) {
-    const line = main.find((x) => x[at('Branch')] === r.branchName && x[at('Demand Number')] === (r.demandNumber ?? 'Opening'));
+    const line = main.find((x) => x[at('Branch')] === r.branchName && x[at('Demand No.')] === (r.demandNumber ?? 'Opening'));
     assert.ok(line, `no line for ${r.branchName} ${r.demandNumber}`);
-    for (const [col, key] of [['Total Demand Amount', 'delivered'], ['Demand', 'gTotal'], ['Company Share', 'companyShare'],
-      ['Previous Balance', 'previousBalance'], ['Amount Due', 'amountDue'], ['Payment Received', 'received'], ['Remaining', 'closingBalance']] as const) {
+    for (const [col, key] of [['Delivered', 'delivered'], ['G. Total', 'gTotal'], ['Co. Share', 'companyShare'],
+      ['Previous', 'previousBalance'], ['Received', 'received'], ['Closing', 'closingBalance']] as const) {
       assert.equal(line[at(col)], r[key], `${r.demandNumber} ${col}`);
     }
   }
-  assert.ok(main.some((x) => String(x[0]).startsWith('The Demand Record starts on 2026-09-01')));
-  const total = main.find((x) => x[0] === 'TOTAL')!;
-  assert.equal(total[at('Remaining')], record.totals.closingBalance);
-  assert.equal(total[at('Previous Balance')], record.totals.openingBalance);
-  assert.equal(h.includes('G. Total'), false);
-  assert.match(String(main[main.indexOf(total) + 1]![0]), /: OK$/);
+  const total = main.at(-1)!;
+  assert.equal(total[0], 'TOTAL');
+  assert.equal(total[at('Received')], record.totals.received);
+  assert.equal(total[at('Co. Share')], record.totals.companyShare);
 
-  // Each branch tab ends on that branch's own balance, and its sums reconcile.
+  // Each branch tab holds only that branch's rows and ends on its own balance.
   for (const b of record.branches as Json[]) {
     const tab = wb.get(b.branchName)!;
-    const tabTotal = tab.find((x) => x[0] === 'TOTAL')!;
-    assert.equal(tabTotal[tab[0]!.indexOf('Previous Balance')], b.openingBalance);
-    assert.equal(tabTotal[tab[0]!.indexOf('Remaining')], b.closingBalance);
-    assert.match(String(tab[tab.indexOf(tabTotal) + 1]![0]), /: OK$/);
+    const rows = tab.slice(1, -1);
+    assert.ok(rows.every((x) => x[at('Branch')] === b.branchName));
+    assert.equal(rows.at(-1)![at('Closing')], b.closingBalance);
   }
   const byBranch = wb.get('By Branch')!;
   assert.equal(byBranch.at(-1)![0], 'GRAND TOTAL');
-  assert.equal(byBranch.at(-1)![byBranch[0]!.indexOf('Remaining')], record.totals.closingBalance);
+  assert.equal(byBranch.at(-1)![byBranch[0]!.indexOf('Closing')], record.totals.closingBalance);
 });
