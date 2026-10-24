@@ -149,3 +149,49 @@ export function totalBranchAccount(
   for (const k of Object.keys(t) as (keyof BranchAccountTotals)[]) t[k] = toPaisa(t[k]);
   return t;
 }
+
+// ---------------------------------------------------------------------------
+// API shapes — /api/finance/branch-account
+// ---------------------------------------------------------------------------
+
+export interface DemandRecordRow extends BranchAccountRow {
+  /** True while the branch has no later demand: returns and deposits can still land here. */
+  open: boolean;
+}
+
+export interface DemandRecordResult {
+  start: string;
+  from: string;
+  to: string;
+  rows: DemandRecordRow[];
+  totals: BranchAccountTotals;
+  /** Per branch in scope: balance before `from` and after `to`. */
+  branches: { branchId: string; branchName: string; openingBalance: number; closingBalance: number }[];
+  pagination: { page: number; pageSize: number; total: number; totalPages: number };
+}
+
+export interface DemandRecordDetail {
+  row: DemandRecordRow;
+  lines: { productName: string; orderedQty: number; deliveredQty: number; unitPrice: number | null; priceSource: 'order' | 'price_history' | 'none'; amount: number }[];
+  returns: { id: string; businessDate: string; productName: string; qty: number; unitPrice: number | null; amount: number; createdAt: string }[];
+  discounts: { id: string; demandNumber: string | null; amount: number; reason: string; createdAt: string; linked: boolean }[];
+  payments: { id: string; transferNo: string | null; voucherNo: string | null; businessDate: string; amount: number; createdAt: string }[];
+  sales: { count: number; amount: number };
+  adjustments: BranchAccountAdjustment[];
+}
+
+export interface BranchAccountAdjustment {
+  id: string;
+  branchId: string;
+  branchName: string;
+  kind: 'opening' | 'adjustment' | 'reversal';
+  amount: number;
+  businessDate: string;
+  effectiveAt: string;
+  reason: string;
+  reversalOf: string | null;
+  /** Set on an entry that has been reversed: the reversal's id. */
+  reversedBy: string | null;
+  createdByName: string | null;
+  createdAt: string;
+}

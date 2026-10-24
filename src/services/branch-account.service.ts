@@ -4,9 +4,12 @@ import {
   computeBranchAccount,
   totalBranchAccount,
   toPaisa,
+  type BranchAccountAdjustment,
   type BranchAccountFacts,
   type BranchAccountRow,
-  type BranchAccountTotals,
+  type DemandRecordDetail,
+  type DemandRecordResult,
+  type DemandRecordRow,
 } from '../shared';
 import { priceOnDateLateral, UNIT_PRICE_LATERAL } from './returns-summary.service';
 
@@ -211,22 +214,6 @@ export interface DemandRecordQuery {
   pageSize?: number;
 }
 
-export interface DemandRecordRow extends BranchAccountRow {
-  /** True while the branch has no later demand: returns and deposits can still land here. */
-  open: boolean;
-}
-
-export interface DemandRecordResult {
-  start: string;
-  from: string;
-  to: string;
-  rows: DemandRecordRow[];
-  totals: BranchAccountTotals;
-  /** Per branch in scope: balance before `from` and after `to`. */
-  branches: { branchId: string; branchName: string; openingBalance: number; closingBalance: number }[];
-  pagination: { page: number; pageSize: number; total: number; totalPages: number };
-}
-
 export async function getDemandRecord(q: DemandRecordQuery): Promise<DemandRecordResult> {
   const start = await requireLedgerStart();
   const today = businessDateStr();
@@ -281,16 +268,6 @@ export async function getDemandRecord(q: DemandRecordQuery): Promise<DemandRecor
 function stripBounds<T extends { lo: string; hi: string | null }>(r: T): Omit<T, 'lo' | 'hi'> {
   const { lo: _lo, hi: _hi, ...rest } = r;
   return rest;
-}
-
-export interface DemandRecordDetail {
-  row: DemandRecordRow;
-  lines: { productName: string; orderedQty: number; deliveredQty: number; unitPrice: number | null; priceSource: 'order' | 'price_history' | 'none'; amount: number }[];
-  returns: { id: string; businessDate: string; productName: string; qty: number; unitPrice: number | null; amount: number; createdAt: string }[];
-  discounts: { id: string; demandNumber: string | null; amount: number; reason: string; createdAt: string; linked: boolean }[];
-  payments: { id: string; transferNo: string | null; voucherNo: string | null; businessDate: string; amount: number; createdAt: string }[];
-  sales: { count: number; amount: number };
-  adjustments: AdjustmentRow[];
 }
 
 /** One row of the Demand Record with every record behind it. `orderId` null: the branch's opening row. */
@@ -357,7 +334,7 @@ export async function getDemandRecordDetail(branchId: string, orderId: string | 
         from public.orders s
        where s.branch_id = $1::uuid and s.status::text <> 'cancelled' and s.payment_method::text <> 'staff'
          and ${win('s.created_at')}`, ...args),
-    prisma.$queryRawUnsafe<AdjustmentRow[]>(`
+    prisma.$queryRawUnsafe<BranchAccountAdjustment[]>(`
       select ${ADJUSTMENT_COLUMNS}
         from public.branch_account_adjustments a
         join public.branches b on b.id = a.branch_id
@@ -379,22 +356,6 @@ export async function getDemandRecordDetail(branchId: string, orderId: string | 
 // Finance's entries
 // ---------------------------------------------------------------------------
 
-export interface AdjustmentRow {
-  id: string;
-  branchId: string;
-  branchName: string;
-  kind: 'opening' | 'adjustment' | 'reversal';
-  amount: number;
-  businessDate: string;
-  effectiveAt: string;
-  reason: string;
-  reversalOf: string | null;
-  /** Set on an entry that has been reversed: the reversal's id. */
-  reversedBy: string | null;
-  createdByName: string | null;
-  createdAt: string;
-}
-
 const ADJUSTMENT_COLUMNS = `
   a.id::text as "id", a.branch_id::text as "branchId", b.name as "branchName", a.kind as "kind",
   a.amount::float8 as "amount", to_char(a.business_date, 'YYYY-MM-DD') as "businessDate",
@@ -404,8 +365,8 @@ const ADJUSTMENT_COLUMNS = `
   a.created_by_name as "createdByName", to_json(a.created_at)#>>'{}' as "createdAt"
 `;
 
-export async function listAdjustments(branchId: string | null): Promise<AdjustmentRow[]> {
-  return getPrisma().$queryRawUnsafe<AdjustmentRow[]>(`
+export async function listAdjustments(branchId: string | null): Promise<BranchAccountAdjustment[]> {
+  return getPrisma().$queryRawUnsafe<BranchAccountAdjustment[]>(`
     select ${ADJUSTMENT_COLUMNS}
       from public.branch_account_adjustments a
       join public.branches b on b.id = a.branch_id
@@ -433,7 +394,7 @@ export interface PostAdjustmentInput {
  * concurrent openings for one branch cannot both pass the "one live opening"
  * check.
  */
-export async function postAdjustment(input: PostAdjustmentInput, actor: Actor): Promise<{ entry: AdjustmentRow; replayed: boolean }> {
+export async function postAdjustment(input: PostAdjustmentInput, actor: Actor): Promise<{ entry: BranchAccountAdjustment; replayed: boolean }> {
   const start = await requireLedgerStart();
   const amount = toPaisa(input.amount);
   if (amount === 0) throw httpError(400, 'Amount cannot be zero.');
@@ -487,7 +448,7 @@ export async function reverseAdjustment(
   id: string,
   input: { requestId: string; reason: string },
   actor: Actor,
-): Promise<{ entry: AdjustmentRow; replayed: boolean }> {
+): Promise<{ entry: BranchAccountAdjustment; replayed: boolean }> {
   await requireLedgerStart();
   return getPrisma().$transaction(async (tx) => {
     const existing = await tx.$queryRawUnsafe<{ id: string }[]>(
@@ -515,8 +476,8 @@ export async function reverseAdjustment(
 
 type Tx = Parameters<Parameters<ReturnType<typeof getPrisma>['$transaction']>[0]>[0];
 
-async function getAdjustment(tx: Tx, id: string): Promise<AdjustmentRow> {
-  const rows = await tx.$queryRawUnsafe<AdjustmentRow[]>(`
+async function getAdjustment(tx: Tx, id: string): Promise<BranchAccountAdjustment> {
+  const rows = await tx.$queryRawUnsafe<BranchAccountAdjustment[]>(`
     select ${ADJUSTMENT_COLUMNS}
       from public.branch_account_adjustments a
       join public.branches b on b.id = a.branch_id
