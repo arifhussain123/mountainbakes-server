@@ -233,8 +233,8 @@ Co. Share | Received | Previous | Closing | Closing Status (Share % dropped
 by the owner later the same day)
 (OUTSTANDING > 0, SETTLED = 0, CREDIT < 0), rows by date then demand number,
 and a bold TOTAL of the six activity columns. Cells stay numeric; Excel
-formats show `01 Oct 2026`, `45,000`, `-2,000`, and a dash for a zero Return
-or Discount; only the TOTAL lines carry the currency (`Rs. 311,500`). Adjustments have no column (none were posted when the
+formats show `01 Oct 2026`, `45,000`, `-2,000`, and a zero in any money
+cell as a blank (no `0`, no dash); only the TOTAL lines carry the currency (`Rs. 311,500`). Adjustments have no column (none were posted when the
 layout was set); a row with one still carries it in Closing, as the page does.
 Actual Sales is left out, because production users can download this export and
 do not see sales. Before go-live it keeps the slip figures and says so in its
