@@ -9,8 +9,10 @@ import {
   type FinanceDashboardRecord,
   type FinanceDashboardRecordsPage,
   type FinanceMonthlyDashboard,
+  type DemandRecordRow,
 } from '../shared';
 import { round2 } from './finance-settings.service';
+import { getDemandRecordRows } from './branch-account.service';
 
 const db = dbFor('finance-monthly-dashboard');
 
@@ -27,6 +29,14 @@ const db = dbFor('finance-monthly-dashboard');
  * Three RPCs per load, in parallel: the selected window (with ledger heads),
  * the six whole months ending at the selected one (trend + last month's
  * balance), and the ledger totals. Nothing downloads transactions.
+ *
+ * Once the Demand Record is switched on, the income figures from its go-live
+ * day follow the Demand Record restructure
+ * (docs/demand-record-accounting-migration.md) — see applyDemandRecord:
+ *   Demand         = Delivered − Returns − Discount (the net demand)
+ *   Company Share  = Demand × the demand's frozen share %
+ *   Last Month Balance = each branch's Remaining carried into the month
+ * Received is unchanged: the income ledger, as before.
  */
 
 const num = (v: unknown) => Number(v ?? 0);
@@ -91,6 +101,60 @@ function toLedgerRow(r: Record<string, unknown>): FinanceDashboardLedgerRow {
 
 const sum = <T>(rows: T[], pick: (r: T) => number) => round2(rows.reduce((s, r) => s + pick(r), 0));
 
+/**
+ * The income days on the Demand Record's rules, from its go-live day.
+ *
+ * `demand` and `companyShare` on each (day, branch) become the sum of the
+ * Demand Record rows dated that day — the net demand (Delivered − Returns −
+ * Discount) and the share on it at the demand's frozen % — so this table and
+ * the Demand Record cannot disagree. A Demand Record row places a return or
+ * discount on the demand it is billed to (the slip's own window), so that is
+ * where it is netted. Days before go-live keep the old figures; a (day,
+ * branch) the SQL had no row for (an opening row) is added.
+ */
+export function applyDemandRecord(
+  days: FinanceDashboardDay[],
+  rows: DemandRecordRow[],
+  start: string,
+  from: string,
+  to: string,
+): FinanceDashboardDay[] {
+  const byKey = new Map<string, { date: string; branchId: string; demand: number; share: number }>();
+  for (const r of rows) {
+    if (r.businessDate < from || r.businessDate > to) continue;
+    const k = `${r.businessDate}|${r.branchId}`;
+    const e = byKey.get(k) ?? { date: r.businessDate, branchId: r.branchId, demand: 0, share: 0 };
+    e.demand += r.demand;
+    e.share += r.companyShare;
+    byKey.set(k, e);
+  }
+  const out = days.map((d) => {
+    if (d.date < start || d.branchId === null) return d;
+    const k = `${d.date}|${d.branchId}`;
+    const e = byKey.get(k);
+    byKey.delete(k);
+    return { ...d, demand: round2(e?.demand ?? 0), companyShare: round2(e?.share ?? 0) };
+  });
+  for (const e of byKey.values()) {
+    out.push({
+      date: e.date, branchId: e.branchId, demand: round2(e.demand), companyShare: round2(e.share),
+      received: 0, returns: 0, discount: 0, orders: 0, unpricedLines: 0, receipts: 0, returnCount: 0, discountCount: 0,
+    });
+  }
+  return out.sort((a, b) => a.date.localeCompare(b.date) || (a.branchId ?? '').localeCompare(b.branchId ?? ''));
+}
+
+/**
+ * Each branch's Remaining carried into a month: the closing balance of its last
+ * Demand Record row dated before `monthFirst`. A branch with no row before it
+ * has nothing carried and is left out (null on the table, not a made-up 0).
+ */
+export function carriedBalances(rows: DemandRecordRow[], monthFirst: string): FinanceDashboardPreviousBalance[] {
+  const last = new Map<string, number>();
+  for (const r of rows) if (r.businessDate < monthFirst) last.set(r.branchId, r.remaining);
+  return [...last].map(([branchId, balance]) => ({ branchId, balance: round2(balance) }));
+}
+
 export async function getFinanceMonthlyDashboard(params: {
   month: string;
   from?: string;
@@ -104,18 +168,23 @@ export async function getFinanceMonthlyDashboard(params: {
   const previousMonth = shiftMonth(month, -1);
   const trendFrom = monthBounds(shiftMonth(month, -5)).first;
 
-  const [current, window6, ledgerTotals, branchesRes] = await Promise.all([
+  const [current, window6, ledgerTotals, branchesRes, record] = await Promise.all([
     callDashboard(from, to, branchId, true),
     callDashboard(trendFrom, bounds.last, branchId, false),
     db.rpc('finance_ledger_totals', { p_from: from, p_to: to, p_branch_id: branchId }),
     db.from('branches').select('id, name, is_active').order('name'),
+    getDemandRecordRows(branchId),
   ]);
   if (ledgerTotals.error) throw ledgerTotals.error;
   if (branchesRes.error) throw branchesRes.error;
 
-  const days = current.days.map(toDay);
+  let days = current.days.map(toDay);
   const ledger = current.ledger.map(toLedgerRow);
-  const trendDays = window6.days.map(toDay);
+  let trendDays = window6.days.map(toDay);
+  if (record) {
+    days = applyDemandRecord(days, record.rows, record.start, from, to);
+    trendDays = applyDemandRecord(trendDays, record.rows, record.start, trendFrom, bounds.last);
+  }
 
   // Six whole months, oldest first — a month with no rows is a real zero month
   // inside a window that has data, so it is emitted rather than skipped.
@@ -145,10 +214,16 @@ export async function getFinanceMonthlyDashboard(params: {
     if (list) list.push(r);
     else prevByBranch.set(r.branchId, [r]);
   }
-  const previous: FinanceDashboardPreviousBalance[] = [...prevByBranch].map(([b, rows]) => ({
+  let previous: FinanceDashboardPreviousBalance[] = [...prevByBranch].map(([b, rows]) => ({
     branchId: b,
     balance: round2(sum(rows, (r) => r.companyShare) - sum(rows, (r) => r.received)),
   }));
+  // On the Demand Record, a branch's last-month balance is what it carried into
+  // this month — its Remaining, previous balances included — not last month's
+  // activity alone. Receipts with no branch keep their old line.
+  if (record) {
+    previous = [...carriedBalances(record.rows, bounds.first), ...previous.filter((p) => p.branchId === null)];
+  }
 
   const companyShare = sum(days, (r) => r.companyShare);
   const received = sum(days, (r) => r.received);
@@ -174,9 +249,11 @@ export async function getFinanceMonthlyDashboard(params: {
       companyShare,
       received,
       balance: round2(companyShare - received),
-      lastMonthBalance: prevRows.length
-        ? round2(sum(prevRows, (r) => r.companyShare) - sum(prevRows, (r) => r.received))
-        : null,
+      lastMonthBalance: record
+        ? (previous.length ? sum(previous, (p) => p.balance ?? 0) : null)
+        : prevRows.length
+          ? round2(sum(prevRows, (r) => r.companyShare) - sum(prevRows, (r) => r.received))
+          : null,
       ledgerExpense: sum(ledger, (r) => r.amount),
       returns: sum(days, (r) => r.returns),
       discount: sum(days, (r) => r.discount),
@@ -197,7 +274,7 @@ export async function getFinanceMonthlyDashboard(params: {
   };
 }
 
-export async function getFinanceDashboardRecords(params: {
+type RecordsParams = {
   metric: FinanceDashboardMetric;
   from: string;
   to: string;
@@ -207,7 +284,9 @@ export async function getFinanceDashboardRecords(params: {
   search: string | null;
   page: number;
   pageSize: number;
-}): Promise<FinanceDashboardRecordsPage> {
+};
+
+async function callRecords(params: RecordsParams, limit: number, offset: number): Promise<FinanceDashboardRecordsPage> {
   const { data, error } = await db.rpc('finance_dashboard_records', {
     p_metric: params.metric,
     p_from: params.from,
@@ -216,8 +295,8 @@ export async function getFinanceDashboardRecords(params: {
     p_no_branch: params.noBranch,
     p_head_id: params.ledgerHeadId,
     p_search: params.search,
-    p_limit: params.pageSize,
-    p_offset: (params.page - 1) * params.pageSize,
+    p_limit: limit,
+    p_offset: offset,
   });
   if (error) throw error;
   const raw = (data ?? {}) as { total?: unknown; amount?: unknown; rows?: Record<string, unknown>[] };
@@ -241,5 +320,81 @@ export async function getFinanceDashboardRecords(params: {
         approvedBy: (r['approvedBy'] as string | null) ?? null,
       }),
     ),
+  };
+}
+
+const money = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const dayBefore = (ymd: string) => new Date(Date.parse(`${ymd}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10);
+
+export async function getFinanceDashboardRecords(params: RecordsParams): Promise<FinanceDashboardRecordsPage> {
+  // Demand and Company Share drill into the Demand Record's rows once it is on,
+  // so the list behind a figure adds up to that figure. Demands always have a
+  // branch, so the "no branch" list stays the SQL's (empty for these metrics).
+  if ((params.metric === 'demand' || params.metric === 'share') && !params.noBranch) {
+    const record = await getDemandRecordRows(params.branchId);
+    if (record) return demandRecordRecords(params, record);
+  }
+  return callRecords(params, params.pageSize, (params.page - 1) * params.pageSize);
+}
+
+/** The drill-down list for Demand / Company Share, from the Demand Record's rows. */
+async function demandRecordRecords(
+  params: RecordsParams,
+  record: { start: string; rows: DemandRecordRow[] },
+): Promise<FinanceDashboardRecordsPage> {
+  const share = params.metric === 'share';
+  const lo = params.from > record.start ? params.from : record.start;
+  const list: FinanceDashboardRecord[] = record.rows
+    .filter((r) => r.businessDate >= lo && r.businessDate <= params.to)
+    .map((r) => ({
+      id: r.orderId ?? `opening-${r.branchId}`,
+      reference: r.demandNumber ?? 'Opening',
+      date: r.businessDate,
+      branchId: r.branchId,
+      branchName: r.branchName,
+      source: r.orderId ? 'Production order' : 'Opening',
+      detail: share
+        ? `${r.sharePct}% of ${money(r.demand)}`
+        : `Delivered ${money(r.delivered)} − Return ${money(r.returns)} − Discount ${money(r.discount)}`,
+      status: r.status ?? 'opening',
+      amount: share ? r.companyShare : r.demand,
+      createdBy: null,
+      approvedBy: null,
+    }));
+  // Anything dated before go-live keeps the old rows — none in practice, since
+  // the go-live day is the start of the data.
+  if (params.from < record.start) {
+    const before = await callRecords({ ...params, to: dayBefore(record.start) }, 10_000, 0);
+    list.push(...before.rows);
+  }
+  const q = params.search?.trim().toLowerCase();
+  const hit = q
+    ? list.filter((r) => [r.reference, r.id, r.branchName, r.detail, r.source].some((v) => (v ?? '').toLowerCase().includes(q)))
+    : list;
+  hit.sort((a, b) => a.date.localeCompare(b.date) || (a.branchName ?? '').localeCompare(b.branchName ?? '')
+    || (a.reference ?? '').localeCompare(b.reference ?? '') || a.id.localeCompare(b.id));
+  const page = hit.slice((params.page - 1) * params.pageSize, params.page * params.pageSize);
+
+  // Who raised and approved each demand on this page, as the SQL list shows.
+  const ids = page.filter((r) => r.source === 'Production order').map((r) => r.id);
+  if (ids.length > 0) {
+    const { data, error } = await db
+      .from('production_orders')
+      .select('id, created_by_name, approved_by_name, verified_by_name')
+      .in('id', ids);
+    if (error) throw error;
+    const who = new Map(((data ?? []) as { id: string; created_by_name: string | null; approved_by_name: string | null; verified_by_name: string | null }[])
+      .map((o) => [o.id, o]));
+    for (const r of page) {
+      const o = who.get(r.id);
+      if (o) { r.createdBy = o.created_by_name; r.approvedBy = o.approved_by_name ?? o.verified_by_name; }
+    }
+  }
+  return {
+    total: hit.length,
+    amount: sum(hit, (r) => r.amount),
+    page: params.page,
+    pageSize: params.pageSize,
+    rows: page,
   };
 }
