@@ -176,6 +176,8 @@ before(async () => {
     alter table cash_transfers add primary key (id);
     alter table orders add primary key (id);
     alter table finance_audit_logs add primary key (id);
+    -- The Collections export's slip path embeds items in orders, which needs the link.
+    alter table production_order_items add foreign key (production_order_id) references production_orders (id);
   `);
   await db.exec(`begin;${AUTH}commit;`);
   await db.exec(`
@@ -243,10 +245,12 @@ before(async () => {
 
   const express = (await import('express')).default;
   const { router } = await import('../../routes/finance-branch-account.routes');
+  const { router: reportsRouter } = await import('../../routes/production-reports.routes');
   const { errorHandler } = await import('../../middleware/errorHandler');
   const app = express();
   app.use(express.json());
   app.use(API, router);
+  app.use('/api/production-reports', reportsRouter);
   app.use(errorHandler);
   server = app.listen(0);
   base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
@@ -263,6 +267,32 @@ const alphaRows = async (query = '') => (await rowsOf(`&branchId=${ALPHA}${query
 test('nothing is shown until Finance sets the go-live date', async () => {
   const r = await call('accountant', 'GET', API);
   assert.equal(r.status, 409, JSON.stringify(r.body));
+});
+
+/** The Collections workbook as a production user downloads it, sheet name → rows (header first). */
+async function collectionsWorkbook(query: string): Promise<Map<string, Json[][]>> {
+  const res = await fetch(`${base}/api/production-reports/export?report=collections&type=excel${query}`, {
+    headers: { Authorization: `Bearer ${TOKENS.production}` },
+  });
+  const buf = Buffer.from(await res.arrayBuffer());
+  assert.equal(res.status, 200, buf.toString());
+  const ExcelJS = (await import('exceljs')).default;
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.load(buf as unknown as ArrayBuffer);
+  const out = new Map<string, Json[][]>();
+  for (const ws of wb.worksheets) {
+    const rows: Json[][] = [];
+    ws.eachRow((r) => rows.push((r.values as Json[]).slice(1)));
+    out.set(ws.name, rows);
+  }
+  return out;
+}
+
+test('before go-live the Collections export keeps the slip figures and says so', async () => {
+  const wb = await collectionsWorkbook('&from=2026-09-01&to=2026-09-30');
+  const main = wb.get('Collections')!;
+  assert.equal(main[0]![0], 'Branch');
+  assert.ok(main.some((r) => String(r[0]).includes('Demand Record (Finance) is not switched on yet')));
 });
 
 test('Test 10 — only finance roles read it; only `configure` switches it on; only `approve` posts', async () => {
@@ -476,4 +506,42 @@ test('requests are validated', async () => {
   });
   assert.equal(early.status, 400);
   assert.equal((await call('accountant', 'GET', `${API}?from=yesterday`)).status, 400);
+});
+
+test('the Collections export carries the Demand Record figures, per branch', async () => {
+  const today = new Date().toISOString().slice(0, 10);
+  const record = await rowsOf(`&from=2026-09-01&to=${today}`);
+  const wb = await collectionsWorkbook(`&from=2026-08-01&to=${today}`);
+  assert.deepEqual([...wb.keys()], ['Collections', 'By Branch', 'Alpha', 'Beta']);
+
+  const main = wb.get('Collections')!;
+  const h = main[0]!;
+  assert.equal(h.includes('Actual Sales'), false); // production users never see sales
+  const at = (name: string) => h.indexOf(name);
+  for (const r of record.rows as Json[]) {
+    const line = main.find((x) => x[at('Branch')] === r.branchName && x[at('Demand Number')] === (r.demandNumber ?? 'Opening'));
+    assert.ok(line, `no line for ${r.branchName} ${r.demandNumber}`);
+    for (const [col, key] of [['Total Demand Amount', 'delivered'], ['Demand', 'gTotal'], ['Company Share', 'companyShare'],
+      ['Previous Balance', 'previousBalance'], ['Amount Due', 'amountDue'], ['Payment Received', 'received'], ['Remaining', 'closingBalance']] as const) {
+      assert.equal(line[at(col)], r[key], `${r.demandNumber} ${col}`);
+    }
+  }
+  assert.ok(main.some((x) => String(x[0]).startsWith('The Demand Record starts on 2026-09-01')));
+  const total = main.find((x) => x[0] === 'TOTAL')!;
+  assert.equal(total[at('Remaining')], record.totals.closingBalance);
+  assert.equal(total[at('Previous Balance')], record.totals.openingBalance);
+  assert.equal(h.includes('G. Total'), false);
+  assert.match(String(main[main.indexOf(total) + 1]![0]), /: OK$/);
+
+  // Each branch tab ends on that branch's own balance, and its sums reconcile.
+  for (const b of record.branches as Json[]) {
+    const tab = wb.get(b.branchName)!;
+    const tabTotal = tab.find((x) => x[0] === 'TOTAL')!;
+    assert.equal(tabTotal[tab[0]!.indexOf('Previous Balance')], b.openingBalance);
+    assert.equal(tabTotal[tab[0]!.indexOf('Remaining')], b.closingBalance);
+    assert.match(String(tab[tab.indexOf(tabTotal) + 1]![0]), /: OK$/);
+  }
+  const byBranch = wb.get('By Branch')!;
+  assert.equal(byBranch.at(-1)![0], 'GRAND TOTAL');
+  assert.equal(byBranch.at(-1)![byBranch[0]!.indexOf('Remaining')], record.totals.closingBalance);
 });
