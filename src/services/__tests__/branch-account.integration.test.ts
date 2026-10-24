@@ -176,8 +176,6 @@ before(async () => {
     alter table cash_transfers add primary key (id);
     alter table orders add primary key (id);
     alter table finance_audit_logs add primary key (id);
-    -- The Collections export's slip path embeds items in orders, which needs the link.
-    alter table production_order_items add foreign key (production_order_id) references production_orders (id);
   `);
   await db.exec(`begin;${AUTH}commit;`);
   await db.exec(`
@@ -245,12 +243,10 @@ before(async () => {
 
   const express = (await import('express')).default;
   const { router } = await import('../../routes/finance-branch-account.routes');
-  const { router: reportsRouter } = await import('../../routes/production-reports.routes');
   const { errorHandler } = await import('../../middleware/errorHandler');
   const app = express();
   app.use(express.json());
   app.use(API, router);
-  app.use('/api/production-reports', reportsRouter);
   app.use(errorHandler);
   server = app.listen(0);
   base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
@@ -267,43 +263,6 @@ const alphaRows = async (query = '') => (await rowsOf(`&branchId=${ALPHA}${query
 test('nothing is shown until Finance sets the go-live date', async () => {
   const r = await call('accountant', 'GET', API);
   assert.equal(r.status, 409, JSON.stringify(r.body));
-});
-
-/** The Collections workbook as a production user downloads it, sheet name → rows (header first). */
-async function collectionsWorkbook(query: string): Promise<Map<string, Json[][]>> {
-  const res = await fetch(`${base}/api/production-reports/export?report=collections&type=excel${query}`, {
-    headers: { Authorization: `Bearer ${TOKENS.production}` },
-  });
-  const buf = Buffer.from(await res.arrayBuffer());
-  assert.equal(res.status, 200, buf.toString());
-  const ExcelJS = (await import('exceljs')).default;
-  const wb = new ExcelJS.Workbook();
-  await wb.xlsx.load(buf as unknown as ArrayBuffer);
-  const out = new Map<string, Json[][]>();
-  for (const ws of wb.worksheets) {
-    const rows: Json[][] = [];
-    ws.eachRow((r) => rows.push((r.values as Json[]).slice(1)));
-    out.set(ws.name, rows);
-  }
-  return out;
-}
-
-test('before go-live the Production views count from the first demand at today\'s % and say so', async () => {
-  const wb = await collectionsWorkbook('&from=2026-08-01&to=2026-09-30');
-  const main = wb.get('Collections')!;
-  assert.ok(main[0]!.includes('Closing Balance'));
-  assert.ok(main.some((r) => String(r[0]).startsWith('Finance has not switched the Demand Record on yet, so this counts from the first demand (2026-08-31)')));
-  // D0 (08-31, 10 × 100) is the first delivered demand; nothing frozen yet, so today's 70%.
-  const d0 = main.find((r) => r[2] === 'DMD-000100')!;
-  assert.equal(d0[main[0]!.indexOf('Delivered')], 1000);
-  assert.equal(d0[main[0]!.indexOf('Share %')], 70);
-
-  const res = await fetch(`${base}/api/production-reports/demand-record`, { headers: { Authorization: `Bearer ${TOKENS.production}` } });
-  const body = await res.json() as Json;
-  assert.equal(res.status, 200, JSON.stringify(body));
-  assert.equal(body.switchedOn, false);
-  assert.equal(body.start, '2026-08-31');
-  assert.equal(body.rows.find((r: Json) => r.orderId === ORD.d0).companyShare, 679); // (1,000 − its 30 discount) × 70%
 });
 
 test('Test 10 — only finance roles read it; only `configure` switches it on; only `approve` posts', async () => {
@@ -517,62 +476,4 @@ test('requests are validated', async () => {
   });
   assert.equal(early.status, 400);
   assert.equal((await call('accountant', 'GET', `${API}?from=yesterday`)).status, 400);
-});
-
-test('the Collections export carries the Demand Record figures, per branch', async () => {
-  const today = new Date().toISOString().slice(0, 10);
-  const record = await rowsOf(`&from=2026-09-01&to=${today}`);
-  const wb = await collectionsWorkbook(`&from=2026-08-01&to=${today}`);
-  assert.deepEqual([...wb.keys()], ['Collections', 'By Branch', 'Alpha', 'Beta']);
-
-  const main = wb.get('Collections')!;
-  const h = main[0]!;
-  assert.equal(h.includes('Actual Sales'), false); // production users never see sales
-  const at = (name: string) => h.indexOf(name);
-  for (const r of record.rows as Json[]) {
-    const line = main.find((x) => x[at('Branch')] === r.branchName && x[at('Demand Number')] === (r.demandNumber ?? 'Opening'));
-    assert.ok(line, `no line for ${r.branchName} ${r.demandNumber}`);
-    for (const [col, key] of [['G. Total', 'gTotal'], ['Company Share', 'companyShare'], ['Share Received', 'received'],
-      ['Previous Balance', 'previousBalance'], ['Closing Balance', 'closingBalance']] as const) {
-      assert.equal(line[at(col)], r[key], `${r.demandNumber} ${col}`);
-    }
-  }
-  assert.ok(main.some((x) => String(x[0]).startsWith('The Demand Record starts on 2026-09-01')));
-  const total = main.find((x) => x[0] === 'TOTAL')!;
-  assert.equal(total[at('Closing Balance')], record.totals.closingBalance);
-  assert.match(String(main[main.indexOf(total) + 1]![0]), /: OK$/);
-
-  // Each branch tab ends on that branch's own balance, and its sums reconcile.
-  for (const b of record.branches as Json[]) {
-    const tab = wb.get(b.branchName)!;
-    const tabTotal = tab.find((x) => x[0] === 'TOTAL')!;
-    assert.equal(tabTotal[tab[0]!.indexOf('Previous Balance')], b.openingBalance);
-    assert.equal(tabTotal[tab[0]!.indexOf('Closing Balance')], b.closingBalance);
-    assert.match(String(tab[tab.indexOf(tabTotal) + 1]![0]), /: OK$/);
-  }
-  const byBranch = wb.get('By Branch')!;
-  assert.equal(byBranch.at(-1)![0], 'GRAND TOTAL');
-  assert.equal(byBranch.at(-1)![byBranch[0]!.indexOf('Closing Balance')], record.totals.closingBalance);
-});
-
-test('the Orders table figures are the Demand Record rows, for production users, without sales', async () => {
-  const record = await rowsOf('');
-  const res = await fetch(`${base}/api/production-reports/demand-record`, { headers: { Authorization: `Bearer ${TOKENS.production}` } });
-  const body = await res.json() as Json;
-  assert.equal(res.status, 200, JSON.stringify(body));
-  assert.equal(body.switchedOn, true);
-  assert.equal(body.start, record.start);
-  const demands = (record.rows as Json[]).filter((r) => r.orderId);
-  assert.equal(body.rows.length, demands.length);
-  for (const r of demands) {
-    const got = body.rows.find((x: Json) => x.orderId === r.orderId);
-    for (const k of ['delivered', 'returns', 'discount', 'gTotal', 'companyShare', 'received', 'previousBalance', 'closingBalance', 'open']) {
-      assert.equal(got[k], r[k], `${r.demandNumber} ${k}`);
-    }
-    assert.equal('sales' in got || 'shareOnSales' in got, false);
-  }
-  const branchOnly = await fetch(`${base}/api/production-reports/demand-record?branchId=${BETA}`, { headers: { Authorization: `Bearer ${TOKENS.production}` } });
-  assert.deepEqual(((await branchOnly.json()) as Json).rows.map((r: Json) => r.orderId), [ORD.b1]);
-  const asBranch = await fetch(`${base}/api/production-reports/demand-record`, { headers: { Authorization: `Bearer ${TOKENS.branch}` } });
-  assert.equal(asBranch.status, 403);
 });

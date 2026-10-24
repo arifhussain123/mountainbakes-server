@@ -2,13 +2,12 @@ import { Router } from 'express';
 import { dbFor } from '../db';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
-import { businessDateStr, businessDaysAgoStr, toPaisa } from '../shared';
+import { businessDateStr, businessDaysAgoStr } from '../shared';
 import { getProductionStockRows } from '../services/production-stock.service';
 import { getReturnStockRows } from '../services/return-stock.service';
 import { genericPDF, genericExcel, genericExcelMultiSheet, genericCSV } from '../services/production-export.service';
 import { getPreviousOrderBalance } from '../services/previous-balance.service';
 import { getCollectionsReturnRows } from '../services/returns-summary.service';
-import { getDemandRecordPeriod } from '../services/branch-account.service';
 import { format } from 'date-fns';
 import { sortRows } from '../utils/sortRows';
 
@@ -241,138 +240,6 @@ async function collectionsReconciliation(args: {
   };
 }
 
-type ReportSheet = { title: string; headers: string[]; rows: (string | number)[][] };
-
-/**
- * The Collections export on the Demand Record's rules (Finance → Demand
- * Record, `shared/utils/branch-account.ts`) — the same rows, so the sheet and
- * that page cannot disagree:
- *
- *   G. Total        = Delivered − Return − Discount
- *   Company Share   = G. Total × the demand's frozen % ÷ 100
- *   Closing Balance = Previous Balance + Company Share + Adjustments − Share Received
- *
- * The balance carries from each demand to the branch's next, and a negative
- * closing (paid ahead) is kept, not floored. Money stays to the paisa, as the
- * page has it, so each row's Previous → Closing adds up exactly.
- *
- * Actual Sales is left out: this export is open to production users, who do
- * not see sales (see the router's note), and it is never a collection figure.
- *
- * Sheets: Collections (every row), By Branch, then one tab per branch. In a
- * TOTAL, activity is summed down the rows but Previous / Closing are each
- * branch's balance before and after the period — a carried balance summed row
- * by row would count the same money once per demand.
- */
-function collectionsFromDemandRecord(
-  record: NonNullable<Awaited<ReturnType<typeof getDemandRecordPeriod>>>,
-  requestedFrom: string,
-): { title: string; headers: string[]; rows: (string | number)[][]; specialRowCount: number; extraSheets: ReportSheet[] } {
-  type Row = (typeof record.rows)[number];
-  const money = ['Delivered', 'Return Qty', 'Return', 'Discount', 'G. Total', 'Share %', 'Company Share', 'Share Received', 'Adjustments', 'Previous Balance', 'Closing Balance'];
-  const line = (r: Row): (string | number)[] => [
-    r.businessDate,
-    r.demandNumber ?? 'Opening',
-    r.orderId ? (r.status ?? '') : 'opening',
-    r.delivered, r.returnsQty, r.returns, r.discount, r.gTotal, r.sharePct,
-    r.companyShare, r.received, r.adjustments, r.previousBalance, r.closingBalance,
-    noteFor(r),
-  ];
-  function noteFor(r: Row): string {
-    const notes: string[] = [];
-    if (r.open) notes.push('Open: later returns and deposits still land on this row');
-    if (r.closingBalance < 0) notes.push('Credit: paid ahead');
-    else if (r.closingBalance === 0) notes.push('Settled');
-    if (r.orderId && !r.pctFrozen) notes.push("No frozen share %, today's used");
-    if (r.unpricedLines > 0) notes.push(`${r.unpricedLines} line(s) with no price, counted at 0`);
-    return notes.join('; ');
-  }
-  const sumOf = (rows: Row[]) => {
-    const t = { delivered: 0, retQty: 0, returns: 0, discount: 0, gTotal: 0, share: 0, received: 0, adjustments: 0 };
-    for (const r of rows) {
-      t.delivered += r.delivered; t.retQty += r.returnsQty; t.returns += r.returns;
-      t.discount += r.discount; t.gTotal += r.gTotal; t.share += r.companyShare; t.received += r.received; t.adjustments += r.adjustments;
-    }
-    for (const k of Object.keys(t) as (keyof typeof t)[]) t[k] = toPaisa(t[k]);
-    return t;
-  };
-  const totalLine = (rows: Row[], opening: number, closing: number): (string | number)[] => {
-    const t = sumOf(rows);
-    return ['TOTAL', '', '', t.delivered, t.retQty, t.returns, t.discount, t.gTotal, '', t.share, t.received, t.adjustments, opening, closing, ''];
-  };
-  const blank = (n: number) => new Array<string>(n).fill('');
-  // Opening + Share + Adjustments − Received must land on Closing. Read off two
-  // separate things (the row sums and the balances either side), so it is a
-  // real check: it fails if a branch's rows in the period are not contiguous.
-  const checkText = (rows: Row[], opening: number, closing: number) => {
-    const t = sumOf(rows);
-    const diff = toPaisa(opening + t.share + t.adjustments - t.received - closing);
-    return `Previous ${opening} + Company Share ${t.share} + Adjustments ${t.adjustments} − Share Received ${t.received} = Closing ${closing}: ${Math.abs(diff) < 0.01 ? 'OK' : `differs by ${diff}`}`;
-  };
-
-  const rowsByBranch = new Map<string, Row[]>();
-  for (const r of record.rows) {
-    const list = rowsByBranch.get(r.branchId);
-    if (list) list.push(r); else rowsByBranch.set(r.branchId, [r]);
-  }
-  // A branch with nothing in the period still owes what it carried in, so it
-  // keeps its line and tab unless that is zero too.
-  const branches = record.branches.filter((b) => rowsByBranch.has(b.branchId) || b.openingBalance !== 0 || b.closingBalance !== 0);
-
-  const notes: string[] = [];
-  if (!record.switchedOn) notes.push(`Finance has not switched the Demand Record on yet, so this counts from the first demand (${record.start}) at today's share %.`);
-  else if (requestedFrom < record.start) notes.push(`The Demand Record starts on ${record.start}; nothing before that day is in this export.`);
-  notes.push('Company Share = (Delivered − Return − Discount) × Share %. Closing Balance = Previous Balance + Company Share + Adjustments − Share Received; a negative balance is a credit (paid ahead).');
-
-  const mainCols = 1 + 3 + money.length + 1;
-  const rows: (string | number)[][] = record.rows.map((r) => [r.branchName, ...line(r)]);
-  let specialRowCount = 0;
-  if (record.rows.length > 0) {
-    // TOTAL sits under Branch here, so the Date cell it takes on a branch tab goes blank.
-    rows.push(['TOTAL', '', ...totalLine(record.rows, record.totals.openingBalance, record.totals.closingBalance).slice(1)]);
-    rows.push([checkText(record.rows, record.totals.openingBalance, record.totals.closingBalance), ...blank(mainCols - 1)]);
-    specialRowCount += 2;
-  }
-  for (const n of notes) { rows.push([n, ...blank(mainCols - 1)]); specialRowCount++; }
-
-  const byBranchRows: (string | number)[][] = branches.map((b) => {
-    const list = rowsByBranch.get(b.branchId) ?? [];
-    const t = sumOf(list);
-    return [b.branchName, list.filter((r) => r.orderId).length, b.openingBalance, t.delivered, t.returns, t.discount, t.gTotal, t.share, t.received, t.adjustments, b.closingBalance];
-  });
-  if (byBranchRows.length > 0) {
-    const t = sumOf(record.rows);
-    const opening = toPaisa(branches.reduce((a, b) => a + b.openingBalance, 0));
-    const closing = toPaisa(branches.reduce((a, b) => a + b.closingBalance, 0));
-    byBranchRows.push(['GRAND TOTAL', record.rows.filter((r) => r.orderId).length, opening, t.delivered, t.returns, t.discount, t.gTotal, t.share, t.received, t.adjustments, closing]);
-  }
-
-  const branchHeaders = ['Date', 'Demand Number', 'Status', ...money, 'Note'];
-  const branchSheets: ReportSheet[] = branches.map((b) => {
-    const list = rowsByBranch.get(b.branchId) ?? [];
-    const sheetRows: (string | number)[][] = list.map(line);
-    if (list.length > 0) {
-      sheetRows.push(totalLine(list, b.openingBalance, b.closingBalance));
-      sheetRows.push([checkText(list, b.openingBalance, b.closingBalance), ...blank(branchHeaders.length - 1)]);
-    } else {
-      sheetRows.push([`No demand in this period. Balance carried: ${b.closingBalance}`, ...blank(branchHeaders.length - 1)]);
-    }
-    return { title: b.branchName || 'Branch', headers: branchHeaders, rows: sheetRows };
-  });
-
-  return {
-    title: 'Collections',
-    headers: ['Branch', ...branchHeaders],
-    rows,
-    specialRowCount,
-    extraSheets: [{
-      title: 'By Branch',
-      headers: ['Branch', 'Demands', 'Previous Balance', 'Delivered', 'Return', 'Discount', 'G. Total', 'Company Share', 'Share Received', 'Adjustments', 'Closing Balance'],
-      rows: byBranchRows,
-    }, ...branchSheets],
-  };
-}
-
 interface RItem { qty: number; approved_qty?: number | null; total_required_qty?: number | null; remaining_balance_qty?: number | null }
 interface RDoc { branch_id: string; branch_name: string; business_date: string; status: string; approved_by_name?: string | null; items: RItem[] }
 
@@ -400,8 +267,7 @@ async function buildReport(
   specialRowCount?: number;
   /**
    * Further tabs for the Excel export only, after the main sheet. PDF, CSV and
-   * the JSON preview carry just the main table. Only `collections` sets it:
-   * By Branch, Reconciliation, then one tab per branch.
+   * the JSON preview carry just the main table. Only `collections` sets it.
    */
   extraSheets?: { title: string; headers: string[]; rows: (string | number)[][] }[];
 }> {
@@ -632,12 +498,6 @@ async function buildReport(
       };
     }
     case 'collections': {
-      // On the Demand Record's rules (see collectionsFromDemandRecord and
-      // getDemandRecordPeriod). The delivery-slip figures below are only for a
-      // system where no demand has been delivered yet.
-      const record = await getDemandRecordPeriod({ branchId: branchId || null, from: fromStr, to: toStr });
-      if (record) return collectionsFromDemandRecord(record, fromStr);
-
       // One row per DELIVERY, carrying what the branch owes for it — the same
       // figures the company copy of the next slip prints.
       //
@@ -704,8 +564,7 @@ async function buildReport(
       // The By Branch sheet: the rows above summed per branch, the way a pivot
       // on Branch would sum them. Deposits are de-duplicated per branch for the
       // same reason as in the TOTAL.
-      // `rows` is that branch's own lines for its tab (see branchSheets below).
-      type BranchSum = { name: string; deliveries: number; delivered: number; share: number; retQty: number; returns: number; discount: number; collect: number; receivedById: Map<string, number>; rows: (string | number)[][] };
+      type BranchSum = { name: string; deliveries: number; delivered: number; share: number; retQty: number; returns: number; discount: number; collect: number; receivedById: Map<string, number> };
       const perBranch = new Map<string, BranchSum>();
       for (let i = 0; i < wanted.length; i++) {
         const bal = balances[i];
@@ -728,7 +587,7 @@ async function buildReport(
         const billedBranch = wanted[i]!.billed;
         let sum = perBranch.get(billedBranch.branch_id);
         if (!sum) {
-          sum = { name: billedBranch.branch_name ?? '', deliveries: 0, delivered: 0, share: 0, retQty: 0, returns: 0, discount: 0, collect: 0, receivedById: new Map(), rows: [] };
+          sum = { name: billedBranch.branch_name ?? '', deliveries: 0, delivered: 0, share: 0, retQty: 0, returns: 0, discount: 0, collect: 0, receivedById: new Map() };
           perBranch.set(billedBranch.branch_id, sum);
         }
         sum.deliveries++;
@@ -739,7 +598,8 @@ async function buildReport(
         sum.discount += bal.discountsValue;
         sum.collect += bal.amountToCollect;
         for (const p of bal.paymentItems) sum.receivedById.set(p.transferId, p.amount);
-        const line = [
+        rows.push([
+          wanted[i]!.billed.branch_name ?? '',
           bal.previous.demandNumber,
           bal.previous.date,
           Math.round(bal.deliveredValue),
@@ -750,9 +610,7 @@ async function buildReport(
           Math.round(bal.amountToCollect),
           Math.round(bal.paymentsReceivedValue),
           Math.round(bal.remainingBalance),
-        ];
-        rows.push([wanted[i]!.billed.branch_name ?? '', ...line]);
-        sum.rows.push(line);
+        ]);
       }
 
       // `billable` is sorted by branch name, so the map already iterates in
@@ -775,8 +633,6 @@ async function buildReport(
         grand.received += Math.round(received);
         grand.remaining += Math.round(remaining);
         branchRows.push([b.name, b.deliveries, Math.round(b.delivered), Math.round(b.share), b.retQty, Math.round(b.returns), Math.round(b.discount), Math.round(b.collect), Math.round(received), Math.round(remaining)]);
-        // The branch tab's TOTAL is its By Branch line, so the two cannot disagree.
-        b.rows.push(['TOTAL', '', Math.round(b.delivered), Math.round(b.share), b.retQty, Math.round(b.returns), Math.round(b.discount), Math.round(b.collect), Math.round(received), Math.round(remaining)]);
       }
       if (branchRows.length > 0) {
         branchRows.push(['GRAND TOTAL', grand.deliveries, grand.delivered, grand.share, grand.retQty, grand.returns, grand.discount, grand.collect, grand.received, grand.remaining]);
@@ -801,35 +657,6 @@ async function buildReport(
         rows.push([`Showing the first ${COLLECTIONS_ORDER_CAP} of ${billable.length} deliveries — narrow the date range or pick one branch.`, '', '', '', '', '', '', '', '', '', '']);
         specialRowCount++;
       }
-
-      // One tab per branch, after the three summary tabs: that branch's lines
-      // from the main sheet without the Branch column, its own TOTAL, and the
-      // same held-back footnotes scoped to it. A branch whose only delivery in
-      // the window is still unbilled gets a tab too, so it is not missing.
-      const blankLine = new Array<string>(9).fill('');
-      const sheetFor = new Map<string, { name: string; rows: (string | number)[][] }>();
-      for (const [id, b] of perBranch) sheetFor.set(id, { name: b.name, rows: b.rows });
-      const unbilledFor = new Map<string, number>();
-      for (const o of unbilledOrders) {
-        unbilledFor.set(o.branch_id, (unbilledFor.get(o.branch_id) ?? 0) + 1);
-        if (!sheetFor.has(o.branch_id)) sheetFor.set(o.branch_id, { name: o.branch_name ?? '', rows: [] });
-      }
-      const cutFor = new Map<string, number>();
-      for (const b of billable.slice(wanted.length)) cutFor.set(b.billed.branch_id, (cutFor.get(b.billed.branch_id) ?? 0) + 1);
-      const branchSheets = [...sheetFor]
-        .sort((x, y) => x[1].name.localeCompare(y[1].name))
-        .map(([id, s]) => {
-          const held = unbilledFor.get(id) ?? 0;
-          const cut = cutFor.get(id) ?? 0;
-          const sheetRows = [...s.rows];
-          if (held > 0) sheetRows.push([`${held} delivery(s) in this window have no later delivery yet, so nothing has been billed for them.`, ...blankLine]);
-          if (cut > 0) sheetRows.push([`${cut} delivery(s) left out by the export's row cap of ${COLLECTIONS_ORDER_CAP} — narrow the date range or pick this branch.`, ...blankLine]);
-          return {
-            title: s.name || 'Branch',
-            headers: ['Previous Order', 'Date', 'Delivered Value', 'Company Share', 'Less Returns Qty', 'Less Returns', 'Less Discount', 'Amount to Collect', 'Payment Received', 'Remaining'],
-            rows: sheetRows,
-          };
-        });
 
       const reconciliation = await collectionsReconciliation({
         fromStr,
@@ -856,7 +683,7 @@ async function buildReport(
           title: 'By Branch',
           headers: ['Branch', 'Deliveries', 'Delivered Value', 'Company Share', 'Less Returns Qty', 'Less Returns', 'Less Discount', 'Amount to Collect', 'Payment Received', 'Remaining'],
           rows: branchRows,
-        }, reconciliation, ...branchSheets],
+        }, reconciliation],
       };
     }
     case 'production':
@@ -884,42 +711,6 @@ async function buildReport(
     }
   }
 }
-
-/**
- * GET /api/production-reports/demand-record?branchId= — the Demand Record's
- * money for every delivered demand, keyed by order id, for the Production
- * Orders table to show beside each order. Same rows as the Collections sheet
- * and Finance → Demand Record; Actual Sales is left out (production users do
- * not see sales). Pending, rejected and cancelled demands are not in it.
- */
-router.get('/demand-record', async (req: AuthRequest, res, next) => {
-  try {
-    const branchId = typeof req.query['branchId'] === 'string' && req.query['branchId'] ? req.query['branchId'] : null;
-    const record = await getDemandRecordPeriod({ branchId });
-    res.json({
-      start: record?.start ?? null,
-      switchedOn: record?.switchedOn ?? false,
-      rows: (record?.rows ?? [])
-        .filter((r) => r.orderId)
-        .map((r) => ({
-          orderId: r.orderId,
-          delivered: r.delivered,
-          returns: r.returns,
-          discount: r.discount,
-          gTotal: r.gTotal,
-          sharePct: r.sharePct,
-          companyShare: r.companyShare,
-          received: r.received,
-          adjustments: r.adjustments,
-          previousBalance: r.previousBalance,
-          closingBalance: r.closingBalance,
-          open: r.open,
-        })),
-    });
-  } catch (err) {
-    next(err);
-  }
-});
 
 /**
  * The only two report types whose row count is one-per-record (a demand order,

@@ -219,29 +219,10 @@ so one period's closing balance equals the next period's opening balance.
 
 Every write is recorded in `finance_audit_logs` (entity `branch_account`).
 
-**Not changed:** the delivery slip and the finance dashboard still bill as
-described in section 1. Switching them to these rules changes what riders
-collect, so it is a separate step for the owner to approve.
-
-**Collections export (Production Orders → Export, and the mobile admin
-export), switched by the owner on 2026-10-24:** once the Demand Record is on,
-`report=collections` is built from `getDemandRecordPeriod` — the same rows as
-the page. Sheets: Collections, By Branch, one tab per branch, each with a
-TOTAL and an `Opening + Share + Adjustments − Received = Closing` check line.
-Actual Sales is left out, because production users can download this export and
-do not see sales.
-
-**Production Orders table (web, also the super admin's Orders page), switched
-by the owner on 2026-10-24:** columns Date, Demand Number (opens the order),
-Branch, Delivered Amount, Return, Discount, G. Total, Company Share, Share
-Received, Previous Balance, Closing Balance, read from
-`GET /api/production-reports/demand-record` (super_admin, production_user; no
-sales). The POS slip's previous-order block is unchanged.
-
-**Before Finance switches it on**, these Production views (`getDemandRecordPeriod`)
-count from the first delivered demand at today's share %, as the owner chose
-"from the start of the web". They say so on screen and in the sheet. Finance's
-own page still waits for its switch, and once it is set, both use its date.
+**Not changed:** the delivery slip, the Collections export and the finance
+dashboard still bill as described in section 1. Switching them to these rules
+changes what riders collect, so it is a separate step for the owner to
+approve.
 
 **Tests**
 
@@ -286,8 +267,7 @@ every other Finance screen.
 
 ## 7. Not done / follow-ups
 
-- **Slip and dashboard** still use today's rules (the Collections export was
-  switched, see section 5). Moving
+- **Slip, Collections export and dashboard** still use today's rules. Moving
   them to the Demand Record's rules changes what riders collect, so it needs
   the owner's go-ahead.
 - **Spec fields not shown:** Created/Updated By/At per demand and a single
