@@ -226,11 +226,18 @@ collect, so it is a separate step for the owner to approve.
 **Collections export (Production Orders → Export, and the mobile admin
 export), switched by the owner on 2026-10-24:** once the Demand Record is on,
 `report=collections` is built from `getDemandRecordPeriod` — the same rows as
-the page. Sheets: Collections, By Branch, one tab per branch, each with a
-TOTAL and an `Opening + Share + Adjustments − Received = Closing` check line.
+the page. Sheets: Collections, By Branch, one tab per branch. Since the
+owner's layout of 2026-10-24 (later that day) the columns are the page's:
+Date | Demand No. | Branch | Delivered | Return | Discount | G. Total |
+Co. Share | Share % | Received | Previous | Closing | Closing Status
+(OUTSTANDING > 0, SETTLED = 0, CREDIT < 0), rows by date then demand number,
+and a bold TOTAL of the six activity columns. Cells stay numeric; Excel
+formats show `01 Oct 2026`, `Rs. 45,000`, `-Rs. 2,000`, and a dash for a zero
+Return or Discount. Adjustments have no column (none were posted when the
+layout was set); a row with one still carries it in Closing, as the page does.
 Actual Sales is left out, because production users can download this export and
 do not see sales. Before go-live it keeps the slip figures and says so in its
-last line.
+last line. Tests: `collections-export.integration.test.ts`.
 
 **Tests**
 

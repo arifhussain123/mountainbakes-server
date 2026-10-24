@@ -8,6 +8,22 @@ import { format } from 'date-fns';
 
 type Cell = string | number;
 
+/**
+ * Optional per-column Excel styling, by column index. `date` turns a
+ * 'YYYY-MM-DD' string into a real date cell so `numFmt` can show it; any other
+ * value (a footnote in that column) is written as it is.
+ */
+export interface ExcelColumn { numFmt?: string; date?: boolean; width?: number }
+
+export interface ExcelSheet {
+  title: string;
+  headers: string[];
+  rows: Cell[][];
+  columns?: ExcelColumn[];
+  /** Indexes into `rows` to set in bold (a TOTAL line). */
+  boldRows?: number[];
+}
+
 export function genericPDF(title: string, headers: string[], rows: Cell[][]): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 40, size: 'A4', layout: 'landscape' });
@@ -72,14 +88,12 @@ export async function genericExcel(title: string, headers: string[], rows: Cell[
  * per-product breakdown) and needs them to land as separate tabs rather than
  * concatenated into one.
  */
-export async function genericExcelMultiSheet(
-  sheets: { title: string; headers: string[]; rows: Cell[][] }[],
-): Promise<Buffer> {
+export async function genericExcelMultiSheet(sheets: ExcelSheet[]): Promise<Buffer> {
   const wb = new ExcelJS.Workbook();
   wb.creator = 'Mountain Bakes ERP';
   const used = new Set<string>();
 
-  for (const { title, headers, rows } of sheets) {
+  for (const { title, headers, rows, columns, boldRows } of sheets) {
     const sheet = wb.addWorksheet(uniqueSheetName(title, used));
     sheet.addRow(headers);
     const headerRow = sheet.getRow(1);
@@ -90,12 +104,22 @@ export async function genericExcelMultiSheet(
     });
     headerRow.height = 20;
 
-    for (const row of rows) sheet.addRow(row);
-    sheet.columns.forEach((c) => { c.width = 18; });
+    for (const row of rows) {
+      sheet.addRow(row.map((v, i) => (columns?.[i]?.date && typeof v === 'string' && ISO_DATE.test(v) ? new Date(`${v}T00:00:00Z`) : v)));
+    }
+    sheet.columns.forEach((c, i) => {
+      c.width = columns?.[i]?.width ?? 18;
+      const numFmt = columns?.[i]?.numFmt;
+      // Data rows only, so the header keeps its own look.
+      if (numFmt) c.eachCell?.((cell, rowNumber) => { if (rowNumber > 1) cell.numFmt = numFmt; });
+    });
+    for (const i of boldRows ?? []) sheet.getRow(i + 2).font = { bold: true };
   }
 
   return wb.xlsx.writeBuffer() as unknown as Promise<Buffer>;
 }
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
  * A tab name Excel will accept. Tab titles can now come from data (a branch
