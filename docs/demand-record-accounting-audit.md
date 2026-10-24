@@ -229,8 +229,19 @@ export), switched by the owner on 2026-10-24:** once the Demand Record is on,
 the page. Sheets: Collections, By Branch, one tab per branch, each with a
 TOTAL and an `Opening + Share + Adjustments − Received = Closing` check line.
 Actual Sales is left out, because production users can download this export and
-do not see sales. Before go-live it keeps the slip figures and says so in its
-last line.
+do not see sales.
+
+**Production Orders table (web, also the super admin's Orders page), switched
+by the owner on 2026-10-24:** columns Date, Demand Number (opens the order),
+Branch, Delivered Amount, Return, Discount, G. Total, Company Share, Share
+Received, Previous Balance, Closing Balance, read from
+`GET /api/production-reports/demand-record` (super_admin, production_user; no
+sales). The POS slip's previous-order block is unchanged.
+
+**Before Finance switches it on**, these Production views (`getDemandRecordPeriod`)
+count from the first delivered demand at today's share %, as the owner chose
+"from the start of the web". They say so on screen and in the sheet. Finance's
+own page still waits for its switch, and once it is set, both use its date.
 
 **Tests**
 

@@ -320,7 +320,8 @@ function collectionsFromDemandRecord(
   const branches = record.branches.filter((b) => rowsByBranch.has(b.branchId) || b.openingBalance !== 0 || b.closingBalance !== 0);
 
   const notes: string[] = [];
-  if (requestedFrom < record.start) notes.push(`The Demand Record starts on ${record.start}; nothing before that day is in this export.`);
+  if (!record.switchedOn) notes.push(`Finance has not switched the Demand Record on yet, so this counts from the first demand (${record.start}) at today's share %.`);
+  else if (requestedFrom < record.start) notes.push(`The Demand Record starts on ${record.start}; nothing before that day is in this export.`);
   notes.push('Company Share = (Delivered − Return − Discount) × Share %. Closing Balance = Previous Balance + Company Share + Adjustments − Share Received; a negative balance is a credit (paid ahead).');
 
   const mainCols = 1 + 3 + money.length + 1;
@@ -631,9 +632,9 @@ async function buildReport(
       };
     }
     case 'collections': {
-      // On the Demand Record's rules once Finance has switched it on (see
-      // collectionsFromDemandRecord). Until then, the delivery-slip figures
-      // below, with a line saying so.
+      // On the Demand Record's rules (see collectionsFromDemandRecord and
+      // getDemandRecordPeriod). The delivery-slip figures below are only for a
+      // system where no demand has been delivered yet.
       const record = await getDemandRecordPeriod({ branchId: branchId || null, from: fromStr, to: toStr });
       if (record) return collectionsFromDemandRecord(record, fromStr);
 
@@ -800,8 +801,6 @@ async function buildReport(
         rows.push([`Showing the first ${COLLECTIONS_ORDER_CAP} of ${billable.length} deliveries — narrow the date range or pick one branch.`, '', '', '', '', '', '', '', '', '', '']);
         specialRowCount++;
       }
-      rows.push(['These are the delivery-slip figures: the Demand Record (Finance) is not switched on yet. Once it is, this export carries its running balance.', '', '', '', '', '', '', '', '', '', '']);
-      specialRowCount++;
 
       // One tab per branch, after the three summary tabs: that branch's lines
       // from the main sheet without the Branch column, its own TOTAL, and the
@@ -885,6 +884,42 @@ async function buildReport(
     }
   }
 }
+
+/**
+ * GET /api/production-reports/demand-record?branchId= — the Demand Record's
+ * money for every delivered demand, keyed by order id, for the Production
+ * Orders table to show beside each order. Same rows as the Collections sheet
+ * and Finance → Demand Record; Actual Sales is left out (production users do
+ * not see sales). Pending, rejected and cancelled demands are not in it.
+ */
+router.get('/demand-record', async (req: AuthRequest, res, next) => {
+  try {
+    const branchId = typeof req.query['branchId'] === 'string' && req.query['branchId'] ? req.query['branchId'] : null;
+    const record = await getDemandRecordPeriod({ branchId });
+    res.json({
+      start: record?.start ?? null,
+      switchedOn: record?.switchedOn ?? false,
+      rows: (record?.rows ?? [])
+        .filter((r) => r.orderId)
+        .map((r) => ({
+          orderId: r.orderId,
+          delivered: r.delivered,
+          returns: r.returns,
+          discount: r.discount,
+          gTotal: r.gTotal,
+          sharePct: r.sharePct,
+          companyShare: r.companyShare,
+          received: r.received,
+          adjustments: r.adjustments,
+          previousBalance: r.previousBalance,
+          closingBalance: r.closingBalance,
+          open: r.open,
+        })),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
 
 /**
  * The only two report types whose row count is one-per-record (a demand order,
