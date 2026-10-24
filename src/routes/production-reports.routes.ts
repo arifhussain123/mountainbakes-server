@@ -7,6 +7,7 @@ import { getProductionStockRows } from '../services/production-stock.service';
 import { getReturnStockRows } from '../services/return-stock.service';
 import { genericPDF, genericExcel, genericExcelMultiSheet, genericCSV } from '../services/production-export.service';
 import { getPreviousOrderBalance } from '../services/previous-balance.service';
+import { getCollectionsReturnRows } from '../services/returns-summary.service';
 import { format } from 'date-fns';
 import { sortRows } from '../utils/sortRows';
 
@@ -91,6 +92,152 @@ function explicitDateRange(from: unknown, to: unknown): { fromStr: string; toStr
   const a = clean(from) || clean(to) || todayStr;
   const b = clean(to) || clean(from) || todayStr;
   return a <= b ? { fromStr: a, toStr: b } : { fromStr: b, toStr: a };
+}
+
+/** A delivered order as the Collections export chains them. */
+interface CollectionsOrder { id: string; branch_id: string; branch_name: string | null; demand_number: string; business_date: string; submitted_at: string }
+
+/**
+ * The Collections export's Reconciliation sheet: per branch, from the Return
+ * Summary's amount for the same dates to the Less Returns its slips deducted,
+ * with every gap named, so a month can be closed with nothing unexplained.
+ *
+ *   Return Summary Amount
+ *   − not accepted yet (pending / sent back: the page counts them, a slip never does)
+ *   − on a slip before this range (came back before the branch's first delivery in it)
+ *   − waiting for next delivery (after the branch's latest delivery: no slip yet)
+ *   − on a slip after this range (or past the export's row cap)
+ *   + deducted here but dated outside the range
+ *   + price change (the page prices on the return's date, a slip at today's price)
+ *   = Less Returns on Slips — read from the slips themselves, not derived, so
+ *     Check is a real comparison of two separate calculations, not arithmetic
+ *     that cannot fail.
+ *
+ * Also counts the deliveries that have no slip yet and what they delivered,
+ * since none of their money is in the other sheets.
+ */
+async function collectionsReconciliation(args: {
+  fromStr: string;
+  toStr: string;
+  branchId: string;
+  wanted: { billed: CollectionsOrder; successor: CollectionsOrder }[];
+  slipReturns: Map<string, { name: string; returns: number }>;
+  unbilled: CollectionsOrder[];
+  truncated: boolean;
+}): Promise<{ title: string; headers: string[]; rows: (string | number)[][] }> {
+  const { fromStr, toStr, wanted, slipReturns, unbilled } = args;
+  const at = (o: CollectionsOrder) => Date.parse(o.submitted_at);
+  const firstBilled = wanted.reduce<CollectionsOrder | null>((m, w) => (!m || at(w.billed) < at(m) ? w.billed : m), null);
+  const lastClosing = wanted.reduce<CollectionsOrder | null>((m, w) => (!m || at(w.successor) > at(m) ? w.successor : m), null);
+  const returns = await getCollectionsReturnRows({
+    from: fromStr,
+    to: toStr,
+    branchId: args.branchId || null,
+    firstBilledOrderId: firstBilled?.id ?? null,
+    lastClosingOrderId: lastClosing?.id ?? null,
+  });
+
+  type Acc = {
+    name: string; summary: number; notAccepted: number; earlier: number; waiting: number; later: number;
+    outsideDated: number; priceChange: number; notAcceptedCount: number; unbilledCount: number; unbilledValue: number;
+  };
+  const byBranch = new Map<string, Acc>();
+  const acc = (id: string, name: string | null) => {
+    let a = byBranch.get(id);
+    if (!a) {
+      a = { name: name ?? '', summary: 0, notAccepted: 0, earlier: 0, waiting: 0, later: 0, outsideDated: 0, priceChange: 0, notAcceptedCount: 0, unbilledCount: 0, unbilledValue: 0 };
+      byBranch.set(id, a);
+    }
+    if (!a.name && name) a.name = name;
+    return a;
+  };
+  for (const [id, s] of slipReturns) acc(id, s.name);
+
+  const closingIds = new Set(wanted.map((w) => w.successor.id));
+  for (const r of returns) {
+    const onSummary = r.status !== 'rejected' && r.businessDate >= fromStr && r.businessDate <= toStr;
+    const onSlip = r.status === 'accepted' && r.closingOrderId !== null && closingIds.has(r.closingOrderId);
+    if (!onSummary && !onSlip) continue;
+    const a = acc(r.branchId, r.branchName);
+    if (!onSummary) { a.outsideDated += r.slipAmount; continue; }
+    a.summary += r.summaryAmount;
+    if (r.status !== 'accepted') { a.notAccepted += r.summaryAmount; a.notAcceptedCount++; }
+    else if (onSlip) a.priceChange += r.slipAmount - r.summaryAmount;
+    else if (r.closingOrderId === null) a.waiting += r.summaryAmount;
+    else if (r.billedDate === null || r.billedDate < fromStr) a.earlier += r.summaryAmount;
+    else a.later += r.summaryAmount;
+  }
+
+  // What the not-yet-billed deliveries delivered, at today's price — the basis
+  // their slip will use (see getPreviousOrderBalance).
+  if (unbilled.length > 0) {
+    const { data: items, error } = await db
+      .from('production_order_items')
+      .select('production_order_id, product_id, approved_qty')
+      .in('production_order_id', unbilled.map((o) => o.id));
+    if (error) throw error;
+    const lines = (items ?? []) as { production_order_id: string; product_id: string | null; approved_qty: number | string | null }[];
+    const productIds = [...new Set(lines.map((l) => l.product_id).filter((x): x is string => !!x))];
+    const priceById = new Map<string, number>();
+    if (productIds.length > 0) {
+      const { data: products, error: prodErr } = await db.from('products').select('id, price').in('id', productIds);
+      if (prodErr) throw prodErr;
+      for (const p of (products ?? []) as { id: string; price: number | string | null }[]) priceById.set(p.id, Number(p.price ?? 0));
+    }
+    const valueByOrder = new Map<string, number>();
+    for (const l of lines) {
+      const v = Number(l.approved_qty ?? 0) * (l.product_id ? (priceById.get(l.product_id) ?? 0) : 0);
+      valueByOrder.set(l.production_order_id, (valueByOrder.get(l.production_order_id) ?? 0) + v);
+    }
+    for (const o of unbilled) {
+      const a = acc(o.branch_id, o.branch_name);
+      a.unbilledCount++;
+      a.unbilledValue += valueByOrder.get(o.id) ?? 0;
+    }
+  }
+
+  const rows: (string | number)[][] = [];
+  const total = new Array<number>(12).fill(0);
+  let mismatched = 0;
+  let notAcceptedCount = 0;
+  for (const [id, a] of [...byBranch].sort((x, y) => x[1].name.localeCompare(y[1].name))) {
+    const slip = slipReturns.get(id)?.returns ?? 0;
+    const diff = a.summary - a.notAccepted - a.earlier - a.waiting - a.later + a.outsideDated + a.priceChange - slip;
+    // Under a rupee is float noise between two sums of the same lines.
+    const ok = Math.abs(diff) < 1;
+    if (!ok) mismatched++;
+    notAcceptedCount += a.notAcceptedCount;
+    const cells = [a.summary, a.notAccepted, a.earlier, a.waiting, a.later, a.outsideDated, a.priceChange, slip].map(Math.round);
+    cells.forEach((v, i) => { total[i] += v; });
+    total[9] += a.notAcceptedCount;
+    total[10] += a.unbilledCount;
+    total[11] += Math.round(a.unbilledValue);
+    rows.push([a.name, ...cells, ok ? 'OK' : Math.round(diff), a.notAcceptedCount, a.unbilledCount, Math.round(a.unbilledValue)]);
+  }
+  if (rows.length > 0) {
+    rows.push(['TOTAL', ...total.slice(0, 8), mismatched === 0 ? 'OK' : `${mismatched} branch(es) differ`, total[9]!, total[10]!, total[11]!]);
+  }
+
+  const blank = new Array<string>(12).fill('');
+  const note = (text: string) => rows.push([text, ...blank]);
+  rows.push(['', ...blank]);
+  note('Return Summary Amount is every return dated in this range except rejected ones, priced on its own date — the Product Returns / Return Summary figure. For a whole month, export the 1st to the last day.');
+  note('Less Returns on Slips is what the delivery slips deducted — the Less Returns column of the other sheets. Check reads OK when the gaps between the two explain it exactly.');
+  note("A return is deducted on the slip of the first delivery after it; returns after a branch's latest delivery wait for its next one.");
+  if (notAcceptedCount > 0) note(`${notAcceptedCount} return(s) in this range are not accepted yet — accept or reject them before closing the month, then export again.`);
+  if (total[10]! > 0) note(`${total[10]} latest delivery(s) have no slip yet, so their value is not in Amount to Collect or Remaining; it is billed when that branch's next delivery is made.`);
+  if (args.truncated) note(`The export reached its row cap of ${COLLECTIONS_ORDER_CAP} deliveries; the returns of the deliveries left out count under "On a Slip After This Range". Narrow the range or pick one branch.`);
+
+  return {
+    title: 'Reconciliation',
+    headers: [
+      'Branch', 'Return Summary Amount', 'Less: Not Accepted Yet', 'Less: On a Slip Before This Range',
+      'Less: Waiting for Next Delivery', 'Less: On a Slip After This Range', 'Add: Dated Outside Range',
+      'Add: Price Change Since Return', 'Less Returns on Slips', 'Check', 'Returns Not Accepted (count)',
+      'Deliveries Not Yet Billed', 'Not-Yet-Billed Delivered Value',
+    ],
+    rows,
+  };
 }
 
 interface RItem { qty: number; approved_qty?: number | null; total_required_qty?: number | null; remaining_balance_qty?: number | null }
@@ -376,7 +523,7 @@ async function buildReport(
       const { data, error } = await q;
       if (error) throw error;
 
-      type ORow = { id: string; branch_id: string; branch_name: string | null; demand_number: string; business_date: string; submitted_at: string };
+      type ORow = CollectionsOrder;
       const all = (data ?? []) as ORow[];
 
       // Chained per branch: "the previous order" only means anything within one
@@ -387,15 +534,15 @@ async function buildReport(
         if (list) list.push(o); else byBranch.set(o.branch_id, [o]);
       }
 
-      const billable: { billed: ORow; successorId: string }[] = [];
-      let unbilled = 0;
+      const billable: { billed: ORow; successor: ORow }[] = [];
+      const unbilledOrders: ORow[] = [];
       for (const list of byBranch.values()) {
         for (let i = 0; i < list.length; i++) {
           const billed = list[i]!;
           if (!inRange(billed.business_date)) continue;
           const successor = list[i + 1];
-          if (!successor) { unbilled++; continue; }
-          billable.push({ billed, successorId: successor.id });
+          if (!successor) { unbilledOrders.push(billed); continue; }
+          billable.push({ billed, successor });
         }
       }
       billable.sort(
@@ -409,7 +556,7 @@ async function buildReport(
 
       // Modest concurrency: each balance is several round trips, and a month
       // across every branch run strictly serially is a minute of dead air.
-      const balances = await mapWithConcurrency(wanted, 8, (b) => getPreviousOrderBalance(b.successorId));
+      const balances = await mapWithConcurrency(wanted, 8, (b) => getPreviousOrderBalance(b.successor.id));
 
       const rows: (string | number)[][] = [];
       const totals = { delivered: 0, share: 0, retQty: 0, returns: 0, discount: 0, collect: 0 };
@@ -417,7 +564,7 @@ async function buildReport(
       // The By Branch sheet: the rows above summed per branch, the way a pivot
       // on Branch would sum them. Deposits are de-duplicated per branch for the
       // same reason as in the TOTAL.
-      type BranchSum = { deliveries: number; delivered: number; share: number; retQty: number; returns: number; discount: number; collect: number; receivedById: Map<string, number> };
+      type BranchSum = { name: string; deliveries: number; delivered: number; share: number; retQty: number; returns: number; discount: number; collect: number; receivedById: Map<string, number> };
       const perBranch = new Map<string, BranchSum>();
       for (let i = 0; i < wanted.length; i++) {
         const bal = balances[i];
@@ -436,11 +583,12 @@ async function buildReport(
         // paymentsReceivedInWindow), so two rows can carry the same transfer.
         // Each row shows what its slip shows; the TOTAL counts money once.
         for (const p of bal.paymentItems) receivedById.set(p.transferId, p.amount);
-        const branchName = wanted[i]!.billed.branch_name ?? '';
-        let sum = perBranch.get(branchName);
+        // Keyed by id, not name, so the Reconciliation sheet can match it.
+        const billedBranch = wanted[i]!.billed;
+        let sum = perBranch.get(billedBranch.branch_id);
         if (!sum) {
-          sum = { deliveries: 0, delivered: 0, share: 0, retQty: 0, returns: 0, discount: 0, collect: 0, receivedById: new Map() };
-          perBranch.set(branchName, sum);
+          sum = { name: billedBranch.branch_name ?? '', deliveries: 0, delivered: 0, share: 0, retQty: 0, returns: 0, discount: 0, collect: 0, receivedById: new Map() };
+          perBranch.set(billedBranch.branch_id, sum);
         }
         sum.deliveries++;
         sum.delivered += bal.deliveredValue;
@@ -472,7 +620,7 @@ async function buildReport(
       // when some branch has paid more than it owes).
       const branchRows: (string | number)[][] = [];
       const grand = { deliveries: 0, delivered: 0, share: 0, retQty: 0, returns: 0, discount: 0, collect: 0, received: 0, remaining: 0 };
-      for (const [name, b] of perBranch) {
+      for (const b of perBranch.values()) {
         const received = [...b.receivedById.values()].reduce((a, v) => a + v, 0);
         const remaining = Math.max(0, b.collect - received);
         grand.deliveries += b.deliveries;
@@ -484,7 +632,7 @@ async function buildReport(
         grand.collect += Math.round(b.collect);
         grand.received += Math.round(received);
         grand.remaining += Math.round(remaining);
-        branchRows.push([name, b.deliveries, Math.round(b.delivered), Math.round(b.share), b.retQty, Math.round(b.returns), Math.round(b.discount), Math.round(b.collect), Math.round(received), Math.round(remaining)]);
+        branchRows.push([b.name, b.deliveries, Math.round(b.delivered), Math.round(b.share), b.retQty, Math.round(b.returns), Math.round(b.discount), Math.round(b.collect), Math.round(received), Math.round(remaining)]);
       }
       if (branchRows.length > 0) {
         branchRows.push(['GRAND TOTAL', grand.deliveries, grand.delivered, grand.share, grand.retQty, grand.returns, grand.discount, grand.collect, grand.received, grand.remaining]);
@@ -500,6 +648,7 @@ async function buildReport(
         rows.push(['TOTAL', '', '', Math.round(totals.delivered), Math.round(totals.share), totals.retQty, Math.round(totals.returns), Math.round(totals.discount), Math.round(totals.collect), Math.round(received), Math.round(remaining)]);
         specialRowCount++;
       }
+      const unbilled = unbilledOrders.length;
       if (unbilled > 0) {
         rows.push([`${unbilled} delivery(s) in this window have no later delivery yet, so nothing has been billed for them.`, '', '', '', '', '', '', '', '', '', '']);
         specialRowCount++;
@@ -508,6 +657,16 @@ async function buildReport(
         rows.push([`Showing the first ${COLLECTIONS_ORDER_CAP} of ${billable.length} deliveries — narrow the date range or pick one branch.`, '', '', '', '', '', '', '', '', '', '']);
         specialRowCount++;
       }
+
+      const reconciliation = await collectionsReconciliation({
+        fromStr,
+        toStr,
+        branchId: branchId ?? '',
+        wanted,
+        slipReturns: new Map([...perBranch].map(([id, b]) => [id, { name: b.name, returns: b.returns }])),
+        unbilled: unbilledOrders,
+        truncated,
+      });
 
       return {
         title: 'Collections',
@@ -524,7 +683,7 @@ async function buildReport(
           title: 'By Branch',
           headers: ['Branch', 'Deliveries', 'Delivered Value', 'Company Share', 'Less Returns Qty', 'Less Returns', 'Less Discount', 'Amount to Collect', 'Payment Received', 'Remaining'],
           rows: branchRows,
-        }],
+        }, reconciliation],
       };
     }
     case 'production':
