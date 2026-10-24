@@ -13,15 +13,15 @@ type Cell = string | number;
  * 'YYYY-MM-DD' string into a real date cell so `numFmt` can show it; any other
  * value (a footnote in that column) is written as it is.
  */
-export interface ExcelColumn { numFmt?: string; date?: boolean; width?: number }
+export interface ExcelColumn { numFmt?: string; date?: boolean; width?: number; /** Replaces `numFmt` on the TOTAL rows. */ totalNumFmt?: string }
 
 export interface ExcelSheet {
   title: string;
   headers: string[];
   rows: Cell[][];
   columns?: ExcelColumn[];
-  /** Indexes into `rows` to set in bold (a TOTAL line). */
-  boldRows?: number[];
+  /** Indexes into `rows` that are TOTAL lines: bold, and in each column's `totalNumFmt`. */
+  totalRows?: number[];
 }
 
 export function genericPDF(title: string, headers: string[], rows: Cell[][]): Promise<Buffer> {
@@ -93,7 +93,7 @@ export async function genericExcelMultiSheet(sheets: ExcelSheet[]): Promise<Buff
   wb.creator = 'Mountain Bakes ERP';
   const used = new Set<string>();
 
-  for (const { title, headers, rows, columns, boldRows } of sheets) {
+  for (const { title, headers, rows, columns, totalRows } of sheets) {
     const sheet = wb.addWorksheet(uniqueSheetName(title, used));
     sheet.addRow(headers);
     const headerRow = sheet.getRow(1);
@@ -113,7 +113,14 @@ export async function genericExcelMultiSheet(sheets: ExcelSheet[]): Promise<Buff
       // Data rows only, so the header keeps its own look.
       if (numFmt) c.eachCell?.((cell, rowNumber) => { if (rowNumber > 1) cell.numFmt = numFmt; });
     });
-    for (const i of boldRows ?? []) sheet.getRow(i + 2).font = { bold: true };
+    for (const i of totalRows ?? []) {
+      const row = sheet.getRow(i + 2);
+      row.font = { bold: true };
+      row.eachCell((cell, col) => {
+        const numFmt = columns?.[col - 1]?.totalNumFmt;
+        if (numFmt) cell.numFmt = numFmt;
+      });
+    }
   }
 
   return wb.xlsx.writeBuffer() as unknown as Promise<Buffer>;

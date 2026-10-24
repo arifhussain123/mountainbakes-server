@@ -37,6 +37,13 @@ import { priceOnDateLateral, UNIT_PRICE_LATERAL } from './returns-summary.servic
  * Only records from the go-live instant on count; everything earlier is the
  * branch's opening balance.
  *
+ * The opening row holds Finance's entries only. A return, deposit, sale or
+ * loose discount recorded before a branch's first demand in the record
+ * settles a demand from before the go-live day, so it is not counted, and the
+ * first demand's Previous is 0 unless Finance entered an opening balance (the
+ * owner's rule from 1 Oct 2026: on the live data, deposits made on the
+ * morning of 1 Oct for 30 Sep's demands had opened two branches in credit).
+ *
  * A row runs until the branch's NEXT demand, whatever its date, so the last row
  * of a branch stays open until that demand arrives. That is what keeps one
  * period's closing balance equal to the next period's opening balance.
@@ -92,7 +99,7 @@ const ROWS_SQL = `
         on r.branch_id = w.branch_id and r.created_at > w.lo and (w.hi is null or r.created_at <= w.hi)
       left join public.products p on p.id = r.product_id
       ${UNIT_PRICE_LATERAL}
-     where r.status::text = 'accepted' and r.created_at >= ${START_AT}
+     where w.order_id is not null and r.status::text = 'accepted' and r.created_at >= ${START_AT}
      group by w.branch_id, w.order_id
   ),
   disc as (
@@ -105,7 +112,7 @@ const ROWS_SQL = `
       from w
       join public.branch_discounts x
         on x.branch_id = w.branch_id and x.created_at > w.lo and (w.hi is null or x.created_at <= w.hi)
-     where x.status::text = 'approved' and x.created_at >= ${START_AT}
+     where w.order_id is not null and x.status::text = 'approved' and x.created_at >= ${START_AT}
        and not exists (select 1 from d where d.id = x.production_order_id)
      group by w.branch_id, w.order_id
   ),
@@ -114,7 +121,7 @@ const ROWS_SQL = `
       from w
       join public.cash_transfers t
         on t.branch_id = w.branch_id and t.created_at > w.lo and (w.hi is null or t.created_at <= w.hi)
-     where t.status::text = 'approved' and t.deleted_at is null and t.amount > 0
+     where w.order_id is not null and t.status::text = 'approved' and t.deleted_at is null and t.amount > 0
        and t.created_at >= ${START_AT}
      group by w.branch_id, w.order_id
   ),
@@ -123,7 +130,7 @@ const ROWS_SQL = `
       from w
       join public.orders s
         on s.branch_id = w.branch_id and s.created_at > w.lo and (w.hi is null or s.created_at <= w.hi)
-     where s.status::text <> 'cancelled' and s.payment_method::text <> 'staff'
+     where w.order_id is not null and s.status::text <> 'cancelled' and s.payment_method::text <> 'staff'
        and s.created_at >= ${START_AT}
      group by w.branch_id, w.order_id
   ),
@@ -317,6 +324,8 @@ export async function getDemandRecordDetail(branchId: string, orderId: string | 
   const win = (col: string) => `${col} > $3::timestamptz and ($4::timestamptz is null or ${col} <= $4::timestamptz) and ${col} >= ${START_AT}`;
   const args = [branchId, start, row.lo, row.hi] as const;
 
+  // The opening row counts Finance's entries only (see the header), so it lists nothing else.
+  const counted = orderId !== null;
   const [lines, returns, discounts, payments, sales, adjustments] = await Promise.all([
     orderId
       ? prisma.$queryRawUnsafe<DemandRecordDetail['lines']>(`
@@ -334,7 +343,7 @@ export async function getDemandRecordDetail(branchId: string, orderId: string | 
            where i.production_order_id = $1::uuid
            order by 1`, orderId)
       : Promise.resolve([]),
-    prisma.$queryRawUnsafe<DemandRecordDetail['returns']>(`
+    !counted ? Promise.resolve([]) : prisma.$queryRawUnsafe<DemandRecordDetail['returns']>(`
       select r.id::text as "id", to_char(r.business_date, 'YYYY-MM-DD') as "businessDate",
              coalesce(r.product_name, p.name) as "productName", r.qty::float8 as "qty",
              px.unit_price::float8 as "unitPrice", coalesce(round(r.qty * px.unit_price, 2), 0)::float8 as "amount",
@@ -344,7 +353,7 @@ export async function getDemandRecordDetail(branchId: string, orderId: string | 
         ${UNIT_PRICE_LATERAL}
        where r.branch_id = $1::uuid and r.status::text = 'accepted' and ${win('r.created_at')}
        order by r.created_at`, ...args),
-    prisma.$queryRawUnsafe<DemandRecordDetail['discounts']>(`
+    !counted ? Promise.resolve([]) : prisma.$queryRawUnsafe<DemandRecordDetail['discounts']>(`
       with d as (
         select o.id from public.production_orders o
          where o.branch_id = $1::uuid and o.status::text in ${DELIVERED} and o.business_date >= $2::date
@@ -356,7 +365,7 @@ export async function getDemandRecordDetail(branchId: string, orderId: string | 
          and ((x.production_order_id = $5::uuid)
               or (not exists (select 1 from d where d.id = x.production_order_id) and ${win('x.created_at')}))
        order by x.created_at`, ...args, orderId),
-    prisma.$queryRawUnsafe<DemandRecordDetail['payments']>(`
+    !counted ? Promise.resolve([]) : prisma.$queryRawUnsafe<DemandRecordDetail['payments']>(`
       select t.id::text as "id", t.transfer_no as "transferNo", t.voucher_no as "voucherNo",
              to_char(t.business_date, 'YYYY-MM-DD') as "businessDate", t.amount::float8 as "amount",
              to_json(t.created_at)#>>'{}' as "createdAt"
@@ -364,7 +373,7 @@ export async function getDemandRecordDetail(branchId: string, orderId: string | 
        where t.branch_id = $1::uuid and t.status::text = 'approved' and t.deleted_at is null and t.amount > 0
          and ${win('t.created_at')}
        order by t.created_at`, ...args),
-    prisma.$queryRawUnsafe<{ count: number; amount: number }[]>(`
+    !counted ? Promise.resolve([]) : prisma.$queryRawUnsafe<{ count: number; amount: number }[]>(`
       select count(*)::int as "count", coalesce(sum(s.grand_total), 0)::float8 as "amount"
         from public.orders s
        where s.branch_id = $1::uuid and s.status::text <> 'cancelled' and s.payment_method::text <> 'staff'

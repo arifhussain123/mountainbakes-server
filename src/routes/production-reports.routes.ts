@@ -241,10 +241,13 @@ async function collectionsReconciliation(args: {
   };
 }
 
-/** Whole rupees with separators; a negative balance reads -Rs. 2,000. */
-const RS = '"Rs. "#,##0;-"Rs. "#,##0;"Rs. "0';
+/** Whole rupees with separators: 45,000; a negative balance reads -2,000. */
+const AMOUNT = '#,##0;-#,##0;0';
 /** The same, with a zero shown as a dash (Return, Discount). */
-const RS_OR_DASH = '"Rs. "#,##0;-"Rs. "#,##0;"—"';
+const AMOUNT_OR_DASH = '#,##0;-#,##0;"—"';
+/** A TOTAL line's money, the only cells that carry the currency: Rs. 311,500. */
+const RS_TOTAL = '"Rs. "#,##0;-"Rs. "#,##0;"Rs. "0';
+const money = (numFmt: string): ExcelColumn => ({ numFmt, totalNumFmt: RS_TOTAL });
 
 /**
  * The Collections export: the Demand Record page's table (Finance → Demand
@@ -252,7 +255,8 @@ const RS_OR_DASH = '"Rs. "#,##0;-"Rs. "#,##0;"—"';
  * the same query, so the sheet and that page cannot disagree:
  *
  *   G. Total  = Delivered − Return − Discount
- *   Co. Share = G. Total × the demand's frozen Share % ÷ 100
+ *   Co. Share = G. Total × the demand's frozen share % ÷ 100 (the % itself
+ *               is not a column; the owner dropped it, 2026-10-24)
  *   Closing   = Previous + Co. Share − Received, carried to the branch's next
  *               demand (each branch its own chain); negative is a credit
  *
@@ -273,18 +277,18 @@ const RS_OR_DASH = '"Rs. "#,##0;-"Rs. "#,##0;"—"';
  */
 function collectionsFromDemandRecord(
   record: NonNullable<Awaited<ReturnType<typeof getDemandRecordPeriod>>>,
-): { title: string; headers: string[]; rows: (string | number)[][]; specialRowCount: number; columns: ExcelColumn[]; boldRows: number[]; extraSheets: ExcelSheet[] } {
+): { title: string; headers: string[]; rows: (string | number)[][]; specialRowCount: number; columns: ExcelColumn[]; totalRows: number[]; extraSheets: ExcelSheet[] } {
   type Row = (typeof record.rows)[number];
-  const headers = ['Date', 'Demand No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Share %', 'Received', 'Previous', 'Closing', 'Closing Status'];
+  const headers = ['Date', 'Demand No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Received', 'Previous', 'Closing', 'Closing Status'];
   const columns: ExcelColumn[] = [
     { date: true, numFmt: 'dd mmm yyyy', width: 13 }, { width: 13 }, { width: 22 },
-    { numFmt: RS }, { numFmt: RS_OR_DASH }, { numFmt: RS_OR_DASH }, { numFmt: RS }, { numFmt: RS },
-    { numFmt: 'General"%"', width: 9 }, { numFmt: RS }, { numFmt: RS }, { numFmt: RS }, { width: 15 },
+    money(AMOUNT), money(AMOUNT_OR_DASH), money(AMOUNT_OR_DASH), money(AMOUNT), money(AMOUNT),
+    money(AMOUNT), money(AMOUNT), money(AMOUNT), { width: 15 },
   ];
   const STATUS = { owed: 'OUTSTANDING', settled: 'SETTLED', credit: 'CREDIT' } as const;
   const line = (r: Row): (string | number)[] => [
     r.businessDate, r.demandNumber ?? 'Opening', r.branchName,
-    r.delivered, r.returns, r.discount, r.gTotal, r.companyShare, r.sharePct, r.received,
+    r.delivered, r.returns, r.discount, r.gTotal, r.companyShare, r.received,
     r.previousBalance, r.closingBalance, STATUS[balanceStanding(r.closingBalance)],
   ];
   const sumOf = (rows: Row[]) => {
@@ -298,7 +302,7 @@ function collectionsFromDemandRecord(
   };
   const totalLine = (rows: Row[]): (string | number)[] => {
     const t = sumOf(rows);
-    return ['TOTAL', '', '', t.delivered, t.returns, t.discount, t.gTotal, t.share, '', t.received, '', '', ''];
+    return ['TOTAL', '', '', t.delivered, t.returns, t.discount, t.gTotal, t.share, t.received, '', '', ''];
   };
   // Date, then demand number; a branch's opening row (no number) before its demands.
   const byDate = (a: Row, b: Row) =>
@@ -310,7 +314,7 @@ function collectionsFromDemandRecord(
     const rows = [...list].sort(byDate).map(line);
     if (list.length === 0) return { title, headers, rows, columns, specialRowCount: 0 };
     rows.push(totalLine(list));
-    return { title, headers, rows, columns, boldRows: [rows.length - 1], specialRowCount: 1 };
+    return { title, headers, rows, columns, totalRows: [rows.length - 1], specialRowCount: 1 };
   };
 
   const rowsByBranch = new Map<string, Row[]>();
@@ -325,8 +329,8 @@ function collectionsFromDemandRecord(
   // Previous / Closing here are each branch's balance before and after the period.
   const byBranchHeaders = ['Branch', 'Demands', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Received', 'Previous', 'Closing', 'Closing Status'];
   const byBranchColumns: ExcelColumn[] = [
-    { width: 22 }, { width: 9 }, { numFmt: RS }, { numFmt: RS_OR_DASH }, { numFmt: RS_OR_DASH },
-    { numFmt: RS }, { numFmt: RS }, { numFmt: RS }, { numFmt: RS }, { numFmt: RS }, { width: 15 },
+    { width: 22 }, { width: 9 }, money(AMOUNT), money(AMOUNT_OR_DASH), money(AMOUNT_OR_DASH),
+    money(AMOUNT), money(AMOUNT), money(AMOUNT), money(AMOUNT), money(AMOUNT), { width: 15 },
   ];
   const byBranchRows: (string | number)[][] = branches.map((b) => {
     const list = rowsByBranch.get(b.branchId) ?? [];
@@ -348,16 +352,16 @@ function collectionsFromDemandRecord(
     return sheet;
   });
 
-  const { rows, boldRows = [], specialRowCount } = sheetOf('Collections', record.rows);
+  const { rows, totalRows = [], specialRowCount } = sheetOf('Collections', record.rows);
   return {
     title: 'Collections',
     headers,
     rows,
     specialRowCount,
     columns,
-    boldRows,
+    totalRows,
     extraSheets: [
-      { title: 'By Branch', headers: byBranchHeaders, rows: byBranchRows, columns: byBranchColumns, boldRows: byBranchRows.length > 0 ? [byBranchRows.length - 1] : [] },
+      { title: 'By Branch', headers: byBranchHeaders, rows: byBranchRows, columns: byBranchColumns, totalRows: byBranchRows.length > 0 ? [byBranchRows.length - 1] : [] },
       ...branchSheets,
     ],
   };
@@ -396,7 +400,7 @@ async function buildReport(
   extraSheets?: ExcelSheet[];
   /** Excel styling for the main sheet (see `ExcelSheet`). Only `collections` sets it. */
   columns?: ExcelColumn[];
-  boldRows?: number[];
+  totalRows?: number[];
 }> {
   // `prepared-detail` and `collections` are driven by an explicit from/to window
   // rather than the period dropdown; every other report still anchors to the
@@ -897,7 +901,7 @@ router.get('/summary', async (req: AuthRequest, res, next) => {
     const range = usesDateRange(report) ? explicitDateRange(req.query['from'], req.query['to']) : undefined;
     const branchId = typeof req.query['branchId'] === 'string' ? req.query['branchId'] : '';
     // Extra Excel tabs are for the file, not the on-screen preview.
-    const { extraSheets: _extraSheets, columns: _columns, boldRows: _boldRows, ...data } = await buildReport(report, period, range, branchId);
+    const { extraSheets: _extraSheets, columns: _columns, totalRows: _totalRows, ...data } = await buildReport(report, period, range, branchId);
 
     // Column-INDEX sort, not a key — these rows are positional arrays with no
     // per-cell name (unlike the keyed Finance Reports). A trailing TOTAL/
@@ -943,7 +947,7 @@ router.get('/export', async (req: AuthRequest, res, next) => {
     const exportType = String(req.query['type'] || 'excel');
     const range = usesDateRange(report) ? explicitDateRange(req.query['from'], req.query['to']) : undefined;
     const branchId = typeof req.query['branchId'] === 'string' ? req.query['branchId'] : '';
-    const { title, headers, rows, extraSheets, columns, boldRows } = await buildReport(report, period, range, branchId);
+    const { title, headers, rows, extraSheets, columns, totalRows } = await buildReport(report, period, range, branchId);
     // A range report names the window it covers, so two exports taken the same
     // day for different windows don't land on the same filename.
     const dateLabel = range
@@ -962,7 +966,7 @@ router.get('/export', async (req: AuthRequest, res, next) => {
       res.send(genericCSV(headers, rows));
     } else {
       const buffer = extraSheets?.length
-        ? await genericExcelMultiSheet([{ title, headers, rows, columns, boldRows }, ...extraSheets])
+        ? await genericExcelMultiSheet([{ title, headers, rows, columns, totalRows }, ...extraSheets])
         : await genericExcel(title, headers, rows);
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}.xlsx"`);
