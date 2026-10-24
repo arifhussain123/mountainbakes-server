@@ -122,7 +122,7 @@ interface SessionRow {
  * Duration is `coalesce(ended, last seen) − login` — for a signed-out or revoked
  * session that is exact, and for one that simply went quiet it is the last
  * moment the tab was known to be open, which is the most that can honestly be
- * claimed. Clamped at zero because clock skew between the dyno and Postgres
+ * claimed. Clamped at zero because clock skew between the server and Postgres
  * could otherwise produce a negative.
  *
  * ORDER OF THE STATE TESTS MATTERS. `revoked` is checked before `ended` because
@@ -1031,7 +1031,7 @@ export function auditSessionView(
  * `select distinct` to do any of them in SQL — so the rows come back once and
  * are reduced in memory. The 2,000-row window is the same one the single-column
  * version used: recent enough to describe what the filters need to offer, small
- * enough not to read the table into the dyno to populate a `<select>`.
+ * enough not to read the table into the server to populate a `<select>`.
  *
  * CAPPED PER FACET as well. A filter list is scanned by eye; past a few dozen
  * entries it is worse than a search box, and an unbounded one would let a

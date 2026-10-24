@@ -24,11 +24,11 @@ const db = dbFor('auth');
  * BOUNDED. The negative map is capped and cleared wholesale rather than evicted
  * entry by entry; the cost of a cold cache is one extra query per live session,
  * which is not worth an LRU to avoid. The revoked set is not capped because its
- * membership is the number of sessions an admin has ever ended on this dyno,
+ * membership is the number of sessions an admin has ever ended on this server,
  * which is small and self-limiting.
  *
  * PER-PROCESS, like `utils/cache.ts` and for the same reason: the deploy is a
- * single dyno. On a horizontally scaled API each instance would learn about a
+ * single server. On a horizontally scaled API each instance would learn about a
  * revocation independently, within its own TTL — still bounded, and worth
  * swapping for Redis if that day comes.
  */

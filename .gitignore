@@ -46,8 +46,8 @@ Thumbs.db
 skills-lock.json
 
 # Foreign package-manager lockfiles. This repo is pnpm-only (see `packageManager`
-# in package.json). Heroku's Node buildpack hard-fails the build when it finds more
-# than one lockfile, so an `npm install` run by mistake must not be committable.
+# in package.json). A second lockfile makes the build guess the package manager,
+# so an `npm install` run by mistake must not be committable.
 package-lock.json
 yarn.lock
 

@@ -6,9 +6,9 @@ import { getMessageProvider, getRetryPolicy, sendWithRetry } from '../messaging'
 const db = dbFor('backup');
 
 /**
- * A failed backup must not vanish into a Scheduler log nobody reads. Every
+ * A failed backup must not vanish into a log nobody reads. Every
  * failure:
- *   1. is one console line the Heroku Scheduler view shows (plus exit code 1),
+ *   1. is one console line in the Railway deploy log (plus exit code 1 from the CLI),
  *   2. is a FAILED backup_jobs row the status screen and health endpoint show,
  *   3. opens a Support Center ticket + in-app notification for every super
  *      admin — the same escalation path the 2 AM closing job uses,
@@ -57,7 +57,7 @@ export async function alertBackupFailure(alert: FailureAlert, opts: AlertOptions
     '',
     alert.safeMessage.slice(0, 2000),
     '',
-    'Check the Database Backup screen and the Heroku Scheduler log, then re-run `pnpm backup:<type> -- --force` once the cause is fixed.',
+    'Check the Database Backup screen and the Railway deploy log, then re-run `pnpm backup:<type> -- --force` once the cause is fixed.',
   ].join('\n');
 
   try {

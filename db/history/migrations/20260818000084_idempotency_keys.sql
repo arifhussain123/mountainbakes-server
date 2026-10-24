@@ -2,7 +2,7 @@
 --
 -- WHY THIS EXISTS. The mobile app writes offline: a sale, an expense or a demand
 -- is committed to SQLite and queued, then sent when the signal comes back. Every
--- queued send can be retried — after a timeout, after a dyno restart, after the
+-- queued send can be retried — after a timeout, after a server restart, after the
 -- app is killed mid-request — and until now a retry of a request the server had
 -- ALREADY PROCESSED applied it a second time. That is a duplicate sale with real
 -- money against it, and it is the single reason the web client's own write queue

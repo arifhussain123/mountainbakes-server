@@ -24,8 +24,7 @@ import {
  * freshly rolled-forward event already has its estimate when the reminder
  * schedule is next built.
  *
- * Like the other two schedulers, the idempotency here assumes a SINGLE dyno
- * (web=1). The claim is safe against concurrent claimers, but the stale-claim
+ * Like the other two schedulers, the idempotency here assumes a SINGLE server * (one replica). The claim is safe against concurrent claimers, but the stale-claim
  * sweep is not written for a fleet.
  */
 export function startEventNotificationScheduler(): void {

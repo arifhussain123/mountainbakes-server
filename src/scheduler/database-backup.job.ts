@@ -5,8 +5,8 @@ import { karachiMinutesOfDay, type BackupType } from '../shared';
  * Automatic database backups (pg_dump → S3), run inside the API process.
  *
  * Until now the daily/weekly/monthly runs depended on an external scheduler
- * (Heroku Scheduler calling `pnpm backup:<type>`), which was never set up and
- * does not exist on Railway, so nothing ran unless an admin pressed "Run
+ * calling `pnpm backup:<type>`, which was never set up and does not exist on
+ * Railway, so nothing ran unless an admin pressed "Run
  * backup". This arms the same runs here, at the times BACKUP_SCHEDULE documents:
  *
  *   daily    03:00 every day        — after the 02:00 day closing / stock roll

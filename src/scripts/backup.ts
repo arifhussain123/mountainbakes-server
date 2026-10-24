@@ -22,7 +22,7 @@ const db = dbFor('scripts');
  * Mountain Bakes — database backup CLI (pg_dump → S3).
  *
  * Usage (from backend/):
- *   pnpm backup:daily                    scheduled daily run (Heroku Scheduler, 22:00 UTC = 03:00 PKT)
+ *   pnpm backup:daily                    daily run (the API schedules it itself at 03:00 PKT)
  *   pnpm backup:weekly                   runs only on a Karachi Sunday; otherwise exits 0 "not due"
  *   pnpm backup:monthly                  runs only on the Karachi 1st; otherwise exits 0 "not due"
  *   pnpm backup:weekly -- --force        run regardless of the calendar gate

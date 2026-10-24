@@ -113,9 +113,9 @@ export function buildBackupPlan(
 }
 
 /**
- * Whether a scheduled type is due on the Karachi calendar right now. Heroku
- * Scheduler can only run a command daily, so `backup:weekly` and
- * `backup:monthly` are invoked every day and decide for themselves.
+ * Whether a scheduled type is due on the Karachi calendar right now, so
+ * `backup:weekly` and `backup:monthly` can be run any day and decide for
+ * themselves.
  */
 export function isDue(type: BackupType, now: Date): { due: boolean; reason: string } {
   const runDate = karachiDateStr(now);

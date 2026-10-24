@@ -200,7 +200,7 @@ export async function logGeofenceCheck(input: LogGeofenceInput): Promise<void> {
 /**
  * Client IP as best the platform can report it.
  *
- * Behind Heroku's router `req.ip` is only trustworthy with `trust proxy` set, so the
+ * Behind the hosting proxy `req.ip` is only trustworthy with `trust proxy` set, so the
  * forwarded chain is read directly and its FIRST entry taken — the client-supplied
  * end, which is spoofable but is also the only value that means anything about the
  * caller. It is evidence for a human reading the log, never an access decision.

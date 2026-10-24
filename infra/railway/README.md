@@ -17,7 +17,7 @@ window, described here.
 | Realtime | none | The web app polls `GET /api/notifications` |
 
 ```
-web / mobile ──► API (Heroku) ──► Postgres (Railway), as role mb_api
+web / mobile ──► API (Railway) ──► Postgres (Railway), as role mb_api
                       └─ S3 (files, backups)
 ```
 
@@ -59,12 +59,11 @@ Rehearsed, against a local Postgres 18 and against a copy on Railway:
 
 NOT rehearsed:
 
-- The new API on Heroku, the new web build on Firebase, or the new Android
+- The new API on Railway, the new web build on Firebase, or the new Android
   build on a phone, against Railway. Step 3 of "Before the night" is that.
 - A return, a production review, a ledger posting or payroll on the copy.
 - `pnpm files:copy` copying real files (it has only been read through).
 - A reset email actually arriving.
-- Speed. Every query travels Heroku → Railway.
 
 ## One thing that will look different afterwards
 
@@ -95,7 +94,7 @@ collation. A copy into a database that sorts differently is refused unless
 | `DATABASE_URL` | the Railway database (it is where `files:copy` reads rows and rewrites the logo URL) |
 | `FILES_S3_BUCKET`, `FILES_S3_PREFIX`, `PUBLIC_API_URL`, `AWS_*` | where files go |
 
-Heroku config vars for the new API. **With either of the first two missing the
+The API service's Railway Variables. **With either of the first two missing the
 server refuses to start and says which.** With `FILES_S3_BUCKET` or
 `PUBLIC_API_URL` missing it starts and logs a warning, and screens that show
 photos fail (see `server.ts`):
@@ -108,9 +107,9 @@ photos fail (see `server.ts`):
 | `PUBLIC_API_URL` | the API's own public origin, no trailing slash |
 | `BACKUP_DB_URL` | `RAILWAY_DB_URL` — the administrator URL, which is what backups dump |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | for password-reset email. Without them a reset link cannot be sent; temporary passwords still work |
-| `PG_BIN_DIR` | `/app/.apt/usr/lib/postgresql/18/bin` (the `Aptfile` installs client 18) |
+| `PG_BIN_DIR` | unset — `nixpacks.toml` puts client 18 on PATH |
 
-No longer read by the API, and removable from Heroku once the move has held:
+No longer read by the API, and removable from its Variables once the move has held:
 `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL`, and any
 `SUPABASE_*`, `AUTH_ACCEPT_SUPABASE`, `AUTH_GOTRUE_MIRROR`, `DB_BACKEND`,
 `DB_SHADOW_MODULES`, `DB_SQL_MODULES`, `FILE_STORAGE_DRIVER`.
@@ -154,7 +153,7 @@ All commands run from `backend/`.
 
 Pick a time the shops are closed. Budget two hours.
 
-1. **Stop writes.** `heroku maintenance:on`. From here Supabase does not change,
+1. **Stop writes.** Take the old API offline. From here Supabase does not change,
    which is what makes the next steps exact.
 2. `pnpm railway:migrate --reset-target`
 
@@ -166,18 +165,18 @@ Pick a time the shops are closed. Budget two hours.
 3. `pnpm railway:verify` — must end `RESULT: PASS — the target holds exactly the
    same data`. (If the copy was made with `--accept-collation`, pass it here
    too; the difference is then noted instead of failed.) If it does not pass,
-   stop: `heroku maintenance:off` and nothing has changed.
+   stop: bring the old API back and nothing has changed.
 4. `pnpm railway:role`, then copy `DATABASE_URL` from `infra/railway/.secrets.env`.
 5. `pnpm files:copy --confirm --rewrite-logo-url` — picks up files added since
    the first copy and points the logo at this API. `DATABASE_URL` in
    `backend/.env` must be the Railway database for this step.
-6. **Heroku config vars**, from the table above.
+6. **The API's Railway Variables**, from the table above.
 7. **Deploy the API.** Watch the log: `[server] cannot start:` names a missing
    `DATABASE_URL` or `JWT_SECRET`, and `[server] file storage is not
    configured` names a missing `FILES_S3_BUCKET` or `PUBLIC_API_URL`.
 8. **Deploy the web app** (`pnpm run deploy` in `frontend/`) and hand out the
    Android build.
-9. `heroku maintenance:off`. Then check, in this order:
+9. **Open the new API to users.** Then check, in this order:
    - `GET /health` reports `database: connected`;
    - sign in on the web as an administrator, a branch manager and a finance
      user;
@@ -201,8 +200,7 @@ Pick a time the shops are closed. Budget two hours.
 Supabase is exactly as it was at step 1, and the old API, web build and Android
 build all still work against it. Until real work has been done on Railway:
 
-- `heroku rollback` to the release before step 6 — a Heroku release carries its
-  config vars, so the old code and the old settings come back together;
+- bring the old API back with its old settings;
 - roll the web app back in Firebase Hosting;
 - phones that installed the new build need the old one back; phones that did
   not are already fine.

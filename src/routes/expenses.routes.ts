@@ -53,7 +53,7 @@ router.get('/', async (req: AuthRequest, res, next) => {
 /**
  * Ceiling on one export. Well above any real window — a busy branch books a
  * handful of expenses a day, so this is years of them — but it stops an
- * open-ended range from pulling the whole table into the dyno's memory.
+ * open-ended range from pulling the whole table into the server's memory.
  */
 const EXPORT_ROW_CAP = 20_000;
 
