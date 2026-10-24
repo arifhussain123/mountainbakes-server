@@ -77,9 +77,10 @@ export async function genericExcelMultiSheet(
 ): Promise<Buffer> {
   const wb = new ExcelJS.Workbook();
   wb.creator = 'Mountain Bakes ERP';
+  const used = new Set<string>();
 
   for (const { title, headers, rows } of sheets) {
-    const sheet = wb.addWorksheet(title.slice(0, 31));
+    const sheet = wb.addWorksheet(uniqueSheetName(title, used));
     sheet.addRow(headers);
     const headerRow = sheet.getRow(1);
     headerRow.eachCell((cell) => {
@@ -94,6 +95,23 @@ export async function genericExcelMultiSheet(
   }
 
   return wb.xlsx.writeBuffer() as unknown as Promise<Buffer>;
+}
+
+/**
+ * A tab name Excel will accept. Tab titles can now come from data (a branch
+ * name), and ExcelJS throws on the characters Excel forbids, on a name over 31
+ * characters, and on a repeat — case-insensitive, so "Saddar" and "SADDAR" clash.
+ * A repeat gets " (2)", " (3)"… rather than failing the whole export.
+ */
+function uniqueSheetName(title: string, used: Set<string>): string {
+  const base = title.replace(/[*?:\\/[\]]/g, '-').replace(/^'+|'+$/g, '').trim() || 'Sheet';
+  let name = base.slice(0, 31);
+  for (let n = 2; used.has(name.toLowerCase()); n++) {
+    const suffix = ` (${n})`;
+    name = base.slice(0, 31 - suffix.length) + suffix;
+  }
+  used.add(name.toLowerCase());
+  return name;
 }
 
 export function genericCSV(headers: string[], rows: Cell[][]): string {

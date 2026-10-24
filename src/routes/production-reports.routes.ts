@@ -267,7 +267,8 @@ async function buildReport(
   specialRowCount?: number;
   /**
    * Further tabs for the Excel export only, after the main sheet. PDF, CSV and
-   * the JSON preview carry just the main table. Only `collections` sets it.
+   * the JSON preview carry just the main table. Only `collections` sets it:
+   * By Branch, Reconciliation, then one tab per branch.
    */
   extraSheets?: { title: string; headers: string[]; rows: (string | number)[][] }[];
 }> {
@@ -564,7 +565,8 @@ async function buildReport(
       // The By Branch sheet: the rows above summed per branch, the way a pivot
       // on Branch would sum them. Deposits are de-duplicated per branch for the
       // same reason as in the TOTAL.
-      type BranchSum = { name: string; deliveries: number; delivered: number; share: number; retQty: number; returns: number; discount: number; collect: number; receivedById: Map<string, number> };
+      // `rows` is that branch's own lines for its tab (see branchSheets below).
+      type BranchSum = { name: string; deliveries: number; delivered: number; share: number; retQty: number; returns: number; discount: number; collect: number; receivedById: Map<string, number>; rows: (string | number)[][] };
       const perBranch = new Map<string, BranchSum>();
       for (let i = 0; i < wanted.length; i++) {
         const bal = balances[i];
@@ -587,7 +589,7 @@ async function buildReport(
         const billedBranch = wanted[i]!.billed;
         let sum = perBranch.get(billedBranch.branch_id);
         if (!sum) {
-          sum = { name: billedBranch.branch_name ?? '', deliveries: 0, delivered: 0, share: 0, retQty: 0, returns: 0, discount: 0, collect: 0, receivedById: new Map() };
+          sum = { name: billedBranch.branch_name ?? '', deliveries: 0, delivered: 0, share: 0, retQty: 0, returns: 0, discount: 0, collect: 0, receivedById: new Map(), rows: [] };
           perBranch.set(billedBranch.branch_id, sum);
         }
         sum.deliveries++;
@@ -598,8 +600,7 @@ async function buildReport(
         sum.discount += bal.discountsValue;
         sum.collect += bal.amountToCollect;
         for (const p of bal.paymentItems) sum.receivedById.set(p.transferId, p.amount);
-        rows.push([
-          wanted[i]!.billed.branch_name ?? '',
+        const line = [
           bal.previous.demandNumber,
           bal.previous.date,
           Math.round(bal.deliveredValue),
@@ -610,7 +611,9 @@ async function buildReport(
           Math.round(bal.amountToCollect),
           Math.round(bal.paymentsReceivedValue),
           Math.round(bal.remainingBalance),
-        ]);
+        ];
+        rows.push([wanted[i]!.billed.branch_name ?? '', ...line]);
+        sum.rows.push(line);
       }
 
       // `billable` is sorted by branch name, so the map already iterates in
@@ -633,6 +636,8 @@ async function buildReport(
         grand.received += Math.round(received);
         grand.remaining += Math.round(remaining);
         branchRows.push([b.name, b.deliveries, Math.round(b.delivered), Math.round(b.share), b.retQty, Math.round(b.returns), Math.round(b.discount), Math.round(b.collect), Math.round(received), Math.round(remaining)]);
+        // The branch tab's TOTAL is its By Branch line, so the two cannot disagree.
+        b.rows.push(['TOTAL', '', Math.round(b.delivered), Math.round(b.share), b.retQty, Math.round(b.returns), Math.round(b.discount), Math.round(b.collect), Math.round(received), Math.round(remaining)]);
       }
       if (branchRows.length > 0) {
         branchRows.push(['GRAND TOTAL', grand.deliveries, grand.delivered, grand.share, grand.retQty, grand.returns, grand.discount, grand.collect, grand.received, grand.remaining]);
@@ -657,6 +662,35 @@ async function buildReport(
         rows.push([`Showing the first ${COLLECTIONS_ORDER_CAP} of ${billable.length} deliveries — narrow the date range or pick one branch.`, '', '', '', '', '', '', '', '', '', '']);
         specialRowCount++;
       }
+
+      // One tab per branch, after the three summary tabs: that branch's lines
+      // from the main sheet without the Branch column, its own TOTAL, and the
+      // same held-back footnotes scoped to it. A branch whose only delivery in
+      // the window is still unbilled gets a tab too, so it is not missing.
+      const blankLine = new Array<string>(9).fill('');
+      const sheetFor = new Map<string, { name: string; rows: (string | number)[][] }>();
+      for (const [id, b] of perBranch) sheetFor.set(id, { name: b.name, rows: b.rows });
+      const unbilledFor = new Map<string, number>();
+      for (const o of unbilledOrders) {
+        unbilledFor.set(o.branch_id, (unbilledFor.get(o.branch_id) ?? 0) + 1);
+        if (!sheetFor.has(o.branch_id)) sheetFor.set(o.branch_id, { name: o.branch_name ?? '', rows: [] });
+      }
+      const cutFor = new Map<string, number>();
+      for (const b of billable.slice(wanted.length)) cutFor.set(b.billed.branch_id, (cutFor.get(b.billed.branch_id) ?? 0) + 1);
+      const branchSheets = [...sheetFor]
+        .sort((x, y) => x[1].name.localeCompare(y[1].name))
+        .map(([id, s]) => {
+          const held = unbilledFor.get(id) ?? 0;
+          const cut = cutFor.get(id) ?? 0;
+          const sheetRows = [...s.rows];
+          if (held > 0) sheetRows.push([`${held} delivery(s) in this window have no later delivery yet, so nothing has been billed for them.`, ...blankLine]);
+          if (cut > 0) sheetRows.push([`${cut} delivery(s) left out by the export's row cap of ${COLLECTIONS_ORDER_CAP} — narrow the date range or pick this branch.`, ...blankLine]);
+          return {
+            title: s.name || 'Branch',
+            headers: ['Previous Order', 'Date', 'Delivered Value', 'Company Share', 'Less Returns Qty', 'Less Returns', 'Less Discount', 'Amount to Collect', 'Payment Received', 'Remaining'],
+            rows: sheetRows,
+          };
+        });
 
       const reconciliation = await collectionsReconciliation({
         fromStr,
@@ -683,7 +717,7 @@ async function buildReport(
           title: 'By Branch',
           headers: ['Branch', 'Deliveries', 'Delivered Value', 'Company Share', 'Less Returns Qty', 'Less Returns', 'Less Discount', 'Amount to Collect', 'Payment Received', 'Remaining'],
           rows: branchRows,
-        }, reconciliation],
+        }, reconciliation, ...branchSheets],
       };
     }
     case 'production':
