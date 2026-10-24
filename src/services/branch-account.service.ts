@@ -265,6 +265,18 @@ export async function getDemandRecord(q: DemandRecordQuery): Promise<DemandRecor
   };
 }
 
+/**
+ * Every row of every branch in scope from the go-live day, in each branch's
+ * order — for reports that regroup the Demand Record (the Finance Dashboard's
+ * income). Null while the Demand Record is not switched on.
+ */
+export async function getDemandRecordRows(branchId: string | null): Promise<{ start: string; rows: DemandRecordRow[] } | null> {
+  const start = await getLedgerStart();
+  if (!start) return null;
+  const rows = await loadAccounts(branchId, start);
+  return { start, rows: rows.map((r) => ({ ...stripBounds(r), open: r.hi === null })) };
+}
+
 function stripBounds<T extends { lo: string; hi: string | null }>(r: T): Omit<T, 'lo' | 'hi'> {
   const { lo: _lo, hi: _hi, ...rest } = r;
   return rest;

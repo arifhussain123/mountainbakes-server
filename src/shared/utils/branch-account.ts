@@ -6,6 +6,15 @@
  *   Company Share   = G. Total × the demand's frozen share % ÷ 100
  *   Closing Balance = Previous Balance + Company Share + Adjustments − Share Received
  *
+ * The same figures under the Demand Record restructure's names
+ * (docs/demand-record-accounting-migration.md), carried on every row beside
+ * the originals so existing screens keep reading theirs:
+ *
+ *   Total Demand Amount = Delivered
+ *   Demand              = G. Total (the net demand)
+ *   Amount Due          = Previous Balance + Company Share + Adjustments
+ *   Remaining           = Amount Due − Payment Received = Closing Balance
+ *
  * Share Received is money Finance approved (cash transfers), each deposit
  * counted once. Actual Sales and the share calculated on them are shown beside
  * it and never stand in for it. A negative closing balance is a credit (the
@@ -56,6 +65,14 @@ export interface BranchAccountRow extends BranchAccountFacts {
   shareOnSales: number;
   previousBalance: number;
   closingBalance: number;
+  /** Gross delivered value — the same figure as `delivered`. */
+  totalDemandAmount: number;
+  /** Net demand: Delivered − Returns − Discount — the same figure as `gTotal`. */
+  demand: number;
+  /** Previous Balance + Company Share + Adjustments: what is owed before this row's payments. */
+  amountDue: number;
+  /** Amount Due − Payment Received — the same figure as `closingBalance`. Negative is a credit. */
+  remaining: number;
 }
 
 /** Rupees to the paisa, without binary-fraction drift (0.1 + 0.2 = 0.3). */
@@ -78,7 +95,8 @@ export function computeBranchAccount(facts: BranchAccountFacts[], startBalance =
     const gTotal = toPaisa(f.delivered - f.returns - f.discount);
     const companyShare = companyShareOf(gTotal, sharePct);
     const previousBalance = balance;
-    const closingBalance = toPaisa(previousBalance + companyShare + f.adjustments - f.received);
+    const amountDue = toPaisa(previousBalance + companyShare + f.adjustments);
+    const closingBalance = toPaisa(amountDue - f.received);
     balance = closingBalance;
     return {
       ...f,
@@ -89,6 +107,10 @@ export function computeBranchAccount(facts: BranchAccountFacts[], startBalance =
       shareOnSales: companyShareOf(f.sales, sharePct),
       previousBalance,
       closingBalance,
+      totalDemandAmount: f.delivered,
+      demand: gTotal,
+      amountDue,
+      remaining: closingBalance,
     };
   });
 }
@@ -107,6 +129,8 @@ export interface BranchAccountTotals {
   returns: number;
   discount: number;
   gTotal: number;
+  /** Net demand — the same figure as `gTotal`. */
+  demand: number;
   companyShare: number;
   shareOnSales: number;
   received: number;
@@ -128,7 +152,7 @@ export function totalBranchAccount(
   balances: { openingBalance: number; closingBalance: number }[],
 ): BranchAccountTotals {
   const t: BranchAccountTotals = {
-    delivered: 0, sales: 0, returns: 0, discount: 0, gTotal: 0, companyShare: 0,
+    delivered: 0, sales: 0, returns: 0, discount: 0, gTotal: 0, demand: 0, companyShare: 0,
     shareOnSales: 0, received: 0, adjustments: 0, openingBalance: 0, closingBalance: 0,
   };
   for (const r of rows) {
@@ -137,6 +161,7 @@ export function totalBranchAccount(
     t.returns += r.returns;
     t.discount += r.discount;
     t.gTotal += r.gTotal;
+    t.demand += r.gTotal;
     t.companyShare += r.companyShare;
     t.shareOnSales += r.shareOnSales;
     t.received += r.received;
