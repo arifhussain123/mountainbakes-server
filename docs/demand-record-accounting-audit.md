@@ -237,3 +237,47 @@ approve.
 - Existing suites: services 597/600, db 21/21 and routes 4/4 pass. The 3
   failures are the pre-existing `daily-sale-company-share.test.ts` mismatch
   noted in section 1.5.
+
+## 6. What was built (frontend)
+
+Finance → **Demand Record** (`/finance-demand-record`,
+`frontend/src/components/finance/DemandRecordPage.tsx`):
+
+- **Before go-live:** an explanation, and a "Switch on" control for the go-live
+  day (finance_admin).
+- **Table:** Date, Demand Number, Branch, Delivered, Actual Sales, Return,
+  Discount, G. Total, Share %, Company Share, Share Received, Adjustments,
+  Previous Balance, Closing Balance. A negative closing is shown as a
+  "credit", zero as "settled", and the open last row is marked. Phones show
+  each row as a card.
+- **Controls:** branch, from/to and search filters; date sorting both ways;
+  pagination; loading, empty, error and retry states.
+- **Period totals:** opening and closing are taken once per branch, with the
+  identity Opening + Share + Adjustments − Received = Closing printed under
+  them. A balance-by-branch list follows.
+- **Export:** CSV of every row in the filter, plus totals.
+- **View Details:** the calculation, and every record behind each figure:
+  delivered lines with their price source, returns, discounts, transfers with
+  their numbers, Finance entries, and POS sales with the share on them.
+- **Opening & adjustments:** list, new entry (with a request id per form, so a
+  retry posts once) and reverse.
+
+Money uses the Finance module's two-decimal format (`Rs. 34,240.00`), like
+every other Finance screen.
+
+## 7. Not done / follow-ups
+
+- **Slip, Collections export and dashboard** still use today's rules. Moving
+  them to the Demand Record's rules changes what riders collect, so it needs
+  the owner's go-ahead.
+- **Spec fields not shown:** Created/Updated By/At per demand and a single
+  "settlement reference" are not columns. The source records' own references
+  (transfer and voucher numbers, who entered an adjustment) are in View
+  Details.
+- **Demand create is not atomic** (header and items are separate calls), and
+  the web app does not send an Idempotency-Key. This is unchanged. The Demand
+  Record cannot double-count either way.
+- **`verified` orders** are still skipped by the slip's previous-order lookup
+  (D9).
+- **`daily-sale-company-share.test.ts`** still fails as it did before this
+  work.
