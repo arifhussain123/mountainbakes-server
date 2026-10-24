@@ -43,6 +43,14 @@ import { round2 } from './daily-sale';
  * the ones dated on the sale day itself (`match: 'same_day'`), and the gap is
  * shown on that day.
  *
+ * ─── A deposit no day claimed is shown on its own date ───────────────────────
+ * Last, any deposit still unclaimed — its amount paid no day, or its date's day
+ * already had its deposit (a second deposit the same day) — is added to the row
+ * of the date it was handed over, as cash received that day (the owner's rule,
+ * 2026-10-24). It is never left off the page; the day's difference shows it, and
+ * `extraCount` says how many such deposits the row carries. Only a deposit with
+ * no row on its date at all stays unclaimed.
+ *
  * Nothing here changes a sale, a record or a deposit.
  */
 
@@ -114,6 +122,7 @@ function compose(
   record: DepositReconRecord,
   deposits: BranchDayDeposit[],
   match: DepositMatchKind,
+  extraCount: number,
 ): DailySaleReconciliation {
   const approved = deposits.filter((d) => d.status === 'approved');
   const waiting = deposits.filter((d) => d.status === 'pending');
@@ -123,7 +132,7 @@ function compose(
   let status: DepositReconStatus;
   if (waiting.length > 0) status = 'pending';
   else if (approved.length === 0) status = expected === 0 ? 'nothing_due' : 'not_received';
-  else status = match === 'amount' ? 'matched' : 'discrepancy';
+  else status = match === 'amount' && extraCount === 0 ? 'matched' : 'discrepancy';
 
   return {
     expected,
@@ -136,6 +145,7 @@ function compose(
     match,
     provisional: record.id === null || isDailySaleRecordOpen(record.status),
     deposits,
+    extraCount,
   };
 }
 
@@ -150,7 +160,7 @@ export function reconcileDeposits(
   deposits: BranchDayDeposit[],
 ): { byDay: Map<string, DailySaleReconciliation>; unclaimed: BranchDayDeposit[] } {
   const claimed = new Set<string>();
-  const found = new Map<string, { deposits: BranchDayDeposit[]; match: DepositMatchKind }>();
+  const found = new Map<string, { deposits: BranchDayDeposit[]; match: DepositMatchKind; extraCount: number }>();
 
   // Oldest day first, so when two days could take the same deposit the earlier
   // one — whose deposit is the more overdue — is served first.
@@ -175,7 +185,7 @@ export function reconcileDeposits(
 
   const take = (record: DepositReconRecord, deposits: BranchDayDeposit[], match: DepositMatchKind) => {
     for (const d of deposits) claimed.add(d.id);
-    found.set(dayKey(record.branchId, record.businessDate), { deposits, match });
+    found.set(dayKey(record.branchId, record.businessDate), { deposits, match, extraCount: 0 });
   };
 
   const pass = (status: 'approved' | 'pending', match: 'amount' | 'same_day') => {
@@ -211,11 +221,27 @@ export function reconcileDeposits(
   pass('approved', 'same_day');
   pass('pending', 'same_day');
 
+  // What is left goes on the row of the date it was handed over, alongside
+  // whatever that day already has.
+  const rowKeys = new Set(records.map((r) => dayKey(r.branchId, r.businessDate)));
+  for (const d of pool) {
+    const key = dayKey(d.branchId, d.businessDate);
+    if (claimed.has(d.id) || !rowKeys.has(key)) continue;
+    claimed.add(d.id);
+    const hit = found.get(key);
+    if (hit) {
+      hit.deposits = [...hit.deposits, d];
+      hit.extraCount += 1;
+    } else {
+      found.set(key, { deposits: [d], match: 'same_day', extraCount: 1 });
+    }
+  }
+
   const byDay = new Map<string, DailySaleReconciliation>();
   for (const record of records) {
     const key = dayKey(record.branchId, record.businessDate);
     const hit = found.get(key);
-    byDay.set(key, compose(record, hit?.deposits ?? [], hit?.match ?? 'none'));
+    byDay.set(key, compose(record, hit?.deposits ?? [], hit?.match ?? 'none', hit?.extraCount ?? 0));
   }
 
   return { byDay, unclaimed: pool.filter((d) => !claimed.has(d.id)) };
