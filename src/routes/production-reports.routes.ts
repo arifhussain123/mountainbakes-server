@@ -5,7 +5,7 @@ import { requireRole } from '../middleware/requireRole';
 import { businessDateStr, businessDaysAgoStr } from '../shared';
 import { getProductionStockRows } from '../services/production-stock.service';
 import { getReturnStockRows } from '../services/return-stock.service';
-import { genericPDF, genericExcel, genericCSV } from '../services/production-export.service';
+import { genericPDF, genericExcel, genericExcelMultiSheet, genericCSV } from '../services/production-export.service';
 import { getPreviousOrderBalance } from '../services/previous-balance.service';
 import { format } from 'date-fns';
 import { sortRows } from '../utils/sortRows';
@@ -118,6 +118,11 @@ async function buildReport(
    * default at every call site that reads this field).
    */
   specialRowCount?: number;
+  /**
+   * Further tabs for the Excel export only, after the main sheet. PDF, CSV and
+   * the JSON preview carry just the main table. Only `collections` sets it.
+   */
+  extraSheets?: { title: string; headers: string[]; rows: (string | number)[][] }[];
 }> {
   // `prepared-detail` and `collections` are driven by an explicit from/to window
   // rather than the period dropdown; every other report still anchors to the
@@ -409,6 +414,11 @@ async function buildReport(
       const rows: (string | number)[][] = [];
       const totals = { delivered: 0, share: 0, retQty: 0, returns: 0, discount: 0, collect: 0 };
       const receivedById = new Map<string, number>();
+      // The By Branch sheet: the rows above summed per branch, the way a pivot
+      // on Branch would sum them. Deposits are de-duplicated per branch for the
+      // same reason as in the TOTAL.
+      type BranchSum = { deliveries: number; delivered: number; share: number; retQty: number; returns: number; discount: number; collect: number; receivedById: Map<string, number> };
+      const perBranch = new Map<string, BranchSum>();
       for (let i = 0; i < wanted.length; i++) {
         const bal = balances[i];
         // `previous` is the authoritative identity of the billed delivery — it is
@@ -426,6 +436,20 @@ async function buildReport(
         // paymentsReceivedInWindow), so two rows can carry the same transfer.
         // Each row shows what its slip shows; the TOTAL counts money once.
         for (const p of bal.paymentItems) receivedById.set(p.transferId, p.amount);
+        const branchName = wanted[i]!.billed.branch_name ?? '';
+        let sum = perBranch.get(branchName);
+        if (!sum) {
+          sum = { deliveries: 0, delivered: 0, share: 0, retQty: 0, returns: 0, discount: 0, collect: 0, receivedById: new Map() };
+          perBranch.set(branchName, sum);
+        }
+        sum.deliveries++;
+        sum.delivered += bal.deliveredValue;
+        sum.share += bal.companyShareValue;
+        sum.retQty += retQty;
+        sum.returns += bal.returnsValue;
+        sum.discount += bal.discountsValue;
+        sum.collect += bal.amountToCollect;
+        for (const p of bal.paymentItems) sum.receivedById.set(p.transferId, p.amount);
         rows.push([
           wanted[i]!.billed.branch_name ?? '',
           bal.previous.demandNumber,
@@ -439,6 +463,31 @@ async function buildReport(
           Math.round(bal.paymentsReceivedValue),
           Math.round(bal.remainingBalance),
         ]);
+      }
+
+      // `billable` is sorted by branch name, so the map already iterates in
+      // branch order. Remaining is per branch and floored at zero: one branch
+      // paying ahead does not lower what another owes, so the grand total is
+      // the column's sum rather than the main sheet's TOTAL (they differ only
+      // when some branch has paid more than it owes).
+      const branchRows: (string | number)[][] = [];
+      const grand = { deliveries: 0, delivered: 0, share: 0, retQty: 0, returns: 0, discount: 0, collect: 0, received: 0, remaining: 0 };
+      for (const [name, b] of perBranch) {
+        const received = [...b.receivedById.values()].reduce((a, v) => a + v, 0);
+        const remaining = Math.max(0, b.collect - received);
+        grand.deliveries += b.deliveries;
+        grand.delivered += Math.round(b.delivered);
+        grand.share += Math.round(b.share);
+        grand.retQty += b.retQty;
+        grand.returns += Math.round(b.returns);
+        grand.discount += Math.round(b.discount);
+        grand.collect += Math.round(b.collect);
+        grand.received += Math.round(received);
+        grand.remaining += Math.round(remaining);
+        branchRows.push([name, b.deliveries, Math.round(b.delivered), Math.round(b.share), b.retQty, Math.round(b.returns), Math.round(b.discount), Math.round(b.collect), Math.round(received), Math.round(remaining)]);
+      }
+      if (branchRows.length > 0) {
+        branchRows.push(['GRAND TOTAL', grand.deliveries, grand.delivered, grand.share, grand.retQty, grand.returns, grand.discount, grand.collect, grand.received, grand.remaining]);
       }
 
       let specialRowCount = 0;
@@ -471,6 +520,11 @@ async function buildReport(
         headers: ['Branch', 'Previous Order', 'Date', 'Delivered Value', 'Company Share', 'Less Returns Qty', 'Less Returns', 'Less Discount', 'Amount to Collect', 'Payment Received', 'Remaining'],
         rows,
         specialRowCount,
+        extraSheets: [{
+          title: 'By Branch',
+          headers: ['Branch', 'Deliveries', 'Delivered Value', 'Company Share', 'Less Returns Qty', 'Less Returns', 'Less Discount', 'Amount to Collect', 'Payment Received', 'Remaining'],
+          rows: branchRows,
+        }],
       };
     }
     case 'production':
@@ -515,7 +569,8 @@ router.get('/summary', async (req: AuthRequest, res, next) => {
     const period = String(req.query['period'] || 'monthly');
     const range = usesDateRange(report) ? explicitDateRange(req.query['from'], req.query['to']) : undefined;
     const branchId = typeof req.query['branchId'] === 'string' ? req.query['branchId'] : '';
-    const data = await buildReport(report, period, range, branchId);
+    // Extra Excel tabs are for the file, not the on-screen preview.
+    const { extraSheets: _extraSheets, ...data } = await buildReport(report, period, range, branchId);
 
     // Column-INDEX sort, not a key — these rows are positional arrays with no
     // per-cell name (unlike the keyed Finance Reports). A trailing TOTAL/
@@ -561,7 +616,7 @@ router.get('/export', async (req: AuthRequest, res, next) => {
     const exportType = String(req.query['type'] || 'excel');
     const range = usesDateRange(report) ? explicitDateRange(req.query['from'], req.query['to']) : undefined;
     const branchId = typeof req.query['branchId'] === 'string' ? req.query['branchId'] : '';
-    const { title, headers, rows } = await buildReport(report, period, range, branchId);
+    const { title, headers, rows, extraSheets } = await buildReport(report, period, range, branchId);
     // A range report names the window it covers, so two exports taken the same
     // day for different windows don't land on the same filename.
     const dateLabel = range
@@ -579,7 +634,9 @@ router.get('/export', async (req: AuthRequest, res, next) => {
       res.setHeader('Content-Disposition', `attachment; filename="${filename}.csv"`);
       res.send(genericCSV(headers, rows));
     } else {
-      const buffer = await genericExcel(title, headers, rows);
+      const buffer = extraSheets?.length
+        ? await genericExcelMultiSheet([{ title, headers, rows }, ...extraSheets])
+        : await genericExcel(title, headers, rows);
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}.xlsx"`);
       res.send(buffer);
