@@ -288,11 +288,22 @@ async function collectionsWorkbook(query: string): Promise<Map<string, Json[][]>
   return out;
 }
 
-test('before go-live the Collections export keeps the slip figures and says so', async () => {
-  const wb = await collectionsWorkbook('&from=2026-09-01&to=2026-09-30');
+test('before go-live the Production views count from the first demand at today\'s % and say so', async () => {
+  const wb = await collectionsWorkbook('&from=2026-08-01&to=2026-09-30');
   const main = wb.get('Collections')!;
-  assert.equal(main[0]![0], 'Branch');
-  assert.ok(main.some((r) => String(r[0]).includes('Demand Record (Finance) is not switched on yet')));
+  assert.ok(main[0]!.includes('Closing Balance'));
+  assert.ok(main.some((r) => String(r[0]).startsWith('Finance has not switched the Demand Record on yet, so this counts from the first demand (2026-08-31)')));
+  // D0 (08-31, 10 × 100) is the first delivered demand; nothing frozen yet, so today's 70%.
+  const d0 = main.find((r) => r[2] === 'DMD-000100')!;
+  assert.equal(d0[main[0]!.indexOf('Delivered')], 1000);
+  assert.equal(d0[main[0]!.indexOf('Share %')], 70);
+
+  const res = await fetch(`${base}/api/production-reports/demand-record`, { headers: { Authorization: `Bearer ${TOKENS.production}` } });
+  const body = await res.json() as Json;
+  assert.equal(res.status, 200, JSON.stringify(body));
+  assert.equal(body.switchedOn, false);
+  assert.equal(body.start, '2026-08-31');
+  assert.equal(body.rows.find((r: Json) => r.orderId === ORD.d0).companyShare, 679); // (1,000 − its 30 discount) × 70%
 });
 
 test('Test 10 — only finance roles read it; only `configure` switches it on; only `approve` posts', async () => {
@@ -542,4 +553,26 @@ test('the Collections export carries the Demand Record figures, per branch', asy
   const byBranch = wb.get('By Branch')!;
   assert.equal(byBranch.at(-1)![0], 'GRAND TOTAL');
   assert.equal(byBranch.at(-1)![byBranch[0]!.indexOf('Closing Balance')], record.totals.closingBalance);
+});
+
+test('the Orders table figures are the Demand Record rows, for production users, without sales', async () => {
+  const record = await rowsOf('');
+  const res = await fetch(`${base}/api/production-reports/demand-record`, { headers: { Authorization: `Bearer ${TOKENS.production}` } });
+  const body = await res.json() as Json;
+  assert.equal(res.status, 200, JSON.stringify(body));
+  assert.equal(body.switchedOn, true);
+  assert.equal(body.start, record.start);
+  const demands = (record.rows as Json[]).filter((r) => r.orderId);
+  assert.equal(body.rows.length, demands.length);
+  for (const r of demands) {
+    const got = body.rows.find((x: Json) => x.orderId === r.orderId);
+    for (const k of ['delivered', 'returns', 'discount', 'gTotal', 'companyShare', 'received', 'previousBalance', 'closingBalance', 'open']) {
+      assert.equal(got[k], r[k], `${r.demandNumber} ${k}`);
+    }
+    assert.equal('sales' in got || 'shareOnSales' in got, false);
+  }
+  const branchOnly = await fetch(`${base}/api/production-reports/demand-record?branchId=${BETA}`, { headers: { Authorization: `Bearer ${TOKENS.production}` } });
+  assert.deepEqual(((await branchOnly.json()) as Json).rows.map((r: Json) => r.orderId), [ORD.b1]);
+  const asBranch = await fetch(`${base}/api/production-reports/demand-record`, { headers: { Authorization: `Bearer ${TOKENS.branch}` } });
+  assert.equal(asBranch.status, 403);
 });
