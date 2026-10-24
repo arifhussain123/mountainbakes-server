@@ -214,8 +214,11 @@ export interface DemandRecordQuery {
   pageSize?: number;
 }
 
-export async function getDemandRecord(q: DemandRecordQuery): Promise<DemandRecordResult> {
-  const start = await requireLedgerStart();
+/**
+ * The period's rows (every branch in scope, unsorted) and each branch's balance
+ * either side of it. `from` is clamped to the go-live day and `to` to today.
+ */
+async function loadPeriod(q: { branchId?: string | null; from?: string; to?: string }, start: string) {
   const today = businessDateStr();
   const from = q.from && q.from > start ? q.from : start;
   const to = q.to && q.to < today ? q.to : today;
@@ -239,6 +242,13 @@ export async function getDemandRecord(q: DemandRecordQuery): Promise<DemandRecor
       inPeriod.push({ ...stripBounds(r), open: r.hi === null });
     }
   }
+  const balances = [...branches.values()].sort((a, b) => a.branchName.localeCompare(b.branchName));
+  return { from, to, inPeriod, balances };
+}
+
+export async function getDemandRecord(q: DemandRecordQuery): Promise<DemandRecordResult> {
+  const start = await requireLedgerStart();
+  const { from, to, inPeriod, balances } = await loadPeriod(q, start);
 
   const search = q.search?.trim().toLowerCase();
   const matched = search
@@ -251,7 +261,6 @@ export async function getDemandRecord(q: DemandRecordQuery): Promise<DemandRecor
   const total = matched.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const page = Math.min(Math.max(1, Math.trunc(q.page ?? 1)), totalPages);
-  const balances = [...branches.values()].sort((a, b) => a.branchName.localeCompare(b.branchName));
   return {
     start,
     from,
@@ -263,6 +272,20 @@ export async function getDemandRecord(q: DemandRecordQuery): Promise<DemandRecor
     branches: balances,
     pagination: { page, pageSize, total, totalPages },
   };
+}
+
+/**
+ * The whole period with no paging or search — every row, by branch then in
+ * order — for an export that must hold all of it (the Collections sheet).
+ * Null while the Demand Record is not switched on, so the caller can fall back
+ * rather than fail.
+ */
+export async function getDemandRecordPeriod(q: { branchId?: string | null; from?: string; to?: string }): Promise<Omit<DemandRecordResult, 'pagination'> | null> {
+  const start = await getLedgerStart();
+  if (!start) return null;
+  const { from, to, inPeriod, balances } = await loadPeriod(q, start);
+  inPeriod.sort((a, b) => a.branchName.localeCompare(b.branchName) || Date.parse(a.at) - Date.parse(b.at));
+  return { start, from, to, rows: inPeriod, totals: totalBranchAccount(inPeriod, balances), branches: balances };
 }
 
 function stripBounds<T extends { lo: string; hi: string | null }>(r: T): Omit<T, 'lo' | 'hi'> {
