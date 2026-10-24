@@ -9,7 +9,7 @@
 -- A Postgres SEQUENCE is deliberately NOT used: sequences are non-transactional
 -- and leave gaps on rollback. The business treats order numbers as gapless, so
 -- this keeps the counter-row semantics. The row lock serialises order creation,
--- which is acceptable here (one dyno, modest order rate) and is exactly what
+-- which is acceptable here (one server, modest order rate) and is exactly what
 -- the legacy system was already doing.
 -- ---------------------------------------------------------------------------
 create table counters (

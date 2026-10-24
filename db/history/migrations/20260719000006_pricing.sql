@@ -68,7 +68,7 @@ create index product_price_history_batch_idx   on product_price_history (batch_i
 -- Both the price-activation job and the daily closing used the same legacy
 -- pattern: a doc keyed by business date holding running/success/failed, where a
 -- 'running' lock older than 10 minutes is DELIBERATELY STEALABLE so a crashed
--- dyno cannot wedge the job forever.
+-- server cannot wedge the job forever.
 --
 -- price_activation_locks keeps that shape verbatim. business_day_closures
 -- (migration 07) doubles as both the lock and the archive, exactly as before.
@@ -81,7 +81,7 @@ create index product_price_history_batch_idx   on product_price_history (batch_i
 --          or price_activation_locks.started_at < now() - interval '10 minutes')
 -- A zero row count means someone else holds it — skip, do not error.
 --
--- These locks assume a SINGLE dyno (web=1), same as the legacy version.
+-- These locks assume a SINGLE server instance (one replica), same as the legacy version.
 -- Scaling out needs a real advisory lock, not just this row.
 -- ---------------------------------------------------------------------------
 create table price_activation_locks (

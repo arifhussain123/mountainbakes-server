@@ -9,7 +9,7 @@ const db = dbFor('idempotency');
  * Replay protection for `Idempotency-Key`.
  *
  * The mobile client commits a transaction to its own database first and sends it
- * afterwards, so every send can be retried: after a timeout, after a dyno
+ * afterwards, so every send can be retried: after a timeout, after a server
  * restart, after the app is killed mid-request. Without this, a retry of a
  * request the server already processed applies it twice — a second sale, with
  * real money against it, that nobody is looking for.

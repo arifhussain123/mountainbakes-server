@@ -10,7 +10,7 @@ import { auditBucket, configureBucket, desiredLifecycleRules, diffLifecycle, get
  *   pnpm backup:aws:configure             prints what WOULD change (lifecycle diff, encryption, public access block)
  *   pnpm backup:aws:configure -- --confirm  applies it. Needs elevated one-off credentials
  *                                         (s3:PutLifecycleConfiguration, s3:PutEncryptionConfiguration,
- *                                         s3:PutBucketPublicAccessBlock) — NOT the dyno's backup user.
+ *                                         s3:PutBucketPublicAccessBlock) — NOT the server's backup user.
  *
  * Lifecycle rules are merged by rule ID: rules for other prefixes in the bucket
  * are preserved untouched. Idempotent — re-running applies nothing new.

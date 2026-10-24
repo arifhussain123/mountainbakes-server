@@ -52,7 +52,7 @@ async function main() {
     if (process.env.NODE_ENV === 'production' && !process.env.CORS_ORIGINS) {
       console.warn(
         '[cors] CORS_ORIGINS is not set — only localhost is allowed. Set it to your ' +
-          'deployed web origin (e.g. https://mountain-bakes-web.herokuapp.com) or the browser will block requests.'
+          'deployed web origin (e.g. https://mountainbakes-dfc2c.web.app) or the browser will block requests.'
       );
     }
   });

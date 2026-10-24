@@ -1,6 +1,0 @@
-# PostgreSQL 18 client tools for the database backup jobs (pg_dump / pg_restore / psql).
-# Consumed by heroku-community/apt (see DEPLOY.md → "Database backups"). The client
-# major must be >= the server major, and the database runs PostgreSQL 18. Ubuntu
-# noble's own postgresql-client is 16, which refuses it, hence PGDG.
-:repo:deb [trusted=yes] https://apt.postgresql.org/pub/repos/apt noble-pgdg main
-postgresql-client-18

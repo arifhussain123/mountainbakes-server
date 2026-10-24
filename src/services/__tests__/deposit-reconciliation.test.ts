@@ -232,12 +232,17 @@ describe('deposits awaiting approval', () => {
 
   test('an approved deposit of the same amount wins over a pending one', () => {
     const { of, unclaimed } = reconcile(
-      [day('2026-10-01', 500)],
+      [day('2026-10-01', 500), day('2026-10-02', 0)],
       [deposit('2026-10-01', 500, { status: 'pending' }), deposit('2026-10-02', 500)],
     );
-    assert.equal(of('2026-10-01').status, 'matched');
-    assert.equal(unclaimed.length, 1);
-    assert.equal(unclaimed[0]!.status, 'pending');
+    // 10-01 is paid by the approved one; the pending one, dated 10-01, then
+    // sits on its own date's row as an extra — 10-01 again.
+    assert.equal(of('2026-10-01').approvedCount, 1);
+    assert.equal(of('2026-10-01').received, 500);
+    assert.equal(of('2026-10-01').pending, 500);
+    assert.equal(of('2026-10-01').extraCount, 1);
+    assert.equal(of('2026-10-01').status, 'pending');
+    assert.deepEqual(unclaimed, []);
   });
 
   test('a pending deposit of the same amount is preferred to an approved one of a different amount', () => {
@@ -255,6 +260,57 @@ describe('days that owe nothing', () => {
     const { of, unclaimed } = reconcile([day('2026-10-01', 0)], [deposit('2026-10-02', 300)]);
     assert.equal(of('2026-10-01').status, 'nothing_due');
     assert.equal(of('2026-10-01').difference, 0);
+    assert.equal(unclaimed.length, 1);
+  });
+});
+
+describe('a deposit no day claimed is shown on its own date', () => {
+  test('a second deposit on a day already paid is added to that day, not dropped', () => {
+    // 10-03's share is paid exactly by the 10-03 deposit; Alabad hands over a
+    // second one the same day that matches nothing.
+    const { of, unclaimed } = reconcile(
+      [day('2026-10-02', 0), day('2026-10-03', 18000)],
+      [deposit('2026-10-03', 18000), deposit('2026-10-03', 18030)],
+    );
+    const r = of('2026-10-03');
+    assert.equal(r.received, 36030);
+    assert.equal(r.difference, -18030);
+    assert.equal(r.approvedCount, 2);
+    assert.equal(r.extraCount, 1);
+    assert.equal(r.match, 'amount');
+    assert.equal(r.status, 'discrepancy');
+    assert.deepEqual(unclaimed, []);
+  });
+
+  test('a deposit whose amount paid no day goes on the day it was handed over', () => {
+    // 10-12 is paid by its next-day deposit; 20,990 on 10-13 is far from 10-13's share.
+    const { of, unclaimed } = reconcile(
+      [day('2026-10-12', 15000), day('2026-10-13', 0)],
+      [deposit('2026-10-13', 15000), deposit('2026-10-13', 20990)],
+    );
+    assert.equal(of('2026-10-12').status, 'matched');
+    assert.equal(of('2026-10-12').extraCount, 0);
+    const r = of('2026-10-13');
+    assert.equal(r.received, 20990);
+    assert.equal(r.difference, -20990);
+    assert.equal(r.match, 'same_day');
+    assert.equal(r.extraCount, 1);
+    assert.equal(r.status, 'discrepancy');
+    assert.deepEqual(unclaimed, []);
+  });
+
+  test('a deposit with no row on its date stays unclaimed', () => {
+    const { unclaimed } = reconcile([day('2026-10-01', 500)], [deposit('2026-10-01', 500), deposit('2026-10-05', 900)]);
+    assert.equal(unclaimed.length, 1);
+    assert.equal(unclaimed[0]!.businessDate, '2026-10-05');
+  });
+
+  test('another branch\'s row is never used', () => {
+    const { of, unclaimed } = reconcile(
+      [day('2026-10-01', 0, { branchId: B })],
+      [deposit('2026-10-01', 700)],
+    );
+    assert.equal(of('2026-10-01', B).extraCount, 0);
     assert.equal(unclaimed.length, 1);
   });
 });

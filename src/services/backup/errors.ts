@@ -2,8 +2,8 @@ import type { BackupErrorCategory } from '../../shared';
 
 /**
  * A backup failure with a coarse, safe-to-display category. The category is
- * what lands in backup_jobs.error_category, the alert ticket and the Heroku
- * Scheduler log line; the message is redacted before it goes anywhere.
+ * what lands in backup_jobs.error_category, the alert ticket and the log
+ * line; the message is redacted before it goes anywhere.
  */
 export class BackupError extends Error {
   readonly category: BackupErrorCategory;

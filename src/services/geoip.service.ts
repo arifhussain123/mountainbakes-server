@@ -40,7 +40,7 @@ const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 /**
  * Cap on distinct IPs held. Bounded because this Map lives for the life of the
- * dyno; 500 covers every plausible staff network many times over, and the whole
+ * server; 500 covers every plausible staff network many times over, and the whole
  * cache is dropped rather than evicted one by one — the cost of a cold cache is
  * one extra lookup per IP, which is not worth an LRU to avoid.
  */
@@ -209,7 +209,7 @@ export async function lookupIp(ip: string | null | undefined): Promise<GeoLocati
   } catch {
     // Timeout, DNS failure, non-JSON body — all the same outcome. Not logged at
     // error level: a provider being down is not this app misbehaving, and one
-    // line per login would drown the dyno log.
+    // line per login would drown the server log.
     return EMPTY;
   }
 }

@@ -526,7 +526,7 @@ export interface ProductionStockCorrectionResult {
 
 /**
  * Thrown when migration 50 has not been applied to the database yet. Migrations are
- * pushed by hand here (the dyno does not run them at boot), so the alternative is a
+ * pushed by hand here (the server does not run them at boot), so the alternative is a
  * bare 500 from PostgREST that reads as a bug rather than as a pending deploy step.
  */
 export class CorrectionUnavailableError extends Error {

@@ -19,7 +19,7 @@ router.use(authenticate);
  *
  * That is why app.ts leaves it out of the app-wide limiter and it carries this
  * one instead. The app-wide limiter keys on `req.ip`, which without `trust
- * proxy` is a Heroku router address shared by unrelated users — a handful of
+ * proxy` is the hosting proxy's address, shared by unrelated users — a handful of
  * idle tabs polling would spend the allowance that real work needs. Keyed on
  * the authenticated user, a runaway client can only ever throttle itself.
  *

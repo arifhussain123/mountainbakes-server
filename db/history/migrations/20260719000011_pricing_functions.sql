@@ -132,7 +132,7 @@ $$;
 --
 -- Returns true if this caller now holds the lock, NULL (falsy) if someone else
 -- does. A 'running' lock older than 10 minutes is deliberately stealable so a
--- crashed dyno cannot wedge the job forever — same rule as the legacy
+-- crashed server cannot wedge the job forever — same rule as the legacy
 -- version and as daily-closing.
 --
 -- The WHERE on the DO UPDATE branch is what makes this atomic: a losing caller

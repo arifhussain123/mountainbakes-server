@@ -533,12 +533,15 @@ describe('the Company Share against the deposit that paid it', () => {
     assert.deepEqual(list.unmatchedDeposits, []);
   });
 
-  test('a second deposit that matches nothing is reported as unmatched, and the day stays matched', async () => {
+  test('a second deposit that matches nothing is shown on the day it was handed over', async () => {
     extra = await deposit({ branch: A, date: D1, status: 'approved', cash: 50 });
     const list = await financeList(D1, D1);
-    assert.equal(rowOf(list, A, D1).reconciliation.status, 'matched');
-    assert.equal(rowOf(list, A, D1).reconciliation.received, 1425);
-    assert.deepEqual(list.unmatchedDeposits.map((d: Json) => d.id), [extra]);
+    const r = rowOf(list, A, D1).reconciliation;
+    assert.equal(r.status, 'discrepancy');
+    assert.equal(r.received, 1475);
+    assert.equal(r.extraCount, 1);
+    assert.ok(r.deposits.some((d: Json) => d.id === extra));
+    assert.deepEqual(list.unmatchedDeposits, []);
   });
 
   test('a deposit deleted through the Help Desk drops out', async () => {

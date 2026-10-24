@@ -103,6 +103,12 @@ export interface DailySaleReconciliation {
   provisional: boolean;
   /** The deposits set against this day, each with the date it was handed over. */
   deposits: BranchDayDeposit[];
+  /**
+   * How many of `deposits` paid no day by amount and are here only because they
+   * were handed over on this date (a second deposit the same day, say). A row
+   * with any is never `matched`.
+   */
+  extraCount: number;
 }
 
 export interface FinanceDailySaleRow extends DailySaleRecord {
@@ -123,9 +129,9 @@ export interface FinanceDailySaleList extends Omit<DailySaleRecordList, 'records
   records: FinanceDailySaleRow[];
   reconciliation: FinanceDailySaleSummary;
   /**
-   * Deposits dated inside the window that were not set against any day. They are
-   * reported rather than forced onto a day: which sales a deposit pays for is the
-   * branch's statement, and a pairing nobody can explain is worse than none.
+   * Deposits dated inside the window that are on no row: none paid a day by
+   * amount and their own date has no row to show them on. Every other unpaired
+   * deposit is on the row of the date it was handed over (`extraCount`).
    */
   unmatchedDeposits: BranchDayDeposit[];
 }

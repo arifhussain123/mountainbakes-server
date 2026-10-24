@@ -1,8 +1,7 @@
 -- 63: drop production_expenses.
 --
 -- The central kitchen's own expense book is retired. The code that read this
--- table went out first (server af028ac "Remove Production Expenses", Heroku
--- v31), so nothing in production queries it by the time this runs — that
+-- table went out first (server af028ac "Remove Production Expenses"), so nothing in production queries it by the time this runs — that
 -- ordering is deliberate and is the reverse of the usual migrate-first rule:
 -- taking the table before the deploy would have 500'd the closing report,
 -- daily closing and the support lookup.

@@ -20,7 +20,7 @@ import type { RetentionDays } from './backupConfig';
  * `auditBucket` is read-only and runs with the ordinary backup credentials
  * (it tolerates AccessDenied on each call and reports it). `configureBucket`
  * needs elevated, one-off credentials and is only ever run by a person with
- * `--confirm` — never from the dyno, never on a schedule.
+ * `--confirm` — never from the server, never on a schedule.
  */
 
 export const RULE_ID_PREFIX = 'mountainbakes-db-backups';

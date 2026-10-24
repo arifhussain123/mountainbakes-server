@@ -113,8 +113,8 @@ router.get('/restore-tests/latest', async (_req, res, next) => {
 /**
  * Start a backup. The lock is claimed synchronously (so a second click gets a
  * 409 immediately); the dump/upload then continues in this process after the
- * 202 is sent. On Heroku this runs on the web dyno — fine for a manual run,
- * but the scheduled path (Heroku Scheduler one-off dynos) is the primary one.
+ * 202 is sent. It runs in the API process, as the scheduled runs do
+ * (scheduler/database-backup.job.ts).
  */
 router.post('/run', validate(RunBackupSchema), async (req: AuthRequest, res, next) => {
   try {

@@ -1,13 +1,13 @@
 -- 117: database backup job ledger + distributed lock for the pg_dump → S3 system.
 --
--- The backup system (src/services/backup/, run by Heroku Scheduler as
+-- The backup system (src/services/backup/, run on a schedule as
 -- `pnpm backup:daily|weekly|monthly` and by super admins from the Database
 -- Backup screen) needs two things from Postgres that neither S3 nor a process
 -- can give it:
 --
---   1. A LOCK that works across processes and dynos. Heroku Scheduler runs each
---      job on its own one-off dyno, and an admin can trigger a manual run from
---      the web dyno at the same moment. An in-memory flag cannot see across
+--   1. A LOCK that works across processes and machines. A scheduled job can run
+--      in its own process, and an admin can trigger a manual run from the API
+--      at the same moment. An in-memory flag cannot see across
 --      those; a transaction-scoped advisory lock cannot outlive one PostgREST
 --      call, and a dump takes minutes. So the lock is a ROW: at most one
 --      'running' row per backup_type, enforced by a partial unique index, and
@@ -29,7 +29,7 @@
 --   verified  S3 HeadObject size + stored SHA-256 confirmed after upload
 --   failed    any step failed; error_category/error_message say which
 --   stale     a 'running' row older than the stale window when a newer claim
---             arrived (dyno was killed mid-run); treated as failed
+--             arrived (server was killed mid-run); treated as failed
 --
 -- Never stored here: the database URL, AWS keys, or any raw error text that
 -- could contain them — the runner redacts before writing error_message.
@@ -120,7 +120,7 @@ alter table public.backup_restore_tests enable row level security;
 --   'in_progress'        another run of this TYPE is still inside its stale
 --                        window — do not start a second dump.
 --
--- A 'running' row older than p_stale_ms is a run whose dyno died: it is marked
+-- A 'running' row older than p_stale_ms is a run whose server died: it is marked
 -- 'stale' (never silently deleted — the failure must stay visible) and the new
 -- claim proceeds. The advisory lock serialises two simultaneous claims for the
 -- same type so both cannot pass the "no running row" check; the partial unique

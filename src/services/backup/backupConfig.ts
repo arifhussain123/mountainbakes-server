@@ -16,7 +16,7 @@ export const PRODUCTION_BUCKET_DEFAULT = 'mountainbakes-bucket';
 export const DEFAULT_PREFIX = 'database-backups';
 export const SUPPORTED_TIMEZONE = 'Asia/Karachi';
 
-/** Fixed, documented schedule (Asia/Karachi). The Heroku Scheduler entries in DEPLOY.md are these in UTC. */
+/** Fixed, documented schedule (Asia/Karachi); scheduler/database-backup.job.ts runs these. */
 export const BACKUP_SCHEDULE = {
   timezone: SUPPORTED_TIMEZONE,
   daily: 'Every day at 03:00',
@@ -203,7 +203,7 @@ export function getBackupSystemConfig(opts: ConfigOptions = {}): BackupSystemCon
 
   const appVersion =
     (env.APP_VERSION || '').trim() ||
-    (env.HEROKU_RELEASE_VERSION ? `heroku-${env.HEROKU_RELEASE_VERSION}` : '') ||
+    (env.RAILWAY_GIT_COMMIT_SHA ? `railway-${env.RAILWAY_GIT_COMMIT_SHA.slice(0, 7)}` : '') ||
     null;
 
   if (errors.length > 0) {

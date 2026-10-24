@@ -16,7 +16,7 @@ import { pgConnectionEnv } from '../../src/services/backup/postgresBackup';
  * in a file that is committed. This sets one and writes
  * infra/railway/.secrets.env (git-ignored, mode 600), printing only where that
  * file is — never the secret. The file is then the one place to copy
- * DATABASE_URL from into Heroku.
+ * DATABASE_URL from into the API service's Railway Variables.
  *
  * WHY THE API DOES NOT USE THE `postgres` LOGIN Railway hands out. That login
  * owns the database: it can drop it. The API needs to read and write rows and
@@ -28,8 +28,8 @@ import { pgConnectionEnv } from '../../src/services/backup/postgresBackup';
  * what a fresh `railway:migrate --reset-target` needs: the role survives the
  * wipe, so nothing changes, but it is safe to run either way.
  *
- * --rotate on a live system stops the API until DATABASE_URL is updated on
- * Heroku. It is for a leak, not for routine.
+ * --rotate on a live system stops the API until DATABASE_URL is updated in
+ * its Railway Variables. It is for a leak, not for routine.
  */
 
 const FILE = path.join(__dirname, '.secrets.env');
@@ -84,15 +84,15 @@ async function main() {
   await writeFile(
     FILE,
     `# Mountain Bakes — the API's database login on Railway. NEVER COMMIT. Generated ${new Date().toISOString()}
-# Regenerate with: pnpm railway:role --rotate   (stops the API until Heroku is updated)
+# Regenerate with: pnpm railway:role --rotate   (stops the API until its Variables are updated)
 
 MB_API_PASSWORD=${apiPassword}
 
 # ── Where it goes ──────────────────────────────────────────────────────────
-# Heroku · the API
+# Railway · the API service's Variables
 #   DATABASE_URL=${apiUrl.toString()}
 #
-# That is Railway's PUBLIC address, which is what Heroku has to use. The
+# That is Railway's PUBLIC address, which works from anywhere. The
 # administrator URL (RAILWAY_DB_URL, user postgres) stays where it is: it is for
 # the copy, for migrations and for backups, and never for the running API.
 `,
@@ -101,7 +101,7 @@ MB_API_PASSWORD=${apiPassword}
   await chmod(FILE, 0o600);
 
   console.log(`[role] mb_api on ${targetEnv.PGHOST}:${targetEnv.PGPORT}/${targetEnv.PGDATABASE} ${reused ? 'has the password already on file' : 'has a new password'}`);
-  console.log(`[role] the API's DATABASE_URL is in ${path.relative(process.cwd(), FILE)} — copy it to Heroku from there`);
+  console.log(`[role] the API's DATABASE_URL is in ${path.relative(process.cwd(), FILE)} — copy it to the API's Railway Variables from there`);
 }
 
 main().catch((err) => {
