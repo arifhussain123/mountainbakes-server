@@ -38,6 +38,7 @@ import { router as financeIncomeRouter, entriesRouter as financeEntriesRouter } 
 import { router as financePayrollRouter } from './finance-payroll.routes';
 import { router as financePartnersRouter } from './finance-partners.routes';
 import { router as financeBranchShareRouter } from './finance-branch-share.routes';
+import { router as financeBranchAccountRouter } from './finance-branch-account.routes';
 import { router as financeReportsRouter } from './finance-reports.routes';
 import { router as financeTicketsRouter } from './finance-tickets.routes';
 import { router as financeCashTransfersRouter } from './finance-cash-transfers.routes';
@@ -149,6 +150,7 @@ export function setupRoutes(app: Express) {
   app.use('/api/finance/payroll', financePayrollRouter);
   app.use('/api/finance/partner-expenses', financePartnersRouter);
   app.use('/api/finance/branch-share', financeBranchShareRouter);
+  app.use('/api/finance/branch-account', financeBranchAccountRouter);
   app.use('/api/finance/reports', financeReportsRouter);
   app.use('/api/finance/tickets', financeTicketsRouter);
   app.use('/api/finance/cash-transfers', financeCashTransfersRouter);

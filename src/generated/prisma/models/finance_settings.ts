@@ -53,6 +53,7 @@ export type Finance_settingsMinAggregateOutputType = {
   allow_super_admin_write: boolean | null
   updated_at: Date | null
   updated_by: string | null
+  account_ledger_start: Date | null
 }
 
 export type Finance_settingsMaxAggregateOutputType = {
@@ -68,6 +69,7 @@ export type Finance_settingsMaxAggregateOutputType = {
   allow_super_admin_write: boolean | null
   updated_at: Date | null
   updated_by: string | null
+  account_ledger_start: Date | null
 }
 
 export type Finance_settingsCountAggregateOutputType = {
@@ -83,6 +85,7 @@ export type Finance_settingsCountAggregateOutputType = {
   allow_super_admin_write: number
   updated_at: number
   updated_by: number
+  account_ledger_start: number
   _all: number
 }
 
@@ -114,6 +117,7 @@ export type Finance_settingsMinAggregateInputType = {
   allow_super_admin_write?: true
   updated_at?: true
   updated_by?: true
+  account_ledger_start?: true
 }
 
 export type Finance_settingsMaxAggregateInputType = {
@@ -129,6 +133,7 @@ export type Finance_settingsMaxAggregateInputType = {
   allow_super_admin_write?: true
   updated_at?: true
   updated_by?: true
+  account_ledger_start?: true
 }
 
 export type Finance_settingsCountAggregateInputType = {
@@ -144,6 +149,7 @@ export type Finance_settingsCountAggregateInputType = {
   allow_super_admin_write?: true
   updated_at?: true
   updated_by?: true
+  account_ledger_start?: true
   _all?: true
 }
 
@@ -246,6 +252,7 @@ export type Finance_settingsGroupByOutputType = {
   allow_super_admin_write: boolean
   updated_at: Date
   updated_by: string
+  account_ledger_start: Date | null
   _count: Finance_settingsCountAggregateOutputType | null
   _avg: Finance_settingsAvgAggregateOutputType | null
   _sum: Finance_settingsSumAggregateOutputType | null
@@ -284,6 +291,7 @@ export type finance_settingsWhereInput = {
   allow_super_admin_write?: Prisma.BoolFilter<"finance_settings"> | boolean
   updated_at?: Prisma.DateTimeFilter<"finance_settings"> | Date | string
   updated_by?: Prisma.StringFilter<"finance_settings"> | string
+  account_ledger_start?: Prisma.DateTimeNullableFilter<"finance_settings"> | Date | string | null
 }
 
 export type finance_settingsOrderByWithRelationInput = {
@@ -299,6 +307,7 @@ export type finance_settingsOrderByWithRelationInput = {
   allow_super_admin_write?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   updated_by?: Prisma.SortOrder
+  account_ledger_start?: Prisma.SortOrderInput | Prisma.SortOrder
 }
 
 export type finance_settingsWhereUniqueInput = Prisma.AtLeast<{
@@ -317,6 +326,7 @@ export type finance_settingsWhereUniqueInput = Prisma.AtLeast<{
   allow_super_admin_write?: Prisma.BoolFilter<"finance_settings"> | boolean
   updated_at?: Prisma.DateTimeFilter<"finance_settings"> | Date | string
   updated_by?: Prisma.StringFilter<"finance_settings"> | string
+  account_ledger_start?: Prisma.DateTimeNullableFilter<"finance_settings"> | Date | string | null
 }, "id">
 
 export type finance_settingsOrderByWithAggregationInput = {
@@ -332,6 +342,7 @@ export type finance_settingsOrderByWithAggregationInput = {
   allow_super_admin_write?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   updated_by?: Prisma.SortOrder
+  account_ledger_start?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.finance_settingsCountOrderByAggregateInput
   _avg?: Prisma.finance_settingsAvgOrderByAggregateInput
   _max?: Prisma.finance_settingsMaxOrderByAggregateInput
@@ -355,6 +366,7 @@ export type finance_settingsScalarWhereWithAggregatesInput = {
   allow_super_admin_write?: Prisma.BoolWithAggregatesFilter<"finance_settings"> | boolean
   updated_at?: Prisma.DateTimeWithAggregatesFilter<"finance_settings"> | Date | string
   updated_by?: Prisma.StringWithAggregatesFilter<"finance_settings"> | string
+  account_ledger_start?: Prisma.DateTimeNullableWithAggregatesFilter<"finance_settings"> | Date | string | null
 }
 
 export type finance_settingsCreateInput = {
@@ -370,6 +382,7 @@ export type finance_settingsCreateInput = {
   allow_super_admin_write?: boolean
   updated_at?: Date | string
   updated_by?: string
+  account_ledger_start?: Date | string | null
 }
 
 export type finance_settingsUncheckedCreateInput = {
@@ -385,6 +398,7 @@ export type finance_settingsUncheckedCreateInput = {
   allow_super_admin_write?: boolean
   updated_at?: Date | string
   updated_by?: string
+  account_ledger_start?: Date | string | null
 }
 
 export type finance_settingsUpdateInput = {
@@ -400,6 +414,7 @@ export type finance_settingsUpdateInput = {
   allow_super_admin_write?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_by?: Prisma.StringFieldUpdateOperationsInput | string
+  account_ledger_start?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type finance_settingsUncheckedUpdateInput = {
@@ -415,6 +430,7 @@ export type finance_settingsUncheckedUpdateInput = {
   allow_super_admin_write?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_by?: Prisma.StringFieldUpdateOperationsInput | string
+  account_ledger_start?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type finance_settingsCreateManyInput = {
@@ -430,6 +446,7 @@ export type finance_settingsCreateManyInput = {
   allow_super_admin_write?: boolean
   updated_at?: Date | string
   updated_by?: string
+  account_ledger_start?: Date | string | null
 }
 
 export type finance_settingsUpdateManyMutationInput = {
@@ -445,6 +462,7 @@ export type finance_settingsUpdateManyMutationInput = {
   allow_super_admin_write?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_by?: Prisma.StringFieldUpdateOperationsInput | string
+  account_ledger_start?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type finance_settingsUncheckedUpdateManyInput = {
@@ -460,6 +478,7 @@ export type finance_settingsUncheckedUpdateManyInput = {
   allow_super_admin_write?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_by?: Prisma.StringFieldUpdateOperationsInput | string
+  account_ledger_start?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type finance_settingsCountOrderByAggregateInput = {
@@ -475,6 +494,7 @@ export type finance_settingsCountOrderByAggregateInput = {
   allow_super_admin_write?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   updated_by?: Prisma.SortOrder
+  account_ledger_start?: Prisma.SortOrder
 }
 
 export type finance_settingsAvgOrderByAggregateInput = {
@@ -497,6 +517,7 @@ export type finance_settingsMaxOrderByAggregateInput = {
   allow_super_admin_write?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   updated_by?: Prisma.SortOrder
+  account_ledger_start?: Prisma.SortOrder
 }
 
 export type finance_settingsMinOrderByAggregateInput = {
@@ -512,6 +533,7 @@ export type finance_settingsMinOrderByAggregateInput = {
   allow_super_admin_write?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   updated_by?: Prisma.SortOrder
+  account_ledger_start?: Prisma.SortOrder
 }
 
 export type finance_settingsSumOrderByAggregateInput = {
@@ -536,6 +558,7 @@ export type finance_settingsSelect<ExtArgs extends runtime.Types.Extensions.Inte
   allow_super_admin_write?: boolean
   updated_at?: boolean
   updated_by?: boolean
+  account_ledger_start?: boolean
 }, ExtArgs["result"]["finance_settings"]>
 
 export type finance_settingsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -551,6 +574,7 @@ export type finance_settingsSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   allow_super_admin_write?: boolean
   updated_at?: boolean
   updated_by?: boolean
+  account_ledger_start?: boolean
 }, ExtArgs["result"]["finance_settings"]>
 
 export type finance_settingsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -566,6 +590,7 @@ export type finance_settingsSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   allow_super_admin_write?: boolean
   updated_at?: boolean
   updated_by?: boolean
+  account_ledger_start?: boolean
 }, ExtArgs["result"]["finance_settings"]>
 
 export type finance_settingsSelectScalar = {
@@ -581,9 +606,10 @@ export type finance_settingsSelectScalar = {
   allow_super_admin_write?: boolean
   updated_at?: boolean
   updated_by?: boolean
+  account_ledger_start?: boolean
 }
 
-export type finance_settingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "company_share_pct" | "branch_share_pct" | "share_basis" | "opening_cash_balance" | "opening_bank_balance" | "opening_balance_date" | "auto_import_branch_income" | "require_admin_verification" | "allow_super_admin_write" | "updated_at" | "updated_by", ExtArgs["result"]["finance_settings"]>
+export type finance_settingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "company_share_pct" | "branch_share_pct" | "share_basis" | "opening_cash_balance" | "opening_bank_balance" | "opening_balance_date" | "auto_import_branch_income" | "require_admin_verification" | "allow_super_admin_write" | "updated_at" | "updated_by" | "account_ledger_start", ExtArgs["result"]["finance_settings"]>
 
 export type $finance_settingsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "finance_settings"
@@ -601,6 +627,7 @@ export type $finance_settingsPayload<ExtArgs extends runtime.Types.Extensions.In
     allow_super_admin_write: boolean
     updated_at: Date
     updated_by: string
+    account_ledger_start: Date | null
   }, ExtArgs["result"]["finance_settings"]>
   composites: {}
 }
@@ -1036,6 +1063,7 @@ export interface finance_settingsFieldRefs {
   readonly allow_super_admin_write: Prisma.FieldRef<"finance_settings", 'Boolean'>
   readonly updated_at: Prisma.FieldRef<"finance_settings", 'DateTime'>
   readonly updated_by: Prisma.FieldRef<"finance_settings", 'String'>
+  readonly account_ledger_start: Prisma.FieldRef<"finance_settings", 'DateTime'>
 }
     
 

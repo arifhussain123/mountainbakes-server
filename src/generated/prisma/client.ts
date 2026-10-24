@@ -589,3 +589,13 @@ export type whatsapp_outbox = Prisma.whatsapp_outboxModel
  * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
  */
 export type whatsapp_webhook_events = Prisma.whatsapp_webhook_eventsModel
+/**
+ * Model branch_account_adjustments
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type branch_account_adjustments = Prisma.branch_account_adjustmentsModel
+/**
+ * Model production_order_share_snapshots
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type production_order_share_snapshots = Prisma.production_order_share_snapshotsModel

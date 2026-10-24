@@ -952,7 +952,9 @@ export type FinanceAuditEntity =
   | 'finance_partner'
   | 'finance_ticket'
   // Migration 118 — approve / reject of a branch cash transfer.
-  | 'cash_transfer';
+  | 'cash_transfer'
+  // Demand Record: go-live date, opening balances, adjustments, reversals.
+  | 'branch_account';
 
 export interface FinanceAuditLog {
   id: string;

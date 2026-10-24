@@ -325,6 +325,7 @@ export type branchesWhereInput = {
   created_at?: Prisma.DateTimeFilter<"branches"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"branches"> | Date | string
   company_share_pct?: Prisma.DecimalNullableFilter<"branches"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.Branch_account_adjustmentsListRelationFilter
   branch_discounts?: Prisma.Branch_discountsListRelationFilter
   branch_locations?: Prisma.XOR<Prisma.Branch_locationsNullableScalarRelationFilter, Prisma.branch_locationsWhereInput> | null
   branch_share_payments?: Prisma.Branch_share_paymentsListRelationFilter
@@ -383,6 +384,7 @@ export type branchesOrderByWithRelationInput = {
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   company_share_pct?: Prisma.SortOrderInput | Prisma.SortOrder
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsOrderByRelationAggregateInput
   branch_discounts?: Prisma.branch_discountsOrderByRelationAggregateInput
   branch_locations?: Prisma.branch_locationsOrderByWithRelationInput
   branch_share_payments?: Prisma.branch_share_paymentsOrderByRelationAggregateInput
@@ -444,6 +446,7 @@ export type branchesWhereUniqueInput = Prisma.AtLeast<{
   created_at?: Prisma.DateTimeFilter<"branches"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"branches"> | Date | string
   company_share_pct?: Prisma.DecimalNullableFilter<"branches"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.Branch_account_adjustmentsListRelationFilter
   branch_discounts?: Prisma.Branch_discountsListRelationFilter
   branch_locations?: Prisma.XOR<Prisma.Branch_locationsNullableScalarRelationFilter, Prisma.branch_locationsWhereInput> | null
   branch_share_payments?: Prisma.Branch_share_paymentsListRelationFilter
@@ -549,6 +552,7 @@ export type branchesCreateInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -607,6 +611,7 @@ export type branchesUncheckedCreateInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -663,6 +668,7 @@ export type branchesUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -721,6 +727,7 @@ export type branchesUncheckedUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -1515,6 +1522,20 @@ export type branchesUncheckedUpdateManyWithoutUsers_branches_manager_idTousersNe
   deleteMany?: Prisma.branchesScalarWhereInput | Prisma.branchesScalarWhereInput[]
 }
 
+export type branchesCreateNestedOneWithoutBranch_account_adjustmentsInput = {
+  create?: Prisma.XOR<Prisma.branchesCreateWithoutBranch_account_adjustmentsInput, Prisma.branchesUncheckedCreateWithoutBranch_account_adjustmentsInput>
+  connectOrCreate?: Prisma.branchesCreateOrConnectWithoutBranch_account_adjustmentsInput
+  connect?: Prisma.branchesWhereUniqueInput
+}
+
+export type branchesUpdateOneRequiredWithoutBranch_account_adjustmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.branchesCreateWithoutBranch_account_adjustmentsInput, Prisma.branchesUncheckedCreateWithoutBranch_account_adjustmentsInput>
+  connectOrCreate?: Prisma.branchesCreateOrConnectWithoutBranch_account_adjustmentsInput
+  upsert?: Prisma.branchesUpsertWithoutBranch_account_adjustmentsInput
+  connect?: Prisma.branchesWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.branchesUpdateToOneWithWhereWithoutBranch_account_adjustmentsInput, Prisma.branchesUpdateWithoutBranch_account_adjustmentsInput>, Prisma.branchesUncheckedUpdateWithoutBranch_account_adjustmentsInput>
+}
+
 export type branchesCreateWithoutBranch_discountsInput = {
   id?: string
   legacy_id?: string | null
@@ -1532,6 +1553,7 @@ export type branchesCreateWithoutBranch_discountsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
   users_branches_manager_idTousers?: Prisma.usersCreateNestedOneWithoutBranches_branches_manager_idTousersInput
@@ -1589,6 +1611,7 @@ export type branchesUncheckedCreateWithoutBranch_discountsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
   cash_transfers?: Prisma.cash_transfersUncheckedCreateNestedManyWithoutBranchesInput
@@ -1660,6 +1683,7 @@ export type branchesUpdateWithoutBranch_discountsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
   users_branches_manager_idTousers?: Prisma.usersUpdateOneWithoutBranches_branches_manager_idTousersNestedInput
@@ -1717,6 +1741,7 @@ export type branchesUncheckedUpdateWithoutBranch_discountsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
   cash_transfers?: Prisma.cash_transfersUncheckedUpdateManyWithoutBranchesNestedInput
@@ -1772,6 +1797,7 @@ export type branchesCreateWithoutBranch_locationsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
   users_branches_manager_idTousers?: Prisma.usersCreateNestedOneWithoutBranches_branches_manager_idTousersInput
@@ -1829,6 +1855,7 @@ export type branchesUncheckedCreateWithoutBranch_locationsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
   cash_transfers?: Prisma.cash_transfersUncheckedCreateNestedManyWithoutBranchesInput
@@ -1900,6 +1927,7 @@ export type branchesUpdateWithoutBranch_locationsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
   users_branches_manager_idTousers?: Prisma.usersUpdateOneWithoutBranches_branches_manager_idTousersNestedInput
@@ -1957,6 +1985,7 @@ export type branchesUncheckedUpdateWithoutBranch_locationsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
   cash_transfers?: Prisma.cash_transfersUncheckedUpdateManyWithoutBranchesNestedInput
@@ -2012,6 +2041,7 @@ export type branchesCreateWithoutBranch_share_paymentsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   users_branches_manager_idTousers?: Prisma.usersCreateNestedOneWithoutBranches_branches_manager_idTousersInput
@@ -2069,6 +2099,7 @@ export type branchesUncheckedCreateWithoutBranch_share_paymentsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   cash_transfers?: Prisma.cash_transfersUncheckedCreateNestedManyWithoutBranchesInput
@@ -2140,6 +2171,7 @@ export type branchesUpdateWithoutBranch_share_paymentsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   users_branches_manager_idTousers?: Prisma.usersUpdateOneWithoutBranches_branches_manager_idTousersNestedInput
@@ -2197,6 +2229,7 @@ export type branchesUncheckedUpdateWithoutBranch_share_paymentsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   cash_transfers?: Prisma.cash_transfersUncheckedUpdateManyWithoutBranchesNestedInput
@@ -2252,6 +2285,7 @@ export type branchesCreateWithoutCash_transfersInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -2309,6 +2343,7 @@ export type branchesUncheckedCreateWithoutCash_transfersInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -2380,6 +2415,7 @@ export type branchesUpdateWithoutCash_transfersInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -2437,6 +2473,7 @@ export type branchesUncheckedUpdateWithoutCash_transfersInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -2492,6 +2529,7 @@ export type branchesCreateWithoutCustomersInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -2549,6 +2587,7 @@ export type branchesUncheckedCreateWithoutCustomersInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -2620,6 +2659,7 @@ export type branchesUpdateWithoutCustomersInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -2677,6 +2717,7 @@ export type branchesUncheckedUpdateWithoutCustomersInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -2732,6 +2773,7 @@ export type branchesCreateWithoutDaily_closing_reportsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -2789,6 +2831,7 @@ export type branchesUncheckedCreateWithoutDaily_closing_reportsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -2860,6 +2903,7 @@ export type branchesUpdateWithoutDaily_closing_reportsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -2917,6 +2961,7 @@ export type branchesUncheckedUpdateWithoutDaily_closing_reportsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -2972,6 +3017,7 @@ export type branchesCreateWithoutDaily_sale_record_auditsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -3029,6 +3075,7 @@ export type branchesUncheckedCreateWithoutDaily_sale_record_auditsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -3100,6 +3147,7 @@ export type branchesUpdateWithoutDaily_sale_record_auditsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -3157,6 +3205,7 @@ export type branchesUncheckedUpdateWithoutDaily_sale_record_auditsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -3212,6 +3261,7 @@ export type branchesCreateWithoutDaily_sale_recordsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -3269,6 +3319,7 @@ export type branchesUncheckedCreateWithoutDaily_sale_recordsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -3340,6 +3391,7 @@ export type branchesUpdateWithoutDaily_sale_recordsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -3397,6 +3449,7 @@ export type branchesUncheckedUpdateWithoutDaily_sale_recordsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -3452,6 +3505,7 @@ export type branchesCreateWithoutEvent_branch_demandsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -3509,6 +3563,7 @@ export type branchesUncheckedCreateWithoutEvent_branch_demandsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -3580,6 +3635,7 @@ export type branchesUpdateWithoutEvent_branch_demandsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -3637,6 +3693,7 @@ export type branchesUncheckedUpdateWithoutEvent_branch_demandsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -3692,6 +3749,7 @@ export type branchesCreateWithoutEvent_branchesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -3749,6 +3807,7 @@ export type branchesUncheckedCreateWithoutEvent_branchesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -3820,6 +3879,7 @@ export type branchesUpdateWithoutEvent_branchesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -3877,6 +3937,7 @@ export type branchesUncheckedUpdateWithoutEvent_branchesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -3932,6 +3993,7 @@ export type branchesCreateWithoutEvent_notificationsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -3989,6 +4051,7 @@ export type branchesUncheckedCreateWithoutEvent_notificationsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -4060,6 +4123,7 @@ export type branchesUpdateWithoutEvent_notificationsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -4117,6 +4181,7 @@ export type branchesUncheckedUpdateWithoutEvent_notificationsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -4172,6 +4237,7 @@ export type branchesCreateWithoutExpensesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -4229,6 +4295,7 @@ export type branchesUncheckedCreateWithoutExpensesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -4300,6 +4367,7 @@ export type branchesUpdateWithoutExpensesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -4357,6 +4425,7 @@ export type branchesUncheckedUpdateWithoutExpensesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -4412,6 +4481,7 @@ export type branchesCreateWithoutFinance_employeesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -4469,6 +4539,7 @@ export type branchesUncheckedCreateWithoutFinance_employeesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -4540,6 +4611,7 @@ export type branchesUpdateWithoutFinance_employeesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -4597,6 +4669,7 @@ export type branchesUncheckedUpdateWithoutFinance_employeesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -4652,6 +4725,7 @@ export type branchesCreateWithoutFinance_income_approvalsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -4709,6 +4783,7 @@ export type branchesUncheckedCreateWithoutFinance_income_approvalsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -4780,6 +4855,7 @@ export type branchesUpdateWithoutFinance_income_approvalsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -4837,6 +4913,7 @@ export type branchesUncheckedUpdateWithoutFinance_income_approvalsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -4892,6 +4969,7 @@ export type branchesCreateWithoutFinance_queriesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -4949,6 +5027,7 @@ export type branchesUncheckedCreateWithoutFinance_queriesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -5020,6 +5099,7 @@ export type branchesUpdateWithoutFinance_queriesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -5077,6 +5157,7 @@ export type branchesUncheckedUpdateWithoutFinance_queriesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -5132,6 +5213,7 @@ export type branchesCreateWithoutFinance_ticketsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -5189,6 +5271,7 @@ export type branchesUncheckedCreateWithoutFinance_ticketsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -5260,6 +5343,7 @@ export type branchesUpdateWithoutFinance_ticketsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -5317,6 +5401,7 @@ export type branchesUncheckedUpdateWithoutFinance_ticketsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -5372,6 +5457,7 @@ export type branchesCreateWithoutFinance_transactionsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -5429,6 +5515,7 @@ export type branchesUncheckedCreateWithoutFinance_transactionsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -5500,6 +5587,7 @@ export type branchesUpdateWithoutFinance_transactionsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -5557,6 +5645,7 @@ export type branchesUncheckedUpdateWithoutFinance_transactionsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -5612,6 +5701,7 @@ export type branchesCreateWithoutGeofence_logsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -5669,6 +5759,7 @@ export type branchesUncheckedCreateWithoutGeofence_logsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -5740,6 +5831,7 @@ export type branchesUpdateWithoutGeofence_logsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -5797,6 +5889,7 @@ export type branchesUncheckedUpdateWithoutGeofence_logsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -5852,6 +5945,7 @@ export type branchesCreateWithoutLedger_entriesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -5909,6 +6003,7 @@ export type branchesUncheckedCreateWithoutLedger_entriesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -5980,6 +6075,7 @@ export type branchesUpdateWithoutLedger_entriesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -6037,6 +6133,7 @@ export type branchesUncheckedUpdateWithoutLedger_entriesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -6092,6 +6189,7 @@ export type branchesCreateWithoutLogin_sessionsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -6149,6 +6247,7 @@ export type branchesUncheckedCreateWithoutLogin_sessionsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -6220,6 +6319,7 @@ export type branchesUpdateWithoutLogin_sessionsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -6277,6 +6377,7 @@ export type branchesUncheckedUpdateWithoutLogin_sessionsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -6332,6 +6433,7 @@ export type branchesCreateWithoutNotification_recipientsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -6389,6 +6491,7 @@ export type branchesUncheckedCreateWithoutNotification_recipientsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -6460,6 +6563,7 @@ export type branchesUpdateWithoutNotification_recipientsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -6517,6 +6621,7 @@ export type branchesUncheckedUpdateWithoutNotification_recipientsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -6572,6 +6677,7 @@ export type branchesCreateWithoutNotificationsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -6629,6 +6735,7 @@ export type branchesUncheckedCreateWithoutNotificationsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -6700,6 +6807,7 @@ export type branchesUpdateWithoutNotificationsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -6757,6 +6865,7 @@ export type branchesUncheckedUpdateWithoutNotificationsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -6812,6 +6921,7 @@ export type branchesCreateWithoutOrdersInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -6869,6 +6979,7 @@ export type branchesUncheckedCreateWithoutOrdersInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -6940,6 +7051,7 @@ export type branchesUpdateWithoutOrdersInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -6997,6 +7109,7 @@ export type branchesUncheckedUpdateWithoutOrdersInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -7052,6 +7165,7 @@ export type branchesCreateWithoutPayment_method_settingsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -7109,6 +7223,7 @@ export type branchesUncheckedCreateWithoutPayment_method_settingsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -7180,6 +7295,7 @@ export type branchesUpdateWithoutPayment_method_settingsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -7237,6 +7353,7 @@ export type branchesUncheckedUpdateWithoutPayment_method_settingsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -7292,6 +7409,7 @@ export type branchesCreateWithoutProduction_balancesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -7349,6 +7467,7 @@ export type branchesUncheckedCreateWithoutProduction_balancesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -7420,6 +7539,7 @@ export type branchesUpdateWithoutProduction_balancesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -7477,6 +7597,7 @@ export type branchesUncheckedUpdateWithoutProduction_balancesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -7532,6 +7653,7 @@ export type branchesCreateWithoutProduction_ordersInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -7589,6 +7711,7 @@ export type branchesUncheckedCreateWithoutProduction_ordersInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -7660,6 +7783,7 @@ export type branchesUpdateWithoutProduction_ordersInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -7717,6 +7841,7 @@ export type branchesUncheckedUpdateWithoutProduction_ordersInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -7772,6 +7897,7 @@ export type branchesCreateWithoutProduction_returnsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -7829,6 +7955,7 @@ export type branchesUncheckedCreateWithoutProduction_returnsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -7900,6 +8027,7 @@ export type branchesUpdateWithoutProduction_returnsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -7957,6 +8085,7 @@ export type branchesUncheckedUpdateWithoutProduction_returnsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -8012,6 +8141,7 @@ export type branchesCreateWithoutProduction_stock_historyInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -8069,6 +8199,7 @@ export type branchesUncheckedCreateWithoutProduction_stock_historyInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -8140,6 +8271,7 @@ export type branchesUpdateWithoutProduction_stock_historyInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -8197,6 +8329,7 @@ export type branchesUncheckedUpdateWithoutProduction_stock_historyInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -8252,6 +8385,7 @@ export type branchesCreateWithoutRestriction_eventsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -8309,6 +8443,7 @@ export type branchesUncheckedCreateWithoutRestriction_eventsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -8380,6 +8515,7 @@ export type branchesUpdateWithoutRestriction_eventsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -8437,6 +8573,7 @@ export type branchesUncheckedUpdateWithoutRestriction_eventsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -8492,6 +8629,7 @@ export type branchesCreateWithoutRestriction_requestsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -8549,6 +8687,7 @@ export type branchesUncheckedCreateWithoutRestriction_requestsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -8620,6 +8759,7 @@ export type branchesUpdateWithoutRestriction_requestsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -8677,6 +8817,7 @@ export type branchesUncheckedUpdateWithoutRestriction_requestsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -8732,6 +8873,7 @@ export type branchesCreateWithoutReturn_stock_historyInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -8789,6 +8931,7 @@ export type branchesUncheckedCreateWithoutReturn_stock_historyInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -8860,6 +9003,7 @@ export type branchesUpdateWithoutReturn_stock_historyInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -8917,6 +9061,7 @@ export type branchesUncheckedUpdateWithoutReturn_stock_historyInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -8972,6 +9117,7 @@ export type branchesCreateWithoutSpecial_ordersInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -9029,6 +9175,7 @@ export type branchesUncheckedCreateWithoutSpecial_ordersInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -9100,6 +9247,7 @@ export type branchesUpdateWithoutSpecial_ordersInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -9157,6 +9305,7 @@ export type branchesUncheckedUpdateWithoutSpecial_ordersInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -9212,6 +9361,7 @@ export type branchesCreateWithoutStockInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -9269,6 +9419,7 @@ export type branchesUncheckedCreateWithoutStockInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -9340,6 +9491,7 @@ export type branchesUpdateWithoutStockInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -9397,6 +9549,7 @@ export type branchesUncheckedUpdateWithoutStockInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -9452,6 +9605,7 @@ export type branchesCreateWithoutStock_audit_logInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -9509,6 +9663,7 @@ export type branchesUncheckedCreateWithoutStock_audit_logInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -9580,6 +9735,7 @@ export type branchesUpdateWithoutStock_audit_logInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -9637,6 +9793,7 @@ export type branchesUncheckedUpdateWithoutStock_audit_logInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -9692,6 +9849,7 @@ export type branchesCreateWithoutStock_historyInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -9749,6 +9907,7 @@ export type branchesUncheckedCreateWithoutStock_historyInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -9820,6 +9979,7 @@ export type branchesUpdateWithoutStock_historyInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -9877,6 +10037,7 @@ export type branchesUncheckedUpdateWithoutStock_historyInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -9932,6 +10093,7 @@ export type branchesCreateWithoutSupport_ticketsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -9989,6 +10151,7 @@ export type branchesUncheckedCreateWithoutSupport_ticketsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -10060,6 +10223,7 @@ export type branchesUpdateWithoutSupport_ticketsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -10117,6 +10281,7 @@ export type branchesUncheckedUpdateWithoutSupport_ticketsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -10172,6 +10337,7 @@ export type branchesCreateWithoutUsers_branches_manager_idTousersInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -10228,6 +10394,7 @@ export type branchesUncheckedCreateWithoutUsers_branches_manager_idTousersInput 
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -10294,6 +10461,7 @@ export type branchesCreateWithoutUsers_users_branch_idTobranchesInput = {
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
@@ -10351,6 +10519,7 @@ export type branchesUncheckedCreateWithoutUsers_users_branch_idTobranchesInput =
   created_at?: Date | string
   updated_at?: Date | string
   company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
   branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
@@ -10461,6 +10630,7 @@ export type branchesUpdateWithoutUsers_users_branch_idTobranchesInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -10518,6 +10688,7 @@ export type branchesUncheckedUpdateWithoutUsers_users_branch_idTobranchesInput =
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -10556,6 +10727,250 @@ export type branchesUncheckedUpdateWithoutUsers_users_branch_idTobranchesInput =
   support_tickets?: Prisma.support_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
 }
 
+export type branchesCreateWithoutBranch_account_adjustmentsInput = {
+  id?: string
+  legacy_id?: string | null
+  name: string
+  slug: string
+  location?: string | null
+  phone?: string | null
+  address?: string | null
+  city?: string | null
+  manager_name?: string | null
+  is_active?: boolean
+  daily_budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  weekly_budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  monthly_budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
+  branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
+  branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
+  users_branches_manager_idTousers?: Prisma.usersCreateNestedOneWithoutBranches_branches_manager_idTousersInput
+  cash_transfers?: Prisma.cash_transfersCreateNestedManyWithoutBranchesInput
+  customers?: Prisma.customersCreateNestedManyWithoutBranchesInput
+  daily_closing_reports?: Prisma.daily_closing_reportsCreateNestedManyWithoutBranchesInput
+  daily_sale_record_audits?: Prisma.daily_sale_record_auditsCreateNestedManyWithoutBranchesInput
+  daily_sale_records?: Prisma.daily_sale_recordsCreateNestedManyWithoutBranchesInput
+  event_branch_demands?: Prisma.event_branch_demandsCreateNestedManyWithoutBranchesInput
+  event_branches?: Prisma.event_branchesCreateNestedManyWithoutBranchesInput
+  event_notifications?: Prisma.event_notificationsCreateNestedManyWithoutBranchesInput
+  expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
+  finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
+  finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
+  finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
+  finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
+  geofence_logs?: Prisma.geofence_logsCreateNestedManyWithoutBranchesInput
+  ledger_entries?: Prisma.ledger_entriesCreateNestedManyWithoutBranchesInput
+  login_sessions?: Prisma.login_sessionsCreateNestedManyWithoutBranchesInput
+  notification_recipients?: Prisma.notification_recipientsCreateNestedManyWithoutBranchesInput
+  notifications?: Prisma.notificationsCreateNestedManyWithoutBranchesInput
+  orders?: Prisma.ordersCreateNestedManyWithoutBranchesInput
+  payment_method_settings?: Prisma.payment_method_settingsCreateNestedManyWithoutBranchesInput
+  production_balances?: Prisma.production_balancesCreateNestedManyWithoutBranchesInput
+  production_orders?: Prisma.production_ordersCreateNestedManyWithoutBranchesInput
+  production_returns?: Prisma.production_returnsCreateNestedManyWithoutBranchesInput
+  production_stock_history?: Prisma.production_stock_historyCreateNestedManyWithoutBranchesInput
+  restriction_events?: Prisma.restriction_eventsCreateNestedManyWithoutBranchesInput
+  restriction_requests?: Prisma.restriction_requestsCreateNestedManyWithoutBranchesInput
+  return_stock_history?: Prisma.return_stock_historyCreateNestedManyWithoutBranchesInput
+  special_orders?: Prisma.special_ordersCreateNestedManyWithoutBranchesInput
+  stock?: Prisma.stockCreateNestedManyWithoutBranchesInput
+  stock_audit_log?: Prisma.stock_audit_logCreateNestedManyWithoutBranchesInput
+  stock_history?: Prisma.stock_historyCreateNestedManyWithoutBranchesInput
+  support_tickets?: Prisma.support_ticketsCreateNestedManyWithoutBranchesInput
+  users_users_branch_idTobranches?: Prisma.usersCreateNestedManyWithoutBranches_users_branch_idTobranchesInput
+}
+
+export type branchesUncheckedCreateWithoutBranch_account_adjustmentsInput = {
+  id?: string
+  legacy_id?: string | null
+  name: string
+  slug: string
+  location?: string | null
+  phone?: string | null
+  address?: string | null
+  city?: string | null
+  manager_id?: string | null
+  manager_name?: string | null
+  is_active?: boolean
+  daily_budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  weekly_budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  monthly_budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
+  branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
+  branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
+  cash_transfers?: Prisma.cash_transfersUncheckedCreateNestedManyWithoutBranchesInput
+  customers?: Prisma.customersUncheckedCreateNestedManyWithoutBranchesInput
+  daily_closing_reports?: Prisma.daily_closing_reportsUncheckedCreateNestedManyWithoutBranchesInput
+  daily_sale_record_audits?: Prisma.daily_sale_record_auditsUncheckedCreateNestedManyWithoutBranchesInput
+  daily_sale_records?: Prisma.daily_sale_recordsUncheckedCreateNestedManyWithoutBranchesInput
+  event_branch_demands?: Prisma.event_branch_demandsUncheckedCreateNestedManyWithoutBranchesInput
+  event_branches?: Prisma.event_branchesUncheckedCreateNestedManyWithoutBranchesInput
+  event_notifications?: Prisma.event_notificationsUncheckedCreateNestedManyWithoutBranchesInput
+  expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
+  finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
+  finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
+  finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
+  geofence_logs?: Prisma.geofence_logsUncheckedCreateNestedManyWithoutBranchesInput
+  ledger_entries?: Prisma.ledger_entriesUncheckedCreateNestedManyWithoutBranchesInput
+  login_sessions?: Prisma.login_sessionsUncheckedCreateNestedManyWithoutBranchesInput
+  notification_recipients?: Prisma.notification_recipientsUncheckedCreateNestedManyWithoutBranchesInput
+  notifications?: Prisma.notificationsUncheckedCreateNestedManyWithoutBranchesInput
+  orders?: Prisma.ordersUncheckedCreateNestedManyWithoutBranchesInput
+  payment_method_settings?: Prisma.payment_method_settingsUncheckedCreateNestedManyWithoutBranchesInput
+  production_balances?: Prisma.production_balancesUncheckedCreateNestedManyWithoutBranchesInput
+  production_orders?: Prisma.production_ordersUncheckedCreateNestedManyWithoutBranchesInput
+  production_returns?: Prisma.production_returnsUncheckedCreateNestedManyWithoutBranchesInput
+  production_stock_history?: Prisma.production_stock_historyUncheckedCreateNestedManyWithoutBranchesInput
+  restriction_events?: Prisma.restriction_eventsUncheckedCreateNestedManyWithoutBranchesInput
+  restriction_requests?: Prisma.restriction_requestsUncheckedCreateNestedManyWithoutBranchesInput
+  return_stock_history?: Prisma.return_stock_historyUncheckedCreateNestedManyWithoutBranchesInput
+  special_orders?: Prisma.special_ordersUncheckedCreateNestedManyWithoutBranchesInput
+  stock?: Prisma.stockUncheckedCreateNestedManyWithoutBranchesInput
+  stock_audit_log?: Prisma.stock_audit_logUncheckedCreateNestedManyWithoutBranchesInput
+  stock_history?: Prisma.stock_historyUncheckedCreateNestedManyWithoutBranchesInput
+  support_tickets?: Prisma.support_ticketsUncheckedCreateNestedManyWithoutBranchesInput
+  users_users_branch_idTobranches?: Prisma.usersUncheckedCreateNestedManyWithoutBranches_users_branch_idTobranchesInput
+}
+
+export type branchesCreateOrConnectWithoutBranch_account_adjustmentsInput = {
+  where: Prisma.branchesWhereUniqueInput
+  create: Prisma.XOR<Prisma.branchesCreateWithoutBranch_account_adjustmentsInput, Prisma.branchesUncheckedCreateWithoutBranch_account_adjustmentsInput>
+}
+
+export type branchesUpsertWithoutBranch_account_adjustmentsInput = {
+  update: Prisma.XOR<Prisma.branchesUpdateWithoutBranch_account_adjustmentsInput, Prisma.branchesUncheckedUpdateWithoutBranch_account_adjustmentsInput>
+  create: Prisma.XOR<Prisma.branchesCreateWithoutBranch_account_adjustmentsInput, Prisma.branchesUncheckedCreateWithoutBranch_account_adjustmentsInput>
+  where?: Prisma.branchesWhereInput
+}
+
+export type branchesUpdateToOneWithWhereWithoutBranch_account_adjustmentsInput = {
+  where?: Prisma.branchesWhereInput
+  data: Prisma.XOR<Prisma.branchesUpdateWithoutBranch_account_adjustmentsInput, Prisma.branchesUncheckedUpdateWithoutBranch_account_adjustmentsInput>
+}
+
+export type branchesUpdateWithoutBranch_account_adjustmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legacy_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  daily_budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  weekly_budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  monthly_budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
+  branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
+  branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
+  users_branches_manager_idTousers?: Prisma.usersUpdateOneWithoutBranches_branches_manager_idTousersNestedInput
+  cash_transfers?: Prisma.cash_transfersUpdateManyWithoutBranchesNestedInput
+  customers?: Prisma.customersUpdateManyWithoutBranchesNestedInput
+  daily_closing_reports?: Prisma.daily_closing_reportsUpdateManyWithoutBranchesNestedInput
+  daily_sale_record_audits?: Prisma.daily_sale_record_auditsUpdateManyWithoutBranchesNestedInput
+  daily_sale_records?: Prisma.daily_sale_recordsUpdateManyWithoutBranchesNestedInput
+  event_branch_demands?: Prisma.event_branch_demandsUpdateManyWithoutBranchesNestedInput
+  event_branches?: Prisma.event_branchesUpdateManyWithoutBranchesNestedInput
+  event_notifications?: Prisma.event_notificationsUpdateManyWithoutBranchesNestedInput
+  expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
+  finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
+  finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
+  finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
+  finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
+  geofence_logs?: Prisma.geofence_logsUpdateManyWithoutBranchesNestedInput
+  ledger_entries?: Prisma.ledger_entriesUpdateManyWithoutBranchesNestedInput
+  login_sessions?: Prisma.login_sessionsUpdateManyWithoutBranchesNestedInput
+  notification_recipients?: Prisma.notification_recipientsUpdateManyWithoutBranchesNestedInput
+  notifications?: Prisma.notificationsUpdateManyWithoutBranchesNestedInput
+  orders?: Prisma.ordersUpdateManyWithoutBranchesNestedInput
+  payment_method_settings?: Prisma.payment_method_settingsUpdateManyWithoutBranchesNestedInput
+  production_balances?: Prisma.production_balancesUpdateManyWithoutBranchesNestedInput
+  production_orders?: Prisma.production_ordersUpdateManyWithoutBranchesNestedInput
+  production_returns?: Prisma.production_returnsUpdateManyWithoutBranchesNestedInput
+  production_stock_history?: Prisma.production_stock_historyUpdateManyWithoutBranchesNestedInput
+  restriction_events?: Prisma.restriction_eventsUpdateManyWithoutBranchesNestedInput
+  restriction_requests?: Prisma.restriction_requestsUpdateManyWithoutBranchesNestedInput
+  return_stock_history?: Prisma.return_stock_historyUpdateManyWithoutBranchesNestedInput
+  special_orders?: Prisma.special_ordersUpdateManyWithoutBranchesNestedInput
+  stock?: Prisma.stockUpdateManyWithoutBranchesNestedInput
+  stock_audit_log?: Prisma.stock_audit_logUpdateManyWithoutBranchesNestedInput
+  stock_history?: Prisma.stock_historyUpdateManyWithoutBranchesNestedInput
+  support_tickets?: Prisma.support_ticketsUpdateManyWithoutBranchesNestedInput
+  users_users_branch_idTobranches?: Prisma.usersUpdateManyWithoutBranches_users_branch_idTobranchesNestedInput
+}
+
+export type branchesUncheckedUpdateWithoutBranch_account_adjustmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legacy_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  daily_budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  weekly_budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  monthly_budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
+  branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
+  branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
+  cash_transfers?: Prisma.cash_transfersUncheckedUpdateManyWithoutBranchesNestedInput
+  customers?: Prisma.customersUncheckedUpdateManyWithoutBranchesNestedInput
+  daily_closing_reports?: Prisma.daily_closing_reportsUncheckedUpdateManyWithoutBranchesNestedInput
+  daily_sale_record_audits?: Prisma.daily_sale_record_auditsUncheckedUpdateManyWithoutBranchesNestedInput
+  daily_sale_records?: Prisma.daily_sale_recordsUncheckedUpdateManyWithoutBranchesNestedInput
+  event_branch_demands?: Prisma.event_branch_demandsUncheckedUpdateManyWithoutBranchesNestedInput
+  event_branches?: Prisma.event_branchesUncheckedUpdateManyWithoutBranchesNestedInput
+  event_notifications?: Prisma.event_notificationsUncheckedUpdateManyWithoutBranchesNestedInput
+  expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
+  geofence_logs?: Prisma.geofence_logsUncheckedUpdateManyWithoutBranchesNestedInput
+  ledger_entries?: Prisma.ledger_entriesUncheckedUpdateManyWithoutBranchesNestedInput
+  login_sessions?: Prisma.login_sessionsUncheckedUpdateManyWithoutBranchesNestedInput
+  notification_recipients?: Prisma.notification_recipientsUncheckedUpdateManyWithoutBranchesNestedInput
+  notifications?: Prisma.notificationsUncheckedUpdateManyWithoutBranchesNestedInput
+  orders?: Prisma.ordersUncheckedUpdateManyWithoutBranchesNestedInput
+  payment_method_settings?: Prisma.payment_method_settingsUncheckedUpdateManyWithoutBranchesNestedInput
+  production_balances?: Prisma.production_balancesUncheckedUpdateManyWithoutBranchesNestedInput
+  production_orders?: Prisma.production_ordersUncheckedUpdateManyWithoutBranchesNestedInput
+  production_returns?: Prisma.production_returnsUncheckedUpdateManyWithoutBranchesNestedInput
+  production_stock_history?: Prisma.production_stock_historyUncheckedUpdateManyWithoutBranchesNestedInput
+  restriction_events?: Prisma.restriction_eventsUncheckedUpdateManyWithoutBranchesNestedInput
+  restriction_requests?: Prisma.restriction_requestsUncheckedUpdateManyWithoutBranchesNestedInput
+  return_stock_history?: Prisma.return_stock_historyUncheckedUpdateManyWithoutBranchesNestedInput
+  special_orders?: Prisma.special_ordersUncheckedUpdateManyWithoutBranchesNestedInput
+  stock?: Prisma.stockUncheckedUpdateManyWithoutBranchesNestedInput
+  stock_audit_log?: Prisma.stock_audit_logUncheckedUpdateManyWithoutBranchesNestedInput
+  stock_history?: Prisma.stock_historyUncheckedUpdateManyWithoutBranchesNestedInput
+  support_tickets?: Prisma.support_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
+  users_users_branch_idTobranches?: Prisma.usersUncheckedUpdateManyWithoutBranches_users_branch_idTobranchesNestedInput
+}
+
 export type branchesCreateManyUsers_branches_manager_idTousersInput = {
   id?: string
   legacy_id?: string | null
@@ -10592,6 +11007,7 @@ export type branchesUpdateWithoutUsers_branches_manager_idTousersInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
@@ -10648,6 +11064,7 @@ export type branchesUncheckedUpdateWithoutUsers_branches_manager_idTousersInput 
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -10712,6 +11129,7 @@ export type branchesUncheckedUpdateManyWithoutUsers_branches_manager_idTousersIn
  */
 
 export type BranchesCountOutputType = {
+  branch_account_adjustments: number
   branch_discounts: number
   branch_share_payments: number
   cash_transfers: number
@@ -10751,6 +11169,7 @@ export type BranchesCountOutputType = {
 }
 
 export type BranchesCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  branch_account_adjustments?: boolean | BranchesCountOutputTypeCountBranch_account_adjustmentsArgs
   branch_discounts?: boolean | BranchesCountOutputTypeCountBranch_discountsArgs
   branch_share_payments?: boolean | BranchesCountOutputTypeCountBranch_share_paymentsArgs
   cash_transfers?: boolean | BranchesCountOutputTypeCountCash_transfersArgs
@@ -10797,6 +11216,13 @@ export type BranchesCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Ext
    * Select specific fields to fetch from the BranchesCountOutputType
    */
   select?: Prisma.BranchesCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * BranchesCountOutputType without action
+ */
+export type BranchesCountOutputTypeCountBranch_account_adjustmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.branch_account_adjustmentsWhereInput
 }
 
 /**
@@ -11070,6 +11496,7 @@ export type branchesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   created_at?: boolean
   updated_at?: boolean
   company_share_pct?: boolean
+  branch_account_adjustments?: boolean | Prisma.branches$branch_account_adjustmentsArgs<ExtArgs>
   branch_discounts?: boolean | Prisma.branches$branch_discountsArgs<ExtArgs>
   branch_locations?: boolean | Prisma.branches$branch_locationsArgs<ExtArgs>
   branch_share_payments?: boolean | Prisma.branches$branch_share_paymentsArgs<ExtArgs>
@@ -11175,6 +11602,7 @@ export type branchesSelectScalar = {
 
 export type branchesOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "legacy_id" | "name" | "slug" | "location" | "phone" | "address" | "city" | "manager_id" | "manager_name" | "is_active" | "daily_budget" | "weekly_budget" | "monthly_budget" | "created_at" | "updated_at" | "company_share_pct", ExtArgs["result"]["branches"]>
 export type branchesInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  branch_account_adjustments?: boolean | Prisma.branches$branch_account_adjustmentsArgs<ExtArgs>
   branch_discounts?: boolean | Prisma.branches$branch_discountsArgs<ExtArgs>
   branch_locations?: boolean | Prisma.branches$branch_locationsArgs<ExtArgs>
   branch_share_payments?: boolean | Prisma.branches$branch_share_paymentsArgs<ExtArgs>
@@ -11225,6 +11653,7 @@ export type branchesIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
 export type $branchesPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "branches"
   objects: {
+    branch_account_adjustments: Prisma.$branch_account_adjustmentsPayload<ExtArgs>[]
     branch_discounts: Prisma.$branch_discountsPayload<ExtArgs>[]
     branch_locations: Prisma.$branch_locationsPayload<ExtArgs> | null
     branch_share_payments: Prisma.$branch_share_paymentsPayload<ExtArgs>[]
@@ -11676,6 +12105,7 @@ readonly fields: branchesFieldRefs;
  */
 export interface Prisma__branchesClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  branch_account_adjustments<T extends Prisma.branches$branch_account_adjustmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.branches$branch_account_adjustmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$branch_account_adjustmentsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   branch_discounts<T extends Prisma.branches$branch_discountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.branches$branch_discountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$branch_discountsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   branch_locations<T extends Prisma.branches$branch_locationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.branches$branch_locationsArgs<ExtArgs>>): Prisma.Prisma__branch_locationsClient<runtime.Types.Result.GetResult<Prisma.$branch_locationsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   branch_share_payments<T extends Prisma.branches$branch_share_paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.branches$branch_share_paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$branch_share_paymentsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -12158,6 +12588,30 @@ export type branchesDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Limit how many branches to delete.
    */
   limit?: number
+}
+
+/**
+ * branches.branch_account_adjustments
+ */
+export type branches$branch_account_adjustmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the branch_account_adjustments
+   */
+  select?: Prisma.branch_account_adjustmentsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the branch_account_adjustments
+   */
+  omit?: Prisma.branch_account_adjustmentsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.branch_account_adjustmentsInclude<ExtArgs> | null
+  where?: Prisma.branch_account_adjustmentsWhereInput
+  orderBy?: Prisma.branch_account_adjustmentsOrderByWithRelationInput | Prisma.branch_account_adjustmentsOrderByWithRelationInput[]
+  cursor?: Prisma.branch_account_adjustmentsWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Branch_account_adjustmentsScalarFieldEnum | Prisma.Branch_account_adjustmentsScalarFieldEnum[]
 }
 
 /**

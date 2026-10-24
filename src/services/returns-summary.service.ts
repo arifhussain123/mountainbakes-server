@@ -38,24 +38,33 @@ import {
  * that branch only.
  */
 
-/** `px.unit_price` for the row aliased `r`, with `products` joined as `p`. */
-const UNIT_PRICE_LATERAL = `
+/**
+ * A lateral join exposing `<alias>.unit_price`: the price of `product` in force
+ * on `date`, by the rule above. Shared with the Demand Record
+ * (branch-account.service.ts), which prices delivered lines the same way.
+ */
+export function priceOnDateLateral(product: string, date: string, fallbackPrice: string, alias: string): string {
+  return `
     cross join lateral (
       select coalesce(
         (select h.new_price from public.product_price_history h
-          where h.product_id = r.product_id and h.status::text = 'active'
-            and h.effective_date <= r.business_date
+          where h.product_id = ${product} and h.status::text = 'active'
+            and h.effective_date <= ${date}
           order by h.effective_date desc, h.version_number desc
           limit 1),
         (select h.old_price from public.product_price_history h
-          where h.product_id = r.product_id and h.status::text = 'active'
-            and h.effective_date > r.business_date
+          where h.product_id = ${product} and h.status::text = 'active'
+            and h.effective_date > ${date}
           order by h.effective_date asc, h.version_number asc
           limit 1),
-        p.price
+        ${fallbackPrice}
       ) as unit_price
-    ) px
+    ) ${alias}
 `;
+}
+
+/** `px.unit_price` for the row aliased `r`, with `products` joined as `p`. */
+export const UNIT_PRICE_LATERAL = priceOnDateLateral('r.product_id', 'r.business_date', 'p.price', 'px');
 
 // `business_date` is a date column, so `between from and to` is the whole of
 // both days — every return recorded today is in, whatever time it was saved.
@@ -159,4 +168,84 @@ export async function priceReturnRows(ids: string[]): Promise<Map<string, Return
   if (ids.length === 0) return new Map();
   const rows = await getPrisma().$queryRawUnsafe<({ id: string } & ReturnRowPricing)[]>(ROW_PRICING_SQL, ids);
   return new Map(rows.map(({ id, ...pricing }) => [id, pricing]));
+}
+
+// Collections reconciliation: the returns behind the Return Summary for a date
+// range, plus every accepted return a Collections slip in that export deducted,
+// each with both prices and the delivery whose slip deducts it.
+//
+// That delivery is found exactly as getPreviousOrderBalance bills: a return
+// falls in the window (previous delivery, next delivery], so the slip that
+// deducts it is the one of the first DELIVERED order of its branch submitted
+// at or after it (`closingOrderId`), billing the delivered order just before it
+// (`billedDate`). Null `closingOrderId` means no later delivery yet — it has
+// not been deducted anywhere. Done in SQL so the boundaries compare at full
+// timestamp precision.
+//
+// $4/$5 are the first billed and last closing order of the export: accepted
+// returns between their timestamps are the only ones its slips can hold.
+const COLLECTIONS_RECONCILIATION_SQL = `
+  select r.id::text                                           as "id",
+         r.branch_id::text                                    as "branchId",
+         coalesce(r.branch_name, b.name)                      as "branchName",
+         r.status::text                                       as "status",
+         to_char(r.business_date, 'YYYY-MM-DD')               as "businessDate",
+         coalesce(round(r.qty * px.unit_price, 2), 0)::float8 as "summaryAmount",
+         (r.qty * coalesce(p.price, 0))::float8               as "slipAmount",
+         s.id::text                                           as "closingOrderId",
+         to_char(pv.business_date, 'YYYY-MM-DD')              as "billedDate"
+    from public.production_returns r
+    left join public.products p on p.id = r.product_id
+    left join public.branches b on b.id = r.branch_id
+    ${UNIT_PRICE_LATERAL}
+    left join lateral (
+      select o.id from public.production_orders o
+       where o.branch_id = r.branch_id
+         and o.status::text in ('awaiting_verification', 'approved')
+         and o.submitted_at >= r.created_at
+       order by o.submitted_at asc limit 1
+    ) s on true
+    left join lateral (
+      select o.business_date from public.production_orders o
+       where o.branch_id = r.branch_id
+         and o.status::text in ('awaiting_verification', 'approved')
+         and o.submitted_at < r.created_at
+       order by o.submitted_at desc limit 1
+    ) pv on true
+   where ($3::uuid is null or r.branch_id = $3::uuid)
+     and ((r.business_date between $1::date and $2::date and r.status::text <> 'rejected')
+          or (r.status::text = 'accepted'
+              and r.created_at > (select o.submitted_at from public.production_orders o where o.id = $4::uuid)
+              and r.created_at <= (select o.submitted_at from public.production_orders o where o.id = $5::uuid)))
+`;
+
+export interface CollectionsReturnRow {
+  id: string;
+  branchId: string;
+  branchName: string | null;
+  status: string;
+  businessDate: string;
+  /** Priced as the Return Summary prices it — on the return's own date; 0 when unpriced. */
+  summaryAmount: number;
+  /** Priced as the slip prices it — today's `products.price`. */
+  slipAmount: number;
+  closingOrderId: string | null;
+  billedDate: string | null;
+}
+
+export async function getCollectionsReturnRows(params: {
+  from: string;
+  to: string;
+  branchId: string | null;
+  firstBilledOrderId: string | null;
+  lastClosingOrderId: string | null;
+}): Promise<CollectionsReturnRow[]> {
+  return getPrisma().$queryRawUnsafe<CollectionsReturnRow[]>(
+    COLLECTIONS_RECONCILIATION_SQL,
+    params.from,
+    params.to,
+    params.branchId,
+    params.firstBilledOrderId,
+    params.lastClosingOrderId,
+  );
 }
