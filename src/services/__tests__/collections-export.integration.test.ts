@@ -248,7 +248,7 @@ const valuesOf = (ws: { eachRow: (cb: (r: { values: unknown }) => void) => void 
   return rows;
 };
 
-const HEADERS = ['Date', 'Demand No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Share %',
+const HEADERS = ['Date', 'Demand No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share',
   'Received', 'Previous', 'Closing', 'Closing Status'];
 
 test('the Collections sheet is the Demand Record page, row for row, in the page\'s columns', async () => {
@@ -265,20 +265,20 @@ test('the Collections sheet is the Demand Record page, row for row, in the page\
   for (const p of page.rows as Json[]) {
     const r = data.find((x) => x[1] === p.demandNumber)!;
     assert.equal((r[0] as Date).toISOString().slice(0, 10), p.businessDate);
-    assert.deepEqual(r.slice(2), [p.branchName, p.delivered, p.returns, p.discount, p.gTotal, p.companyShare, p.sharePct,
+    assert.deepEqual(r.slice(2), [p.branchName, p.delivered, p.returns, p.discount, p.gTotal, p.companyShare,
       p.received, p.previousBalance, p.closingBalance, p.closingBalance > 0 ? 'OUTSTANDING' : p.closingBalance < 0 ? 'CREDIT' : 'SETTLED'],
     p.demandNumber);
   }
 
   const row = (d: string) => data.find((x) => x[1] === d)!;
-  //                                            Co. Share  %   Received  Previous Closing
-  assert.deepEqual(row('DMD-000123').slice(7), [34240, 80, 28000, 0, 6240, 'OUTSTANDING']);
-  assert.deepEqual(row('DMD-000124').slice(7), [38400, 80, 42200, 6240, 2440, 'OUTSTANDING']);
-  assert.deepEqual(row('DMD-000127').slice(7), [10000, 80, 12000, 0, -2000, 'CREDIT']);
-  assert.deepEqual(row('DMD-000129').slice(7), [24000, 80, 18000, -2000, 4000, 'OUTSTANDING']);
-  assert.deepEqual(row('DMD-000128').slice(7), [19125, 75, 11405, 0, 7720, 'OUTSTANDING']);
+  //                                            Co. Share Received  Previous Closing
+  assert.deepEqual(row('DMD-000123').slice(7), [34240, 28000, 0, 6240, 'OUTSTANDING']);
+  assert.deepEqual(row('DMD-000124').slice(7), [38400, 42200, 6240, 2440, 'OUTSTANDING']);
+  assert.deepEqual(row('DMD-000127').slice(7), [10000, 12000, 0, -2000, 'CREDIT']);
+  assert.deepEqual(row('DMD-000129').slice(7), [24000, 18000, -2000, 4000, 'OUTSTANDING']);
+  assert.deepEqual(row('DMD-000128').slice(7), [19125, 11405, 0, 7720, 'OUTSTANDING']); // F-7 at 75%
 
-  assert.deepEqual(main.at(-1), ['TOTAL', '', '', 311500, 4100, 6300, 301100, 239605, '', 211605, '', '', '']);
+  assert.deepEqual(main.at(-1), ['TOTAL', '', '', 311500, 4100, 6300, 301100, 239605, 211605, '', '', '']);
 });
 
 test('cells stay numeric and carry the page\'s formats', async () => {
@@ -288,21 +288,20 @@ test('cells stay numeric and carry the page\'s formats', async () => {
   assert.ok(r124.getCell(1).value instanceof Date);
   assert.equal(r124.getCell(1).numFmt, 'dd mmm yyyy');
   assert.equal(r124.getCell(5).value, 0); // no return: a numeric 0 shown as a dash
-  assert.equal(r124.getCell(5).numFmt, '"Rs. "#,##0;-"Rs. "#,##0;"—"');
-  assert.equal(r124.getCell(12).numFmt, '"Rs. "#,##0;-"Rs. "#,##0;"Rs. "0');
-  assert.equal(r124.getCell(9).numFmt, 'General"%"');
+  assert.equal(r124.getCell(5).numFmt, '#,##0;-#,##0;"—"');
+  assert.equal(r124.getCell(11).numFmt, '#,##0;-#,##0;0'); // Closing: no "Rs." on a row
   const total = ws.getRow(ws.rowCount);
   assert.equal(total.getCell(1).value, 'TOTAL');
   assert.equal(total.getCell(4).font?.bold, true);
-  assert.equal(total.getCell(4).numFmt, '"Rs. "#,##0;-"Rs. "#,##0;"Rs. "0');
+  assert.equal(total.getCell(4).numFmt, '"Rs. "#,##0;-"Rs. "#,##0;"Rs. "0'); // only the TOTAL carries "Rs."
 });
 
 test('each branch keeps its own chain; By Branch adds up to the same totals', async () => {
   const wb = await workbook('&from=2026-10-01&to=2026-10-03');
   const gulberg = valuesOf(wb.getWorksheet('Gulberg')!);
   assert.deepEqual(gulberg[0], HEADERS);
-  assert.deepEqual(gulberg.slice(1, -1).map((r) => [r[1], r[10], r[11]]), [['DMD-000127', 0, -2000], ['DMD-000129', -2000, 4000]]);
-  assert.deepEqual(gulberg.at(-1), ['TOTAL', '', '', 45000, 1400, 1100, 42500, 34000, '', 30000, '', '', '']);
+  assert.deepEqual(gulberg.slice(1, -1).map((r) => [r[1], r[9], r[10]]), [['DMD-000127', 0, -2000], ['DMD-000129', -2000, 4000]]);
+  assert.deepEqual(gulberg.at(-1), ['TOTAL', '', '', 45000, 1400, 1100, 42500, 34000, 30000, '', '', '']);
 
   const byBranch = valuesOf(wb.getWorksheet('By Branch')!);
   assert.deepEqual(byBranch[0], ['Branch', 'Demands', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Received', 'Previous', 'Closing', 'Closing Status']);
@@ -312,5 +311,5 @@ test('each branch keeps its own chain; By Branch adds up to the same totals', as
 
 test('a later period starts each branch from its own carried balance', async () => {
   const main = valuesOf((await workbook('&from=2026-10-03&to=2026-10-03')).getWorksheet('Collections')!);
-  assert.deepEqual(main.slice(1, -1).map((r) => [r[1], r[10], r[11]]), [['DMD-000125', 2440, 12440], ['DMD-000129', -2000, 4000]]);
+  assert.deepEqual(main.slice(1, -1).map((r) => [r[1], r[9], r[10]]), [['DMD-000125', 2440, 12440], ['DMD-000129', -2000, 4000]]);
 });

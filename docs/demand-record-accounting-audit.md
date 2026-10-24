@@ -229,15 +229,27 @@ export), switched by the owner on 2026-10-24:** once the Demand Record is on,
 the page. Sheets: Collections, By Branch, one tab per branch. Since the
 owner's layout of 2026-10-24 (later that day) the columns are the page's:
 Date | Demand No. | Branch | Delivered | Return | Discount | G. Total |
-Co. Share | Share % | Received | Previous | Closing | Closing Status
+Co. Share | Received | Previous | Closing | Closing Status (Share % dropped
+by the owner later the same day)
 (OUTSTANDING > 0, SETTLED = 0, CREDIT < 0), rows by date then demand number,
 and a bold TOTAL of the six activity columns. Cells stay numeric; Excel
-formats show `01 Oct 2026`, `Rs. 45,000`, `-Rs. 2,000`, and a dash for a zero
-Return or Discount. Adjustments have no column (none were posted when the
+formats show `01 Oct 2026`, `45,000`, `-2,000`, and a dash for a zero Return
+or Discount; only the TOTAL lines carry the currency (`Rs. 311,500`). Adjustments have no column (none were posted when the
 layout was set); a row with one still carries it in Closing, as the page does.
 Actual Sales is left out, because production users can download this export and
 do not see sales. Before go-live it keeps the slip figures and says so in its
 last line. Tests: `collections-export.integration.test.ts`.
+
+**Start moved to 1 Oct 2026 (owner, 2026-10-24):** migration
+`20261024000003_demand_record_start_october` moves the go-live date from
+2026-07-20 to 2026-10-01, because cash was not recorded in the app before
+then, so July–September balances were not real dues. Every branch starts
+October at zero. Deposits, returns and loose discounts entered on 1 Oct before
+a branch's first October demand belong to its 30 Sep demand but now fall in its
+opening row: Alabad (Rs. 11,650 deposit, 3 returns) and Committee Chowk
+(Rs. 24,262.50 deposit, Rs. 700 discount) open with a credit until Finance
+posts an opening entry to cancel it. The Finance Dashboard's September keeps
+its pre-Demand-Record figures.
 
 **Tests**
 
