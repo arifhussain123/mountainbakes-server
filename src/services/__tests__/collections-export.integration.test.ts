@@ -287,13 +287,13 @@ test('cells stay numeric and carry the page\'s formats', async () => {
   assert.equal(r124.getCell(2).value, 'DMD-000124');
   assert.ok(r124.getCell(1).value instanceof Date);
   assert.equal(r124.getCell(1).numFmt, 'dd mmm yyyy');
-  assert.equal(r124.getCell(5).value, 0); // no return: a numeric 0 shown as a dash
-  assert.equal(r124.getCell(5).numFmt, '#,##0;-#,##0;"—"');
-  assert.equal(r124.getCell(11).numFmt, '#,##0;-#,##0;0'); // Closing: no "Rs." on a row
+  assert.equal(r124.getCell(5).value, 0); // no return: a numeric 0 shown blank
+  assert.equal(r124.getCell(5).numFmt, '#,##0;-#,##0;');
+  assert.equal(r124.getCell(11).numFmt, '#,##0;-#,##0;'); // Closing: no "Rs." on a row, blank at zero
   const total = ws.getRow(ws.rowCount);
   assert.equal(total.getCell(1).value, 'TOTAL');
   assert.equal(total.getCell(4).font?.bold, true);
-  assert.equal(total.getCell(4).numFmt, '"Rs. "#,##0;-"Rs. "#,##0;"Rs. "0'); // only the TOTAL carries "Rs."
+  assert.equal(total.getCell(4).numFmt, '"Rs. "#,##0;-"Rs. "#,##0;'); // only the TOTAL carries "Rs."
 });
 
 test('each branch keeps its own chain; By Branch adds up to the same totals', async () => {

@@ -241,13 +241,11 @@ async function collectionsReconciliation(args: {
   };
 }
 
-/** Whole rupees with separators: 45,000; a negative balance reads -2,000. */
-const AMOUNT = '#,##0;-#,##0;0';
-/** The same, with a zero shown as a dash (Return, Discount). */
-const AMOUNT_OR_DASH = '#,##0;-#,##0;"—"';
-/** A TOTAL line's money, the only cells that carry the currency: Rs. 311,500. */
-const RS_TOTAL = '"Rs. "#,##0;-"Rs. "#,##0;"Rs. "0';
-const money = (numFmt: string): ExcelColumn => ({ numFmt, totalNumFmt: RS_TOTAL });
+/** Whole rupees with separators: 45,000; a negative balance reads -2,000; a zero is a blank cell (the owner's call, 2026-10-24). */
+const AMOUNT = '#,##0;-#,##0;';
+/** A TOTAL line's money, the only cells that carry the currency: Rs. 311,500; a zero total is blank too. */
+const RS_TOTAL = '"Rs. "#,##0;-"Rs. "#,##0;';
+const money: ExcelColumn = { numFmt: AMOUNT, totalNumFmt: RS_TOTAL };
 
 /**
  * The Collections export: the Demand Record page's table (Finance → Demand
@@ -282,8 +280,8 @@ function collectionsFromDemandRecord(
   const headers = ['Date', 'Demand No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Received', 'Previous', 'Closing', 'Closing Status'];
   const columns: ExcelColumn[] = [
     { date: true, numFmt: 'dd mmm yyyy', width: 13 }, { width: 13 }, { width: 22 },
-    money(AMOUNT), money(AMOUNT_OR_DASH), money(AMOUNT_OR_DASH), money(AMOUNT), money(AMOUNT),
-    money(AMOUNT), money(AMOUNT), money(AMOUNT), { width: 15 },
+    money, money, money, money, money,
+    money, money, money, { width: 15 },
   ];
   const STATUS = { owed: 'OUTSTANDING', settled: 'SETTLED', credit: 'CREDIT' } as const;
   const line = (r: Row): (string | number)[] => [
@@ -329,8 +327,8 @@ function collectionsFromDemandRecord(
   // Previous / Closing here are each branch's balance before and after the period.
   const byBranchHeaders = ['Branch', 'Demands', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Received', 'Previous', 'Closing', 'Closing Status'];
   const byBranchColumns: ExcelColumn[] = [
-    { width: 22 }, { width: 9 }, money(AMOUNT), money(AMOUNT_OR_DASH), money(AMOUNT_OR_DASH),
-    money(AMOUNT), money(AMOUNT), money(AMOUNT), money(AMOUNT), money(AMOUNT), { width: 15 },
+    { width: 22 }, { width: 9, numFmt: '0;-0;' }, money, money, money,
+    money, money, money, money, money, { width: 15 },
   ];
   const byBranchRows: (string | number)[][] = branches.map((b) => {
     const list = rowsByBranch.get(b.branchId) ?? [];
