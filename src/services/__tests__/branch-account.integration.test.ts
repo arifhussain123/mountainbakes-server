@@ -22,11 +22,11 @@ import { signAccessToken } from '../auth/tokens';
  * demand and a branch's own share %.
  *
  *   Alpha, go-live 2026-09-01, Bun Rs. 100 until a change to Rs. 120 on 09-10.
- *   Opening row   Finance opening +1,000, deposit T4 −200            → 800
+ *   Opening row   Finance opening +1,000; deposit T4 (before D1) not counted → 1,000
  *   D1 09-02 80%  1,000 − return 100 − discount 50 = 850 → share 680,
- *                 deposit T1 −500                        800+680−500 → 980
+ *                 deposit T1 −500                      1,000+680−500 → 1,180
  *   D2 09-12 70%  600 (no line price: 5 × 120 on 09-12) − discount 30
- *                 = 570 → share 399                          980+399 → 1,379
+ *                 = 570 → share 399                        1,180+399 → 1,579
  */
 
 const PRISMA = join(__dirname, '../../../prisma/migrations');
@@ -216,7 +216,7 @@ before(async () => {
 
   // Alpha's records. Opening window: go-live 09-01 02:00 → D1 09-02 09:00.
   await transfer(ALPHA, 999, 'approved', '2026-09-01T01:00:00+05');       // before go-live: opening balance's business
-  await transfer(ALPHA, 200, 'approved', '2026-09-01T03:00:00+05');       // T4 → opening row
+  await transfer(ALPHA, 200, 'approved', '2026-09-01T03:00:00+05');       // T4: before Alpha's first demand → nowhere
   await returnRow(ALPHA, 'accepted', '2026-09-03', '2026-09-03T10:00:00+05', 1); // 100 on 09-03 → D1
   await returnRow(ALPHA, 'pending', '2026-09-04', '2026-09-04T10:00:00+05', 5);  // not accepted → nowhere
   await returnRow(ALPHA, 'rejected', '2026-09-04', '2026-09-04T11:00:00+05', 5); // nowhere
@@ -342,9 +342,9 @@ test('rows, shares and the carried balance match the hand-worked figures', async
   const [opening, d1, d2] = rows;
 
   assert.equal(opening.adjustments, 1000);
-  assert.equal(opening.received, 200);
+  assert.equal(opening.received, 0); // T4 came before Alpha's first demand: not counted
   assert.equal(opening.companyShare, 0);
-  assert.equal(opening.closingBalance, 800);
+  assert.equal(opening.closingBalance, 1000);
 
   assert.equal(d1.delivered, 1000);   // approved 10 of 12 ordered, at the line's own Rs. 100
   assert.equal(d1.returns, 100);      // priced on 09-03, before the change to 120
@@ -356,16 +356,16 @@ test('rows, shares and the carried balance match the hand-worked figures', async
   assert.equal(d1.received, 500);
   assert.equal(d1.sales, 900);
   assert.equal(d1.shareOnSales, 720);
-  assert.equal(d1.previousBalance, 800);
-  assert.equal(d1.closingBalance, 980);
+  assert.equal(d1.previousBalance, 1000);
+  assert.equal(d1.closingBalance, 1180);
   assert.equal(d1.open, false);
 
   assert.equal(d2.delivered, 600);    // no line price: 5 × Rs. 120 in force on 09-12
   assert.equal(d2.discount, 30);
   assert.equal(d2.sharePct, 70);
   assert.equal(d2.companyShare, 399);
-  assert.equal(d2.previousBalance, 980);
-  assert.equal(d2.closingBalance, 1379);
+  assert.equal(d2.previousBalance, 1180);
+  assert.equal(d2.closingBalance, 1579);
   assert.equal(d2.open, true);
 });
 
@@ -376,7 +376,7 @@ test('Test 8 — later price and % changes leave recorded demands as they were',
   const [, d1, d2] = await alphaRows();
   assert.equal(d1.companyShare, 680);
   assert.equal(d2.delivered, 600);
-  assert.equal(d2.closingBalance, 1379);
+  assert.equal(d2.closingBalance, 1579);
   // A frozen snapshot cannot be edited or removed.
   await assert.rejects(db.query(`update production_order_share_snapshots set company_share_pct = 1`), /append-only/);
   await assert.rejects(db.query(`delete from production_order_share_snapshots`), /append-only/);
@@ -400,14 +400,14 @@ test('View Details lists exactly the records behind each figure', async () => {
   assert.deepEqual(d.discounts.map((x: Json) => [x.amount, x.linked]), [[50, true]]);
   assert.deepEqual(d.payments.map((p: Json) => p.amount), [500]);
   assert.deepEqual(d.sales, { count: 1, amount: 900 });
-  assert.equal(d.row.closingBalance, 980);
+  assert.equal(d.row.closingBalance, 1180);
 
   const d2 = ok(await call('accountant', 'GET', `${API}/detail?branchId=${ALPHA}&orderId=${ORD.d2}`));
   assert.deepEqual(d2.lines.map((l: Json) => [l.unitPrice, l.priceSource]), [[120, 'price_history']]);
   assert.deepEqual(d2.discounts.map((x: Json) => [x.amount, x.linked]), [[30, false]]);
 
   const open = ok(await call('accountant', 'GET', `${API}/detail?branchId=${ALPHA}`));
-  assert.deepEqual(open.payments.map((p: Json) => p.amount), [200]);
+  assert.deepEqual(open.payments, []); // the opening row lists Finance's entries only
   assert.deepEqual(open.adjustments.map((a: Json) => [a.kind, a.amount]), [['opening', 1000]]);
 
   assert.equal((await call('accountant', 'GET', `${API}/detail?branchId=${ALPHA}&orderId=${ORD.d3}`)).status, 404);
@@ -416,10 +416,10 @@ test('View Details lists exactly the records behind each figure', async () => {
 test('a period carries its opening balance in and does not re-add it', async () => {
   const p = await rowsOf(`&branchId=${ALPHA}&from=2026-09-10&to=2026-09-30`);
   assert.deepEqual(p.rows.map((r: Json) => r.demandNumber), ['DMD-000102']);
-  assert.deepEqual(p.branches.map((b: Json) => [b.openingBalance, b.closingBalance]), [[980, 1379]]);
-  assert.equal(p.totals.openingBalance, 980);
+  assert.deepEqual(p.branches.map((b: Json) => [b.openingBalance, b.closingBalance]), [[1180, 1579]]);
+  assert.equal(p.totals.openingBalance, 1180);
   assert.equal(p.totals.companyShare, 399);
-  assert.equal(p.totals.closingBalance, 1379);
+  assert.equal(p.totals.closingBalance, 1579);
   const t = p.totals;
   assert.equal(t.openingBalance + t.companyShare + t.adjustments - t.received, t.closingBalance);
 
@@ -429,7 +429,7 @@ test('a period carries its opening balance in and does not re-add it', async () 
 
   // Every branch at once: balances summed per branch, once.
   const all = await rowsOf('');
-  assert.equal(all.totals.closingBalance, 1379 + 500);
+  assert.equal(all.totals.closingBalance, 1579 + 500);
 });
 
 test('Test 9 — a backdated correction re-flows later balances and keeps its history', async () => {
@@ -439,9 +439,9 @@ test('Test 9 — a backdated correction re-flows later balances and keeps its hi
   }), 201);
   let [, d1, d2] = await alphaRows();
   assert.equal(d1.adjustments, -79);  // dated 09-05: inside D1's window
-  assert.equal(d1.closingBalance, 901);
-  assert.equal(d2.previousBalance, 901);
-  assert.equal(d2.closingBalance, 1300);
+  assert.equal(d1.closingBalance, 1101);
+  assert.equal(d2.previousBalance, 1101);
+  assert.equal(d2.closingBalance, 1500);
 
   const rev = ok(await call('admin', 'POST', `${API}/adjustments/${fix.entry.id}/reverse`, {
     requestId: randomUUID(), reason: 'Entered against the wrong branch',
@@ -449,9 +449,9 @@ test('Test 9 — a backdated correction re-flows later balances and keeps its hi
   assert.equal(rev.entry.amount, 79);
   [, d1, d2] = await alphaRows();
   // The reversal is dated today, so it sits in the open last row; the 09-05 entry stays where it was.
-  assert.equal(d1.closingBalance, 901);
+  assert.equal(d1.closingBalance, 1101);
   assert.equal(d2.adjustments, 79);
-  assert.equal(d2.closingBalance, 1379);
+  assert.equal(d2.closingBalance, 1579);
 
   const again = await call('admin', 'POST', `${API}/adjustments/${fix.entry.id}/reverse`, { requestId: randomUUID(), reason: 'twice' });
   assert.equal(again.status, 409);

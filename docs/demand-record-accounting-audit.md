@@ -244,12 +244,18 @@ last line. Tests: `collections-export.integration.test.ts`.
 `20261024000003_demand_record_start_october` moves the go-live date from
 2026-07-20 to 2026-10-01, because cash was not recorded in the app before
 then, so July–September balances were not real dues. Every branch starts
-October at zero. Deposits, returns and loose discounts entered on 1 Oct before
-a branch's first October demand belong to its 30 Sep demand but now fall in its
-opening row: Alabad (Rs. 11,650 deposit, 3 returns) and Committee Chowk
-(Rs. 24,262.50 deposit, Rs. 700 discount) open with a credit until Finance
-posts an opening entry to cancel it. The Finance Dashboard's September keeps
-its pre-Demand-Record figures.
+October at zero. The Finance Dashboard's September keeps its
+pre-Demand-Record figures.
+
+**The opening row holds Finance's entries only (owner's rule from 1 Oct
+2026: Previous is 0 for a branch's first demand).** A return, deposit, sale
+or loose discount recorded after the go-live instant but before the branch's
+first demand settles a demand from before the go-live day, so it is not
+counted (`branch-account.service.ts`, ROWS_SQL and View Details). On the live
+data this removed the credits Alabad (Rs. 11,650 deposit, Rs. 2,200 returns:
+−13,300) and Committee Chowk (Rs. 24,262.50 deposit, Rs. 700 discount:
+−24,787.50) had opened October with; both first demands now have Previous 0.
+An opening balance Finance enters still counts.
 
 **Tests**
 
