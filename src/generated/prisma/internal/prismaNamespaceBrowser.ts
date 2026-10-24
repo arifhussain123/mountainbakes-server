@@ -156,7 +156,9 @@ export const ModelName = {
   whatsapp_conversations: 'whatsapp_conversations',
   whatsapp_messages: 'whatsapp_messages',
   whatsapp_outbox: 'whatsapp_outbox',
-  whatsapp_webhook_events: 'whatsapp_webhook_events'
+  whatsapp_webhook_events: 'whatsapp_webhook_events',
+  branch_account_adjustments: 'branch_account_adjustments',
+  production_order_share_snapshots: 'production_order_share_snapshots'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -896,7 +898,8 @@ export const Finance_settingsScalarFieldEnum = {
   require_admin_verification: 'require_admin_verification',
   allow_super_admin_write: 'allow_super_admin_write',
   updated_at: 'updated_at',
-  updated_by: 'updated_by'
+  updated_by: 'updated_by',
+  account_ledger_start: 'account_ledger_start'
 } as const
 
 export type Finance_settingsScalarFieldEnum = (typeof Finance_settingsScalarFieldEnum)[keyof typeof Finance_settingsScalarFieldEnum]
@@ -2484,6 +2487,34 @@ export const Whatsapp_webhook_eventsScalarFieldEnum = {
 } as const
 
 export type Whatsapp_webhook_eventsScalarFieldEnum = (typeof Whatsapp_webhook_eventsScalarFieldEnum)[keyof typeof Whatsapp_webhook_eventsScalarFieldEnum]
+
+
+export const Branch_account_adjustmentsScalarFieldEnum = {
+  id: 'id',
+  branch_id: 'branch_id',
+  kind: 'kind',
+  amount: 'amount',
+  effective_at: 'effective_at',
+  business_date: 'business_date',
+  reason: 'reason',
+  reversal_of: 'reversal_of',
+  request_id: 'request_id',
+  created_by: 'created_by',
+  created_by_name: 'created_by_name',
+  created_at: 'created_at'
+} as const
+
+export type Branch_account_adjustmentsScalarFieldEnum = (typeof Branch_account_adjustmentsScalarFieldEnum)[keyof typeof Branch_account_adjustmentsScalarFieldEnum]
+
+
+export const Production_order_share_snapshotsScalarFieldEnum = {
+  production_order_id: 'production_order_id',
+  company_share_pct: 'company_share_pct',
+  frozen_at: 'frozen_at',
+  source: 'source'
+} as const
+
+export type Production_order_share_snapshotsScalarFieldEnum = (typeof Production_order_share_snapshotsScalarFieldEnum)[keyof typeof Production_order_share_snapshotsScalarFieldEnum]
 
 
 export const SortOrder = {

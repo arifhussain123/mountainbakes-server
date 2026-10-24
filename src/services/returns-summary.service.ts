@@ -38,24 +38,33 @@ import {
  * that branch only.
  */
 
-/** `px.unit_price` for the row aliased `r`, with `products` joined as `p`. */
-const UNIT_PRICE_LATERAL = `
+/**
+ * A lateral join exposing `<alias>.unit_price`: the price of `product` in force
+ * on `date`, by the rule above. Shared with the Demand Record
+ * (branch-account.service.ts), which prices delivered lines the same way.
+ */
+export function priceOnDateLateral(product: string, date: string, fallbackPrice: string, alias: string): string {
+  return `
     cross join lateral (
       select coalesce(
         (select h.new_price from public.product_price_history h
-          where h.product_id = r.product_id and h.status::text = 'active'
-            and h.effective_date <= r.business_date
+          where h.product_id = ${product} and h.status::text = 'active'
+            and h.effective_date <= ${date}
           order by h.effective_date desc, h.version_number desc
           limit 1),
         (select h.old_price from public.product_price_history h
-          where h.product_id = r.product_id and h.status::text = 'active'
-            and h.effective_date > r.business_date
+          where h.product_id = ${product} and h.status::text = 'active'
+            and h.effective_date > ${date}
           order by h.effective_date asc, h.version_number asc
           limit 1),
-        p.price
+        ${fallbackPrice}
       ) as unit_price
-    ) px
+    ) ${alias}
 `;
+}
+
+/** `px.unit_price` for the row aliased `r`, with `products` joined as `p`. */
+export const UNIT_PRICE_LATERAL = priceOnDateLateral('r.product_id', 'r.business_date', 'p.price', 'px');
 
 // `business_date` is a date column, so `between from and to` is the whole of
 // both days — every return recorded today is in, whatever time it was saved.

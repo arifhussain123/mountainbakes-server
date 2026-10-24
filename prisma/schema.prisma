@@ -231,27 +231,28 @@ model branch_share_payments {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model branches {
-  id                               String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  legacy_id                        String?                    @unique
+  id                               String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  legacy_id                        String?                      @unique
   name                             String
-  slug                             String                     @unique
+  slug                             String                       @unique
   location                         String?
   phone                            String?
   address                          String?
   city                             String?
-  manager_id                       String?                    @db.Uuid
+  manager_id                       String?                      @db.Uuid
   manager_name                     String?
-  is_active                        Boolean                    @default(true)
-  daily_budget                     Decimal?                   @db.Decimal(14, 2)
-  weekly_budget                    Decimal?                   @db.Decimal(14, 2)
-  monthly_budget                   Decimal?                   @db.Decimal(14, 2)
-  created_at                       DateTime                   @default(now()) @db.Timestamptz(6)
-  updated_at                       DateTime                   @default(now()) @db.Timestamptz(6)
-  company_share_pct                Decimal?                   @db.Decimal(5, 2)
+  is_active                        Boolean                      @default(true)
+  daily_budget                     Decimal?                     @db.Decimal(14, 2)
+  weekly_budget                    Decimal?                     @db.Decimal(14, 2)
+  monthly_budget                   Decimal?                     @db.Decimal(14, 2)
+  created_at                       DateTime                     @default(now()) @db.Timestamptz(6)
+  updated_at                       DateTime                     @default(now()) @db.Timestamptz(6)
+  company_share_pct                Decimal?                     @db.Decimal(5, 2)
+  branch_account_adjustments       branch_account_adjustments[]
   branch_discounts                 branch_discounts[]
   branch_locations                 branch_locations?
   branch_share_payments            branch_share_payments[]
-  users_branches_manager_idTousers users?                     @relation("branches_manager_idTousers", fields: [manager_id], references: [id], onUpdate: NoAction, map: "branches_manager_fk")
+  users_branches_manager_idTousers users?                       @relation("branches_manager_idTousers", fields: [manager_id], references: [id], onUpdate: NoAction, map: "branches_manager_fk")
   cash_transfers                   cash_transfers[]
   customers                        customers[]
   daily_closing_reports            daily_closing_reports[]
@@ -285,7 +286,7 @@ model branches {
   stock_audit_log                  stock_audit_log[]
   stock_history                    stock_history[]
   support_tickets                  support_tickets[]
-  users_users_branch_idTobranches  users[]                    @relation("users_branch_idTobranches")
+  users_users_branch_idTobranches  users[]                      @relation("users_branch_idTobranches")
 
   @@index([name], map: "branches_active_idx", where: raw("is_active"))
 }
@@ -357,6 +358,7 @@ model cash_transfers {
   @@index([deleted_at], map: "cash_transfers_live_idx", where: raw("(deleted_at IS NULL)"))
   @@index([status], where: raw("(status = 'pending'::cash_transfer_status)"))
   @@index([branch_id, created_at], map: "cash_transfers_window_idx", where: raw("(status = 'approved'::cash_transfer_status)"))
+  @@index([branch_id, created_at], map: "cash_transfers_branch_created_idx")
 }
 
 model categories {
@@ -879,6 +881,7 @@ model finance_settings {
   allow_super_admin_write    Boolean   @default(false)
   updated_at                 DateTime  @default(now()) @db.Timestamptz(6)
   updated_by                 String    @default("")
+  account_ledger_start       DateTime? @db.Date
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -1625,47 +1628,49 @@ model production_order_packing_items {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model production_orders {
-  id                                          String                           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  legacy_id                                   String?                          @unique
-  branch_id                                   String                           @db.Uuid
+  id                                          String                            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  legacy_id                                   String?                           @unique
+  branch_id                                   String                            @db.Uuid
   branch_name                                 String?
-  business_date                               DateTime                         @db.Date
+  business_date                               DateTime                          @db.Date
   submitted_time                              String?
-  status                                      branch_production_order_status   @default(pending)
-  created_by                                  String?                          @db.Uuid
+  status                                      branch_production_order_status    @default(pending)
+  created_by                                  String?                           @db.Uuid
   created_by_name                             String?
-  submitted_at                                DateTime                         @default(now()) @db.Timestamptz(6)
-  approved_by                                 String?                          @db.Uuid
+  submitted_at                                DateTime                          @default(now()) @db.Timestamptz(6)
+  approved_by                                 String?                           @db.Uuid
   approved_by_name                            String?
-  approved_at                                 DateTime?                        @db.Timestamptz(6)
-  was_changed                                 Boolean                          @default(false)
+  approved_at                                 DateTime?                         @db.Timestamptz(6)
+  was_changed                                 Boolean                           @default(false)
   change_reason                               String?
-  printed                                     Boolean                          @default(false)
-  printed_at                                  DateTime?                        @db.Timestamptz(6)
-  created_at                                  DateTime                         @default(now()) @db.Timestamptz(6)
-  updated_at                                  DateTime                         @default(now()) @db.Timestamptz(6)
-  demand_number                               String                           @unique @default(dbgenerated("next_demand_number()"))
-  verified_by                                 String?                          @db.Uuid
+  printed                                     Boolean                           @default(false)
+  printed_at                                  DateTime?                         @db.Timestamptz(6)
+  created_at                                  DateTime                          @default(now()) @db.Timestamptz(6)
+  updated_at                                  DateTime                          @default(now()) @db.Timestamptz(6)
+  demand_number                               String                            @unique @default(dbgenerated("next_demand_number()"))
+  verified_by                                 String?                           @db.Uuid
   verified_by_name                            String?
-  verified_at                                 DateTime?                        @db.Timestamptz(6)
+  verified_at                                 DateTime?                         @db.Timestamptz(6)
   cancel_reason                               String?
-  cancelled_by                                String?                          @db.Uuid
+  cancelled_by                                String?                           @db.Uuid
   cancelled_by_name                           String?
-  cancelled_at                                DateTime?                        @db.Timestamptz(6)
-  required_date                               DateTime?                        @db.Date
+  cancelled_at                                DateTime?                         @db.Timestamptz(6)
+  required_date                               DateTime?                         @db.Date
   branch_discounts                            branch_discounts[]
   production_order_items                      production_order_items[]
   production_order_packing_items              production_order_packing_items[]
-  users_production_orders_approved_byTousers  users?                           @relation("production_orders_approved_byTousers", fields: [approved_by], references: [id], onUpdate: NoAction)
-  branches                                    branches                         @relation(fields: [branch_id], references: [id], onUpdate: NoAction)
-  users_production_orders_cancelled_byTousers users?                           @relation("production_orders_cancelled_byTousers", fields: [cancelled_by], references: [id], onUpdate: NoAction)
-  users_production_orders_created_byTousers   users?                           @relation("production_orders_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
-  users_production_orders_verified_byTousers  users?                           @relation("production_orders_verified_byTousers", fields: [verified_by], references: [id], onUpdate: NoAction)
+  production_order_share_snapshots            production_order_share_snapshots?
+  users_production_orders_approved_byTousers  users?                            @relation("production_orders_approved_byTousers", fields: [approved_by], references: [id], onUpdate: NoAction)
+  branches                                    branches                          @relation(fields: [branch_id], references: [id], onUpdate: NoAction)
+  users_production_orders_cancelled_byTousers users?                            @relation("production_orders_cancelled_byTousers", fields: [cancelled_by], references: [id], onUpdate: NoAction)
+  users_production_orders_created_byTousers   users?                            @relation("production_orders_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
+  users_production_orders_verified_byTousers  users?                            @relation("production_orders_verified_byTousers", fields: [verified_by], references: [id], onUpdate: NoAction)
   production_stock_history                    production_stock_history[]
 
   @@index([branch_id, business_date(sort: Desc)], map: "production_orders_branch_date_idx")
   @@index([business_date(sort: Desc)], map: "production_orders_date_idx")
   @@index([status, business_date(sort: Desc)], map: "production_orders_status_idx")
+  @@index([branch_id, submitted_at], map: "production_orders_branch_submitted_idx")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -1704,6 +1709,7 @@ model production_returns {
   @@index([disposition, business_date(sort: Desc)], map: "production_returns_disposition_idx")
   @@index([photo_attachment_id], map: "production_returns_photo_idx", where: raw("(photo_attachment_id IS NOT NULL)"))
   @@index([status], where: raw("(status = 'pending'::production_return_status)"))
+  @@index([branch_id, created_at], map: "production_returns_branch_created_idx")
 }
 
 model production_stock {
@@ -2958,6 +2964,36 @@ model whatsapp_webhook_events {
   last_error   String?
 
   @@index([received_at], map: "whatsapp_webhook_events_pending", where: raw("(processed_at IS NULL)"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model branch_account_adjustments {
+  id                               String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  branch_id                        String                      @db.Uuid
+  kind                             String
+  amount                           Decimal                     @db.Decimal(14, 2)
+  effective_at                     DateTime                    @db.Timestamptz(6)
+  business_date                    DateTime                    @db.Date
+  reason                           String
+  reversal_of                      String?                     @unique @db.Uuid
+  request_id                       String                      @unique @db.Uuid
+  created_by                       String?                     @db.Uuid
+  created_by_name                  String?
+  created_at                       DateTime                    @default(now()) @db.Timestamptz(6)
+  branches                         branches                    @relation(fields: [branch_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  branch_account_adjustments       branch_account_adjustments? @relation("branch_account_adjustmentsTobranch_account_adjustments", fields: [reversal_of], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_branch_account_adjustments branch_account_adjustments? @relation("branch_account_adjustmentsTobranch_account_adjustments")
+
+  @@index([branch_id, effective_at], map: "branch_account_adjustments_branch_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model production_order_share_snapshots {
+  production_order_id String            @id @db.Uuid
+  company_share_pct   Decimal           @db.Decimal(5, 2)
+  frozen_at           DateTime          @default(now()) @db.Timestamptz(6)
+  source              String
+  production_orders   production_orders @relation(fields: [production_order_id], references: [id], onUpdate: NoAction)
 }
 
 enum app_theme {

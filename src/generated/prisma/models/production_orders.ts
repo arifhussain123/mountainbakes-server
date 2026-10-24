@@ -369,6 +369,7 @@ export type production_ordersWhereInput = {
   branch_discounts?: Prisma.Branch_discountsListRelationFilter
   production_order_items?: Prisma.Production_order_itemsListRelationFilter
   production_order_packing_items?: Prisma.Production_order_packing_itemsListRelationFilter
+  production_order_share_snapshots?: Prisma.XOR<Prisma.Production_order_share_snapshotsNullableScalarRelationFilter, Prisma.production_order_share_snapshotsWhereInput> | null
   users_production_orders_approved_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   branches?: Prisma.XOR<Prisma.BranchesScalarRelationFilter, Prisma.branchesWhereInput>
   users_production_orders_cancelled_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
@@ -409,6 +410,7 @@ export type production_ordersOrderByWithRelationInput = {
   branch_discounts?: Prisma.branch_discountsOrderByRelationAggregateInput
   production_order_items?: Prisma.production_order_itemsOrderByRelationAggregateInput
   production_order_packing_items?: Prisma.production_order_packing_itemsOrderByRelationAggregateInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsOrderByWithRelationInput
   users_production_orders_approved_byTousers?: Prisma.usersOrderByWithRelationInput
   branches?: Prisma.branchesOrderByWithRelationInput
   users_production_orders_cancelled_byTousers?: Prisma.usersOrderByWithRelationInput
@@ -452,6 +454,7 @@ export type production_ordersWhereUniqueInput = Prisma.AtLeast<{
   branch_discounts?: Prisma.Branch_discountsListRelationFilter
   production_order_items?: Prisma.Production_order_itemsListRelationFilter
   production_order_packing_items?: Prisma.Production_order_packing_itemsListRelationFilter
+  production_order_share_snapshots?: Prisma.XOR<Prisma.Production_order_share_snapshotsNullableScalarRelationFilter, Prisma.production_order_share_snapshotsWhereInput> | null
   users_production_orders_approved_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   branches?: Prisma.XOR<Prisma.BranchesScalarRelationFilter, Prisma.branchesWhereInput>
   users_production_orders_cancelled_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
@@ -555,6 +558,7 @@ export type production_ordersCreateInput = {
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutProduction_ordersInput
   production_order_items?: Prisma.production_order_itemsCreateNestedManyWithoutProduction_ordersInput
   production_order_packing_items?: Prisma.production_order_packing_itemsCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsCreateNestedOneWithoutProduction_ordersInput
   users_production_orders_approved_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_approved_byTousersInput
   branches: Prisma.branchesCreateNestedOneWithoutProduction_ordersInput
   users_production_orders_cancelled_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_cancelled_byTousersInput
@@ -595,6 +599,7 @@ export type production_ordersUncheckedCreateInput = {
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutProduction_ordersInput
   production_order_items?: Prisma.production_order_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedCreateNestedOneWithoutProduction_ordersInput
   production_stock_history?: Prisma.production_stock_historyUncheckedCreateNestedManyWithoutProduction_ordersInput
 }
 
@@ -625,6 +630,7 @@ export type production_ordersUpdateInput = {
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutProduction_ordersNestedInput
   production_order_items?: Prisma.production_order_itemsUpdateManyWithoutProduction_ordersNestedInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUpdateOneWithoutProduction_ordersNestedInput
   users_production_orders_approved_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_approved_byTousersNestedInput
   branches?: Prisma.branchesUpdateOneRequiredWithoutProduction_ordersNestedInput
   users_production_orders_cancelled_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_cancelled_byTousersNestedInput
@@ -665,6 +671,7 @@ export type production_ordersUncheckedUpdateInput = {
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutProduction_ordersNestedInput
   production_order_items?: Prisma.production_order_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedUpdateOneWithoutProduction_ordersNestedInput
   production_stock_history?: Prisma.production_stock_historyUncheckedUpdateManyWithoutProduction_ordersNestedInput
 }
 
@@ -1141,6 +1148,20 @@ export type production_ordersUncheckedUpdateManyWithoutUsers_production_orders_v
   deleteMany?: Prisma.production_ordersScalarWhereInput | Prisma.production_ordersScalarWhereInput[]
 }
 
+export type production_ordersCreateNestedOneWithoutProduction_order_share_snapshotsInput = {
+  create?: Prisma.XOR<Prisma.production_ordersCreateWithoutProduction_order_share_snapshotsInput, Prisma.production_ordersUncheckedCreateWithoutProduction_order_share_snapshotsInput>
+  connectOrCreate?: Prisma.production_ordersCreateOrConnectWithoutProduction_order_share_snapshotsInput
+  connect?: Prisma.production_ordersWhereUniqueInput
+}
+
+export type production_ordersUpdateOneRequiredWithoutProduction_order_share_snapshotsNestedInput = {
+  create?: Prisma.XOR<Prisma.production_ordersCreateWithoutProduction_order_share_snapshotsInput, Prisma.production_ordersUncheckedCreateWithoutProduction_order_share_snapshotsInput>
+  connectOrCreate?: Prisma.production_ordersCreateOrConnectWithoutProduction_order_share_snapshotsInput
+  upsert?: Prisma.production_ordersUpsertWithoutProduction_order_share_snapshotsInput
+  connect?: Prisma.production_ordersWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.production_ordersUpdateToOneWithWhereWithoutProduction_order_share_snapshotsInput, Prisma.production_ordersUpdateWithoutProduction_order_share_snapshotsInput>, Prisma.production_ordersUncheckedUpdateWithoutProduction_order_share_snapshotsInput>
+}
+
 export type production_ordersCreateWithoutBranch_discountsInput = {
   id?: string
   legacy_id?: string | null
@@ -1167,6 +1188,7 @@ export type production_ordersCreateWithoutBranch_discountsInput = {
   required_date?: Date | string | null
   production_order_items?: Prisma.production_order_itemsCreateNestedManyWithoutProduction_ordersInput
   production_order_packing_items?: Prisma.production_order_packing_itemsCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsCreateNestedOneWithoutProduction_ordersInput
   users_production_orders_approved_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_approved_byTousersInput
   branches: Prisma.branchesCreateNestedOneWithoutProduction_ordersInput
   users_production_orders_cancelled_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_cancelled_byTousersInput
@@ -1206,6 +1228,7 @@ export type production_ordersUncheckedCreateWithoutBranch_discountsInput = {
   required_date?: Date | string | null
   production_order_items?: Prisma.production_order_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedCreateNestedOneWithoutProduction_ordersInput
   production_stock_history?: Prisma.production_stock_historyUncheckedCreateNestedManyWithoutProduction_ordersInput
 }
 
@@ -1251,6 +1274,7 @@ export type production_ordersUpdateWithoutBranch_discountsInput = {
   required_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   production_order_items?: Prisma.production_order_itemsUpdateManyWithoutProduction_ordersNestedInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUpdateOneWithoutProduction_ordersNestedInput
   users_production_orders_approved_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_approved_byTousersNestedInput
   branches?: Prisma.branchesUpdateOneRequiredWithoutProduction_ordersNestedInput
   users_production_orders_cancelled_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_cancelled_byTousersNestedInput
@@ -1290,6 +1314,7 @@ export type production_ordersUncheckedUpdateWithoutBranch_discountsInput = {
   required_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   production_order_items?: Prisma.production_order_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedUpdateOneWithoutProduction_ordersNestedInput
   production_stock_history?: Prisma.production_stock_historyUncheckedUpdateManyWithoutProduction_ordersNestedInput
 }
 
@@ -1320,6 +1345,7 @@ export type production_ordersCreateWithoutBranchesInput = {
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutProduction_ordersInput
   production_order_items?: Prisma.production_order_itemsCreateNestedManyWithoutProduction_ordersInput
   production_order_packing_items?: Prisma.production_order_packing_itemsCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsCreateNestedOneWithoutProduction_ordersInput
   users_production_orders_approved_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_approved_byTousersInput
   users_production_orders_cancelled_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_cancelled_byTousersInput
   users_production_orders_created_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_created_byTousersInput
@@ -1358,6 +1384,7 @@ export type production_ordersUncheckedCreateWithoutBranchesInput = {
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutProduction_ordersInput
   production_order_items?: Prisma.production_order_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedCreateNestedOneWithoutProduction_ordersInput
   production_stock_history?: Prisma.production_stock_historyUncheckedCreateNestedManyWithoutProduction_ordersInput
 }
 
@@ -1447,6 +1474,7 @@ export type production_ordersCreateWithoutProduction_order_itemsInput = {
   required_date?: Date | string | null
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutProduction_ordersInput
   production_order_packing_items?: Prisma.production_order_packing_itemsCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsCreateNestedOneWithoutProduction_ordersInput
   users_production_orders_approved_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_approved_byTousersInput
   branches: Prisma.branchesCreateNestedOneWithoutProduction_ordersInput
   users_production_orders_cancelled_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_cancelled_byTousersInput
@@ -1486,6 +1514,7 @@ export type production_ordersUncheckedCreateWithoutProduction_order_itemsInput =
   required_date?: Date | string | null
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutProduction_ordersInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedCreateNestedOneWithoutProduction_ordersInput
   production_stock_history?: Prisma.production_stock_historyUncheckedCreateNestedManyWithoutProduction_ordersInput
 }
 
@@ -1531,6 +1560,7 @@ export type production_ordersUpdateWithoutProduction_order_itemsInput = {
   required_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutProduction_ordersNestedInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUpdateOneWithoutProduction_ordersNestedInput
   users_production_orders_approved_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_approved_byTousersNestedInput
   branches?: Prisma.branchesUpdateOneRequiredWithoutProduction_ordersNestedInput
   users_production_orders_cancelled_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_cancelled_byTousersNestedInput
@@ -1570,6 +1600,7 @@ export type production_ordersUncheckedUpdateWithoutProduction_order_itemsInput =
   required_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutProduction_ordersNestedInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedUpdateOneWithoutProduction_ordersNestedInput
   production_stock_history?: Prisma.production_stock_historyUncheckedUpdateManyWithoutProduction_ordersNestedInput
 }
 
@@ -1599,6 +1630,7 @@ export type production_ordersCreateWithoutProduction_order_packing_itemsInput = 
   required_date?: Date | string | null
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutProduction_ordersInput
   production_order_items?: Prisma.production_order_itemsCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsCreateNestedOneWithoutProduction_ordersInput
   users_production_orders_approved_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_approved_byTousersInput
   branches: Prisma.branchesCreateNestedOneWithoutProduction_ordersInput
   users_production_orders_cancelled_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_cancelled_byTousersInput
@@ -1638,6 +1670,7 @@ export type production_ordersUncheckedCreateWithoutProduction_order_packing_item
   required_date?: Date | string | null
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutProduction_ordersInput
   production_order_items?: Prisma.production_order_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedCreateNestedOneWithoutProduction_ordersInput
   production_stock_history?: Prisma.production_stock_historyUncheckedCreateNestedManyWithoutProduction_ordersInput
 }
 
@@ -1683,6 +1716,7 @@ export type production_ordersUpdateWithoutProduction_order_packing_itemsInput = 
   required_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutProduction_ordersNestedInput
   production_order_items?: Prisma.production_order_itemsUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUpdateOneWithoutProduction_ordersNestedInput
   users_production_orders_approved_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_approved_byTousersNestedInput
   branches?: Prisma.branchesUpdateOneRequiredWithoutProduction_ordersNestedInput
   users_production_orders_cancelled_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_cancelled_byTousersNestedInput
@@ -1722,6 +1756,7 @@ export type production_ordersUncheckedUpdateWithoutProduction_order_packing_item
   required_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutProduction_ordersNestedInput
   production_order_items?: Prisma.production_order_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedUpdateOneWithoutProduction_ordersNestedInput
   production_stock_history?: Prisma.production_stock_historyUncheckedUpdateManyWithoutProduction_ordersNestedInput
 }
 
@@ -1752,6 +1787,7 @@ export type production_ordersCreateWithoutProduction_stock_historyInput = {
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutProduction_ordersInput
   production_order_items?: Prisma.production_order_itemsCreateNestedManyWithoutProduction_ordersInput
   production_order_packing_items?: Prisma.production_order_packing_itemsCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsCreateNestedOneWithoutProduction_ordersInput
   users_production_orders_approved_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_approved_byTousersInput
   branches: Prisma.branchesCreateNestedOneWithoutProduction_ordersInput
   users_production_orders_cancelled_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_cancelled_byTousersInput
@@ -1791,6 +1827,7 @@ export type production_ordersUncheckedCreateWithoutProduction_stock_historyInput
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutProduction_ordersInput
   production_order_items?: Prisma.production_order_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedCreateNestedOneWithoutProduction_ordersInput
 }
 
 export type production_ordersCreateOrConnectWithoutProduction_stock_historyInput = {
@@ -1836,6 +1873,7 @@ export type production_ordersUpdateWithoutProduction_stock_historyInput = {
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutProduction_ordersNestedInput
   production_order_items?: Prisma.production_order_itemsUpdateManyWithoutProduction_ordersNestedInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUpdateOneWithoutProduction_ordersNestedInput
   users_production_orders_approved_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_approved_byTousersNestedInput
   branches?: Prisma.branchesUpdateOneRequiredWithoutProduction_ordersNestedInput
   users_production_orders_cancelled_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_cancelled_byTousersNestedInput
@@ -1875,6 +1913,7 @@ export type production_ordersUncheckedUpdateWithoutProduction_stock_historyInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutProduction_ordersNestedInput
   production_order_items?: Prisma.production_order_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedUpdateOneWithoutProduction_ordersNestedInput
 }
 
 export type production_ordersCreateWithoutUsers_production_orders_approved_byTousersInput = {
@@ -1904,6 +1943,7 @@ export type production_ordersCreateWithoutUsers_production_orders_approved_byTou
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutProduction_ordersInput
   production_order_items?: Prisma.production_order_itemsCreateNestedManyWithoutProduction_ordersInput
   production_order_packing_items?: Prisma.production_order_packing_itemsCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsCreateNestedOneWithoutProduction_ordersInput
   branches: Prisma.branchesCreateNestedOneWithoutProduction_ordersInput
   users_production_orders_cancelled_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_cancelled_byTousersInput
   users_production_orders_created_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_created_byTousersInput
@@ -1942,6 +1982,7 @@ export type production_ordersUncheckedCreateWithoutUsers_production_orders_appro
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutProduction_ordersInput
   production_order_items?: Prisma.production_order_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedCreateNestedOneWithoutProduction_ordersInput
   production_stock_history?: Prisma.production_stock_historyUncheckedCreateNestedManyWithoutProduction_ordersInput
 }
 
@@ -1982,6 +2023,7 @@ export type production_ordersCreateWithoutUsers_production_orders_cancelled_byTo
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutProduction_ordersInput
   production_order_items?: Prisma.production_order_itemsCreateNestedManyWithoutProduction_ordersInput
   production_order_packing_items?: Prisma.production_order_packing_itemsCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsCreateNestedOneWithoutProduction_ordersInput
   users_production_orders_approved_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_approved_byTousersInput
   branches: Prisma.branchesCreateNestedOneWithoutProduction_ordersInput
   users_production_orders_created_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_created_byTousersInput
@@ -2020,6 +2062,7 @@ export type production_ordersUncheckedCreateWithoutUsers_production_orders_cance
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutProduction_ordersInput
   production_order_items?: Prisma.production_order_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedCreateNestedOneWithoutProduction_ordersInput
   production_stock_history?: Prisma.production_stock_historyUncheckedCreateNestedManyWithoutProduction_ordersInput
 }
 
@@ -2060,6 +2103,7 @@ export type production_ordersCreateWithoutUsers_production_orders_created_byTous
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutProduction_ordersInput
   production_order_items?: Prisma.production_order_itemsCreateNestedManyWithoutProduction_ordersInput
   production_order_packing_items?: Prisma.production_order_packing_itemsCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsCreateNestedOneWithoutProduction_ordersInput
   users_production_orders_approved_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_approved_byTousersInput
   branches: Prisma.branchesCreateNestedOneWithoutProduction_ordersInput
   users_production_orders_cancelled_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_cancelled_byTousersInput
@@ -2098,6 +2142,7 @@ export type production_ordersUncheckedCreateWithoutUsers_production_orders_creat
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutProduction_ordersInput
   production_order_items?: Prisma.production_order_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedCreateNestedOneWithoutProduction_ordersInput
   production_stock_history?: Prisma.production_stock_historyUncheckedCreateNestedManyWithoutProduction_ordersInput
 }
 
@@ -2138,6 +2183,7 @@ export type production_ordersCreateWithoutUsers_production_orders_verified_byTou
   branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutProduction_ordersInput
   production_order_items?: Prisma.production_order_itemsCreateNestedManyWithoutProduction_ordersInput
   production_order_packing_items?: Prisma.production_order_packing_itemsCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsCreateNestedOneWithoutProduction_ordersInput
   users_production_orders_approved_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_approved_byTousersInput
   branches: Prisma.branchesCreateNestedOneWithoutProduction_ordersInput
   users_production_orders_cancelled_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_cancelled_byTousersInput
@@ -2176,6 +2222,7 @@ export type production_ordersUncheckedCreateWithoutUsers_production_orders_verif
   branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutProduction_ordersInput
   production_order_items?: Prisma.production_order_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedCreateNestedOneWithoutProduction_ordersInput
   production_stock_history?: Prisma.production_stock_historyUncheckedCreateNestedManyWithoutProduction_ordersInput
 }
 
@@ -2253,6 +2300,162 @@ export type production_ordersUpdateManyWithWhereWithoutUsers_production_orders_v
   data: Prisma.XOR<Prisma.production_ordersUpdateManyMutationInput, Prisma.production_ordersUncheckedUpdateManyWithoutUsers_production_orders_verified_byTousersInput>
 }
 
+export type production_ordersCreateWithoutProduction_order_share_snapshotsInput = {
+  id?: string
+  legacy_id?: string | null
+  branch_name?: string | null
+  business_date: Date | string
+  submitted_time?: string | null
+  status?: $Enums.branch_production_order_status
+  created_by_name?: string | null
+  submitted_at?: Date | string
+  approved_by_name?: string | null
+  approved_at?: Date | string | null
+  was_changed?: boolean
+  change_reason?: string | null
+  printed?: boolean
+  printed_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  demand_number?: string
+  verified_by_name?: string | null
+  verified_at?: Date | string | null
+  cancel_reason?: string | null
+  cancelled_by_name?: string | null
+  cancelled_at?: Date | string | null
+  required_date?: Date | string | null
+  branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutProduction_ordersInput
+  production_order_items?: Prisma.production_order_itemsCreateNestedManyWithoutProduction_ordersInput
+  production_order_packing_items?: Prisma.production_order_packing_itemsCreateNestedManyWithoutProduction_ordersInput
+  users_production_orders_approved_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_approved_byTousersInput
+  branches: Prisma.branchesCreateNestedOneWithoutProduction_ordersInput
+  users_production_orders_cancelled_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_cancelled_byTousersInput
+  users_production_orders_created_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_created_byTousersInput
+  users_production_orders_verified_byTousers?: Prisma.usersCreateNestedOneWithoutProduction_orders_production_orders_verified_byTousersInput
+  production_stock_history?: Prisma.production_stock_historyCreateNestedManyWithoutProduction_ordersInput
+}
+
+export type production_ordersUncheckedCreateWithoutProduction_order_share_snapshotsInput = {
+  id?: string
+  legacy_id?: string | null
+  branch_id: string
+  branch_name?: string | null
+  business_date: Date | string
+  submitted_time?: string | null
+  status?: $Enums.branch_production_order_status
+  created_by?: string | null
+  created_by_name?: string | null
+  submitted_at?: Date | string
+  approved_by?: string | null
+  approved_by_name?: string | null
+  approved_at?: Date | string | null
+  was_changed?: boolean
+  change_reason?: string | null
+  printed?: boolean
+  printed_at?: Date | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  demand_number?: string
+  verified_by?: string | null
+  verified_by_name?: string | null
+  verified_at?: Date | string | null
+  cancel_reason?: string | null
+  cancelled_by?: string | null
+  cancelled_by_name?: string | null
+  cancelled_at?: Date | string | null
+  required_date?: Date | string | null
+  branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutProduction_ordersInput
+  production_order_items?: Prisma.production_order_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
+  production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedCreateNestedManyWithoutProduction_ordersInput
+  production_stock_history?: Prisma.production_stock_historyUncheckedCreateNestedManyWithoutProduction_ordersInput
+}
+
+export type production_ordersCreateOrConnectWithoutProduction_order_share_snapshotsInput = {
+  where: Prisma.production_ordersWhereUniqueInput
+  create: Prisma.XOR<Prisma.production_ordersCreateWithoutProduction_order_share_snapshotsInput, Prisma.production_ordersUncheckedCreateWithoutProduction_order_share_snapshotsInput>
+}
+
+export type production_ordersUpsertWithoutProduction_order_share_snapshotsInput = {
+  update: Prisma.XOR<Prisma.production_ordersUpdateWithoutProduction_order_share_snapshotsInput, Prisma.production_ordersUncheckedUpdateWithoutProduction_order_share_snapshotsInput>
+  create: Prisma.XOR<Prisma.production_ordersCreateWithoutProduction_order_share_snapshotsInput, Prisma.production_ordersUncheckedCreateWithoutProduction_order_share_snapshotsInput>
+  where?: Prisma.production_ordersWhereInput
+}
+
+export type production_ordersUpdateToOneWithWhereWithoutProduction_order_share_snapshotsInput = {
+  where?: Prisma.production_ordersWhereInput
+  data: Prisma.XOR<Prisma.production_ordersUpdateWithoutProduction_order_share_snapshotsInput, Prisma.production_ordersUncheckedUpdateWithoutProduction_order_share_snapshotsInput>
+}
+
+export type production_ordersUpdateWithoutProduction_order_share_snapshotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legacy_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  submitted_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.Enumbranch_production_order_statusFieldUpdateOperationsInput | $Enums.branch_production_order_status
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  was_changed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  change_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  printed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  printed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  demand_number?: Prisma.StringFieldUpdateOperationsInput | string
+  verified_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancel_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  required_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  branch_discounts?: Prisma.branch_discountsUpdateManyWithoutProduction_ordersNestedInput
+  production_order_items?: Prisma.production_order_itemsUpdateManyWithoutProduction_ordersNestedInput
+  production_order_packing_items?: Prisma.production_order_packing_itemsUpdateManyWithoutProduction_ordersNestedInput
+  users_production_orders_approved_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_approved_byTousersNestedInput
+  branches?: Prisma.branchesUpdateOneRequiredWithoutProduction_ordersNestedInput
+  users_production_orders_cancelled_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_cancelled_byTousersNestedInput
+  users_production_orders_created_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_created_byTousersNestedInput
+  users_production_orders_verified_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_verified_byTousersNestedInput
+  production_stock_history?: Prisma.production_stock_historyUpdateManyWithoutProduction_ordersNestedInput
+}
+
+export type production_ordersUncheckedUpdateWithoutProduction_order_share_snapshotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legacy_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branch_id?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  submitted_time?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.Enumbranch_production_order_statusFieldUpdateOperationsInput | $Enums.branch_production_order_status
+  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  approved_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  was_changed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  change_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  printed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  printed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  demand_number?: Prisma.StringFieldUpdateOperationsInput | string
+  verified_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verified_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verified_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancel_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cancelled_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  required_date?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutProduction_ordersNestedInput
+  production_order_items?: Prisma.production_order_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
+  production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
+  production_stock_history?: Prisma.production_stock_historyUncheckedUpdateManyWithoutProduction_ordersNestedInput
+}
+
 export type production_ordersCreateManyBranchesInput = {
   id?: string
   legacy_id?: string | null
@@ -2310,6 +2513,7 @@ export type production_ordersUpdateWithoutBranchesInput = {
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutProduction_ordersNestedInput
   production_order_items?: Prisma.production_order_itemsUpdateManyWithoutProduction_ordersNestedInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUpdateOneWithoutProduction_ordersNestedInput
   users_production_orders_approved_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_approved_byTousersNestedInput
   users_production_orders_cancelled_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_cancelled_byTousersNestedInput
   users_production_orders_created_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_created_byTousersNestedInput
@@ -2348,6 +2552,7 @@ export type production_ordersUncheckedUpdateWithoutBranchesInput = {
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutProduction_ordersNestedInput
   production_order_items?: Prisma.production_order_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedUpdateOneWithoutProduction_ordersNestedInput
   production_stock_history?: Prisma.production_stock_historyUncheckedUpdateManyWithoutProduction_ordersNestedInput
 }
 
@@ -2528,6 +2733,7 @@ export type production_ordersUpdateWithoutUsers_production_orders_approved_byTou
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutProduction_ordersNestedInput
   production_order_items?: Prisma.production_order_itemsUpdateManyWithoutProduction_ordersNestedInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUpdateOneWithoutProduction_ordersNestedInput
   branches?: Prisma.branchesUpdateOneRequiredWithoutProduction_ordersNestedInput
   users_production_orders_cancelled_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_cancelled_byTousersNestedInput
   users_production_orders_created_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_created_byTousersNestedInput
@@ -2566,6 +2772,7 @@ export type production_ordersUncheckedUpdateWithoutUsers_production_orders_appro
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutProduction_ordersNestedInput
   production_order_items?: Prisma.production_order_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedUpdateOneWithoutProduction_ordersNestedInput
   production_stock_history?: Prisma.production_stock_historyUncheckedUpdateManyWithoutProduction_ordersNestedInput
 }
 
@@ -2626,6 +2833,7 @@ export type production_ordersUpdateWithoutUsers_production_orders_cancelled_byTo
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutProduction_ordersNestedInput
   production_order_items?: Prisma.production_order_itemsUpdateManyWithoutProduction_ordersNestedInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUpdateOneWithoutProduction_ordersNestedInput
   users_production_orders_approved_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_approved_byTousersNestedInput
   branches?: Prisma.branchesUpdateOneRequiredWithoutProduction_ordersNestedInput
   users_production_orders_created_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_created_byTousersNestedInput
@@ -2664,6 +2872,7 @@ export type production_ordersUncheckedUpdateWithoutUsers_production_orders_cance
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutProduction_ordersNestedInput
   production_order_items?: Prisma.production_order_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedUpdateOneWithoutProduction_ordersNestedInput
   production_stock_history?: Prisma.production_stock_historyUncheckedUpdateManyWithoutProduction_ordersNestedInput
 }
 
@@ -2724,6 +2933,7 @@ export type production_ordersUpdateWithoutUsers_production_orders_created_byTous
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutProduction_ordersNestedInput
   production_order_items?: Prisma.production_order_itemsUpdateManyWithoutProduction_ordersNestedInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUpdateOneWithoutProduction_ordersNestedInput
   users_production_orders_approved_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_approved_byTousersNestedInput
   branches?: Prisma.branchesUpdateOneRequiredWithoutProduction_ordersNestedInput
   users_production_orders_cancelled_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_cancelled_byTousersNestedInput
@@ -2762,6 +2972,7 @@ export type production_ordersUncheckedUpdateWithoutUsers_production_orders_creat
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutProduction_ordersNestedInput
   production_order_items?: Prisma.production_order_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedUpdateOneWithoutProduction_ordersNestedInput
   production_stock_history?: Prisma.production_stock_historyUncheckedUpdateManyWithoutProduction_ordersNestedInput
 }
 
@@ -2822,6 +3033,7 @@ export type production_ordersUpdateWithoutUsers_production_orders_verified_byTou
   branch_discounts?: Prisma.branch_discountsUpdateManyWithoutProduction_ordersNestedInput
   production_order_items?: Prisma.production_order_itemsUpdateManyWithoutProduction_ordersNestedInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUpdateOneWithoutProduction_ordersNestedInput
   users_production_orders_approved_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_approved_byTousersNestedInput
   branches?: Prisma.branchesUpdateOneRequiredWithoutProduction_ordersNestedInput
   users_production_orders_cancelled_byTousers?: Prisma.usersUpdateOneWithoutProduction_orders_production_orders_cancelled_byTousersNestedInput
@@ -2860,6 +3072,7 @@ export type production_ordersUncheckedUpdateWithoutUsers_production_orders_verif
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutProduction_ordersNestedInput
   production_order_items?: Prisma.production_order_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
   production_order_packing_items?: Prisma.production_order_packing_itemsUncheckedUpdateManyWithoutProduction_ordersNestedInput
+  production_order_share_snapshots?: Prisma.production_order_share_snapshotsUncheckedUpdateOneWithoutProduction_ordersNestedInput
   production_stock_history?: Prisma.production_stock_historyUncheckedUpdateManyWithoutProduction_ordersNestedInput
 }
 
@@ -2983,6 +3196,7 @@ export type production_ordersSelect<ExtArgs extends runtime.Types.Extensions.Int
   branch_discounts?: boolean | Prisma.production_orders$branch_discountsArgs<ExtArgs>
   production_order_items?: boolean | Prisma.production_orders$production_order_itemsArgs<ExtArgs>
   production_order_packing_items?: boolean | Prisma.production_orders$production_order_packing_itemsArgs<ExtArgs>
+  production_order_share_snapshots?: boolean | Prisma.production_orders$production_order_share_snapshotsArgs<ExtArgs>
   users_production_orders_approved_byTousers?: boolean | Prisma.production_orders$users_production_orders_approved_byTousersArgs<ExtArgs>
   branches?: boolean | Prisma.branchesDefaultArgs<ExtArgs>
   users_production_orders_cancelled_byTousers?: boolean | Prisma.production_orders$users_production_orders_cancelled_byTousersArgs<ExtArgs>
@@ -3100,6 +3314,7 @@ export type production_ordersInclude<ExtArgs extends runtime.Types.Extensions.In
   branch_discounts?: boolean | Prisma.production_orders$branch_discountsArgs<ExtArgs>
   production_order_items?: boolean | Prisma.production_orders$production_order_itemsArgs<ExtArgs>
   production_order_packing_items?: boolean | Prisma.production_orders$production_order_packing_itemsArgs<ExtArgs>
+  production_order_share_snapshots?: boolean | Prisma.production_orders$production_order_share_snapshotsArgs<ExtArgs>
   users_production_orders_approved_byTousers?: boolean | Prisma.production_orders$users_production_orders_approved_byTousersArgs<ExtArgs>
   branches?: boolean | Prisma.branchesDefaultArgs<ExtArgs>
   users_production_orders_cancelled_byTousers?: boolean | Prisma.production_orders$users_production_orders_cancelled_byTousersArgs<ExtArgs>
@@ -3129,6 +3344,7 @@ export type $production_ordersPayload<ExtArgs extends runtime.Types.Extensions.I
     branch_discounts: Prisma.$branch_discountsPayload<ExtArgs>[]
     production_order_items: Prisma.$production_order_itemsPayload<ExtArgs>[]
     production_order_packing_items: Prisma.$production_order_packing_itemsPayload<ExtArgs>[]
+    production_order_share_snapshots: Prisma.$production_order_share_snapshotsPayload<ExtArgs> | null
     users_production_orders_approved_byTousers: Prisma.$usersPayload<ExtArgs> | null
     branches: Prisma.$branchesPayload<ExtArgs>
     users_production_orders_cancelled_byTousers: Prisma.$usersPayload<ExtArgs> | null
@@ -3562,6 +3778,7 @@ export interface Prisma__production_ordersClient<T, Null = never, ExtArgs extend
   branch_discounts<T extends Prisma.production_orders$branch_discountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.production_orders$branch_discountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$branch_discountsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   production_order_items<T extends Prisma.production_orders$production_order_itemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.production_orders$production_order_itemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$production_order_itemsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   production_order_packing_items<T extends Prisma.production_orders$production_order_packing_itemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.production_orders$production_order_packing_itemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$production_order_packing_itemsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  production_order_share_snapshots<T extends Prisma.production_orders$production_order_share_snapshotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.production_orders$production_order_share_snapshotsArgs<ExtArgs>>): Prisma.Prisma__production_order_share_snapshotsClient<runtime.Types.Result.GetResult<Prisma.$production_order_share_snapshotsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   users_production_orders_approved_byTousers<T extends Prisma.production_orders$users_production_orders_approved_byTousersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.production_orders$users_production_orders_approved_byTousersArgs<ExtArgs>>): Prisma.Prisma__usersClient<runtime.Types.Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   branches<T extends Prisma.branchesDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.branchesDefaultArgs<ExtArgs>>): Prisma.Prisma__branchesClient<runtime.Types.Result.GetResult<Prisma.$branchesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   users_production_orders_cancelled_byTousers<T extends Prisma.production_orders$users_production_orders_cancelled_byTousersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.production_orders$users_production_orders_cancelled_byTousersArgs<ExtArgs>>): Prisma.Prisma__usersClient<runtime.Types.Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -4095,6 +4312,25 @@ export type production_orders$production_order_packing_itemsArgs<ExtArgs extends
   take?: number
   skip?: number
   distinct?: Prisma.Production_order_packing_itemsScalarFieldEnum | Prisma.Production_order_packing_itemsScalarFieldEnum[]
+}
+
+/**
+ * production_orders.production_order_share_snapshots
+ */
+export type production_orders$production_order_share_snapshotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the production_order_share_snapshots
+   */
+  select?: Prisma.production_order_share_snapshotsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the production_order_share_snapshots
+   */
+  omit?: Prisma.production_order_share_snapshotsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.production_order_share_snapshotsInclude<ExtArgs> | null
+  where?: Prisma.production_order_share_snapshotsWhereInput
 }
 
 /**
