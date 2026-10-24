@@ -10,7 +10,7 @@ import {
   type FinanceDailySaleRow,
 } from '../shared';
 import { listDepositsForReconciliation } from './cash-transfers.service';
-import { getDailySaleRecordDetail, listDailySaleRecords } from './daily-sale.service';
+import { composeEmptyDailySaleDays, getDailySaleRecordDetail, listDailySaleRecords } from './daily-sale.service';
 
 const db = dbFor('finance-daily-sales');
 
@@ -111,9 +111,29 @@ export async function listFinanceDailySales(params: FinanceDailySalesParams): Pr
     branchId: params.branchId,
   });
 
-  const { byDay, unclaimed } = reconcileDeposits(list.records, deposits);
+  // A deposit that paid no day goes on the row of the day it was handed over.
+  // A day with no sale and no record has no row, so one is made for it — all
+  // zeros, the deposit under Received — and the reconciliation run again. That
+  // second run pairs every other deposit exactly as the first did: a day that
+  // owes nothing takes no deposit until the leftovers are placed.
+  const salesDays = new Set(list.records.map((r) => dayKey(r.branchId, r.businessDate)));
+  let dayRows = list.records;
+  let { byDay, unclaimed } = reconcileDeposits(dayRows, deposits);
+  const rowless = new Map<string, { branchId: string; branchName: string; businessDate: string }>();
+  for (const d of unclaimed) {
+    if (d.businessDate < list.from || d.businessDate > to) continue;
+    rowless.set(dayKey(d.branchId, d.businessDate), { branchId: d.branchId, branchName: d.branchName, businessDate: d.businessDate });
+  }
+  if (rowless.size > 0) {
+    dayRows = [...dayRows, ...(await composeEmptyDailySaleDays([...rowless.values()]))].sort((a, b) =>
+      a.businessDate === b.businessDate
+        ? a.branchName.localeCompare(b.branchName)
+        : b.businessDate.localeCompare(a.businessDate),
+    );
+    ({ byDay, unclaimed } = reconcileDeposits(dayRows, deposits));
+  }
 
-  const records: FinanceDailySaleRow[] = list.records
+  const records: FinanceDailySaleRow[] = dayRows
     .filter((record) => record.businessDate >= from)
     .map((record) => ({
       ...record,
@@ -126,8 +146,9 @@ export async function listFinanceDailySales(params: FinanceDailySalesParams): Pr
     branchId: list.branchId,
     branchName: list.branchName,
     records,
-    // Over the rows on show, by the helper the branch list itself uses.
-    summary: computeDailySaleSummary(records),
+    // Over the sales rows on show, by the helper the branch list itself uses — a
+    // row made only for a deposit has no sales to add or count.
+    summary: computeDailySaleSummary(records.filter((r) => salesDays.has(dayKey(r.branchId, r.businessDate)))),
     reconciliation: summarizeDepositReconciliation(records),
     unmatchedDeposits: unclaimed.filter((d) => d.businessDate >= from && d.businessDate <= to),
   };
@@ -169,7 +190,15 @@ export async function getFinanceDailySaleDay(
     branchId: branch.id,
     branchName: branch.name,
   });
-  const record = list.records[0];
+  let record = list.records[0];
+  // A day with no sale and no record, but a deposit handed over on it: the zero
+  // row the board shows that deposit on.
+  if (!record) {
+    const handedOver = await listDepositsForReconciliation({ from: businessDate, to: businessDate, branchId: branch.id });
+    if (handedOver.length > 0) {
+      record = (await composeEmptyDailySaleDays([{ branchId: branch.id, branchName: branch.name, businessDate }]))[0];
+    }
+  }
   if (!record) throw notFound('Nothing was recorded for that branch on that day');
 
   if (record.id) return getDailySaleRecordDetail(record.id, branch.id);

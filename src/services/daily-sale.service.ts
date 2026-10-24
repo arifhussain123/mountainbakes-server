@@ -513,6 +513,30 @@ export async function listDailySaleRecords(params: ListParams): Promise<DailySal
   };
 }
 
+/**
+ * Rows for days with no record and no sale — every figure zero, open, no id.
+ *
+ * The board leaves such days out (see `listDailySaleRecords`). Finance's Daily
+ * Closing asks for one only where a branch handed over a deposit that day that
+ * paid no other day, so the cash has a row to be shown on as received.
+ */
+export async function composeEmptyDailySaleDays(
+  days: { branchId: string; branchName: string; businessDate: string }[],
+): Promise<DailySaleRecord[]> {
+  if (days.length === 0) return [];
+  const dates = days.map((d) => d.businessDate).sort();
+  const shares = await loadCompanyShares([...new Set(days.map((d) => d.branchId))], dates[0]!, dates[dates.length - 1]!);
+  return days.map((d) =>
+    composeRecord({
+      ...d,
+      stored: undefined,
+      live: undefined,
+      currentSharePct: shares.current.get(d.branchId) ?? shares.fallback,
+      snapshotSharePct: shares.snapshot.get(`${d.branchId}|${d.businessDate}`) ?? null,
+    }),
+  );
+}
+
 /** A record in full, with its history, its branch's locks and the print header (§21, §22). */
 export async function getDailySaleRecordDetail(
   id: string,
