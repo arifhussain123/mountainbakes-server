@@ -250,22 +250,22 @@ describe('the workbook', () => {
 
   test('Easypaisa goes under Bank and the mixed transfer is split by channel', async () => {
     const wb = await open((await download('auditor', '?from=2026-10-10&to=2026-10-11')).buf);
-    const codes: string[] = [];
+    const accounts: string[] = [];
     wb.getWorksheet('General Entries')!.eachRow((row, n) => {
-      if (n > 6) codes.push(String(row.getCell(8).value ?? ''));
+      if (n > 6) accounts.push(String(row.getCell(4).value ?? ''));
     });
-    assert.equal(codes.filter((c) => c === 'AST-BANK-EASYPAISA').length, 2); // the transfer's share and the collection
+    assert.equal(accounts.filter((a) => a === 'Bank — Easypaisa').length, 2); // the transfer's share and the collection
 
     // Closing: cash 50 000 + 4 000 + 7 000 − 6 000 − 2 000; bank 20 000 + 1 000 + 5 000 − 1 200; Easypaisa 2 000 + 1 500.
     const tb = wb.getWorksheet('Trial Balance')!;
     const closing = new Map<string, number>();
     tb.eachRow((row) => {
-      const code = row.getCell(1).value;
-      if (typeof code === 'string') closing.set(code, Number(row.getCell(9).value ?? 0) - Number(row.getCell(10).value ?? 0));
+      const name = row.getCell(1).value;
+      if (typeof name === 'string') closing.set(name, Number(row.getCell(8).value ?? 0) - Number(row.getCell(9).value ?? 0));
     });
-    assert.equal(closing.get('AST-CASH'), 53000);
-    assert.equal(closing.get('AST-BANK'), 24800);
-    assert.equal(closing.get('AST-BANK-EASYPAISA'), 3500);
+    assert.equal(closing.get('Cash in Hand'), 53000);
+    assert.equal(closing.get('Bank — Bank Account'), 24800);
+    assert.equal(closing.get('Bank — Easypaisa'), 3500);
   });
 
   test('balance sheet balances: assets = General Fund + retained earnings + period profit', async () => {
@@ -274,7 +274,7 @@ describe('the workbook', () => {
     const value = (label: string) => {
       let out: unknown;
       bs.eachRow((row) => {
-        if (out === undefined && row.getCell(2).value === label) out = row.getCell(4).value;
+        if (out === undefined && row.getCell(1).value === label) out = row.getCell(3).value;
       });
       return out;
     };
@@ -287,19 +287,19 @@ describe('the workbook', () => {
     const wb = await open((await download('auditor', '?from=2026-10-10&to=2026-10-11')).buf);
     let found = false;
     wb.getWorksheet('General Entries')!.eachRow((row) => {
-      if (row.getCell(12).value === "'=1+1 electricity") found = true;
+      if (row.getCell(5).value === "'=1+1 electricity") found = true;
     });
     assert.ok(found);
   });
 
-  test('every journal line carries who keyed the voucher and its posted status', async () => {
+  test('General Entries holds only its seven columns: no line, posted-at, source, code, channel, status or author', async () => {
     const wb = await open((await download('auditor', '?from=2026-10-10&to=2026-10-11')).buf);
     const ge = wb.getWorksheet('General Entries')!;
+    assert.deepEqual((ge.getRow(6).values as unknown[]).filter(Boolean), [
+      'Entry ID', 'Business Date', 'Branch', 'Account Name', 'Narration', 'Debit (DR)', 'Credit (CR)',
+    ]);
     ge.eachRow((row, n) => {
-      if (n > 6 && /^(RV|PV)-/.test(String(row.getCell(1).value))) {
-        assert.equal(row.getCell(16).value, 'Test');
-        assert.equal(row.getCell(15).value, 'posted');
-      }
+      if (n > 6) assert.equal(row.getCell(8).value, null);
     });
   });
 
@@ -327,7 +327,7 @@ describe('the workbook', () => {
       const tb = (await open(buf)).getWorksheet('Trial Balance')!;
       let out: unknown[] = [];
       tb.eachRow((row) => {
-        if (row.getCell(1).value === 'TOTAL') out = [5, 6, 7, 8, 9, 10].map((c) => (row.getCell(c).value as ExcelJS.CellFormulaValue).result);
+        if (row.getCell(1).value === 'TOTAL') out = [4, 5, 6, 7, 8, 9].map((c) => (row.getCell(c).value as ExcelJS.CellFormulaValue).result);
       });
       return out;
     };

@@ -407,41 +407,68 @@ describe('workbook', () => {
     const { wb } = await workbook(scenario());
     const ge = wb.getWorksheet('General Entries')!;
     const total = findRow(ge, 1, (v) => typeof v === 'string' && v.startsWith('TOTAL'))!;
-    const dr = total.getCell(13).value as ExcelJS.CellFormulaValue;
-    assert.match(dr.formula, /^SUM\(M7:M\d+\)$/);
+    const dr = total.getCell(6).value as ExcelJS.CellFormulaValue;
+    assert.match(dr.formula, /^SUM\(F7:F\d+\)$/);
     assert.equal(dr.result, 55900);
-    assert.equal(resultOf(total.getCell(14).value), 55900);
+    assert.equal(resultOf(total.getCell(7).value), 55900);
     const sal = findRow(ge, 1, (v) => v === 'PV-2')!;
-    assert.equal(typeof sal.getCell(13).value, 'number');
-    assert.equal(ge.getRow(6).getCell(16).value, 'Created By');
-    assert.equal(sal.getCell(16).value, 'Test Accountant');
-    assert.equal(sal.getCell(15).value, 'posted');
+    assert.equal(sal.getCell(4).value, 'Salaries');
+    assert.equal(typeof sal.getCell(6).value, 'number');
+  });
+
+  test('only the kept columns are on each sheet', async () => {
+    const { wb } = await workbook(scenario());
+    const head = (name: string) => (wb.getWorksheet(name)!.getRow(6).values as unknown[]).filter((v) => v !== undefined && v !== '');
+    assert.deepEqual(head('General Entries'), ['Entry ID', 'Business Date', 'Branch', 'Account Name', 'Narration', 'Debit (DR)', 'Credit (CR)']);
+    assert.deepEqual(head('Ledger'), [
+      'Account Name', 'Classification', 'Date', 'Transaction Reference', 'Description', 'Contra Account', 'Branch', 'Debit', 'Credit', 'Running Balance',
+    ]);
+    assert.deepEqual(head('Trial Balance'), [
+      'Account Name', 'Classification', 'Normal Balance', 'Opening Debit', 'Opening Credit', 'Period Debit', 'Period Credit', 'Closing Debit', 'Closing Credit',
+    ]);
+    assert.deepEqual(head('Income Statement'), ['For the period 2026-10-10 to 2026-10-12', 'Amount (Rs)', 'Total (Rs)']);
+    assert.deepEqual(head('Balance Sheet'), ['As at 2026-10-12', 'Amount (Rs)', 'Total (Rs)']);
+    // And no account code is printed anywhere on the five sheets.
+    for (const name of ACCOUNTING_SHEETS) {
+      wb.getWorksheet(name)!.eachRow((row) => {
+        row.eachCell((cell) => assert.ok(!/^(AST|EQ|INC|EXP)-/.test(String(cell.value ?? '')), `${name}: ${String(cell.value)}`));
+      });
+    }
+  });
+
+  test('an unbalanced entry is marked in its narration', async () => {
+    const input = scenario();
+    const books = buildAccountingBooks(input);
+    const je = books.journal.find((j) => j.id === 'PV-2')!;
+    je.lines[0]!.debit += 1;
+    je.balanced = false;
+    const buffer = await exportAccountingWorkbook(books, { generatedBy: 'x' });
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buffer as unknown as ArrayBuffer);
+    const row = findRow(wb.getWorksheet('General Entries')!, 1, (v) => v === 'PV-2')!;
+    assert.match(String(row.getCell(5).value), /^UNBALANCED — /);
   });
 
   test('Ledger: grouped by account, running in each account\'s normal direction, closing on the trial balance', async () => {
     const { wb } = await workbook(scenario());
     const lg = wb.getWorksheet('Ledger')!;
-    const header = lg.getRow(6).values as unknown[];
-    for (const h of ['Account Code', 'Account Name', 'Date', 'Transaction Reference', 'Description', 'Debit', 'Credit', 'Running Balance']) {
-      assert.ok(header.includes(h), h);
-    }
-    const closing = (code: string) => {
+    const closing = (name: string) => {
       let out: unknown;
       lg.eachRow((row) => {
-        if (row.getCell(1).value === code && String(row.getCell(7).value).startsWith('Closing balance')) out = row.getCell(13).value;
+        if (row.getCell(1).value === name && String(row.getCell(5).value).startsWith('Closing balance')) out = row.getCell(10).value;
       });
       return out;
     };
-    assert.equal(closing(CASH_CODE), 129000);
-    assert.equal(closing(BANK_CODE), 57500);
-    assert.equal(closing(EASYPAISA_CODE), 8000);
-    assert.equal(closing('INC-OPENING'), 150000); // credit-normal: a positive General Fund
-    assert.equal(closing('EXP-PARTNER'), 3000); // withdrawals, debit-normal
-    assert.equal(closing('EXP-SALARIES'), 8000);
+    assert.equal(closing('Cash in Hand'), 129000);
+    assert.equal(closing('Bank — Bank Account'), 57500);
+    assert.equal(closing('Bank — Easypaisa'), 8000);
+    assert.equal(closing('Opening Balance'), 150000); // credit-normal: a positive General Fund
+    assert.equal(closing('Partner Withdrawals'), 3000); // withdrawals, debit-normal
+    assert.equal(closing('Salaries'), 8000);
     // Cash's own lines, in date order: the transfer's cash part first.
     const cashRefs: unknown[] = [];
     lg.eachRow((row, n) => {
-      if (n > 6 && row.getCell(1).value === CASH_CODE && row.getCell(5).value) cashRefs.push(row.getCell(5).value);
+      if (n > 6 && row.getCell(1).value === 'Cash in Hand' && row.getCell(4).value) cashRefs.push(row.getCell(4).value);
     });
     assert.deepEqual(cashRefs, ['RV-4', 'PV-2', 'PV-3', 'RV-7', 'PV-5']);
   });
@@ -450,7 +477,7 @@ describe('workbook', () => {
     const { wb } = await workbook(scenario());
     const tb = wb.getWorksheet('Trial Balance')!;
     const total = findRow(tb, 1, (v) => v === 'TOTAL')!;
-    assert.equal(resultOf(total.getCell(9).value), resultOf(total.getCell(10).value));
+    assert.equal(resultOf(total.getCell(8).value), resultOf(total.getCell(9).value));
   });
 
   test('Balance Sheet carries the validation checks', async () => {
@@ -458,9 +485,9 @@ describe('workbook', () => {
     const bs = wb.getWorksheet('Balance Sheet')!;
     assert.ok(findRow(bs, 1, (v) => v === 'Validation checks'));
     assert.ok(findRow(bs, 1, (v) => v === 'Assets = Liabilities + Equity'));
-    assert.equal(findRow(bs, 2, (v) => v === 'Balance check (assets − liabilities − equity)')!.getCell(4).value, 0);
-    assert.equal(findRow(bs, 2, (v) => v === 'Total assets')!.getCell(4).value, 194500);
-    assert.equal(findRow(bs, 1, (v) => v === 'AST-BANK-EASYPAISA')!.getCell(3).value, 8000);
+    assert.equal(findRow(bs, 1, (v) => v === 'Balance check (assets − liabilities − equity)')!.getCell(3).value, 0);
+    assert.equal(findRow(bs, 1, (v) => v === 'Total assets')!.getCell(3).value, 194500);
+    assert.equal(findRow(bs, 1, (v) => v === 'Bank — Easypaisa (included in Bank)')!.getCell(2).value, 8000);
     assert.match(String(bs.getCell(5, 1).value), /^Statement status: Balanced, but INCOMPLETE/);
   });
 
@@ -476,9 +503,9 @@ describe('workbook', () => {
     const { wb } = await workbook(input);
     const ge = wb.getWorksheet('General Entries')!;
     const row = findRow(ge, 1, (v) => v === 'PV-2')!;
-    assert.equal(row.getCell(12).value, `'=HYPERLINK("http://evil.test","x")`);
-    assert.equal(row.getCell(12).formula, undefined);
-    assert.equal(findRow(ge, 1, (v) => v === 'PV-3')!.getCell(7).value, "'+cmd|calc");
+    assert.equal(row.getCell(5).value, `'=HYPERLINK("http://evil.test","x")`);
+    assert.equal(row.getCell(5).formula, undefined);
+    assert.equal(findRow(ge, 1, (v) => v === 'PV-3')!.getCell(3).value, "'+cmd|calc");
     assert.equal(safeText('-5'), "'-5");
     assert.equal(safeText('Flour'), 'Flour');
   });

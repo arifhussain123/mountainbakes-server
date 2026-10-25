@@ -622,7 +622,7 @@ export function buildAccountingBooks(input: BooksInput): AccountingBooks {
       ? { key: 'transfer_split', label: 'Mixed branch transfers split by channel', level: 'warn', detail: `The channel amounts no longer add up to the voucher, so the whole amount stays on its booked account: ${list(splitFailures)}.` }
       : { key: 'transfer_split', label: 'Mixed branch transfers split by channel', level: 'pass', detail: splitDone.length ? `${splitDone.length} voucher(s) split into Cash / Easypaisa / Bank from the transfer's own amounts.` : 'No mixed-channel transfers.' },
     ledgerMismatch.length
-      ? { key: 'ledger_tb', label: 'Ledger reconciles to the trial balance', level: 'fail', detail: `Closing balance differs for: ${list(ledgerMismatch.map((b) => b.account.code))}.` }
+      ? { key: 'ledger_tb', label: 'Ledger reconciles to the trial balance', level: 'fail', detail: `Closing balance differs for: ${list(ledgerMismatch.map((b) => b.account.name))}.` }
       : { key: 'ledger_tb', label: 'Ledger reconciles to the trial balance', level: 'pass', detail: 'Each account\'s ledger closing balance equals its trial balance closing balance.' },
     tbTotals.closingDebit === tbTotals.closingCredit && tbTotals.openingDebit === tbTotals.openingCredit && tbTotals.periodDebit === tbTotals.periodCredit
       ? { key: 'tb_balanced', label: 'Trial balance balances', level: 'pass', detail: `Closing debit and credit ${fmt(tbTotals.closingDebit)}.` }

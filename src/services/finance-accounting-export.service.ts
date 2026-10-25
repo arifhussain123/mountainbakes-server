@@ -35,7 +35,6 @@ const BAND = 'FFFFF3E8';
 /** Negatives in red brackets, as an accountant reads them. */
 const MONEY = '#,##0.00;[Red](#,##0.00)';
 const DATE = 'dd-mmm-yyyy';
-const STAMP = 'dd-mmm-yyyy hh:mm';
 const RED = 'FFB71C1C';
 
 const STATUS_FILL: Record<Exclude<CheckLevel, 'info'>, { fill: string; font: string }> = {
@@ -44,23 +43,6 @@ const STATUS_FILL: Record<Exclude<CheckLevel, 'info'>, { fill: string; font: str
   fail: { fill: 'FFFDECEA', font: RED },
 };
 const CHECK_FONT: Record<CheckLevel, string> = { pass: 'FF1B5E20', warn: 'FF8A4B00', fail: RED, info: MUTED };
-
-const SOURCE_LABELS: Record<string, string> = {
-  opening: 'Opening balance',
-  manual: 'Income & expense',
-  branch_income: 'Branch income',
-  company_share: 'Company share',
-  branch_share: 'Branch share',
-  salary: 'Salary',
-  employee_advance: 'Employee advance',
-  partner_expense: 'Partner',
-  adjustment: 'Adjustment',
-  branch_share_payout: 'Branch share payout',
-  branch_share_bonus: 'Branch bonus',
-  cash_transfer: 'Branch cash transfer',
-  vendor_payment: 'Supplier payment',
-};
-const sourceLabel = (t: string) => SOURCE_LABELS[t] ?? t;
 
 /**
  * Text that a spreadsheet would read as a formula (=, +, -, @, tab, CR at the
@@ -74,8 +56,6 @@ export function safeText(value: unknown): string {
 
 /** 'YYYY-MM-DD' as a real Excel date (UTC midnight, which ExcelJS writes as that calendar day). */
 const asDate = (d: string) => new Date(`${d}T00:00:00Z`);
-/** An instant as Karachi wall-clock time (UTC+5, no DST) for a date-time cell. */
-const asKarachi = (iso: string) => new Date(Date.parse(iso) + 5 * 3_600_000);
 
 interface Ctx {
   companyName: string;
@@ -216,23 +196,16 @@ export async function exportAccountingWorkbook(
   // The existing sheet first, exactly as the Excel button produced it before.
   if (opts.cashBook) addFinanceReportSheet(wb, opts.cashBook, ctx.companyName);
 
-  const voucherById = new Map(books.journal.map((j) => [j.voucher.id, j.voucher.voucherNo]));
   const accountName = (code: string) => books.accounts.get(code)?.name ?? code;
   const periodJournal = books.journal.filter((j) => j.inPeriod);
 
-  generalEntries(wb, books, ctx, periodJournal, voucherById, accountName);
+  generalEntries(wb, books, ctx, periodJournal, accountName);
   ledger(wb, books, ctx, periodJournal, accountName);
   trialBalance(wb, books, ctx);
   statement(wb, 'Income Statement', books, ctx, books.incomeStatement.lines, books.statementStatus.incomeStatement);
   balanceSheet(wb, books, ctx);
 
   return wb.xlsx.writeBuffer() as unknown as Promise<Buffer>;
-}
-
-function sourceRef(j: JournalEntry, voucherById: Map<string, string>): string {
-  const v = j.voucher;
-  if (v.reversesEntryId) return `Reverses ${voucherById.get(v.reversesEntryId) ?? v.reversesEntryId}`;
-  return v.sourceId ? `${v.sourceType}:${v.sourceId}` : '';
 }
 
 // ── 1. General Entries ──────────────────────────────────────────────────────
@@ -242,18 +215,13 @@ function generalEntries(
   books: AccountingBooks,
   ctx: Ctx,
   journal: JournalEntry[],
-  voucherById: Map<string, string>,
   accountName: (code: string) => string,
 ) {
   const HEAD = 6;
   const sheet = newSheet(wb, 'General Entries', ctx.companyName, HEAD);
-  const labels = [
-    'Entry ID', 'Line', 'Business Date', 'Posted At', 'Source Module', 'Source Reference', 'Branch',
-    'Account Code', 'Account Name', 'Classification', 'Channel', 'Narration', 'Debit (DR)', 'Credit (CR)',
-    'Posted Status', 'Created By',
-  ];
-  const DR = 13;
-  widths(sheet, [14, 6, 13, 17, 18, 30, 18, 22, 30, 15, 14, 44, 15, 15, 12, 20]);
+  const labels = ['Entry ID', 'Business Date', 'Branch', 'Account Name', 'Narration', 'Debit (DR)', 'Credit (CR)'];
+  const DR = 6;
+  widths(sheet, [14, 13, 18, 32, 50, 16, 16]);
   letterhead(sheet, 'General Entries (journal)', books, ctx, labels.length);
   headerRow(sheet, HEAD, labels, DR);
 
@@ -265,40 +233,30 @@ function generalEntries(
     const v = j.voucher;
     const lines = j.lines.length > 0 ? j.lines : [null];
     shaded = !shaded;
-    lines.forEach((l, i) => {
+    for (const l of lines) {
       row += 1;
       const r = sheet.getRow(row);
       r.getCell(1).value = safeText(j.id);
-      r.getCell(2).value = i + 1;
-      r.getCell(3).value = asDate(v.entryDate);
-      r.getCell(3).numFmt = DATE;
-      if (v.postedAt) {
-        r.getCell(4).value = asKarachi(v.postedAt);
-        r.getCell(4).numFmt = STAMP;
-      }
-      r.getCell(5).value = sourceLabel(v.sourceType);
-      r.getCell(6).value = safeText(sourceRef(j, voucherById));
-      r.getCell(7).value = safeText(v.branchName ?? '');
+      r.getCell(2).value = asDate(v.entryDate);
+      r.getCell(2).numFmt = DATE;
+      r.getCell(3).value = safeText(v.branchName ?? '');
       if (l) {
-        r.getCell(8).value = safeText(l.accountCode);
-        r.getCell(9).value = safeText(accountName(l.accountCode));
-        r.getCell(10).value = books.accounts.get(l.accountCode)?.classification ?? '';
-        r.getCell(11).value = safeText(l.channel);
+        r.getCell(4).value = safeText(accountName(l.accountCode));
         setMoney(r.getCell(DR), l.debit, true);
         setMoney(r.getCell(DR + 1), l.credit, true);
         dr += l.debit;
         cr += l.credit;
       } else {
-        r.getCell(9).value = 'INVALID — no journal lines (zero or negative amount)';
-        r.getCell(9).font = { bold: true, color: { argb: RED } };
+        r.getCell(4).value = 'INVALID — no journal lines (zero or negative amount)';
+        r.getCell(4).font = { bold: true, color: { argb: RED } };
       }
-      r.getCell(12).value = safeText(v.description);
-      r.getCell(12).alignment = { wrapText: true, vertical: 'top' };
-      r.getCell(15).value = j.balanced ? v.status : 'UNBALANCED';
-      if (!j.balanced) r.getCell(15).font = { bold: true, color: { argb: RED } };
-      r.getCell(16).value = safeText(v.createdByName ?? '');
+      // With no status column, an entry that does not balance says so in its
+      // own narration — it is never left looking like an ordinary entry.
+      r.getCell(5).value = safeText(j.balanced || !l ? v.description : `UNBALANCED — ${v.description}`);
+      r.getCell(5).alignment = { wrapText: true, vertical: 'top' };
+      if (!j.balanced) r.getCell(1).font = { bold: true, color: { argb: RED } };
       if (shaded) band(r, labels.length);
-    });
+    }
   }
   const last = row;
   if (last > HEAD) sheet.autoFilter = { from: { row: HEAD, column: 1 }, to: { row: last, column: labels.length } };
@@ -306,13 +264,13 @@ function generalEntries(
   row += 1;
   const total = sheet.getRow(row);
   total.getCell(1).value = journal.length === 0 ? 'TOTAL — no vouchers in this period' : `TOTAL — ${journal.length} journal entries`;
-  setSum(total.getCell(DR), 'M', HEAD + 1, last, dr);
-  setSum(total.getCell(DR + 1), 'N', HEAD + 1, last, cr);
+  setSum(total.getCell(DR), 'F', HEAD + 1, last, dr);
+  setSum(total.getCell(DR + 1), 'G', HEAD + 1, last, cr);
   totalStyle(total, labels.length);
   row += 1;
   const diff = sheet.getRow(row);
   diff.getCell(1).value = 'Difference (DR − CR)';
-  diff.getCell(DR).value = { formula: `M${row - 1}-N${row - 1}`, result: rupees(dr - cr) };
+  diff.getCell(DR).value = { formula: `F${row - 1}-G${row - 1}`, result: rupees(dr - cr) };
   diff.getCell(DR).numFmt = MONEY;
   diff.getCell(1).font = { bold: true, color: { argb: INK } };
   sheet.pageSetup.printTitlesRow = `${HEAD}:${HEAD}`;
@@ -330,22 +288,22 @@ function ledger(
   const HEAD = 6;
   const sheet = newSheet(wb, 'Ledger', ctx.companyName, HEAD);
   const labels = [
-    'Account Code', 'Account Name', 'Classification', 'Date', 'Transaction Reference', 'Source', 'Description',
-    'Contra Account', 'Channel', 'Branch', 'Debit', 'Credit', 'Running Balance',
+    'Account Name', 'Classification', 'Date', 'Transaction Reference', 'Description',
+    'Contra Account', 'Branch', 'Debit', 'Credit', 'Running Balance',
   ];
   const COLS = labels.length;
-  const DR = 11;
-  widths(sheet, [22, 28, 14, 13, 15, 18, 40, 28, 14, 16, 15, 15, 17]);
+  const DR = 8;
+  const BAL = 10;
+  widths(sheet, [30, 14, 13, 15, 42, 30, 16, 15, 15, 17]);
   letterhead(sheet, 'Ledger (general ledger by account)', books, ctx, COLS);
   headerRow(sheet, HEAD, labels, DR);
 
-  // Every row carries its account's code and name, so the filter on the
-  // header can isolate one account — Cash, Bank, General Fund or any head —
-  // without losing its opening and closing rows.
+  // Every row carries its account's name, so the filter on the header can
+  // isolate one account — Cash, Bank, General Fund or any head — without
+  // losing its opening and closing rows.
   const accountCells = (r: ExcelJS.Row, code: string, classification: string) => {
-    r.getCell(1).value = safeText(code);
-    r.getCell(2).value = safeText(accountName(code));
-    r.getCell(3).value = classification;
+    r.getCell(1).value = safeText(accountName(code));
+    r.getCell(2).value = classification;
   };
 
   let row = HEAD;
@@ -360,14 +318,14 @@ function ledger(
     row += 1;
     const o = sheet.getRow(row);
     accountCells(o, code, b.account.classification);
-    o.getCell(4).value = asDate(books.from);
-    o.getCell(4).numFmt = DATE;
-    o.getCell(7).value = pnl
+    o.getCell(3).value = asDate(books.from);
+    o.getCell(3).numFmt = DATE;
+    o.getCell(5).value = pnl
       ? 'Opening balance (income statement accounts open the period at zero)'
       : `Opening balance — normal balance ${b.account.normal}`;
-    setMoney(o.getCell(13), sign * b.opening);
+    setMoney(o.getCell(BAL), sign * b.opening);
     band(o, COLS);
-    o.getCell(7).font = { bold: true, color: { argb: INK } };
+    o.getCell(5).font = { bold: true, color: { argb: INK } };
 
     let running = sign * b.opening;
     for (const j of journal) {
@@ -377,32 +335,30 @@ function ledger(
         running += sign * (l.debit - l.credit);
         const r = sheet.getRow(row);
         accountCells(r, code, b.account.classification);
-        r.getCell(4).value = asDate(j.voucher.entryDate);
-        r.getCell(4).numFmt = DATE;
-        r.getCell(5).value = safeText(j.id);
-        r.getCell(6).value = sourceLabel(j.voucher.sourceType);
-        r.getCell(7).value = safeText(j.voucher.description);
-        r.getCell(7).alignment = { wrapText: true, vertical: 'top' };
-        r.getCell(8).value = safeText(
+        r.getCell(3).value = asDate(j.voucher.entryDate);
+        r.getCell(3).numFmt = DATE;
+        r.getCell(4).value = safeText(j.id);
+        r.getCell(5).value = safeText(j.voucher.description);
+        r.getCell(5).alignment = { wrapText: true, vertical: 'top' };
+        r.getCell(6).value = safeText(
           [...new Set(j.lines.filter((x) => x.accountCode !== code).map((x) => accountName(x.accountCode)))].join(', '),
         );
-        r.getCell(9).value = safeText(l.channel);
-        r.getCell(10).value = safeText(j.voucher.branchName ?? '');
+        r.getCell(7).value = safeText(j.voucher.branchName ?? '');
         setMoney(r.getCell(DR), l.debit, true);
         setMoney(r.getCell(DR + 1), l.credit, true);
-        setMoney(r.getCell(13), running);
+        setMoney(r.getCell(BAL), running);
       }
     }
 
     row += 1;
     const c = sheet.getRow(row);
     accountCells(c, code, b.account.classification);
-    c.getCell(4).value = asDate(books.to);
-    c.getCell(4).numFmt = DATE;
-    c.getCell(7).value = 'Closing balance — period movement in Debit / Credit';
+    c.getCell(3).value = asDate(books.to);
+    c.getCell(3).numFmt = DATE;
+    c.getCell(5).value = 'Closing balance — period movement in Debit / Credit';
     setMoney(c.getCell(DR), b.periodDebit);
     setMoney(c.getCell(DR + 1), b.periodCredit);
-    setMoney(c.getCell(13), sign * b.closing);
+    setMoney(c.getCell(BAL), sign * b.closing);
     totalStyle(c, COLS);
   }
   const last = row;
@@ -413,14 +369,14 @@ function ledger(
   const t = books.trialBalance.totals;
   row += 2;
   const tot = sheet.getRow(row);
-  tot.getCell(7).value = 'Period movement, all accounts — equals the General Entries totals';
+  tot.getCell(5).value = 'Period movement, all accounts — equals the General Entries totals';
   setMoney(tot.getCell(DR), t.periodDebit);
   setMoney(tot.getCell(DR + 1), t.periodCredit);
   totalStyle(tot, COLS);
   row += 1;
   const n = sheet.getRow(row);
-  n.getCell(7).value = 'Bank = Bank Account + Easypaisa. General Fund = opening balance, capital introduced and partner withdrawals.';
-  n.getCell(7).font = { italic: true, size: 9, color: { argb: MUTED } };
+  n.getCell(5).value = 'Bank = Bank Account + Easypaisa. General Fund = opening balance, capital introduced and partner withdrawals.';
+  n.getCell(5).font = { italic: true, size: 9, color: { argb: MUTED } };
   sheet.pageSetup.printTitlesRow = `${HEAD}:${HEAD}`;
 }
 
@@ -430,28 +386,28 @@ function trialBalance(wb: ExcelJS.Workbook, books: AccountingBooks, ctx: Ctx) {
   const HEAD = 6;
   const sheet = newSheet(wb, 'Trial Balance', ctx.companyName, HEAD);
   const labels = [
-    'Account Code', 'Account Name', 'Classification', 'Normal Balance',
+    'Account Name', 'Classification', 'Normal Balance',
     'Opening Debit', 'Opening Credit', 'Period Debit', 'Period Credit', 'Closing Debit', 'Closing Credit',
   ];
-  widths(sheet, [24, 36, 18, 10, 16, 16, 16, 16, 16, 16]);
+  const M = 4; // first money column
+  widths(sheet, [36, 18, 10, 16, 16, 16, 16, 16, 16]);
   letterhead(sheet, `Trial Balance as at ${books.to}`, books, ctx, labels.length);
-  headerRow(sheet, HEAD, labels, 5);
+  headerRow(sheet, HEAD, labels, M);
 
   let row = HEAD;
   for (const b of books.trialBalance.rows) {
     row += 1;
     const r = sheet.getRow(row);
-    r.getCell(1).value = safeText(b.account.code);
-    r.getCell(2).value = safeText(b.account.name);
-    r.getCell(3).value = b.account.classification;
-    r.getCell(4).value = b.account.normal === 'debit' ? 'Debit' : 'Credit';
+    r.getCell(1).value = safeText(b.account.name);
+    r.getCell(2).value = b.account.classification;
+    r.getCell(3).value = b.account.normal === 'debit' ? 'Debit' : 'Credit';
     // A balance sits in ONE column — debit when positive, credit when negative.
-    setMoney(r.getCell(5), Math.max(b.opening, 0), true);
-    setMoney(r.getCell(6), Math.max(-b.opening, 0), true);
-    setMoney(r.getCell(7), b.periodDebit, true);
-    setMoney(r.getCell(8), b.periodCredit, true);
-    setMoney(r.getCell(9), Math.max(b.closing, 0), true);
-    setMoney(r.getCell(10), Math.max(-b.closing, 0), true);
+    setMoney(r.getCell(M), Math.max(b.opening, 0), true);
+    setMoney(r.getCell(M + 1), Math.max(-b.opening, 0), true);
+    setMoney(r.getCell(M + 2), b.periodDebit, true);
+    setMoney(r.getCell(M + 3), b.periodCredit, true);
+    setMoney(r.getCell(M + 4), Math.max(b.closing, 0), true);
+    setMoney(r.getCell(M + 5), Math.max(-b.closing, 0), true);
   }
   const last = row;
   sheet.autoFilter = { from: { row: HEAD, column: 1 }, to: { row: Math.max(last, HEAD + 1), column: labels.length } };
@@ -460,9 +416,9 @@ function trialBalance(wb: ExcelJS.Workbook, books: AccountingBooks, ctx: Ctx) {
   row += 1;
   const tot = sheet.getRow(row);
   tot.getCell(1).value = 'TOTAL';
-  (['E', 'F', 'G', 'H', 'I', 'J'] as const).forEach((col, i) => {
+  (['D', 'E', 'F', 'G', 'H', 'I'] as const).forEach((col, i) => {
     const v = [t.openingDebit, t.openingCredit, t.periodDebit, t.periodCredit, t.closingDebit, t.closingCredit][i]!;
-    setSum(tot.getCell(5 + i), col, HEAD + 1, last, v);
+    setSum(tot.getCell(M + i), col, HEAD + 1, last, v);
   });
   totalStyle(tot, labels.length);
 
@@ -471,12 +427,12 @@ function trialBalance(wb: ExcelJS.Workbook, books: AccountingBooks, ctx: Ctx) {
   diff.getCell(1).value = 'Difference (Debit − Credit)';
   diff.getCell(1).font = { bold: true, color: { argb: INK } };
   const pairs: [string, string, number][] = [
-    ['E', 'F', t.openingDebit - t.openingCredit],
-    ['G', 'H', t.periodDebit - t.periodCredit],
-    ['I', 'J', t.closingDebit - t.closingCredit],
+    ['D', 'E', t.openingDebit - t.openingCredit],
+    ['F', 'G', t.periodDebit - t.periodCredit],
+    ['H', 'I', t.closingDebit - t.closingCredit],
   ];
   pairs.forEach(([a, b2, v], i) => {
-    const cell = diff.getCell(5 + i * 2);
+    const cell = diff.getCell(M + i * 2);
     cell.value = { formula: `${a}${row - 1}-${b2}${row - 1}`, result: rupees(v) };
     cell.numFmt = MONEY;
   });
@@ -500,7 +456,7 @@ function trialBalance(wb: ExcelJS.Workbook, books: AccountingBooks, ctx: Ctx) {
 
 // ── 4/5. Statements ─────────────────────────────────────────────────────────
 
-/** Account code in A, label in B, items in C, subtotals and totals in D. Returns the next free row. */
+/** Label in A, items in B, subtotals and totals in C. Returns the next free row. */
 function statement(
   wb: ExcelJS.Workbook,
   name: string,
@@ -511,37 +467,36 @@ function statement(
   extraCols: number[] = [],
 ): { sheet: ExcelJS.Worksheet; row: number } {
   const HEAD = 6;
-  const lastCol = 4 + extraCols.length;
+  const lastCol = 3 + extraCols.length;
   const sheet = newSheet(wb, name, ctx.companyName, HEAD, true);
-  widths(sheet, [24, 64, 18, 18, ...extraCols]);
+  widths(sheet, [70, 18, 18, ...extraCols]);
   const asAt = name === 'Balance Sheet';
   letterhead(sheet, asAt ? `Balance Sheet as at ${books.to}` : `Income Statement for ${period(books)}`, books, ctx, lastCol, sheetStatus);
-  headerRow(sheet, HEAD, ['Account Code', asAt ? `As at ${books.to}` : `For the period ${period(books)}`, 'Amount (Rs)', 'Total (Rs)'], 3);
+  headerRow(sheet, HEAD, [asAt ? `As at ${books.to}` : `For the period ${period(books)}`, 'Amount (Rs)', 'Total (Rs)'], 2);
 
   let row = HEAD;
   for (const l of lines) {
     row += 1;
     const r = sheet.getRow(row);
-    if (l.code) r.getCell(1).value = safeText(l.code);
-    const label = r.getCell(2);
+    const label = r.getCell(1);
     label.value = safeText(l.label);
     label.alignment = { indent: (l.indent ?? 0) * 2, wrapText: true };
     if (l.kind === 'heading') label.font = { bold: true, color: { argb: INK } };
     if (l.kind === 'note') {
       label.font = { italic: true, size: 9, color: { argb: MUTED } };
-      r.getCell(3).value = 'not recorded';
-      r.getCell(3).alignment = { horizontal: 'right' };
-      r.getCell(3).font = { italic: true, size: 9, color: { argb: MUTED } };
+      r.getCell(2).value = 'not recorded';
+      r.getCell(2).alignment = { horizontal: 'right' };
+      r.getCell(2).font = { italic: true, size: 9, color: { argb: MUTED } };
     }
-    if (l.kind === 'item') setMoney(r.getCell(3), l.amount ?? 0);
+    if (l.kind === 'item') setMoney(r.getCell(2), l.amount ?? 0);
     if (l.kind === 'subtotal') {
-      setMoney(r.getCell(4), l.amount ?? 0);
+      setMoney(r.getCell(3), l.amount ?? 0);
       label.font = { bold: true };
-      r.getCell(4).border = { top: { style: 'thin', color: { argb: ORANGE } } };
+      r.getCell(3).border = { top: { style: 'thin', color: { argb: ORANGE } } };
     }
     if (l.kind === 'total') {
-      setMoney(r.getCell(4), l.amount ?? 0);
-      totalStyle(r, 4);
+      setMoney(r.getCell(3), l.amount ?? 0);
+      totalStyle(r, 3);
     }
   }
   return { sheet, row };
@@ -553,35 +508,33 @@ function balanceSheet(wb: ExcelJS.Workbook, books: AccountingBooks, ctx: Ctx) {
   );
   let row = end + 2;
 
-  sheet.mergeCells(row, 1, row, 5);
+  sheet.mergeCells(row, 1, row, 4);
   const t = sheet.getCell(row, 1);
   t.value = 'Validation checks';
   t.font = { bold: true, size: 12, color: { argb: INK } };
   row += 1;
-  headerRow(sheet, row, ['Check', '', 'Result', 'Detail', ''], 99);
-  sheet.mergeCells(row, 1, row, 2);
-  sheet.mergeCells(row, 4, row, 5);
+  headerRow(sheet, row, ['Check', 'Result', 'Detail', ''], 99);
+  sheet.mergeCells(row, 3, row, 4);
   for (const c of books.checks) {
     row += 1;
     const r = sheet.getRow(row);
-    sheet.mergeCells(row, 1, row, 2);
     r.getCell(1).value = c.label;
-    r.getCell(3).value = c.level.toUpperCase();
-    r.getCell(3).font = { bold: true, color: { argb: CHECK_FONT[c.level] } };
-    sheet.mergeCells(row, 4, row, 5);
-    r.getCell(4).value = safeText(c.detail);
-    r.getCell(4).alignment = { wrapText: true, vertical: 'top' };
+    r.getCell(2).value = c.level.toUpperCase();
+    r.getCell(2).font = { bold: true, color: { argb: CHECK_FONT[c.level] } };
+    sheet.mergeCells(row, 3, row, 4);
+    r.getCell(3).value = safeText(c.detail);
+    r.getCell(3).alignment = { wrapText: true, vertical: 'top' };
     r.height = Math.min(120, 15 * Math.ceil(c.detail.length / 90));
   }
 
   row += 2;
-  sheet.mergeCells(row, 1, row, 5);
+  sheet.mergeCells(row, 1, row, 4);
   const lt = sheet.getCell(row, 1);
   lt.value = 'Basis of preparation and limitations';
   lt.font = { bold: true, size: 12, color: { argb: INK } };
   for (const l of books.limitations) {
     row += 1;
-    sheet.mergeCells(row, 1, row, 5);
+    sheet.mergeCells(row, 1, row, 4);
     const cell = sheet.getCell(row, 1);
     cell.value = safeText(`•  ${l}`);
     cell.alignment = { wrapText: true, vertical: 'top' };
