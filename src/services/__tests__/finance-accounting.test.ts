@@ -633,6 +633,11 @@ describe('Demand Record outstanding balances', () => {
     assert.equal(line('Alpha')!.amount, rs(4500));
     assert.equal(line('Delta')!.amount, rs(2500));
     assert.equal(line('Total branch receivables')!.amount, rs(7000));
+    // Owed branches are flagged; a credit (Gamma) and the subtotal are not.
+    assert.equal(line('Alpha')!.alert, true);
+    assert.equal(line('Delta')!.alert, true);
+    assert.equal(line('Gamma')!.alert, undefined);
+    assert.equal(line('Total branch receivables')!.alert, undefined);
     assert.equal(line('Gamma')!.amount, rs(5000));
     assert.equal(line('Total branch credit balances')!.amount, rs(5000));
     assert.equal(bs.totalLiabilities, rs(5000));
@@ -743,6 +748,15 @@ describe('Demand Record outstanding balances', () => {
     assert.deepEqual(rows.slice(start + 2, start + 6), [
       ['Alpha', 4500, 4500, null], ['Beta', 0, 0, null], ['Delta', 2500, 2500, null], ['Gamma', -5000, -5000, null],
     ]);
+    // On the statement, each owed branch's name and amount are red and bold.
+    let alpha: ExcelJS.Row | undefined;
+    bs.eachRow((row, n) => {
+      if (!alpha && n < start && row.getCell(1).value === 'Alpha') alpha = row;
+    });
+    for (const c of [1, 2]) {
+      assert.equal(alpha!.getCell(c).font?.bold, true);
+      assert.equal(alpha!.getCell(c).font?.color?.argb, 'FFB71C1C');
+    }
     const total = rows[start + 6]!;
     assert.equal(total[0], 'Overall outstanding (net of branch credits)');
     assert.equal((total[1] as ExcelJS.CellFormulaValue).result, 2000);

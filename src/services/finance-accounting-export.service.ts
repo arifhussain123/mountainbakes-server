@@ -489,6 +489,10 @@ function statement(
       r.getCell(2).font = { italic: true, size: 9, color: { argb: MUTED } };
     }
     if (l.kind === 'item') setMoney(r.getCell(2), l.amount ?? 0);
+    if (l.alert) {
+      label.font = { bold: true, color: { argb: RED } };
+      r.getCell(2).font = { bold: true, color: { argb: RED } };
+    }
     if (l.kind === 'subtotal') {
       setMoney(r.getCell(3), l.amount ?? 0);
       label.font = { bold: true };

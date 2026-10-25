@@ -287,6 +287,8 @@ export interface StatementLine {
   /** Paisa; null for a heading or a line that is not recorded. */
   amount: number | null;
   kind: 'heading' | 'item' | 'subtotal' | 'total' | 'note';
+  /** Printed in red and bold — money a branch still owes (owner's layout, 2026-10-25). */
+  alert?: boolean;
   indent?: number;
 }
 
@@ -659,7 +661,7 @@ export function buildAccountingBooks(input: BooksInput): AccountingBooks {
     ...(dr
       ? [
           { label: 'Accounts receivable — branches (Demand Record, outstanding)', amount: null, kind: 'heading' as const, indent: 1 },
-          ...owed.map((b) => ({ code: b.account.code, label: branchName(b), amount: b.closing, kind: 'item' as const, indent: 2 })),
+          ...owed.map((b) => ({ code: b.account.code, label: branchName(b), amount: b.closing, kind: 'item' as const, indent: 2, alert: true })),
           { label: 'Total branch receivables', amount: totalReceivable, kind: 'subtotal' as const, indent: 1 },
         ]
       : [{ label: 'Accounts receivable — the Demand Record is not switched on', amount: null, kind: 'note' as const, indent: 1 }]),
