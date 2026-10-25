@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { dbFor } from '../db';
 import { businessDateStr, SYSTEM_LEDGER_HEAD_CODES } from '../shared';
 import { rowToApi } from '../utils/case';
+import { getDemandRecordForAccounts, type DemandRecordForAccounts } from './branch-account.service';
 import { withoutDeleted } from '../utils/softDelete';
 
 const db = dbFor('finance-accounting');
@@ -81,6 +82,8 @@ export interface BooksInput {
   from: string;
   to: string;
   branch: { id: string; name: string } | null;
+  /** Finance → Demand Record, when it is switched on (branch-account.service.ts). */
+  demandRecord?: DemandRecordForAccounts | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -123,6 +126,34 @@ const ASSET_ACCOUNTS: Record<string, Account> = {
     code: EASYPAISA_CODE, name: 'Bank — Easypaisa', type: 'asset', normal: 'debit',
     classification: 'Bank', column: 'bank', group: null, sort: 21,
   },
+};
+
+/**
+ * The Demand Record, journalled on an accrual basis (see buildAccountingBooks):
+ * one receivable per branch, the Company Share it accrues, Finance's
+ * adjustments, and the dues Finance brought in as opening balances.
+ */
+export const DEMAND_SHARE_CODE = 'INC-DEMAND-SHARE';
+export const DEMAND_ADJUSTMENT_CODE = 'INC-DEMAND-ADJUSTMENT';
+export const BRANCH_OPENING_CODE = 'EQ-BRANCH-OPENING';
+export const RECEIVABLE_PREFIX = 'AR-BRANCH-';
+export const RECEIVABLE_CLASS = 'Branch Receivable';
+
+const receivableAccount = (branchId: string, branchName: string): Account => ({
+  code: `${RECEIVABLE_PREFIX}${branchId}`, name: `Branch receivable — ${branchName}`, type: 'asset', normal: 'debit',
+  classification: RECEIVABLE_CLASS, column: null, group: null, sort: 30,
+});
+const DEMAND_SHARE_ACCOUNT: Account = {
+  code: DEMAND_SHARE_CODE, name: 'Company Share — demands (Demand Record)', type: 'revenue', normal: 'credit',
+  classification: 'Revenue', column: null, group: 'Share Split', sort: 400,
+};
+const DEMAND_ADJUSTMENT_ACCOUNT: Account = {
+  code: DEMAND_ADJUSTMENT_CODE, name: 'Demand Record adjustments', type: 'revenue', normal: 'credit',
+  classification: 'Revenue', column: null, group: 'Share Split', sort: 400,
+};
+const BRANCH_OPENING_ACCOUNT: Account = {
+  code: BRANCH_OPENING_CODE, name: 'Branch dues brought forward (Demand Record opening balances)', type: 'equity',
+  normal: 'credit', classification: 'Retained Earnings', column: null, group: null, sort: 392,
 };
 
 const RETAINED_ACCOUNT: Account = {
@@ -273,6 +304,13 @@ export interface AccountingBooks {
   };
   incomeStatement: { lines: StatementLine[]; netProfit: number; totalRevenue: number; totalExpenses: number };
   balanceSheet: { lines: StatementLine[]; totalAssets: number; totalLiabilities: number; totalEquity: number; difference: number };
+  /**
+   * Each branch's outstanding balance from the Demand Record as at `to` (paisa;
+   * positive = owed to Mountain Bakes, negative = a credit), next to the
+   * Demand Record page's Balance by Branch for the same period. Null while the
+   * Demand Record is off.
+   */
+  branchBalances: { branchId: string; branchName: string; balance: number; page: number | null }[] | null;
   checks: ValidationCheck[];
   limitations: string[];
   status: { level: Exclude<CheckLevel, 'info'>; text: string };
@@ -340,18 +378,24 @@ export function buildAccountingBooks(input: BooksInput): AccountingBooks {
       if (original && original.reduce((s, x) => s + x.amount, 0) === amount) return original;
     }
 
-    // A branch cash transfer can carry cash, Easypaisa and bank in one
-    // voucher, booked to whichever account holds most (cash_transfer_slices).
-    // Its own channel amounts put each part where it really went.
+    // A branch cash transfer can carry several channels in one voucher, and
+    // its payment method names exactly which: since migration 123 one voucher
+    // holds them all ('cash+easypaisa+bank_account', booked to whichever
+    // account holds most); under migration 121 cash had its own voucher and
+    // the bank one held only 'easypaisa+bank_account'. Either way the channels
+    // NAMED in the method are the ones in the voucher, so their amounts from
+    // the transfer put each part where it really went.
     if (v.sourceType === 'cash_transfer' && v.sourceId && method.includes('+')) {
       const t = transfers.get(v.sourceId);
-      if (t && paisa(t.cash) + paisa(t.easypaisa) + paisa(t.bank) === amount) {
+      const named = new Set(method.split('+').map((m) => m.trim()));
+      const parts = [
+        { key: 'cash', code: CASH_CODE, amount: t ? paisa(t.cash) : 0, channel: 'Cash' },
+        { key: 'easypaisa', code: EASYPAISA_CODE, amount: t ? paisa(t.easypaisa) : 0, channel: 'Easypaisa' },
+        { key: 'bank_account', code: BANK_CODE, amount: t ? paisa(t.bank) : 0, channel: 'Bank Account' },
+      ].filter((p) => named.has(p.key));
+      if (t && parts.length === named.size && parts.reduce((s, p) => s + p.amount, 0) === amount) {
         splitDone.push(v.voucherNo);
-        return [
-          { code: CASH_CODE, amount: paisa(t.cash), channel: 'Cash' },
-          { code: EASYPAISA_CODE, amount: paisa(t.easypaisa), channel: 'Easypaisa' },
-          { code: BANK_CODE, amount: paisa(t.bank), channel: 'Bank Account' },
-        ].filter((s) => s.amount > 0);
+        return parts.filter((p) => p.amount > 0).map(({ code, amount: a, channel }) => ({ code, amount: a, channel }));
       }
       splitFailures.push(v.voucherNo);
     }
@@ -367,12 +411,40 @@ export function buildAccountingBooks(input: BooksInput): AccountingBooks {
     return [{ code, amount, channel: channelLabel(v.paymentMethod) || (code === CASH_CODE ? 'Cash' : '') }];
   };
 
+  // A deposit the Demand Record counts as Received settles what the branch
+  // owes: its voucher's credit goes to the branch's receivable, not to
+  // revenue — the revenue was accrued when the demand was delivered (below).
+  // Only the Company Share leg moves; a transfer's fuel charge stays income.
+  const dr = input.demandRecord ?? null;
+  const received = new Map((dr?.receivedTransfers ?? []).map((t) => [t.id, t]));
+  const SETTLING_HEADS = new Set<string>([SYSTEM_LEDGER_HEAD_CODES.COMPANY_SHARE, SYSTEM_LEDGER_HEAD_CODES.BRANCH_CASH]);
+  /** Voucher id → [receivable code, transfer id], so a reversal follows its original. */
+  const settling = new Map<string, [string, string]>();
+  /** Transfer id → what its vouchers credited to the receivable (paisa). */
+  const settled = new Map<string, number>();
+
   const journal: JournalEntry[] = [];
   for (const v of vouchers) {
     const debit = paisa(v.debit);
     const credit = paisa(v.credit);
-    const { account: contra, mapped } = headAccount(v, v.ledgerHeadId ? heads.get(v.ledgerHeadId) : undefined);
-    if (!mapped) unmappedHeads.add(`${v.ledgerHeadName} (${v.voucherNo})`);
+    const head = v.ledgerHeadId ? heads.get(v.ledgerHeadId) : undefined;
+    const classified = headAccount(v, head);
+    let contra = classified.account;
+    const transfer = v.sourceType === 'cash_transfer' && v.sourceId ? received.get(v.sourceId) : undefined;
+    let settles: [string, string] | undefined;
+    if (transfer && head && SETTLING_HEADS.has(head.code)) {
+      contra = receivableAccount(transfer.branchId, transfer.branchName);
+      settles = [contra.code, transfer.id];
+    } else if (v.reversesEntryId && settling.has(v.reversesEntryId)) {
+      settles = settling.get(v.reversesEntryId)!;
+      contra = accounts.get(settles[0])!;
+    }
+    if (settles) {
+      settling.set(v.id, settles);
+      // A receipt (debit to cash) is a credit to the receivable; its reversal undoes it.
+      settled.set(settles[1], (settled.get(settles[1]) ?? 0) + debit - credit);
+    }
+    if (!classified.mapped) unmappedHeads.add(`${v.ledgerHeadName} (${v.voucherNo})`);
     if (!accounts.has(contra.code)) accounts.set(contra.code, contra);
 
     const lines: JournalLine[] = [];
@@ -403,6 +475,53 @@ export function buildAccountingBooks(input: BooksInput): AccountingBooks {
     const balanced = lines.length > 0 && dr === cr;
     if (lines.length > 0 && !balanced) unbalanced.push(v.voucherNo);
     journal.push({ id: v.voucherNo, voucher: v, inPeriod: v.entryDate >= from, lines, balanced });
+  }
+
+  // ── 2b. The Demand Record, on an accrual basis ───────────────────────────
+  // Each delivered demand is one entry: DR the branch's receivable, CR Company
+  // Share — the page's own figure (G. Total × the frozen %), keyed by the
+  // unique demand number and dated on the demand's business date. Finance's
+  // entries move the receivable too: an opening balance against dues brought
+  // forward (earned before the record began), an adjustment against revenue,
+  // a reversal against whatever it reverses. Nothing here is a plug: each line
+  // is one record of the Demand Record, and the receivable this builds is the
+  // page's Company Share + Adjustments − Received, branch by branch.
+  const synthetic = (id: string, voucherNo: string, date: string, branchId: string, branchName: string, description: string, sourceId: string): SourceVoucher => ({
+    id, voucherNo, seq: 0, entryDate: date, postedAt: null, ledgerHeadId: null, ledgerHeadName: '', ledgerHeadType: 'income',
+    branchId, branchName, description, debit: 0, credit: 0, account: 'cash', paymentMethod: null, status: 'posted',
+    sourceType: 'demand_record', sourceId, reversesEntryId: null, createdByName: null,
+  });
+  const accrue = (v: SourceVoucher, receivable: Account, contraAccount: Account, amount: number) => {
+    if (amount === 0) return;
+    for (const a of [receivable, contraAccount]) if (!accounts.has(a.code)) accounts.set(a.code, a);
+    const lines: JournalLine[] = amount > 0
+      ? [{ accountCode: receivable.code, debit: amount, credit: 0, channel: '' }, { accountCode: contraAccount.code, debit: 0, credit: amount, channel: '' }]
+      : [{ accountCode: contraAccount.code, debit: -amount, credit: 0, channel: '' }, { accountCode: receivable.code, debit: 0, credit: -amount, channel: '' }];
+    journal.push({ id: v.voucherNo, voucher: v, inPeriod: v.entryDate >= from, lines, balanced: true });
+  };
+  if (dr) {
+    for (const d of dr.demands) {
+      if (d.businessDate > to) continue;
+      accrue(
+        synthetic(`demand:${d.orderId}`, d.demandNumber, d.businessDate, d.branchId, d.branchName,
+          `Company share on demand ${d.demandNumber}: G. Total Rs ${d.gTotal.toLocaleString('en-PK')} × ${d.sharePct}%`, d.orderId),
+        receivableAccount(d.branchId, d.branchName), DEMAND_SHARE_ACCOUNT, paisa(d.companyShare),
+      );
+    }
+    const kindOf = new Map(dr.adjustments.map((a) => [a.id, a.kind]));
+    for (const a of dr.adjustments) {
+      if (a.businessDate > to) continue;
+      const kind = a.kind === 'reversal' ? (kindOf.get(a.reversalOf ?? '') ?? 'adjustment') : a.kind;
+      accrue(
+        synthetic(`adjustment:${a.id}`, `DRA-${a.id.slice(0, 8).toUpperCase()}`, a.businessDate, a.branchId, a.branchName,
+          `Demand Record ${a.kind === 'reversal' ? 'reversal' : kind === 'opening' ? 'opening balance' : 'adjustment'}: ${a.reason}`, a.id),
+        receivableAccount(a.branchId, a.branchName),
+        kind === 'opening' ? BRANCH_OPENING_ACCOUNT : DEMAND_ADJUSTMENT_ACCOUNT,
+        paisa(a.amount),
+      );
+    }
+    // Back into date order; on one day the demand comes before the vouchers.
+    journal.sort((a, b) => a.voucher.entryDate.localeCompare(b.voucher.entryDate) || a.voucher.seq - b.voucher.seq);
   }
 
   // Cash and Bank always appear, even on an empty day, so the statements have
@@ -511,12 +630,22 @@ export function buildAccountingBooks(input: BooksInput): AccountingBooks {
   const cash = closingOf(CASH_CODE);
   const bank = closingOf(BANK_CODE);
   const easypaisa = closingOf(EASYPAISA_CODE);
-  const totalAssets = cash + bank + easypaisa;
+  const cashAndBank = cash + bank + easypaisa;
+  const branchName = (b: AccountBalance) => b.account.name.replace(/^Branch receivable — /, '');
+  const receivables = balances
+    .filter((b) => b.account.classification === RECEIVABLE_CLASS)
+    .sort((a, b) => branchName(a).localeCompare(branchName(b)));
+  const owed = receivables.filter((b) => b.closing > 0);
+  const credits = receivables.filter((b) => b.closing < 0);
+  const totalReceivable = owed.reduce((s, b) => s + b.closing, 0);
+  const totalCredits = credits.reduce((s, b) => s - b.closing, 0);
+  const totalAssets = cashAndBank + totalReceivable;
   const fundRows = balances.filter((b) => b.account.classification === 'General Fund' && b.closing !== 0);
   const generalFund = fundRows.reduce((s, b) => s - b.closing, 0);
   const retained = 0 - closingOf(RETAINED_CODE);
-  const totalLiabilities = 0;
-  const totalEquity = generalFund + retained + netProfit;
+  const branchOpening = 0 - closingOf(BRANCH_OPENING_CODE);
+  const totalLiabilities = totalCredits;
+  const totalEquity = generalFund + retained + branchOpening + netProfit;
   const difference = totalAssets - (totalLiabilities + totalEquity);
 
   const bsLines: StatementLine[] = [
@@ -526,12 +655,25 @@ export function buildAccountingBooks(input: BooksInput): AccountingBooks {
     { code: BANK_CODE, label: 'Bank — Bank Account', amount: bank, kind: 'item', indent: 2 },
     { code: EASYPAISA_CODE, label: 'Bank — Easypaisa (included in Bank)', amount: easypaisa, kind: 'item', indent: 2 },
     { label: 'Total Bank (Bank Account + Easypaisa)', amount: bank + easypaisa, kind: 'subtotal', indent: 1 },
-    { label: 'Total cash and bank', amount: totalAssets, kind: 'subtotal', indent: 1 },
-    { label: 'Accounts receivable — not recorded in the finance ledger', amount: null, kind: 'note', indent: 1 },
+    { label: 'Total cash and bank', amount: cashAndBank, kind: 'subtotal', indent: 1 },
+    ...(dr
+      ? [
+          { label: 'Accounts receivable — branches (Demand Record, outstanding)', amount: null, kind: 'heading' as const, indent: 1 },
+          ...owed.map((b) => ({ code: b.account.code, label: branchName(b), amount: b.closing, kind: 'item' as const, indent: 2 })),
+          { label: 'Total branch receivables', amount: totalReceivable, kind: 'subtotal' as const, indent: 1 },
+        ]
+      : [{ label: 'Accounts receivable — the Demand Record is not switched on', amount: null, kind: 'note' as const, indent: 1 }]),
     { label: 'Inventory — not recorded (no reliable valuation in the ledger)', amount: null, kind: 'note', indent: 1 },
     { label: 'Other current and non-current assets — not recorded (equipment is expensed as booked)', amount: null, kind: 'note', indent: 1 },
     { label: 'Total assets', amount: totalAssets, kind: 'total' },
     { label: 'Liabilities', amount: null, kind: 'heading' },
+    ...(credits.length
+      ? [
+          { label: 'Branch credit balances — paid ahead, owed back to the branch (Demand Record)', amount: null, kind: 'heading' as const, indent: 1 },
+          ...credits.map((b) => ({ code: b.account.code, label: branchName(b), amount: 0 - b.closing, kind: 'item' as const, indent: 2 })),
+          { label: 'Total branch credit balances', amount: totalCredits, kind: 'subtotal' as const, indent: 1 },
+        ]
+      : []),
     { label: 'Accounts payable — not recorded in the finance ledger', amount: null, kind: 'note', indent: 1 },
     { label: 'Loans and other liabilities — not recorded in the finance ledger', amount: null, kind: 'note', indent: 1 },
     { label: 'Total liabilities', amount: totalLiabilities, kind: 'total' },
@@ -540,11 +682,32 @@ export function buildAccountingBooks(input: BooksInput): AccountingBooks {
     ...fundRows.map((b) => ({ code: b.account.code, label: b.account.name, amount: 0 - b.closing, kind: 'item' as const, indent: 2 })),
     { label: 'Total General Fund', amount: generalFund, kind: 'subtotal', indent: 1 },
     { code: RETAINED_CODE, label: `Retained earnings brought forward (profit before ${from})`, amount: retained, kind: 'item', indent: 1 },
+    ...(branchOpening !== 0
+      ? [{ code: BRANCH_OPENING_CODE, label: 'Branch dues brought forward (Demand Record opening balances)', amount: branchOpening, kind: 'item' as const, indent: 1 }]
+      : []),
     { label: 'Current period profit / (loss) — from the Income Statement', amount: netProfit, kind: 'item', indent: 1 },
     { label: 'Total equity', amount: totalEquity, kind: 'total' },
     { label: 'Total liabilities and equity', amount: totalLiabilities + totalEquity, kind: 'total' },
     { label: 'Balance check (assets − liabilities − equity)', amount: difference, kind: 'total' },
   ];
+
+  // Each branch's balance from the books, against the Demand Record page's
+  // Balance by Branch for the same period and filter.
+  let branchBalances: AccountingBooks['branchBalances'] = null;
+  if (dr) {
+    const byBranch = new Map<string, { branchId: string; branchName: string; balance: number; page: number | null }>();
+    for (const b of receivables) {
+      const id = b.account.code.slice(RECEIVABLE_PREFIX.length);
+      byBranch.set(id, { branchId: id, branchName: branchName(b), balance: b.closing, page: null });
+    }
+    for (const p of dr.pageBalances) {
+      const cur = byBranch.get(p.branchId) ?? { branchId: p.branchId, branchName: p.branchName, balance: 0, page: null };
+      cur.page = paisa(p.closingBalance);
+      byBranch.set(p.branchId, cur);
+    }
+    // A settled branch stays listed at zero: "fully paid" is a balance too.
+    branchBalances = [...byBranch.values()].sort((a, b) => a.branchName.localeCompare(b.branchName));
+  }
 
   // ── 7. Reconciliation ─────────────────────────────────────────────────────
   // The ledger is re-run line by line, independently of the balance map above,
@@ -651,6 +814,43 @@ export function buildAccountingBooks(input: BooksInput): AccountingBooks {
       ? { key: 'classified', label: 'Every voucher has a classified account', level: 'warn', detail: `Ledger head not found in the chart, classified by its income/expense type: ${list([...unmappedHeads])}.` }
       : { key: 'classified', label: 'Every voucher has a classified account', level: 'pass', detail: 'Every head is in the chart of accounts.' },
   );
+  if (!dr) {
+    checks.push({
+      key: 'demand_record', label: 'Branch receivables from the Demand Record', level: 'info',
+      detail: 'The Demand Record is not switched on, so no branch receivable is in these books.',
+    });
+  } else {
+    const differs = (branchBalances ?? []).filter((b) => b.page !== null && b.page !== b.balance);
+    checks.push(
+      differs.length
+        ? {
+            key: 'demand_page', label: 'Branch balances agree with the Demand Record page', level: 'warn',
+            detail: `Different for: ${list(differs.map((b) => `${b.branchName} (books ${fmt(b.balance)}, page ${fmt(b.page!)})`))}. The page puts a deposit or return in the row of the demand before it even when it falls after the reporting date, while the books count a deposit on its own voucher date; a deposit whose voucher is missing or differs from the transfer also shows here.`,
+          }
+        : {
+            key: 'demand_page', label: 'Branch balances agree with the Demand Record page', level: 'pass',
+            detail: `Every branch's outstanding balance equals the page's Balance by Branch (${(branchBalances ?? []).length} branch(es)).`,
+          },
+    );
+    const unsettled = dr.receivedTransfers
+      .filter((t) => t.businessDate <= to && (settled.get(t.id) ?? 0) !== paisa(t.amount))
+      .map((t) => `${t.transferNo} (transfer ${fmt(paisa(t.amount))}, ledger ${fmt(settled.get(t.id) ?? 0)})`);
+    checks.push(
+      unsettled.length
+        ? { key: 'demand_receipts', label: 'Each Demand Record deposit is in the ledger once', level: 'warn', detail: `Deposit and its ledger voucher differ: ${list(unsettled)}.` }
+        : { key: 'demand_receipts', label: 'Each Demand Record deposit is in the ledger once', level: 'pass', detail: 'Every deposit counted as Received has exactly its amount in the ledger, credited to the branch receivable.' },
+    );
+    const demandBranches = new Set(dr.demands.map((d) => d.branchId));
+    const twice = periodJournal
+      .filter((j) => ['branch_income', 'company_share', 'branch_share'].includes(j.voucher.sourceType)
+        && j.voucher.entryDate >= dr.start && demandBranches.has(j.voucher.branchId ?? ''))
+      .map((j) => j.id);
+    checks.push(
+      twice.length
+        ? { key: 'share_twice', label: 'Company share recognised once', level: 'warn', detail: `Sales-income approvals posted a company or branch share for a branch whose demands already accrue Company Share: ${list(twice)}. Review whether the same share is counted twice.` }
+        : { key: 'share_twice', label: 'Company share recognised once', level: 'pass', detail: 'No sales-income share posting overlaps the Demand Record.' },
+    );
+  }
   if (branch) {
     checks.push({
       key: 'branch_scope', label: 'Branch filter', level: 'warn',
@@ -663,7 +863,10 @@ export function buildAccountingBooks(input: BooksInput): AccountingBooks {
     'Dates are business dates (the day a voucher belongs to, as the Daily Ledger shows it), not the clock time it was keyed in. Amounts are as posted; later rate changes do not alter them.',
     'Cash basis: revenue is recognised when branch collections are approved into the finance ledger; POS sales, discounts and refunds are recorded in the branch sales module and arrive here net.',
     'Cost of goods sold is not determined: the finance ledger holds no inventory valuation, so raw materials, packaging and production purchases are operating expenses as booked.',
-    'Receivables, inventory, payables, loans and fixed assets are not recorded in the finance ledger, so the balance sheet holds cash, bank and owners\' equity only.',
+    dr
+      ? `Branch Company Share is on an accrual basis from the Demand Record's start (${dr.start}): each delivered demand debits the branch's receivable and credits Company Share, and each deposit the Demand Record counts as Received credits the receivable instead of revenue. A positive balance is owed to Mountain Bakes (asset); a negative one is a credit owed back to the branch (liability). Deposits outside the Demand Record (before its start, or before a branch's first demand) stay income when received.`
+      : 'Branch receivables are not included: the Demand Record is not switched on.',
+    'Inventory, payables, loans and fixed assets are not recorded in the finance ledger.',
     'General Fund = opening balances, capital introduced (Investment) and partner withdrawals (including partner advances). Branch Share Payout stays an expense.',
     'Employee advances are booked under Salaries as expenses; their recovery through payroll deductions is not a separate posting, so no advances receivable is kept.',
     'Branch-income bank slices combine Easypaisa and bank receipts and are shown under Bank — Bank Account.',
@@ -688,7 +891,7 @@ export function buildAccountingBooks(input: BooksInput): AccountingBooks {
       ? 'NOT VERIFIED — the books have critical exceptions (see the checks below); do not rely on these figures.'
       : difference !== 0
         ? 'NOT BALANCED — see the balance check.'
-        : `Balanced, but INCOMPLETE — receivables, inventory, payables, loans and fixed assets are not in the finance ledger; ${openingNote}${branch ? '; one branch only' : ''}.`,
+        : `Balanced, but INCOMPLETE — inventory, payables, loans and fixed assets are not in the finance ledger; ${dr ? 'branch receivables from the Demand Record' : 'no branch receivables (Demand Record off)'}; ${openingNote}${branch ? '; one branch only' : ''}.`,
   };
 
   return {
@@ -701,6 +904,7 @@ export function buildAccountingBooks(input: BooksInput): AccountingBooks {
     trialBalance: { rows: tbRows, totals: tbTotals },
     incomeStatement: { lines: isLines, netProfit, totalRevenue: salesTotal + otherIncomeTotal, totalExpenses: opexTotal + otherExpTotal },
     balanceSheet: { lines: bsLines, totalAssets, totalLiabilities, totalEquity, difference },
+    branchBalances,
     checks,
     limitations,
     status,
@@ -844,7 +1048,14 @@ export async function loadAccountingBooks(q: AccountingWorkbookQuery): Promise<A
     branch = { id: String(data['id']), name: String(data['name']) };
   }
 
-  const [vouchers, heads] = await Promise.all([loadVouchers(q.to, q.branchId), loadHeads()]);
+  const [vouchers, heads, demandRecord] = await Promise.all([
+    loadVouchers(q.to, q.branchId),
+    loadHeads(),
+    // Same period and branch as the rest of the workbook. Null while the
+    // Demand Record is off; any other failure fails the export rather than
+    // leaving receivables silently out.
+    getDemandRecordForAccounts({ branchId: q.branchId, from: q.from, to: q.to }),
+  ]);
 
   const transferIds = [
     ...new Set(vouchers.filter((v) => v.sourceType === 'cash_transfer' && v.sourceId).map((v) => v.sourceId!)),
@@ -858,5 +1069,6 @@ export async function loadAccountingBooks(q: AccountingWorkbookQuery): Promise<A
     from: q.from,
     to: q.to,
     branch,
+    demandRecord,
   });
 }

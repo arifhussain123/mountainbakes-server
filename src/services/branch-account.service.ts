@@ -555,3 +555,86 @@ export async function setLedgerStart(start: string): Promise<{ previous: string 
     return { previous: prev[0]!.start, start, frozen };
   });
 }
+
+// ---------------------------------------------------------------------------
+// For the Daily Ledger's accounting workbook
+// ---------------------------------------------------------------------------
+
+/** The Demand Record as the accounting workbook journals it. Amounts in rupees. */
+export interface DemandRecordForAccounts {
+  start: string;
+  /** Every delivered demand from the go-live day, with its Company Share as the page computes it. */
+  demands: { orderId: string; demandNumber: string; branchId: string; branchName: string; businessDate: string; gTotal: number; sharePct: number; companyShare: number }[];
+  /** Finance's entries the record counts (effective from the go-live instant). */
+  adjustments: { id: string; branchId: string; branchName: string; kind: 'opening' | 'adjustment' | 'reversal'; amount: number; businessDate: string; reason: string; reversalOf: string | null }[];
+  /** The approved cash transfers the record counts as Received. */
+  receivedTransfers: { id: string; transferNo: string; branchId: string; branchName: string; amount: number; businessDate: string }[];
+  /** The page's Balance by Branch for the same period and branch filter. */
+  pageBalances: { branchId: string; branchName: string; closingBalance: number }[];
+}
+
+/**
+ * Everything the workbook needs to carry the Demand Record into its books:
+ * the same rows the page shows (so each demand's Company Share is the page's
+ * figure), Finance's entries, the deposits counted as Received — selected by
+ * exactly the rule ROWS_SQL places them by (approved, live, positive, after the
+ * go-live instant and after the branch's first demand) — and the page's own
+ * Balance by Branch for the period, to reconcile against. Null while the
+ * Demand Record is not switched on.
+ */
+export async function getDemandRecordForAccounts(
+  q: { branchId?: string | null; from: string; to: string },
+): Promise<DemandRecordForAccounts | null> {
+  const start = await getLedgerStart();
+  if (!start) return null;
+  const branchId = q.branchId ?? null;
+  const prisma = getPrisma();
+
+  const [rows, period, adjustments, receivedTransfers] = await Promise.all([
+    loadAccounts(branchId, start),
+    loadPeriod({ branchId, from: q.from, to: q.to }, start),
+    prisma.$queryRawUnsafe<DemandRecordForAccounts['adjustments']>(`
+      select a.id::text as "id", a.branch_id::text as "branchId", b.name as "branchName", a.kind as "kind",
+             a.amount::float8 as "amount", to_char(a.business_date, 'YYYY-MM-DD') as "businessDate",
+             a.reason as "reason", a.reversal_of::text as "reversalOf"
+        from public.branch_account_adjustments a
+        join public.branches b on b.id = a.branch_id
+       where ($1::uuid is null or a.branch_id = $1::uuid) and a.effective_at >= ${START_AT}
+       order by a.effective_at, a.created_at`, branchId, start),
+    prisma.$queryRawUnsafe<DemandRecordForAccounts['receivedTransfers']>(`
+      with first_demand as (
+        select o.branch_id, min(o.submitted_at) as lo
+          from public.production_orders o
+         where o.status::text in ${DELIVERED} and o.business_date >= $2::date
+           and ($1::uuid is null or o.branch_id = $1::uuid)
+         group by o.branch_id
+      )
+      select t.id::text as "id", t.transfer_no as "transferNo", t.branch_id::text as "branchId",
+             coalesce(b.name, t.branch_name) as "branchName", t.amount::float8 as "amount",
+             to_char(t.business_date, 'YYYY-MM-DD') as "businessDate"
+        from public.cash_transfers t
+        join first_demand f on f.branch_id = t.branch_id
+        left join public.branches b on b.id = t.branch_id
+       where t.status::text = 'approved' and t.deleted_at is null and t.amount > 0
+         and t.created_at > f.lo and t.created_at >= ${START_AT}`, branchId, start),
+  ]);
+
+  return {
+    start,
+    demands: rows
+      .filter((r) => r.orderId !== null)
+      .map((r) => ({
+        orderId: r.orderId!,
+        demandNumber: r.demandNumber ?? r.orderId!,
+        branchId: r.branchId,
+        branchName: r.branchName,
+        businessDate: r.businessDate,
+        gTotal: r.gTotal,
+        sharePct: r.sharePct,
+        companyShare: r.companyShare,
+      })),
+    adjustments,
+    receivedTransfers,
+    pageBalances: period.balances.map((b) => ({ branchId: b.branchId, branchName: b.branchName, closingBalance: b.closingBalance })),
+  };
+}

@@ -341,6 +341,24 @@ describe('exceptions are reported, never hidden', () => {
     assert.equal(check(b, 'transfer_split').level, 'warn');
   });
 
+  test('a migration-121 transfer — cash on its own voucher, Easypaisa + bank on another — splits without a warning', () => {
+    const input = scenario();
+    input.transfers.push({ id: 'T2', cash: 5000, easypaisa: 1500, bank: 2500 });
+    input.vouchers.push(
+      v('RV-21', '2026-10-11', H.cs, 'debit', 5000, { sourceType: 'cash_transfer', sourceId: 'T2', paymentMethod: 'cash' }),
+      v('RV-22', '2026-10-11', H.cs, 'debit', 4000, {
+        sourceType: 'cash_transfer', sourceId: 'T2', account: 'bank', paymentMethod: 'easypaisa+bank_account',
+      }),
+    );
+    const b = buildAccountingBooks(input);
+    assert.equal(check(b, 'transfer_split').level, 'pass');
+    assert.deepEqual(
+      b.journal.find((j) => j.id === 'RV-22')!.lines.map((l) => [l.accountCode, l.debit]),
+      [[EASYPAISA_CODE, rs(1500)], [BANK_CODE, rs(2500)], ['INC-COMPANY-SHARE', 0]],
+    );
+    assert.deepEqual(b.journal.find((j) => j.id === 'RV-21')!.lines[0]!.accountCode, CASH_CODE);
+  });
+
   test('a negative cash balance is flagged', () => {
     const input = scenario();
     input.vouchers.push(v('PV-8', '2026-10-12', H.elec, 'credit', 500000));
@@ -515,5 +533,218 @@ describe('workbook', () => {
     assert.equal(accountingWorkbookFilename(b), 'Mountain_Bakes_Daily_Ledger_2026-10-10_to_2026-10-12.xlsx');
     const one = buildAccountingBooks({ ...scenario(), from: '2026-10-12', branch: { id: 'b1', name: 'DHA Phase 5' } });
     assert.equal(accountingWorkbookFilename(one), 'Mountain_Bakes_Daily_Ledger_2026-10-12_DHA_Phase_5.xlsx');
+  });
+});
+
+/**
+ * The Demand Record carried into the books, on a book worked out by hand.
+ * Demand Record start 01 Oct; the workbook covers 10–12 Oct.
+ *
+ *   Alpha  opening +1,000 (01 Oct); DA1 05 Oct share 5,000 (before the period);
+ *          DA2 11 Oct share 6,000; adjustment −500 (12 Oct); deposits TA1 4,000
+ *          (11 Oct) and TA2 3,000 (12 Oct); DA3 13 Oct (after the period)
+ *          → 1,000 + 5,000 + 6,000 − 500 − 7,000 = 4,500 owed
+ *   Beta   opening +200 then reversed; DB1 10 Oct 5,000; deposit TB1 5,000 → 0
+ *   Gamma  DC1 10 Oct 4,000; deposit TC1 9,000 → −5,000, a credit
+ *   Delta  DD1 12 Oct 2,500; nothing paid → 2,500 owed
+ *
+ *   Outside the record: TX 2,000 (before Alpha's first demand) and a 300 fuel
+ *   charge stay income; cash opening 100,000; salaries 1,000.
+ */
+describe('Demand Record outstanding balances', () => {
+  const HD = {
+    open: H.open, cs: H.cs, sal: H.sal,
+    fuel: { id: 'h-fuel', code: 'INC-FUEL', name: 'Fuel', type: 'income', groupName: 'Other' } as HeadRow,
+  };
+  const A = { id: 'ba', name: 'Alpha' };
+  const B = { id: 'bb', name: 'Beta' };
+  const C = { id: 'bc', name: 'Gamma' };
+  const D = { id: 'bd', name: 'Delta' };
+  const tv = (no: string, date: string, transferId: string, br: { id: string; name: string }, amount: number, head: HeadRow = HD.cs) =>
+    v(no, date, head, 'debit', amount, { sourceType: 'cash_transfer', sourceId: transferId, branchId: br.id, branchName: br.name });
+  const demand = (n: string, br: { id: string; name: string }, date: string, share: number) =>
+    ({ orderId: `o-${n}`, demandNumber: n, branchId: br.id, branchName: br.name, businessDate: date, gTotal: share * 1.25, sharePct: 80, companyShare: share });
+
+  function drScenario(): BooksInput {
+    seq = 0;
+    return {
+      from: '2026-10-10', to: '2026-10-12', branch: null,
+      heads: [...HEADS, HD.fuel], transfers: [],
+      vouchers: [
+        v('RV-O', '2026-10-01', HD.open, 'debit', 100000, { sourceType: 'opening' }),
+        tv('RV-A1', '2026-10-11', 'TA1', A, 4000),
+        tv('RV-F', '2026-10-11', 'TA1', A, 300, HD.fuel),
+        tv('RV-A2', '2026-10-12', 'TA2', A, 3000),
+        tv('RV-B1', '2026-10-11', 'TB1', B, 5000),
+        tv('RV-C1', '2026-10-11', 'TC1', C, 9000),
+        tv('RV-X', '2026-10-11', 'TX', A, 2000),
+        v('PV-S', '2026-10-12', HD.sal, 'credit', 1000, { sourceType: 'salary', sourceId: 'S9' }),
+      ],
+      demandRecord: {
+        start: '2026-10-01',
+        demands: [
+          demand('DA1', A, '2026-10-05', 5000), demand('DA2', A, '2026-10-11', 6000), demand('DA3', A, '2026-10-13', 999),
+          demand('DB1', B, '2026-10-10', 5000), demand('DC1', C, '2026-10-10', 4000), demand('DD1', D, '2026-10-12', 2500),
+        ],
+        adjustments: [
+          { id: 'adj-a-open', branchId: A.id, branchName: A.name, kind: 'opening', amount: 1000, businessDate: '2026-10-01', reason: 'Dues at start', reversalOf: null },
+          { id: 'adj-a-adj', branchId: A.id, branchName: A.name, kind: 'adjustment', amount: -500, businessDate: '2026-10-12', reason: 'Spoilt stock', reversalOf: null },
+          { id: 'adj-b-open', branchId: B.id, branchName: B.name, kind: 'opening', amount: 200, businessDate: '2026-10-01', reason: 'Entered by mistake', reversalOf: null },
+          { id: 'adj-b-rev', branchId: B.id, branchName: B.name, kind: 'reversal', amount: -200, businessDate: '2026-10-02', reason: 'Undo', reversalOf: 'adj-b-open' },
+        ],
+        receivedTransfers: [
+          { id: 'TA1', transferNo: 'CT-1', branchId: A.id, branchName: A.name, amount: 4000, businessDate: '2026-10-11' },
+          { id: 'TA2', transferNo: 'CT-2', branchId: A.id, branchName: A.name, amount: 3000, businessDate: '2026-10-12' },
+          { id: 'TB1', transferNo: 'CT-3', branchId: B.id, branchName: B.name, amount: 5000, businessDate: '2026-10-11' },
+          { id: 'TC1', transferNo: 'CT-4', branchId: C.id, branchName: C.name, amount: 9000, businessDate: '2026-10-11' },
+        ],
+        pageBalances: [
+          { branchId: A.id, branchName: A.name, closingBalance: 4500 },
+          { branchId: B.id, branchName: B.name, closingBalance: 0 },
+          { branchId: C.id, branchName: C.name, closingBalance: -5000 },
+          { branchId: D.id, branchName: D.name, closingBalance: 2500 },
+        ],
+      },
+    };
+  }
+  const ar = (b: AccountingBooks, br: { id: string }) => b.balances.find((x) => x.account.code === `AR-BRANCH-${br.id}`);
+  const books = buildAccountingBooks(drScenario());
+
+  test('1. an unpaid demand stays outstanding in full', () => {
+    assert.equal(ar(books, D)!.closing, rs(2500));
+  });
+
+  test('2. a fully paid demand leaves the branch settled at zero, and is still listed', () => {
+    assert.equal(ar(books, B)!.closing, 0);
+    assert.deepEqual(books.branchBalances!.find((x) => x.branchId === B.id), { branchId: B.id, branchName: 'Beta', balance: 0, page: 0 });
+  });
+
+  test('3. several partial payments each reduce what is owed', () => {
+    const a = ar(books, A)!;
+    assert.equal(a.opening, rs(1000 + 5000));
+    assert.equal(a.periodDebit, rs(6000));
+    assert.equal(a.periodCredit, rs(500 + 4000 + 3000));
+    assert.equal(a.closing, rs(4500));
+  });
+
+  test('4. branches with different balances: owed ones are assets, a credit is a liability', () => {
+    const bs = books.balanceSheet;
+    const line = (label: string) => bs.lines.find((l) => l.label === label);
+    assert.equal(line('Alpha')!.amount, rs(4500));
+    assert.equal(line('Delta')!.amount, rs(2500));
+    assert.equal(line('Total branch receivables')!.amount, rs(7000));
+    assert.equal(line('Gamma')!.amount, rs(5000));
+    assert.equal(line('Total branch credit balances')!.amount, rs(5000));
+    assert.equal(bs.totalLiabilities, rs(5000));
+    assert.equal(bs.totalAssets, rs(122300 + 7000));
+  });
+
+  test('a deposit settles the receivable instead of being income again; its fuel charge stays income', () => {
+    const j = books.journal.find((x) => x.id === 'RV-A1')!;
+    assert.deepEqual(j.lines.map((l) => [l.accountCode, l.debit, l.credit]), [[CASH_CODE, rs(4000), 0], [`AR-BRANCH-${A.id}`, 0, rs(4000)]]);
+    assert.equal(books.journal.find((x) => x.id === 'RV-F')!.lines[1]!.accountCode, 'INC-FUEL');
+    // Company Share income on the cash vouchers is only the deposit outside the record.
+    assert.equal(balanceOf(books, 'INC-COMPANY-SHARE').periodCredit, rs(2000));
+    assert.equal(balanceOf(books, 'INC-DEMAND-SHARE').periodCredit, rs(6000 + 5000 + 4000 + 2500));
+  });
+
+  test('each demand is one balanced entry keyed by its demand number; one after the period is left out', () => {
+    const da2 = books.journal.find((x) => x.id === 'DA2')!;
+    assert.deepEqual(da2.lines.map((l) => [l.accountCode, l.debit, l.credit]), [[`AR-BRANCH-${A.id}`, rs(6000), 0], ['INC-DEMAND-SHARE', 0, rs(6000)]]);
+    assert.equal(books.journal.filter((x) => x.id === 'DA2').length, 1);
+    assert.equal(books.journal.find((x) => x.id === 'DA3'), undefined);
+  });
+
+  test('5. a deposit tagged to the wrong branch still settles the branch its transfer belongs to', () => {
+    const input = drScenario();
+    const wrong = input.vouchers.find((x) => x.voucherNo === 'RV-A2')!;
+    wrong.branchId = B.id;
+    wrong.branchName = B.name;
+    const b = buildAccountingBooks(input);
+    assert.equal(ar(b, A)!.closing, rs(4500));
+    assert.equal(ar(b, B)!.closing, 0);
+  });
+
+  test('6. a reversed opening balance nets to nothing; a deposit the record does not count stays income', () => {
+    assert.equal(balanceOf(books, 'EQ-BRANCH-OPENING').closing, -rs(1000)); // Alpha's 1,000 only
+    const x = books.journal.find((j) => j.id === 'RV-X')!;
+    assert.equal(x.lines[1]!.accountCode, 'INC-COMPANY-SHARE');
+  });
+
+  test('8. the period: earlier demands are the opening balance and retained earnings, later ones are out', () => {
+    assert.equal(balanceOf(books, RETAINED_CODE).opening, -rs(5000)); // DA1's share, earned before 10 Oct
+    assert.ok(!books.journal.some((j) => j.id === 'DA1' && j.inPeriod));
+    const b = buildAccountingBooks({ ...drScenario(), to: '2026-10-11' });
+    assert.equal(ar(b, A)!.closing, rs(1000 + 5000 + 6000 - 4000));
+    assert.equal(ar(b, D), undefined);
+  });
+
+  test('9. the balances reconcile with the Demand Record page, and a difference is reported', () => {
+    assert.equal(check(books, 'demand_page').level, 'pass', check(books, 'demand_page').detail);
+    assert.equal(check(books, 'demand_receipts').level, 'pass', check(books, 'demand_receipts').detail);
+    const input = drScenario();
+    input.demandRecord!.pageBalances[0]!.closingBalance = 1500; // the page put a later deposit in Alpha's last row
+    const b = buildAccountingBooks(input);
+    assert.equal(check(b, 'demand_page').level, 'warn');
+    assert.match(check(b, 'demand_page').detail, /Alpha \(books Rs 4,500\.00, page Rs 1,500\.00\)/);
+  });
+
+  test('10. debits equal credits everywhere and the balance sheet balances', () => {
+    const t = books.trialBalance.totals;
+    assert.equal(t.periodDebit, t.periodCredit);
+    assert.equal(t.closingDebit, t.closingCredit);
+    assert.equal(t.openingDebit, t.openingCredit);
+    assert.equal(books.balanceSheet.difference, 0);
+    assert.equal(books.incomeStatement.netProfit, rs(6000 + 5000 + 4000 + 2500 - 500 + 2000 + 300 - 1000));
+    assert.equal(check(books, 'journal_balanced').level, 'pass');
+    assert.equal(check(books, 'ledger_tb').level, 'pass');
+  });
+
+  test('a deposit whose voucher differs from the transfer is reported', () => {
+    const input = drScenario();
+    input.vouchers.find((x) => x.voucherNo === 'RV-A2')!.debit = 2500;
+    const b = buildAccountingBooks(input);
+    assert.equal(check(b, 'demand_receipts').level, 'warn');
+    assert.match(check(b, 'demand_receipts').detail, /CT-2/);
+    assert.equal(b.balanceSheet.difference, 0);
+  });
+
+  test('a sales-income share posting for a branch on the Demand Record is flagged as possibly counted twice', () => {
+    const input = drScenario();
+    input.vouchers.push(v('RV-I', '2026-10-11', HD.cs, 'debit', 700, { sourceType: 'company_share', sourceId: 'AP1', branchId: A.id, branchName: A.name }));
+    assert.equal(check(buildAccountingBooks(input), 'share_twice').level, 'warn');
+    assert.equal(check(books, 'share_twice').level, 'pass');
+  });
+
+  test('7. building twice gives the same books', () => {
+    const a = buildAccountingBooks(drScenario());
+    const b = buildAccountingBooks(drScenario());
+    assert.deepEqual(a.journal.map((j) => [j.id, j.lines]), b.journal.map((j) => [j.id, j.lines]));
+    assert.deepEqual(a.branchBalances, b.branchBalances);
+  });
+
+  test('with the Demand Record off, receivables are absent and say so', () => {
+    const b = buildAccountingBooks({ ...drScenario(), demandRecord: null });
+    assert.equal(b.branchBalances, null);
+    assert.equal(check(b, 'demand_record').level, 'info');
+    assert.ok(b.balanceSheet.lines.some((l) => l.label.startsWith('Accounts receivable — the Demand Record is not switched on')));
+  });
+
+  test('the Balance Sheet sheet lists each branch beside the page, with the overall total', async () => {
+    const buffer = await exportAccountingWorkbook(books, { generatedBy: 'x' });
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(buffer as unknown as ArrayBuffer);
+    const bs = wb.getWorksheet('Balance Sheet')!;
+    const rows: unknown[][] = [];
+    bs.eachRow((row) => rows.push([row.getCell(1).value, row.getCell(2).value, row.getCell(3).value, row.getCell(4).value]));
+    const start = rows.findIndex((r) => String(r[0]).startsWith('Branch outstanding balances'));
+    assert.ok(start > 0);
+    assert.deepEqual(rows[start + 1], ['Branch', 'Balance sheet', 'Demand Record page', 'Difference']);
+    assert.deepEqual(rows.slice(start + 2, start + 6), [
+      ['Alpha', 4500, 4500, 0], ['Beta', 0, 0, 0], ['Delta', 2500, 2500, 0], ['Gamma', -5000, -5000, 0],
+    ]);
+    const total = rows[start + 6]!;
+    assert.equal(total[0], 'Overall outstanding (net of branch credits)');
+    assert.equal((total[1] as ExcelJS.CellFormulaValue).result, 2000);
   });
 });

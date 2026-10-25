@@ -140,6 +140,10 @@ before(async () => {
   await db.exec(`
     insert into counters (id, count) values ('finance_receipt_voucher', 0), ('finance_payment_voucher', 0);
     insert into finance_settings default values;
+    -- The Demand Record's start date (migration 20261024000001), left unset:
+    -- this suite is the Demand-Record-off case; finance-accounting-demand
+    -- .integration.test.ts covers it switched on.
+    alter table finance_settings add column account_ledger_start date;
     insert into branches (id, name) values ('${GULBERG}', 'Gulberg'), ('${DHA}', 'DHA');
     insert into cash_transfers (id, cash_amount, easypaisa_amount, bank_amount) values ('${TRANSFER}', 7000, 2000, 1000);
     insert into ledger_heads (code, name, type, group_name, is_system) values

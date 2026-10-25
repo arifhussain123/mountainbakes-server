@@ -121,6 +121,58 @@ Income statement sections:
 - **Gross profit:** equals net revenue, because cost of goods sold is not
   determined.
 
+## 4b. Branch outstanding balances (Finance → Demand Record)
+
+Added 2026-10-25. Source: `getDemandRecordForAccounts` in
+`branch-account.service.ts`, which returns the same rows the Demand Record page
+shows (`loadAccounts`), Finance's entries, the deposits the page counts as
+Received, and the page's Balance by Branch for the same period and branch.
+
+**Direction.** The Demand Record's closing balance is Company Share +
+Adjustments − Received.
+
+- **Positive balance:** the branch owes Mountain Bakes. It is an **asset**
+  (Branch receivable — <branch>).
+- **Negative balance:** a credit the branch paid ahead, owed back to it. It is
+  a **liability** (Branch credit balances).
+
+**Accrual, without double counting.** The cash book already posts every
+approved deposit as Company Share income. In the workbook only (nothing stored
+changes):
+
+| Record | Journal |
+|---|---|
+| Delivered demand (`DMD-…`, its business date) | DR Branch receivable / CR Company Share — demands (the page's G. Total × frozen %) |
+| Deposit the Demand Record counts as Received (its cash voucher) | DR Cash/Bank / CR **Branch receivable** (in place of Company Share income). The fuel charge stays income. |
+| Finance opening entry | DR Branch receivable / CR Branch dues brought forward (equity: earned before the record began) |
+| Finance adjustment | DR/CR Branch receivable against Demand Record adjustments (revenue) |
+| Reversal | The opposite of what it reverses |
+
+- **Not received under the record:** deposits it does not count (before its
+  start, or before a branch's first demand) stay income when received, as
+  before.
+- **Pending demands:** cancelled and pending demands, and pending, rejected or
+  deleted transfers, are never in the Demand Record, so they are never here.
+- **Ties to the page:** each branch's receivable is the page's own formula,
+  line by line.
+
+**Reconciliation.** The Balance Sheet sheet lists every branch with its
+balance in the books, the page's balance and the difference, plus the
+overall net total. The check "Branch balances agree with the Demand Record
+page" passes when every line agrees. The two can differ for one known
+reason: the page keeps a branch's last row open, so a deposit or return made
+after the reporting date still lands in it, while the books count a deposit
+on its own date. As at today the two agree. As at an earlier date a later
+payment shows as a difference, and the check names it. "Each Demand Record
+deposit is in the ledger once" compares each transfer with its voucher.
+"Company share recognised once" flags a sales-income share posting for a
+branch whose demands already accrue Company Share.
+
+**Payments against the wrong branch or demand.** A deposit settles the
+branch of its transfer (the source document), even if its voucher is tagged
+to another branch. Deposits are not linked to a single demand in this system;
+the page places them by time.
+
 ## 5. Validation (printed on the Balance Sheet sheet; never forced)
 
 Every journal entry balances · journal DR = CR · each voucher once ·
@@ -144,8 +196,9 @@ negative) appear in General Entries marked INVALID. Nothing is dropped.
 
 ## 6. Known gaps
 
-- Cash basis: no cost of goods sold, accruals, receivables, payables, loans,
-  inventory or fixed assets. Equipment is expensed as booked.
+- Cash basis except branch Company Share (accrual, from the Demand Record's
+  start): no cost of goods sold, other accruals, payables, loans, inventory or
+  fixed assets. Equipment is expensed as booked.
 - Employee advances post under Salaries. Their recovery through payroll
   deductions is not a separate posting, so no advances receivable is kept.
 - Branch-income bank slices combine Easypaisa and bank receipts, so they show
@@ -177,6 +230,13 @@ Daily Cash Book sheet in this workbook.
   401/403/400/404, all six sheets, every voucher across pages, the Easypaisa
   split, the balance sheet equation, branch filtering, repeated exports
   writing nothing, and the empty period.
+- `src/services/__tests__/finance-accounting-demand.integration.test.ts`:
+  the Demand Record switched on (real migration, % frozen by the real trigger,
+  deposits posted by the real posting function, opening entry through the real
+  route). The workbook's branch balances are compared with the page's own
+  endpoint, and the suite also covers partial and full payment, an earlier
+  reporting date, the branch filter, cancelled and pending records, repeated
+  exports, and a branch manager refused.
 - `frontend/src/lib/__tests__/ledger-workbook.test.ts`: the button's request
   and file name.
 

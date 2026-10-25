@@ -508,6 +508,47 @@ function balanceSheet(wb: ExcelJS.Workbook, books: AccountingBooks, ctx: Ctx) {
   );
   let row = end + 2;
 
+  // Each branch's outstanding balance, beside the Demand Record page's Balance
+  // by Branch for the same period, so the two can be ticked off line by line.
+  if (books.branchBalances) {
+    sheet.mergeCells(row, 1, row, 4);
+    const bt = sheet.getCell(row, 1);
+    bt.value = `Branch outstanding balances as at ${books.to} — positive is owed to Mountain Bakes, negative is a credit owed back to the branch`;
+    bt.font = { bold: true, size: 12, color: { argb: INK } };
+    row += 1;
+    headerRow(sheet, row, ['Branch', 'Balance sheet', 'Demand Record page', 'Difference'], 2);
+    const first = row + 1;
+    let inBooks = 0;
+    let page = 0;
+    for (const b of books.branchBalances) {
+      row += 1;
+      const r = sheet.getRow(row);
+      r.getCell(1).value = safeText(b.branchName);
+      setMoney(r.getCell(2), b.balance);
+      setMoney(r.getCell(3), b.page);
+      const diff = b.page === null ? null : b.balance - b.page;
+      setMoney(r.getCell(4), diff);
+      if (diff) r.getCell(4).font = { bold: true, color: { argb: RED } };
+      inBooks += b.balance;
+      page += b.page ?? 0;
+    }
+    const last = row;
+    row += 1;
+    const tot = sheet.getRow(row);
+    tot.getCell(1).value = 'Overall outstanding (net of branch credits)';
+    setSum(tot.getCell(2), 'B', first, last, inBooks);
+    setSum(tot.getCell(3), 'C', first, last, page);
+    setSum(tot.getCell(4), 'D', first, last, inBooks - page);
+    totalStyle(tot, 4);
+    row += 1;
+    const owed = books.branchBalances.filter((b) => b.balance > 0).reduce((s2, b) => s2 + b.balance, 0);
+    const credit = books.branchBalances.filter((b) => b.balance < 0).reduce((s2, b) => s2 - b.balance, 0);
+    const split = sheet.getRow(row);
+    split.getCell(1).value = `Of which owed to Mountain Bakes (assets): ${rupees(owed).toLocaleString('en-PK', { minimumFractionDigits: 2 })} · credits owed to branches (liabilities): ${rupees(credit).toLocaleString('en-PK', { minimumFractionDigits: 2 })}`;
+    split.getCell(1).font = { italic: true, size: 9, color: { argb: MUTED } };
+    row += 2;
+  }
+
   sheet.mergeCells(row, 1, row, 4);
   const t = sheet.getCell(row, 1);
   t.value = 'Validation checks';
