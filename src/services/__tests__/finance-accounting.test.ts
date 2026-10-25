@@ -739,9 +739,9 @@ describe('Demand Record outstanding balances', () => {
     bs.eachRow((row) => rows.push([row.getCell(1).value, row.getCell(2).value, row.getCell(3).value, row.getCell(4).value]));
     const start = rows.findIndex((r) => String(r[0]).startsWith('Branch outstanding balances'));
     assert.ok(start > 0);
-    assert.deepEqual(rows[start + 1], ['Branch', 'Balance sheet', 'Demand Record page', 'Difference']);
+    assert.deepEqual(rows[start + 1], ['Branch', 'Balance sheet', 'Demand Record page', null]);
     assert.deepEqual(rows.slice(start + 2, start + 6), [
-      ['Alpha', 4500, 4500, 0], ['Beta', 0, 0, 0], ['Delta', 2500, 2500, 0], ['Gamma', -5000, -5000, 0],
+      ['Alpha', 4500, 4500, null], ['Beta', 0, 0, null], ['Delta', 2500, 2500, null], ['Gamma', -5000, -5000, null],
     ]);
     const total = rows[start + 6]!;
     assert.equal(total[0], 'Overall outstanding (net of branch credits)');

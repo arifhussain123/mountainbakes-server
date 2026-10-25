@@ -516,7 +516,7 @@ function balanceSheet(wb: ExcelJS.Workbook, books: AccountingBooks, ctx: Ctx) {
     bt.value = `Branch outstanding balances as at ${books.to} — positive is owed to Mountain Bakes, negative is a credit owed back to the branch`;
     bt.font = { bold: true, size: 12, color: { argb: INK } };
     row += 1;
-    headerRow(sheet, row, ['Branch', 'Balance sheet', 'Demand Record page', 'Difference'], 2);
+    headerRow(sheet, row, ['Branch', 'Balance sheet', 'Demand Record page'], 2);
     const first = row + 1;
     let inBooks = 0;
     let page = 0;
@@ -526,9 +526,9 @@ function balanceSheet(wb: ExcelJS.Workbook, books: AccountingBooks, ctx: Ctx) {
       r.getCell(1).value = safeText(b.branchName);
       setMoney(r.getCell(2), b.balance);
       setMoney(r.getCell(3), b.page);
-      const diff = b.page === null ? null : b.balance - b.page;
-      setMoney(r.getCell(4), diff);
-      if (diff) r.getCell(4).font = { bold: true, color: { argb: RED } };
+      // A line that disagrees with the page is marked in red; the check
+      // "Branch balances agree with the Demand Record page" names the reason.
+      if (b.page !== null && b.page !== b.balance) r.getCell(3).font = { bold: true, color: { argb: RED } };
       inBooks += b.balance;
       page += b.page ?? 0;
     }
@@ -538,8 +538,7 @@ function balanceSheet(wb: ExcelJS.Workbook, books: AccountingBooks, ctx: Ctx) {
     tot.getCell(1).value = 'Overall outstanding (net of branch credits)';
     setSum(tot.getCell(2), 'B', first, last, inBooks);
     setSum(tot.getCell(3), 'C', first, last, page);
-    setSum(tot.getCell(4), 'D', first, last, inBooks - page);
-    totalStyle(tot, 4);
+    totalStyle(tot, 3);
     row += 1;
     const owed = books.branchBalances.filter((b) => b.balance > 0).reduce((s2, b) => s2 + b.balance, 0);
     const credit = books.branchBalances.filter((b) => b.balance < 0).reduce((s2, b) => s2 - b.balance, 0);
