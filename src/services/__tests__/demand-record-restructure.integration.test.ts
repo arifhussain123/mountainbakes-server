@@ -293,8 +293,11 @@ test('Test F — Finance Dashboard income: Demand is the net demand, Company Sha
   assert.equal(dash.summary.demand, 90800);
   assert.equal(dash.summary.companyShare, 72640);
   assert.equal(dash.summary.received, 70200);
-  // Beta carries its September Remaining into October; Aliabad had nothing before October.
-  assert.deepEqual(dash.previous, [{ branchId: BETA, balance: 2500 }]);
+  // Beta carries its September Remaining into October. Aliabad had nothing
+  // before October, so it carries 0 — a real figure, shown rather than blank.
+  const byBranch = (xs: { branchId: string | null; balance: number | null }[]) =>
+    [...xs].sort((a, b) => String(a.branchId).localeCompare(String(b.branchId)));
+  assert.deepEqual(byBranch(dash.previous), byBranch([{ branchId: BETA, balance: 2500 }, { branchId: ALIABAD, balance: 0 }]));
   assert.equal(dash.summary.lastMonthBalance, 2500);
   // October's activity plus what was carried in is every branch's Remaining at month end.
   assert.equal(dash.summary.lastMonthBalance! + dash.summary.companyShare - dash.summary.received, 2440 + 2500);

@@ -146,13 +146,27 @@ export function applyDemandRecord(
 
 /**
  * Each branch's Remaining carried into a month: the closing balance of its last
- * Demand Record row dated before `monthFirst`. A branch with no row before it
- * has nothing carried and is left out (null on the table, not a made-up 0).
+ * Demand Record row dated before `monthFirst`.
+ *
+ * A branch in the record with no row before the month still carried something
+ * real: its opening row's balance (Finance's opening entry) or, with none, 0 —
+ * the owner's rule is that every branch starts the Demand Record at zero. So it
+ * is listed with that figure, not left blank, once the record has started by
+ * the month's end. A branch whose rows all fall after the month (the record
+ * had not begun) is left out: null on the table, "no records".
  */
-export function carriedBalances(rows: DemandRecordRow[], monthFirst: string): FinanceDashboardPreviousBalance[] {
-  const last = new Map<string, number>();
-  for (const r of rows) if (r.businessDate < monthFirst) last.set(r.branchId, r.remaining);
-  return [...last].map(([branchId, balance]) => ({ branchId, balance: round2(balance) }));
+export function carriedBalances(rows: DemandRecordRow[], monthFirst: string, monthLast: string): FinanceDashboardPreviousBalance[] {
+  const carried = new Map<string, number>();
+  for (const r of rows) {
+    if (r.businessDate < monthFirst) {
+      carried.set(r.branchId, r.remaining);
+    } else if (!carried.has(r.branchId) && r.businessDate <= monthLast) {
+      // The branch's first row in this month: an opening row's balance is
+      // brought forward; a demand's Previous is what it started from (0).
+      carried.set(r.branchId, r.orderId === null ? r.remaining : r.previousBalance);
+    }
+  }
+  return [...carried].map(([branchId, balance]) => ({ branchId, balance: round2(balance) }));
 }
 
 export async function getFinanceMonthlyDashboard(params: {
@@ -222,7 +236,7 @@ export async function getFinanceMonthlyDashboard(params: {
   // this month — its Remaining, previous balances included — not last month's
   // activity alone. Receipts with no branch keep their old line.
   if (record) {
-    previous = [...carriedBalances(record.rows, bounds.first), ...previous.filter((p) => p.branchId === null)];
+    previous = [...carriedBalances(record.rows, bounds.first, bounds.last), ...previous.filter((p) => p.branchId === null)];
   }
 
   const companyShare = sum(days, (r) => r.companyShare);
