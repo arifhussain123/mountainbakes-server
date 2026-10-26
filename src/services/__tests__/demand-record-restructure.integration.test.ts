@@ -2,6 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { PGlite } from '@electric-sql/pglite';
 import { PrismaPGlite } from 'pglite-prisma-adapter';
 import { setPrisma } from '../../db/prisma';
@@ -115,16 +116,19 @@ async function discount(branch: string, orderId: string, amount: number, created
 }
 /** An approved deposit and the income-ledger entry its approval posts, as in production. */
 async function deposit(branch: string, amount: number, createdAt: string) {
-  const entry = await db.query<{ id: string }>(
+  const transferId = randomUUID();
+  const entry = await db.query<{ id: string; voucher_no: string }>(
     `insert into ledger_entries (voucher_no, seq, entry_date, ledger_head_id, ledger_head_name, ledger_head_type, description,
-                                 debit, credit, balance, account, source_type, branch_id, branch_name)
-     values (substr(md5(random()::text), 1, 8), (select coalesce(max(seq), 0) + 1 from ledger_entries),
+                                 debit, credit, balance, account, source_type, source_id, branch_id, branch_name)
+     values ('RV-' || substr(md5(random()::text), 1, 6), (select coalesce(max(seq), 0) + 1 from ledger_entries),
              $1::timestamptz::date, $2, 'Company Share', 'income', 'Cash transfer', $3, 0, 0,
-             (enum_range(null::finance_account))[1], 'cash_transfer', $4, 'x')
-     returning id`, [createdAt, incomeHead, amount, branch]);
+             (enum_range(null::finance_account))[1], 'cash_transfer', $5, $4, 'x')
+     returning id, voucher_no`, [createdAt, incomeHead, amount, branch, transferId]);
   await db.query(
-    `insert into cash_transfers (branch_id, branch_name, amount, cash_amount, business_date, created_at, status, ledger_entry_id, approved_at)
-     values ($1, 'x', $2, $2, $3::timestamptz::date, $3, 'approved', $4, $3)`, [branch, amount, createdAt, entry.rows[0]!.id]);
+    `insert into cash_transfers (id, branch_id, branch_name, amount, cash_amount, business_date, created_at, status,
+                                 ledger_entry_id, voucher_no, approved_at)
+     values ($5, $1, 'x', $2, $2, $3::timestamptz::date, $3, 'approved', $4, $6, $3)`,
+    [branch, amount, createdAt, entry.rows[0]!.id, transferId, entry.rows[0]!.voucher_no]);
 }
 
 /** Row counts plus a checksum of every row, for the tables the migration must not touch. */
@@ -311,11 +315,34 @@ test('Test F — Finance Dashboard income: Demand is the net demand, Company Sha
   const share = await getFinanceDashboardRecords({ ...base, metric: 'share' });
   assert.equal(share.amount, 72640);
   assert.equal(share.rows[1]!.detail, '80% of 48,000.00');
-  // Received is the cash transfers' Total Amount, each row opening its voucher.
+  // Received is the cash transfers' Total Amount, each row opening its Company
+  // Share voucher. Give the first deposit Fuel Charges, posted as approval
+  // posts them (an INC-FUEL voucher, listed in the transfer's voucher_no): the
+  // amount and the voucher shown stay the Company Share ones.
+  const fuel = await db.query<{ id: string; voucher_no: string }>(
+    `with t as (select id, voucher_no, business_date, branch_id from cash_transfers where amount = 28000),
+          h as (insert into ledger_heads (code, name, type) values ('INC-FUEL', 'Fuel', 'income') returning id)
+     insert into ledger_entries (voucher_no, seq, entry_date, ledger_head_id, ledger_head_name, ledger_head_type, description,
+                                 debit, credit, balance, account, source_type, source_id, branch_id, branch_name)
+     select 'RV-FUEL01', (select max(seq) + 1 from ledger_entries), t.business_date, h.id, 'Fuel', 'income',
+            'Daily delivery charges', 500, 0, 0, (enum_range(null::finance_account))[1], 'cash_transfer', t.id, t.branch_id, 'x'
+       from t, h
+     returning source_id as id, voucher_no`);
+  await db.query(`update cash_transfers set fuel_charges = 500, voucher_no = voucher_no || ', RV-FUEL01' where id = $1`, [fuel.rows[0]!.id]);
   const received = await getFinanceDashboardRecords({ ...base, metric: 'received' });
   assert.equal(received.amount, 70200);
   assert.deepEqual(received.rows.map((r) => r.amount), [28000, 42200]);
   assert.ok(received.rows.every((r) => r.source.startsWith('Cash transfer · ') && r.detail?.startsWith('Cash ')));
+  const cs = await db.query<{ id: string; voucher_no: string }>(
+    `select e.id, e.voucher_no from ledger_entries e join ledger_heads h on h.id = e.ledger_head_id
+      where h.code = 'INC-COMPANY-SHARE' and e.source_id = $1`, [fuel.rows[0]!.id]);
+  assert.equal(received.rows[0]!.reference, cs.rows[0]!.voucher_no);
+  assert.equal(received.rows[0]!.id, cs.rows[0]!.id);
+  assert.ok(received.rows.every((r) => !r.reference?.includes('FUEL')));
+  assert.equal((await getFinanceMonthlyDashboard({ month: '2026-10', branchId: null })).summary.received, 70200);
+  // Put the deposit back as it was for the tests after this one.
+  await db.query(`delete from ledger_entries where voucher_no = 'RV-FUEL01'`);
+  await db.query(`update cash_transfers set fuel_charges = 0, voucher_no = $2 where id = $1`, [fuel.rows[0]!.id, cs.rows[0]!.voucher_no]);
 });
 
 test('Test G — the POS slip prints exactly what it printed before the migration', async () => {

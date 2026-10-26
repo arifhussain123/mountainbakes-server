@@ -421,8 +421,10 @@ export async function getFinanceDashboardRecords(params: RecordsParams): Promise
 
 /**
  * The drill-down list for Received: the approved cash transfers behind it.
- * `id` and `reference` are the ledger entry and voucher the approval posted,
- * so a row opens its voucher as before; the transfer number is in `source`.
+ * `id` and `reference` are the transfer's live Company Share ledger entry and
+ * its voucher, so a row opens that voucher. The transfer's own `voucher_no`
+ * lists every voucher it posted, the Fuel one too, so it is not used. The
+ * transfer number is in `source`.
  */
 async function cashTransferRecords(params: RecordsParams): Promise<FinanceDashboardRecordsPage> {
   const empty = { total: 0, amount: 0, page: params.page, pageSize: params.pageSize, rows: [] };
@@ -431,13 +433,22 @@ async function cashTransferRecords(params: RecordsParams): Promise<FinanceDashbo
   const q = params.search?.trim().toLowerCase() || null;
   const res = await getPrisma().$queryRawUnsafe<{ total: number; amount: number; rows: Record<string, unknown>[] }[]>(`
     with f as (
-      select t.*, coalesce(b.name, t.branch_name) as bname
+      select t.*, coalesce(b.name, t.branch_name) as bname, cs.id as cs_entry_id, cs.voucher_no as cs_voucher_no
         from public.cash_transfers t
         left join public.branches b on b.id = t.branch_id
+        left join lateral (
+          select e.id, e.voucher_no
+            from public.ledger_entries e
+            join public.ledger_heads h on h.id = e.ledger_head_id
+           where e.source_type::text = 'cash_transfer' and e.source_id = t.id and h.code = 'INC-COMPANY-SHARE'
+             and e.deleted_at is null and e.status::text <> 'reversed' and e.reverses_entry_id is null
+           order by e.seq desc
+           limit 1
+        ) cs on true
        where ${TRANSFER_FILTER}
          and ($4::text is null
               or lower(t.transfer_no) like '%' || $4 || '%'
-              or lower(coalesce(t.voucher_no, '')) like '%' || $4 || '%'
+              or lower(coalesce(cs.voucher_no, '')) like '%' || $4 || '%'
               or lower(t.id::text) like '%' || $4 || '%'
               or lower(coalesce(b.name, t.branch_name)) like '%' || $4 || '%'
               or lower(coalesce(t.note, '')) like '%' || $4 || '%')
@@ -445,7 +456,7 @@ async function cashTransferRecords(params: RecordsParams): Promise<FinanceDashbo
     select (select count(*)::int from f) as "total",
            (select coalesce(sum(amount), 0)::float8 from f) as "amount",
            coalesce((select json_agg(json_build_object(
-                       'id', coalesce(p.ledger_entry_id, p.id)::text, 'reference', p.voucher_no,
+                       'id', coalesce(p.cs_entry_id, p.ledger_entry_id, p.id)::text, 'reference', p.cs_voucher_no,
                        'transferNo', p.transfer_no, 'date', to_char(p.business_date, 'YYYY-MM-DD'),
                        'branchId', p.branch_id::text, 'branchName', p.bname,
                        'cash', p.cash_amount::float8, 'easypaisa', p.easypaisa_amount::float8, 'bank', p.bank_amount::float8,
