@@ -27,13 +27,6 @@ import { checkCashDeposit, enforceRestrictions } from './restriction.service';
 const db = dbFor('cash-transfers');
 
 /**
- * How far back a deposit may be dated: yesterday at most (the owner's rule,
- * 2026-10-27). Tighter than the 7-day sync window other writes use, because a
- * deposit dated days back lands in a day Finance may already have checked.
- */
-export const CASH_DEPOSIT_BACKDATE_DAYS = 1;
-
-/**
  * Cash transfers — money a branch hands to the company (migration 118).
  *
  * THE SHAPE OF THIS FILE. Two callers share it: the branch router
@@ -306,10 +299,9 @@ export async function createCashTransfer(input: {
   if (!branch) throw Object.assign(new Error('Branch not found'), { status: 400 });
 
   // The device's business date when the mobile app sends one, today's
-  // otherwise — put through the day-closure check exactly as a sale or an
-  // expense is, but on a one-day window: a deposit is dated today or
-  // yesterday, nothing older (the owner's rule, 2026-10-27).
-  const businessDate = await resolveClientBusinessDate(input.body.businessDate, input.role, new Date(), CASH_DEPOSIT_BACKDATE_DAYS);
+  // otherwise — bounded and put through the day-closure check exactly as a
+  // sale or an expense is.
+  const businessDate = await resolveClientBusinessDate(input.body.businessDate, input.role);
 
   // The daily limit is a Restriction Rule now (migration 136): the number comes
   // from Admin Settings, and an approved one-time exception lifts it. The
