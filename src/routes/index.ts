@@ -17,6 +17,7 @@ import { router as returnStockRouter } from './return-stock.routes';
 import { router as productionDiscountsRouter } from './production-discounts.routes';
 import { router as branchDiscountsRouter } from './branch-discounts.routes';
 import { router as cashTransfersRouter } from './cash-transfers.routes';
+import { router as branchAccountRouter } from './branch-account.routes';
 import { router as productionReportsRouter } from './production-reports.routes';
 import { router as expensesRouter } from './expenses.routes';
 import { router as branchClosingRouter } from './branch-closing.routes';
@@ -86,6 +87,8 @@ export function setupRoutes(app: Express) {
   // Branch → cash handed to the company (migration 118). Finance's review side
   // is /api/finance/cash-transfers below.
   app.use('/api/cash-transfers', cashTransfersRouter);
+  // A branch's own Demand Record, read-only (Finance's is /api/finance/branch-account).
+  app.use('/api/branch-account', branchAccountRouter);
   app.use('/api/production-reports', productionReportsRouter);
   app.use('/api/expenses', expensesRouter);
   app.use('/api/branch-closing', branchClosingRouter);
