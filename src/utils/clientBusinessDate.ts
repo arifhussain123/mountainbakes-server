@@ -41,12 +41,21 @@ export async function resolveClientBusinessDate(
   claimed: string | undefined,
   role: UserRole,
   now: Date = new Date(),
-  /**
-   * A wider window for one kind of write, in business days before today. Cash
-   * deposits pass Admin's back-date period when it reaches past the sync window.
-   */
-  maxBackdateDays: number = MAX_BACKDATE_DAYS,
+  opts: {
+    /**
+     * A wider window for one kind of write, in business days before today. Cash
+     * deposits pass Admin's back-date period when it reaches past the sync window.
+     */
+    maxBackdateDays?: number;
+    /**
+     * Skip the closed-day check for a past date. Cash deposits, while Admin's
+     * back-date rule is on: that rule is what bounds them, and the nightly close
+     * would otherwise refuse every day before today.
+     */
+    allowClosedDay?: boolean;
+  } = {},
 ): Promise<string> {
+  const maxBackdateDays = opts.maxBackdateDays ?? MAX_BACKDATE_DAYS;
   const today = businessDateStr(now);
 
   if (!claimed || claimed === today) {
@@ -72,6 +81,6 @@ export async function resolveClientBusinessDate(
     );
   }
 
-  await assertBusinessDayOpen(claimed, role);
+  if (!opts.allowClosedDay) await assertBusinessDayOpen(claimed, role);
   return claimed;
 }

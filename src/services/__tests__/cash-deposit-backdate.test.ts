@@ -13,10 +13,19 @@ test('other writes keep the 7-day window', async () => {
 });
 
 test('a wider window reaches further back', async () => {
-  assert.equal(await resolveClientBusinessDate('2026-10-17', 'super_admin', NOW, 10), '2026-10-17');
-  await assert.rejects(resolveClientBusinessDate('2026-10-16', 'super_admin', NOW, 10), /older than the 11-day sync window/);
+  assert.equal(await resolveClientBusinessDate('2026-10-17', 'super_admin', NOW, { maxBackdateDays: 10 }), '2026-10-17');
+  await assert.rejects(resolveClientBusinessDate('2026-10-16', 'super_admin', NOW, { maxBackdateDays: 10 }), /older than the 11-day sync window/);
 });
 
 test('the future is still refused', async () => {
-  await assert.rejects(resolveClientBusinessDate('2026-10-28', 'super_admin', NOW, 10), /dated in the future/);
+  await assert.rejects(resolveClientBusinessDate('2026-10-28', 'super_admin', NOW, { maxBackdateDays: 10, allowClosedDay: true }), /dated in the future/);
+});
+
+// A branch user does the closed-day lookup; allowClosedDay skips it, so this
+// needs no database. (Without the flag the lookup would run.)
+test('a deposit inside the period skips the closed-day check', async () => {
+  assert.equal(
+    await resolveClientBusinessDate('2026-10-25', 'branch_manager', NOW, { allowClosedDay: true }),
+    '2026-10-25',
+  );
 });

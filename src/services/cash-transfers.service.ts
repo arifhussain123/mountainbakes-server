@@ -299,17 +299,17 @@ export async function createCashTransfer(input: {
   if (!branch) throw Object.assign(new Error('Branch not found'), { status: 400 });
 
   // The device's business date when the mobile app sends one, today's
-  // otherwise — bounded and put through the day-closure check exactly as a
-  // sale or an expense is. The window reaches further back only when Admin's
-  // back-date period for deposits does; a shorter period is the Restriction
-  // Rule below, which can explain itself in the popup.
+  // otherwise — bounded, and put through the day-closure check exactly as a
+  // sale or an expense is unless Admin's back-date rule for deposits is on.
+  // Then that rule (below, where it can explain itself in the popup) decides
+  // how far back a deposit may go, closed day or not: the nightly close shuts
+  // every day before today, so the period would otherwise mean nothing. The
+  // window reaches past the 7-day sync window only when the period does.
   const backdate = (await getRestrictionRules()).cash.backdate;
-  const businessDate = await resolveClientBusinessDate(
-    input.body.businessDate,
-    input.role,
-    new Date(),
-    backdate.enabled ? Math.max(backdate.allowedDays, MAX_BACKDATE_DAYS) : MAX_BACKDATE_DAYS,
-  );
+  const businessDate = await resolveClientBusinessDate(input.body.businessDate, input.role, new Date(), {
+    maxBackdateDays: backdate.enabled ? Math.max(backdate.allowedDays, MAX_BACKDATE_DAYS) : MAX_BACKDATE_DAYS,
+    allowClosedDay: backdate.enabled,
+  });
 
   // The back-date period and the daily limit are Restriction Rules (migration
   // 136): the numbers come from Admin Settings, and an approved one-time
