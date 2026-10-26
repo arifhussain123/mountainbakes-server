@@ -108,8 +108,9 @@ const ok = (r: { status: number; body: Json }, status = 200) => {
 async function order(id: string, branch: string, businessDate: string, submittedAt: string, demand: string,
   lines: { qty: number; approved: number; unitPrice: number | null }[]) {
   await db.query(
-    `insert into production_orders (id, branch_id, branch_name, business_date, submitted_at, demand_number, status)
-     values ($1, $2, (select name from branches where id = $2), $3, $4, $5, 'pending')`,
+    `insert into production_orders (id, branch_id, branch_name, business_date, submitted_at, submitted_time, demand_number, status)
+     values ($1, $2, (select name from branches where id = $2), $3, $4,
+             to_char($4::timestamptz at time zone 'Asia/Karachi', 'HH24:MI'), $5, 'pending')`,
     [id, branch, businessDate, submittedAt, demand]);
   let n = 0;
   for (const l of lines) {
@@ -267,7 +268,7 @@ const valuesOf = (ws: { eachRow: (cb: (r: { values: unknown }) => void) => void 
   return rows;
 };
 
-const HEADERS = ['Date', 'Demand No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share',
+const HEADERS = ['Date', 'Demand No.', 'Slip No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share',
   'Received', 'Previous', 'Closing', 'Closing Status'];
 
 test('the Collections sheet is the Demand Record page, row for row, in the page\'s columns', async () => {
@@ -284,20 +285,22 @@ test('the Collections sheet is the Demand Record page, row for row, in the page\
   for (const p of page.rows as Json[]) {
     const r = data.find((x) => x[1] === p.demandNumber)!;
     assert.equal((r[0] as Date).toISOString().slice(0, 10), p.businessDate);
-    assert.deepEqual(r.slice(2), [p.branchName, p.delivered, p.returns, p.discount, p.gTotal, p.companyShare,
+    // The slip's number: PO-, the business date, the submitted time.
+    assert.match(String(r[2]), new RegExp(`^PO-${String(p.businessDate).replace(/-/g, '')}-\\d{4}$`), p.demandNumber);
+    assert.deepEqual(r.slice(3), [p.branchName, p.delivered, p.returns, p.discount, p.gTotal, p.companyShare,
       p.received, p.previousBalance, p.closingBalance, p.closingBalance > 0 ? 'OUTSTANDING' : p.closingBalance < 0 ? 'CREDIT' : 'SETTLED'],
     p.demandNumber);
   }
 
   const row = (d: string) => data.find((x) => x[1] === d)!;
   //                                            Co. Share Received  Previous Closing
-  assert.deepEqual(row('DMD-000123').slice(7), [34240, 28000, 0, 6240, 'OUTSTANDING']);
-  assert.deepEqual(row('DMD-000124').slice(7), [38400, 42200, 6240, 2440, 'OUTSTANDING']);
-  assert.deepEqual(row('DMD-000127').slice(7), [10000, 12000, 0, -2000, 'CREDIT']);
-  assert.deepEqual(row('DMD-000129').slice(7), [24000, 18000, -2000, 4000, 'OUTSTANDING']);
-  assert.deepEqual(row('DMD-000128').slice(7), [19125, 11405, 0, 7720, 'OUTSTANDING']); // F-7 at 75%
+  assert.deepEqual(row('DMD-000123').slice(8), [34240, 28000, 0, 6240, 'OUTSTANDING']);
+  assert.deepEqual(row('DMD-000124').slice(8), [38400, 42200, 6240, 2440, 'OUTSTANDING']);
+  assert.deepEqual(row('DMD-000127').slice(8), [10000, 12000, 0, -2000, 'CREDIT']);
+  assert.deepEqual(row('DMD-000129').slice(8), [24000, 18000, -2000, 4000, 'OUTSTANDING']);
+  assert.deepEqual(row('DMD-000128').slice(8), [19125, 11405, 0, 7720, 'OUTSTANDING']); // F-7 at 75%
 
-  assert.deepEqual(main.at(-1), ['TOTAL', '', '', 311500, 4100, 6300, 301100, 239605, 211605, '', '', '']);
+  assert.deepEqual(main.at(-1), ['TOTAL', '', '', '', 311500, 4100, 6300, 301100, 239605, 211605, '', '', '']);
 });
 
 test('cells stay numeric and carry the page\'s formats', async () => {
@@ -306,21 +309,21 @@ test('cells stay numeric and carry the page\'s formats', async () => {
   assert.equal(r124.getCell(2).value, 'DMD-000124');
   assert.ok(r124.getCell(1).value instanceof Date);
   assert.equal(r124.getCell(1).numFmt, 'dd mmm yyyy');
-  assert.equal(r124.getCell(5).value, 0); // no return: a numeric 0 shown blank
-  assert.equal(r124.getCell(5).numFmt, '#,##0;-#,##0;');
-  assert.equal(r124.getCell(11).numFmt, '#,##0;-#,##0;'); // Closing: no "Rs." on a row, blank at zero
+  assert.equal(r124.getCell(6).value, 0); // no return: a numeric 0 shown blank
+  assert.equal(r124.getCell(6).numFmt, '#,##0;-#,##0;');
+  assert.equal(r124.getCell(12).numFmt, '#,##0;-#,##0;'); // Closing: no "Rs." on a row, blank at zero
   const total = ws.getRow(ws.rowCount);
   assert.equal(total.getCell(1).value, 'TOTAL');
-  assert.equal(total.getCell(4).font?.bold, true);
-  assert.equal(total.getCell(4).numFmt, '"Rs. "#,##0;-"Rs. "#,##0;'); // only the TOTAL carries "Rs."
+  assert.equal(total.getCell(5).font?.bold, true);
+  assert.equal(total.getCell(5).numFmt, '"Rs. "#,##0;-"Rs. "#,##0;'); // only the TOTAL carries "Rs."
 });
 
 test('each branch keeps its own chain; By Branch adds up to the same totals', async () => {
   const wb = await workbook('&from=2026-10-01&to=2026-10-03');
   const gulberg = valuesOf(wb.getWorksheet('Gulberg')!);
   assert.deepEqual(gulberg[0], HEADERS);
-  assert.deepEqual(gulberg.slice(1, -1).map((r) => [r[1], r[9], r[10]]), [['DMD-000127', 0, -2000], ['DMD-000129', -2000, 4000]]);
-  assert.deepEqual(gulberg.at(-1), ['TOTAL', '', '', 45000, 1400, 1100, 42500, 34000, 30000, '', '', '']);
+  assert.deepEqual(gulberg.slice(1, -1).map((r) => [r[1], r[10], r[11]]), [['DMD-000127', 0, -2000], ['DMD-000129', -2000, 4000]]);
+  assert.deepEqual(gulberg.at(-1), ['TOTAL', '', '', '', 45000, 1400, 1100, 42500, 34000, 30000, '', '', '']);
 
   const byBranch = valuesOf(wb.getWorksheet('By Branch')!);
   assert.deepEqual(byBranch[0], ['Branch', 'Demands', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Received', 'Previous', 'Closing', 'Closing Status']);
@@ -330,20 +333,23 @@ test('each branch keeps its own chain; By Branch adds up to the same totals', as
 
 test('a later period starts each branch from its own carried balance', async () => {
   const main = valuesOf((await workbook('&from=2026-10-03&to=2026-10-03')).getWorksheet('Collections')!);
-  assert.deepEqual(main.slice(1, -1).map((r) => [r[1], r[9], r[10]]), [['DMD-000125', 2440, 12440], ['DMD-000129', -2000, 4000]]);
+  assert.deepEqual(main.slice(1, -1).map((r) => [r[1], r[10], r[11]]), [['DMD-000125', 2440, 12440], ['DMD-000129', -2000, 4000]]);
 });
 
 test('July–September, before the Demand Record began: each demand\'s figures, no Received or balance', async () => {
   const wb = await workbook('&from=2026-07-01&to=2026-09-30');
   assert.deepEqual(wb.worksheets.map((w) => w.name), ['Collections', 'By Branch', 'F-7', 'Saddar']);
   const main = valuesOf(wb.getWorksheet('Collections')!);
-  assert.deepEqual(main[0], ['Date', 'Demand No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share']);
+  assert.deepEqual(main[0], ['Date', 'Demand No.', 'Slip No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share']);
   assert.deepEqual(main.slice(1, 4).map((r) => r.slice(1)), [
-    ['DMD-000090', 'Saddar', 1000, 100, 50, 850, 680],
-    ['DMD-000091', 'F-7', 2000, 0, 0, 2000, 1500],
-    ['DMD-000092', 'Saddar', 500, 100, 0, 400, 320],
+    ['DMD-000090', 'PO-20260910-0900', 'Saddar', 1000, 100, 50, 850, 680],
+    ['DMD-000091', 'PO-20260920-0900', 'F-7', 2000, 0, 0, 2000, 1500],
+    ['DMD-000092', 'PO-20260925-0900', 'Saddar', 500, 100, 0, 400, 320],
   ]);
-  assert.deepEqual(main[4]!.slice(0, 8), ['TOTAL', '', '', 3500, 200, 50, 3250, 2500]);
+  assert.deepEqual(main[4]!.slice(0, 9), ['TOTAL', '', '', '', 3500, 200, 50, 3250, 2500]);
+  const saddar = valuesOf(wb.getWorksheet('Saddar')!);
+  assert.deepEqual(saddar[0], ['Date', 'Demand No.', 'Slip No.', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share']);
+  assert.deepEqual(saddar[1]!.slice(1), ['DMD-000090', 'PO-20260910-0900', 1000, 100, 50, 850, 680]);
   assert.match(String(main[5]![0]), /^Before 01 Oct 2026 cash was not recorded in the app, so there is no Received or balance/);
   const byBranch = valuesOf(wb.getWorksheet('By Branch')!);
   assert.deepEqual(byBranch.slice(1), [
@@ -362,7 +368,30 @@ test('a window running into October keeps October as the Demand Record and adds 
   // October's demands as before, then the pointer to the other tab.
   assert.ok(main.some((r) => r[1] === 'DMD-000123'));
   assert.ok(!main.some((r) => r[1] === 'DMD-000090'));
-  assert.match(String(main[main.length - 1]![0]), /^Demands before 01 Oct 2026 are on the "Before 01 Oct 2026" tab/);
+  assert.match(String(main[main.length - 1]![0]), /^Demands before 01 Oct 2026 are on the "Before 01 Oct 2026" tab and at the top of each branch's tab/);
   const before = valuesOf(wb.getWorksheet('Before 01 Oct 2026')!);
   assert.deepEqual(before.slice(1, 4).map((r) => r[1]), ['DMD-000090', 'DMD-000091', 'DMD-000092']);
+
+  // Each branch's tab holds every demand of the window: September first, with
+  // its own total and no Received or balance, then October as the record.
+  const saddar = valuesOf(wb.getWorksheet('Saddar')!);
+  assert.deepEqual(saddar[0], HEADERS);
+  assert.deepEqual(saddar.slice(1, 4), [
+    [saddar[1]![0], 'DMD-000090', 'PO-20260910-0900', 'Saddar', 1000, 100, 50, 850, 680, '', '', '', ''],
+    [saddar[2]![0], 'DMD-000092', 'PO-20260925-0900', 'Saddar', 500, 100, 0, 400, 320, '', '', '', ''],
+    ['TOTAL BEFORE 01 OCT 2026', '', '', '', 1500, 200, 50, 1250, 1000, '', '', '', ''],
+  ]);
+  assert.equal(saddar[4]![1], 'DMD-000123');
+  assert.equal(saddar.at(-1)![0], 'TOTAL');
+  const ws = wb.getWorksheet('Saddar')!;
+  assert.equal(ws.getRow(4).getCell(5).font?.bold, true); // the September total
+  assert.equal(ws.getRow(ws.rowCount).getCell(5).font?.bold, true); // October's
+  const f7 = valuesOf(wb.getWorksheet('F-7')!);
+  assert.deepEqual(f7.slice(1, 3).map((r) => r[1] || r[0]), ['DMD-000091', 'TOTAL BEFORE 01 OCT 2026']);
+
+  // Every delivered demand of the window is somewhere in the file, by its demand number.
+  const everywhere = new Set(wb.worksheets.flatMap((w) => valuesOf(w).map((r) => r[1])));
+  for (const d of ['DMD-000090', 'DMD-000091', 'DMD-000092', 'DMD-000123', 'DMD-000124', 'DMD-000125', 'DMD-000126', 'DMD-000127', 'DMD-000128', 'DMD-000129']) {
+    assert.ok(everywhere.has(d), d);
+  }
 });
