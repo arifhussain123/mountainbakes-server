@@ -190,3 +190,73 @@ export interface PaymentReceivedItem extends CashTransferChannels {
   /** The deposit's Total — fuel charges are not a payment against the slip. */
   amount: number;
 }
+
+// ---------------------------------------------------------------------------
+// Missing daily cash transfers (Finance → Cash Transfer Details)
+// ---------------------------------------------------------------------------
+
+/**
+ * Where one active branch stands for one due business date, best first:
+ * - `approved` — Finance approved a transfer with a Total Amount above 0;
+ * - `pending`  — one is submitted and awaiting Finance (not missing);
+ * - `rejected` — the only transfers that day were rejected: needs attention;
+ * - `fuel_only` — only fuel-only deposits (Total 0), which Received never counts;
+ * - `missing`  — no live transfer at all.
+ * Several transfers on one date are one obligation: the best status wins.
+ */
+export const DAILY_TRANSFER_STATUSES = ['missing', 'fuel_only', 'rejected', 'pending', 'approved'] as const;
+export type DailyTransferStatus = (typeof DAILY_TRANSFER_STATUSES)[number];
+
+/** Statuses where the day's payment has not been made: shown as missing. */
+export const UNPAID_DAILY_TRANSFER_STATUSES: readonly DailyTransferStatus[] = ['missing', 'fuel_only', 'rejected'];
+
+/** One live transfer behind a (date, branch) status. */
+export interface DailyTransferRef {
+  id: string;
+  transferNo: string;
+  status: CashTransferStatus;
+  /** Total Amount (Cash + Easypaisa + Bank). */
+  amount: number;
+  fuelCharges: number;
+  createdAt: string;
+}
+
+export interface DailyTransferCheckRow {
+  /** Business date 'YYYY-MM-DD'. */
+  date: string;
+  branchId: string;
+  branchName: string;
+  status: DailyTransferStatus;
+  /** Every live transfer of that branch on that date, oldest first. */
+  transfers: DailyTransferRef[];
+  /** Total Amount of the transfers that make the status (approved, or pending). */
+  submittedAmount: number;
+}
+
+export interface DailyTransferCheck {
+  /** Today's business date — never checked: its day has not closed (02:00 Karachi). */
+  today: string;
+  /** The due window checked, inclusive. `from > to` means nothing was due in the range asked for. */
+  from: string;
+  to: string;
+  branchId: string | null;
+  /** Active branches checked. */
+  branches: number;
+  /** Business dates checked. */
+  dates: number;
+  summary: {
+    /** Branches with at least one unpaid date. */
+    missingBranches: number;
+    /** Dates with at least one unpaid branch. */
+    affectedDates: number;
+    /** Submitted transfers awaiting Finance on the dates checked. */
+    pendingTransfers: number;
+    missing: number;
+    fuelOnly: number;
+    rejected: number;
+    pending: number;
+    approved: number;
+  };
+  /** Every (date, branch) checked, newest date first, then by branch name. */
+  rows: DailyTransferCheckRow[];
+}

@@ -49,7 +49,8 @@ const STUBS = `
     $$ select p_prefix || '-' || substr(gen_random_uuid()::text, 1, 8) $$;
   create table login_sessions (id uuid primary key default gen_random_uuid(), auth_session_id uuid, revoked_at timestamptz);
   create table business_day_closures (business_date date primary key, status text not null);
-  create table branches (id uuid primary key default gen_random_uuid(), name text not null, is_active boolean not null default true);
+  create table branches (id uuid primary key default gen_random_uuid(), name text not null, is_active boolean not null default true,
+                         created_at timestamptz not null default '2026-01-01T10:00:00+05');
   create type user_role as enum ('super_admin', 'branch_manager', 'production_user', 'finance_admin', 'finance_manager', 'accountant', 'finance_auditor');
   create type user_status as enum ('active', 'inactive', 'suspended');
   create table users (
@@ -131,6 +132,7 @@ before(async () => {
   db = new PGlite();
   await db.exec(STUBS);
   await db.exec(type('cash_transfer_status'));
+  await db.exec(lift('CREATE FUNCTION app.business_date(', '$$;'));
   await db.exec(type('attachment_entity'));
   for (const t of ['cash_transfers', 'attachments', 'finance_settings']) await db.exec(table(t));
   await db.exec('insert into finance_settings default values;');
@@ -315,9 +317,43 @@ describe('who may read it', () => {
     assert.equal((await call('production', `${PATH}/summary`)).status, 403);
   });
 
+  test('the missing-transfer check is Finance-only too', async () => {
+    for (const who of ['finance', 'auditor', 'admin']) {
+      assert.equal((await call(who, `${PATH}/missing`)).status, 200, who);
+    }
+    assert.equal((await call('branch-a', `${PATH}/missing`)).status, 403);
+    assert.equal((await call('production', `${PATH}/missing`)).status, 403);
+  });
+
   test('"summary" is not read as a transfer id', async () => {
     const res = await call('finance', `${PATH}/summary`);
     assert.equal(res.status, 200);
     assert.ok('totals' in res.body);
+  });
+});
+
+describe('missing daily transfers', () => {
+  test('"missing" is not read as a transfer id, and checks every active branch over the last seven due dates', async () => {
+    const res = await call('finance', `${PATH}/missing`);
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+    assert.equal(res.body.today, businessDaysAgoStr(0));
+    assert.equal(res.body.to, businessDaysAgoStr(1));
+    assert.equal(res.body.from, businessDaysAgoStr(7));
+    assert.equal(res.body.branches, 2);
+    assert.equal(res.body.rows.length, 14);
+    const at = (daysAgo: number, branch: string) =>
+      res.body.rows.find((r: { date: string; branchId: string }) => r.date === businessDaysAgoStr(daysAgo) && r.branchId === branch).status;
+    assert.equal(at(2, A), 'approved');
+    assert.equal(at(3, A), 'pending');
+    assert.equal(at(4, A), 'rejected');
+    assert.equal(at(5, A), 'fuel_only');
+    assert.equal(at(1, B), 'pending');
+    assert.equal(at(7, A), 'missing');
+  });
+
+  test('a bad date or branch is refused', async () => {
+    assert.equal((await call('finance', `${PATH}/missing?from=yesterday`)).status, 400);
+    assert.equal((await call('finance', `${PATH}/missing?from=2026-10-10&to=2026-10-01`)).status, 400);
+    assert.equal((await call('finance', `${PATH}/missing?branchId=nope`)).status, 400);
   });
 });
