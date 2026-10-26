@@ -311,6 +311,11 @@ test('Test F — Finance Dashboard income: Demand is the net demand, Company Sha
   const share = await getFinanceDashboardRecords({ ...base, metric: 'share' });
   assert.equal(share.amount, 72640);
   assert.equal(share.rows[1]!.detail, '80% of 48,000.00');
+  // Received is the cash transfers' Total Amount, each row opening its voucher.
+  const received = await getFinanceDashboardRecords({ ...base, metric: 'received' });
+  assert.equal(received.amount, 70200);
+  assert.deepEqual(received.rows.map((r) => r.amount), [28000, 42200]);
+  assert.ok(received.rows.every((r) => r.source.startsWith('Cash transfer · ') && r.detail?.startsWith('Cash ')));
 });
 
 test('Test G — the POS slip prints exactly what it printed before the migration', async () => {
