@@ -2063,7 +2063,7 @@ export interface FinanceDashboardDay {
   demand: number;
   /** Demand × the branch's company share %, rounded per order. */
   companyShare: number;
-  /** Live ledger income on Company Share / Fuel heads + Cash Deposit postings. */
+  /** Daily Ledger income on the Company Share head only (no Fuel), by entry date. */
   received: number;
   /** Accepted production returns, qty × product price. */
   returns: number;
@@ -2072,6 +2072,7 @@ export interface FinanceDashboardDay {
   orders: number;
   /** Delivered lines whose product has no price — valued at 0. */
   unpricedLines: number;
+  /** Company Share ledger entries counted in `received`. */
   receipts: number;
   returnCount: number;
   discountCount: number;

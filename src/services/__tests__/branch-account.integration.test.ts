@@ -512,7 +512,14 @@ test('the Collections export carries the Demand Record figures, per branch', asy
   const today = new Date().toISOString().slice(0, 10);
   const record = await rowsOf(`&from=2026-09-01&to=${today}`);
   const wb = await collectionsWorkbook(`&from=2026-08-01&to=${today}`);
-  assert.deepEqual([...wb.keys()], ['Collections', 'By Branch', 'Alpha', 'Beta']);
+  // August is before the 1 Sep start: its demand is on its own tab (figures only).
+  assert.deepEqual([...wb.keys()], ['Collections', 'By Branch', 'Alpha', 'Beta', 'Before 01 Sep 2026']);
+  // D0's 30 discount was approved after the start, so the record holds it (in D2)
+  // and the pre-start tab does not count it again. Nothing froze D0's %, so its
+  // share is at today's (which earlier tests in this file move).
+  const pct = Number((await db.query<{ p: string }>(`select company_share_pct::text as p from finance_settings`)).rows[0]!.p);
+  const before = wb.get('Before 01 Sep 2026')!;
+  assert.deepEqual(before[1]!.slice(1), ['DMD-000100', 'Alpha', 1000, 0, 0, 1000, (1000 * pct) / 100]);
 
   const main = wb.get('Collections')!;
   const h = main[0]!;
@@ -526,7 +533,9 @@ test('the Collections export carries the Demand Record figures, per branch', asy
       assert.equal(line[at(col)], r[key], `${r.demandNumber} ${col}`);
     }
   }
-  const total = main.at(-1)!;
+  // The last line points at the pre-start tab; TOTAL is just above it.
+  assert.match(String(main.at(-1)![0]), /^Demands before 01 Sep 2026 are on the "Before 01 Sep 2026" tab/);
+  const total = main.at(-2)!;
   assert.equal(total[0], 'TOTAL');
   assert.equal(total[at('Received')], record.totals.received);
   assert.equal(total[at('Co. Share')], record.totals.companyShare);

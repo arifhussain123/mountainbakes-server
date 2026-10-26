@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { dbFor } from '../db';
+import { dbFor, getPrisma } from '../db';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { balanceStanding, businessDateStr, businessDaysAgoStr, toPaisa } from '../shared';
@@ -8,7 +8,7 @@ import { getReturnStockRows } from '../services/return-stock.service';
 import { genericPDF, genericExcel, genericExcelMultiSheet, genericCSV, type ExcelColumn, type ExcelSheet } from '../services/production-export.service';
 import { getPreviousOrderBalance } from '../services/previous-balance.service';
 import { getCollectionsReturnRows } from '../services/returns-summary.service';
-import { getDemandRecordPeriod } from '../services/branch-account.service';
+import { getDemandFiguresBeforeRecord, getDemandRecordPeriod, type DemandBeforeRecordRow } from '../services/branch-account.service';
 import { format } from 'date-fns';
 import { sortRows } from '../utils/sortRows';
 
@@ -275,17 +275,20 @@ const money: ExcelColumn = { numFmt: AMOUNT, totalNumFmt: RS_TOTAL };
  */
 function collectionsFromDemandRecord(
   record: NonNullable<Awaited<ReturnType<typeof getDemandRecordPeriod>>>,
+  slips: Map<string, string>,
+  /** Demands before the record began, when the window runs back past its start: listed first on each branch's tab. */
+  earlier: { start: string; rows: DemandBeforeRecordRow[] } | null = null,
 ): { title: string; headers: string[]; rows: (string | number)[][]; specialRowCount: number; columns: ExcelColumn[]; totalRows: number[]; extraSheets: ExcelSheet[] } {
   type Row = (typeof record.rows)[number];
-  const headers = ['Date', 'Demand No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Received', 'Previous', 'Closing', 'Closing Status'];
+  const headers = ['Date', 'Demand No.', 'Slip No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Received', 'Previous', 'Closing', 'Closing Status'];
   const columns: ExcelColumn[] = [
-    { date: true, numFmt: 'dd mmm yyyy', width: 13 }, { width: 13 }, { width: 22 },
+    { date: true, numFmt: 'dd mmm yyyy', width: 13 }, { width: 13 }, { width: 17 }, { width: 22 },
     money, money, money, money, money,
     money, money, money, { width: 15 },
   ];
   const STATUS = { owed: 'OUTSTANDING', settled: 'SETTLED', credit: 'CREDIT' } as const;
   const line = (r: Row): (string | number)[] => [
-    r.businessDate, r.demandNumber ?? 'Opening', r.branchName,
+    r.businessDate, r.demandNumber ?? 'Opening', r.orderId ? slips.get(r.orderId) ?? '' : '', r.branchName,
     r.delivered, r.returns, r.discount, r.gTotal, r.companyShare, r.received,
     r.previousBalance, r.closingBalance, STATUS[balanceStanding(r.closingBalance)],
   ];
@@ -300,7 +303,7 @@ function collectionsFromDemandRecord(
   };
   const totalLine = (rows: Row[]): (string | number)[] => {
     const t = sumOf(rows);
-    return ['TOTAL', '', '', t.delivered, t.returns, t.discount, t.gTotal, t.share, t.received, '', '', ''];
+    return ['TOTAL', '', '', '', t.delivered, t.returns, t.discount, t.gTotal, t.share, t.received, '', '', ''];
   };
   // Date, then demand number; a branch's opening row (no number) before its demands.
   const byDate = (a: Row, b: Row) =>
@@ -344,10 +347,40 @@ function collectionsFromDemandRecord(
       t.received, opening, closing, STATUS[balanceStanding(closing)]]);
   }
 
-  const branchSheets: ExcelSheet[] = branches.map((b) => {
-    const sheet = sheetOf(b.branchName || 'Branch', rowsByBranch.get(b.branchId) ?? []);
-    if (sheet.rows.length === 0) sheet.rows.push([`No demand in this period. Balance carried: ${b.closingBalance}`, ...new Array<string>(headers.length - 1).fill('')]);
-    return sheet;
+  // A window running back past the record's start: each branch's earlier
+  // demands open its tab, with their own TOTAL, so a branch's tab holds every
+  // demand of the window. They have no Received or balance (see
+  // collectionsBeforeRecord), and a branch with only earlier demands still
+  // gets a tab.
+  const earlierByBranch = new Map<string, DemandBeforeRecordRow[]>();
+  for (const r of earlier?.rows ?? []) {
+    const list = earlierByBranch.get(r.branchId);
+    if (list) list.push(r); else earlierByBranch.set(r.branchId, [r]);
+  }
+  const earlierSection = (list: DemandBeforeRecordRow[]): (string | number)[][] => {
+    const t = { delivered: 0, returns: 0, discount: 0, gTotal: 0, share: 0 };
+    const rows: (string | number)[][] = list.map((r) => {
+      t.delivered += r.delivered; t.returns += r.returns; t.discount += r.discount; t.gTotal += r.gTotal; t.share += r.companyShare;
+      return [r.businessDate, r.demandNumber ?? '', slips.get(r.orderId) ?? '', r.branchName, r.delivered, r.returns, r.discount, r.gTotal, r.companyShare, '', '', '', ''];
+    });
+    rows.push([`TOTAL BEFORE ${dmy(earlier!.start).toUpperCase()}`, '', '', '', toPaisa(t.delivered), toPaisa(t.returns), toPaisa(t.discount), toPaisa(t.gTotal), toPaisa(t.share), '', '', '', '']);
+    return rows;
+  };
+
+  const tabs = [
+    ...branches.map((b) => ({ branchId: b.branchId, name: b.branchName, closingBalance: b.closingBalance as number | null })),
+    ...[...earlierByBranch.entries()]
+      .filter(([id]) => !branches.some((b) => b.branchId === id))
+      .map(([id, list]) => ({ branchId: id, name: list[0]!.branchName, closingBalance: null }))
+      .sort((a, b) => a.name.localeCompare(b.name)),
+  ];
+  const branchSheets: ExcelSheet[] = tabs.map((b) => {
+    const sheet = sheetOf(b.name || 'Branch', rowsByBranch.get(b.branchId) ?? []);
+    if (sheet.rows.length === 0 && b.closingBalance !== null) sheet.rows.push([`No demand in this period. Balance carried: ${b.closingBalance}`, ...new Array<string>(headers.length - 1).fill('')]);
+    const before = earlierByBranch.get(b.branchId);
+    if (!before) return sheet;
+    const top = earlierSection(before);
+    return { ...sheet, rows: [...top, ...sheet.rows], totalRows: [top.length - 1, ...(sheet.totalRows ?? []).map((i) => i + top.length)] };
   });
 
   const { rows, totalRows = [], specialRowCount } = sheetOf('Collections', record.rows);
@@ -362,6 +395,118 @@ function collectionsFromDemandRecord(
       { title: 'By Branch', headers: byBranchHeaders, rows: byBranchRows, columns: byBranchColumns, totalRows: byBranchRows.length > 0 ? [byBranchRows.length - 1] : [] },
       ...branchSheets,
     ],
+  };
+}
+
+/** '2026-10-01' → '01 Oct 2026', for the notes in the sheet. */
+function dmy(ymd: string): string {
+  return format(new Date(`${ymd}T00:00:00`), 'dd MMM yyyy');
+}
+
+/**
+ * Each demand's slip number, by order id: the "PO-20260902-0018" printed on
+ * the delivery slip (web OrderPrintPreview, mobile productionOrderPrint) —
+ * `PO-`, the business date, then the submitted time, so after midnight it
+ * still carries the day before's date. It is not stored, and it is the number
+ * staff quote, so the sheet carries it beside the demand number: without it a
+ * slip searched for in the file is never found and looks left out.
+ *
+ * Raw SQL rather than `db.from(...).in()`, which stops at DB_MAX_ROWS.
+ */
+async function slipNumbers(orderIds: (string | null)[]): Promise<Map<string, string>> {
+  const ids = [...new Set(orderIds.filter((id): id is string => !!id))];
+  if (ids.length === 0) return new Map();
+  const rows = await getPrisma().$queryRawUnsafe<{ id: string; slip: string }[]>(
+    `select id::text as id,
+            'PO-' || to_char(business_date, 'YYYYMMDD') || '-' || replace(coalesce(submitted_time, ''), ':', '') as slip
+       from public.production_orders
+      where id = any($1::uuid[])`,
+    ids,
+  );
+  return new Map(rows.map((r) => [r.id, r.slip]));
+}
+
+/**
+ * Collections for days BEFORE the Demand Record began (owner's rule,
+ * 2026-10-25). Cash was not recorded in the app before the go-live day — the
+ * reason the record starts then — so these rows carry the demand side only:
+ * Delivered, Return, Discount, G. Total and Co. Share, on the record's own
+ * rules (getDemandFiguresBeforeRecord). No Received, no Previous or Closing
+ * balance: there is nothing real to put in them.
+ *
+ * Returned as a whole report (main sheet, By Branch, one tab per branch) for a
+ * window entirely before the start; its main sheet becomes an extra tab when
+ * the window runs into the record.
+ */
+function collectionsBeforeRecord(rows: DemandBeforeRecordRow[], start: string, slips: Map<string, string>) {
+  const headers = ['Date', 'Demand No.', 'Slip No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share'];
+  const columns: ExcelColumn[] = [
+    { date: true, numFmt: 'dd mmm yyyy', width: 13 }, { width: 13 }, { width: 17 }, { width: 22 }, money, money, money, money, money,
+  ];
+  const blank = (n: number) => new Array<string>(n).fill('');
+  const note = `Before ${dmy(start)} cash was not recorded in the app, so there is no Received or balance — those start on ${dmy(start)} (Finance → Demand Record).`;
+  const sum = (list: DemandBeforeRecordRow[]) => {
+    const t = { delivered: 0, returns: 0, discount: 0, gTotal: 0, share: 0 };
+    for (const r of list) {
+      t.delivered += r.delivered; t.returns += r.returns; t.discount += r.discount; t.gTotal += r.gTotal; t.share += r.companyShare;
+    }
+    return { delivered: toPaisa(t.delivered), returns: toPaisa(t.returns), discount: toPaisa(t.discount), gTotal: toPaisa(t.gTotal), share: toPaisa(t.share) };
+  };
+  const sheetOf = (list: DemandBeforeRecordRow[], withBranch: boolean) => {
+    const out: (string | number)[][] = list.map((r) => {
+      const line: (string | number)[] = [r.businessDate, r.demandNumber ?? '', slips.get(r.orderId) ?? '', r.branchName, r.delivered, r.returns, r.discount, r.gTotal, r.companyShare];
+      return withBranch ? line : [...line.slice(0, 3), ...line.slice(4)];
+    });
+    const totalRows: number[] = [];
+    if (list.length > 0) {
+      const t = sum(list);
+      out.push(withBranch
+        ? ['TOTAL', '', '', '', t.delivered, t.returns, t.discount, t.gTotal, t.share]
+        : ['TOTAL', '', '', t.delivered, t.returns, t.discount, t.gTotal, t.share]);
+      totalRows.push(out.length - 1);
+    } else {
+      out.push([`No delivered demand in this period.`, ...blank(withBranch ? 8 : 7)]);
+    }
+    out.push([note, ...blank(withBranch ? 8 : 7)]);
+    return { rows: out, totalRows };
+  };
+
+  const main = sheetOf(rows, true);
+  const byBranch = new Map<string, DemandBeforeRecordRow[]>();
+  for (const r of rows) byBranch.set(r.branchId, [...(byBranch.get(r.branchId) ?? []), r]);
+  const branchList = [...byBranch.values()].sort((a, b) => a[0]!.branchName.localeCompare(b[0]!.branchName));
+  const byBranchRows: (string | number)[][] = branchList.map((list) => {
+    const t = sum(list);
+    return [list[0]!.branchName, list.length, t.delivered, t.returns, t.discount, t.gTotal, t.share];
+  });
+  if (byBranchRows.length > 0) {
+    const t = sum(rows);
+    byBranchRows.push(['GRAND TOTAL', rows.length, t.delivered, t.returns, t.discount, t.gTotal, t.share]);
+  }
+  const branchHeaders = ['Date', 'Demand No.', 'Slip No.', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share'];
+  const branchColumns: ExcelColumn[] = [columns[0]!, columns[1]!, columns[2]!, money, money, money, money, money];
+
+  return {
+    title: `Before ${dmy(start)}`.slice(0, 31),
+    headers,
+    rows: main.rows,
+    // TOTAL (or the empty line) and the note stay at the bottom of a sorted preview.
+    specialRowCount: 2,
+    columns,
+    totalRows: main.totalRows,
+    extraSheets: [
+      {
+        title: 'By Branch',
+        headers: ['Branch', 'Demands', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share'],
+        rows: byBranchRows,
+        columns: [{ width: 22 }, { width: 9, numFmt: '0;-0;' }, money, money, money, money, money] as ExcelColumn[],
+        totalRows: byBranchRows.length > 0 ? [byBranchRows.length - 1] : [],
+      },
+      ...branchList.map((list) => {
+        const s2 = sheetOf(list, false);
+        return { title: list[0]!.branchName || 'Branch', headers: branchHeaders, rows: s2.rows, columns: branchColumns, totalRows: s2.totalRows };
+      }),
+    ] as ExcelSheet[],
   };
 }
 
@@ -631,7 +776,25 @@ async function buildReport(
       // collectionsFromDemandRecord). Until then, the delivery-slip figures
       // below, with a line saying so.
       const record = await getDemandRecordPeriod({ branchId: branchId || null, from: fromStr, to: toStr });
-      if (record) return collectionsFromDemandRecord(record);
+      if (record) {
+        // Days before the record began (cash was not recorded in the app then)
+        // are exported as demand figures only — see collectionsBeforeRecord.
+        const before = fromStr < record.start
+          ? await getDemandFiguresBeforeRecord({ branchId: branchId || null, from: fromStr, to: toStr })
+          : null;
+        const slips = await slipNumbers([...record.rows.map((r) => r.orderId), ...(before?.rows ?? []).map((r) => r.orderId)]);
+        // A window wholly before the record is the Collections sheet itself.
+        if (before && toStr < record.start) return { ...collectionsBeforeRecord(before.rows, before.start, slips), title: 'Collections' };
+        const earlier = before && before.rows.length > 0 ? before : null;
+        const result = collectionsFromDemandRecord(record, slips, earlier);
+        if (earlier) {
+          const sheet = collectionsBeforeRecord(earlier.rows, earlier.start, slips);
+          result.rows.push([`Demands before ${dmy(earlier.start)} are on the "${sheet.title}" tab and at the top of each branch's tab: demand figures only, no Received or balance.`, ...new Array<string>(result.headers.length - 1).fill('')]);
+          result.specialRowCount += 1;
+          result.extraSheets.push({ title: sheet.title, headers: sheet.headers, rows: sheet.rows, columns: sheet.columns, totalRows: sheet.totalRows });
+        }
+        return result;
+      }
 
       // One row per DELIVERY, carrying what the branch owes for it — the same
       // figures the company copy of the next slip prints.

@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import { computeDailySaleCompanyShare, resolveShareSplit } from '../../shared';
 
 /**
- * Company Share on the Daily Sale Record: Total Sale × the Admin company share.
+ * Company Share on the Daily Sale Record: Total Sale × the Admin company share,
+ * and the Branch Share beside it — the rest of the same sale (65a74da), so the
+ * two always add up to Total Sale.
  *
  * The percentage is the branch's own where it has one, else the global finance
  * setting (`resolveShareSplit`); a day already imported for income approval keeps
@@ -16,7 +18,9 @@ const current = (branchPct: number | null, globalPct: number) =>
 
 describe('daily sale company share', () => {
   test('1. 1,000 at 75% → 750', () => {
-    assert.deepEqual(computeDailySaleCompanyShare(1000, null, 75), { companySharePct: 75, companyShare: 750 });
+    assert.deepEqual(computeDailySaleCompanyShare(1000, null, 75), {
+      companySharePct: 75, companyShare: 750, branchSharePct: 25, branchShare: 250,
+    });
   });
 
   test('2. 37,750 at 75% → 28,312.50', () => {
@@ -34,7 +38,8 @@ describe('daily sale company share', () => {
   test('5. missing or unusable configuration → 0, never NaN', () => {
     for (const pct of [null, undefined, NaN, -5, 140, '' as unknown]) {
       const r = computeDailySaleCompanyShare(1000, null, pct as number);
-      assert.deepEqual(r, { companySharePct: 0, companyShare: 0 });
+      // No usable % means no company share: the whole sale stays the branch's.
+      assert.deepEqual(r, { companySharePct: 0, companyShare: 0, branchSharePct: 100, branchShare: 1000 });
     }
     assert.equal(computeDailySaleCompanyShare(NaN, null, 75).companyShare, 0);
     // No branch override and no usable global setting resolves to 0 as well.
@@ -42,7 +47,9 @@ describe('daily sale company share', () => {
   });
 
   test('6. a day booked at 70% stays at 70% after Admin moves the branch to 75%', () => {
-    assert.deepEqual(computeDailySaleCompanyShare(1000, 70, 75), { companySharePct: 70, companyShare: 700 });
+    assert.deepEqual(computeDailySaleCompanyShare(1000, 70, 75), {
+      companySharePct: 70, companyShare: 700, branchSharePct: 30, branchShare: 300,
+    });
     // A day with no approval yet has nothing to hold it and reads at the current rate.
     assert.equal(computeDailySaleCompanyShare(1000, null, 75).companyShare, 750);
     // A snapshot of 0% is a real percentage, not "missing".

@@ -1,6 +1,7 @@
 import { getPrisma } from '../db';
 import {
   businessDateStr,
+  companyShareOf,
   computeBranchAccount,
   totalBranchAccount,
   toPaisa,
@@ -554,4 +555,214 @@ export async function setLedgerStart(start: string): Promise<{ previous: string 
       on conflict (production_order_id) do nothing`, start);
     return { previous: prev[0]!.start, start, frozen };
   });
+}
+
+// ---------------------------------------------------------------------------
+// For the Daily Ledger's accounting workbook
+// ---------------------------------------------------------------------------
+
+/** The Demand Record as the accounting workbook journals it. Amounts in rupees. */
+export interface DemandRecordForAccounts {
+  start: string;
+  /** Every delivered demand from the go-live day, with its Company Share as the page computes it. */
+  demands: { orderId: string; demandNumber: string; branchId: string; branchName: string; businessDate: string; gTotal: number; sharePct: number; companyShare: number }[];
+  /** Finance's entries the record counts (effective from the go-live instant). */
+  adjustments: { id: string; branchId: string; branchName: string; kind: 'opening' | 'adjustment' | 'reversal'; amount: number; businessDate: string; reason: string; reversalOf: string | null }[];
+  /** The approved cash transfers the record counts as Received. */
+  receivedTransfers: { id: string; transferNo: string; branchId: string; branchName: string; amount: number; businessDate: string }[];
+  /** The page's Balance by Branch for the same period and branch filter. */
+  pageBalances: { branchId: string; branchName: string; closingBalance: number }[];
+}
+
+/**
+ * Everything the workbook needs to carry the Demand Record into its books:
+ * the same rows the page shows (so each demand's Company Share is the page's
+ * figure), Finance's entries, the deposits counted as Received — selected by
+ * exactly the rule ROWS_SQL places them by (approved, live, positive, after the
+ * go-live instant and after the branch's first demand) — and the page's own
+ * Balance by Branch for the period, to reconcile against. Null while the
+ * Demand Record is not switched on.
+ */
+export async function getDemandRecordForAccounts(
+  q: { branchId?: string | null; from: string; to: string },
+): Promise<DemandRecordForAccounts | null> {
+  const start = await getLedgerStart();
+  if (!start) return null;
+  const branchId = q.branchId ?? null;
+  const prisma = getPrisma();
+
+  const [rows, period, adjustments, receivedTransfers] = await Promise.all([
+    loadAccounts(branchId, start),
+    loadPeriod({ branchId, from: q.from, to: q.to }, start),
+    prisma.$queryRawUnsafe<DemandRecordForAccounts['adjustments']>(`
+      select a.id::text as "id", a.branch_id::text as "branchId", b.name as "branchName", a.kind as "kind",
+             a.amount::float8 as "amount", to_char(a.business_date, 'YYYY-MM-DD') as "businessDate",
+             a.reason as "reason", a.reversal_of::text as "reversalOf"
+        from public.branch_account_adjustments a
+        join public.branches b on b.id = a.branch_id
+       where ($1::uuid is null or a.branch_id = $1::uuid) and a.effective_at >= ${START_AT}
+       order by a.effective_at, a.created_at`, branchId, start),
+    prisma.$queryRawUnsafe<DemandRecordForAccounts['receivedTransfers']>(`
+      with first_demand as (
+        select o.branch_id, min(o.submitted_at) as lo
+          from public.production_orders o
+         where o.status::text in ${DELIVERED} and o.business_date >= $2::date
+           and ($1::uuid is null or o.branch_id = $1::uuid)
+         group by o.branch_id
+      )
+      select t.id::text as "id", t.transfer_no as "transferNo", t.branch_id::text as "branchId",
+             coalesce(b.name, t.branch_name) as "branchName", t.amount::float8 as "amount",
+             to_char(t.business_date, 'YYYY-MM-DD') as "businessDate"
+        from public.cash_transfers t
+        join first_demand f on f.branch_id = t.branch_id
+        left join public.branches b on b.id = t.branch_id
+       where t.status::text = 'approved' and t.deleted_at is null and t.amount > 0
+         and t.created_at > f.lo and t.created_at >= ${START_AT}`, branchId, start),
+  ]);
+
+  return {
+    start,
+    demands: rows
+      .filter((r) => r.orderId !== null)
+      .map((r) => ({
+        orderId: r.orderId!,
+        demandNumber: r.demandNumber ?? r.orderId!,
+        branchId: r.branchId,
+        branchName: r.branchName,
+        businessDate: r.businessDate,
+        gTotal: r.gTotal,
+        sharePct: r.sharePct,
+        companyShare: r.companyShare,
+      })),
+    adjustments,
+    receivedTransfers,
+    pageBalances: period.balances.map((b) => ({ branchId: b.branchId, branchName: b.branchName, closingBalance: b.closingBalance })),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Before the Demand Record began
+// ---------------------------------------------------------------------------
+
+/** A delivered demand dated before the go-live day, on the Demand Record's money rules. Rupees. */
+export interface DemandBeforeRecordRow {
+  orderId: string;
+  demandNumber: string | null;
+  branchId: string;
+  branchName: string;
+  businessDate: string;
+  delivered: number;
+  returns: number;
+  discount: number;
+  gTotal: number;
+  sharePct: number;
+  companyShare: number;
+}
+
+/**
+ * The demand side of the Demand Record for days BEFORE it began — the owner's
+ * rule (2026-10-25): July–September show each delivered demand's Delivered,
+ * Return, Discount, G. Total and Company Share, but no Received and no
+ * balance, because cash was not recorded in the app before the go-live day
+ * (which is why the record starts then).
+ *
+ * The same rules as ROWS_SQL, so a pre-go-live demand reads like one after it:
+ * delivered lines at their own price, else the price on the demand's date;
+ * accepted returns in the window up to the branch's next demand; discounts on
+ * the demand they were claimed against, else by window; the frozen %, else
+ * today's. Windows are cut at the go-live instant, so a return or discount
+ * from the record's own days is never counted here as well.
+ */
+export async function getDemandFiguresBeforeRecord(
+  q: { branchId?: string | null; from: string; to: string },
+): Promise<{ start: string; rows: DemandBeforeRecordRow[] } | null> {
+  const start = await getLedgerStart();
+  if (!start || q.from >= start) return start ? { start, rows: [] } : null;
+  const rows = await getPrisma().$queryRawUnsafe<(Omit<DemandBeforeRecordRow, 'gTotal' | 'sharePct' | 'companyShare'> & { frozenPct: number | null; livePct: number })[]>(`
+    with br as (
+      select b.id, b.name from public.branches b where ($1::uuid is null or b.id = $1::uuid)
+    ),
+    d as (
+      select o.id, o.branch_id, o.demand_number, o.business_date as bd, o.submitted_at,
+             coalesce(o.branch_name, br.name) as branch_name, sn.company_share_pct as frozen_pct
+        from public.production_orders o
+        join br on br.id = o.branch_id
+        left join public.production_order_share_snapshots sn on sn.production_order_id = o.id
+       where o.status::text in ${DELIVERED}
+         and o.business_date < $2::date
+    ),
+    w as (
+      select d.branch_id, d.id as order_id, d.submitted_at as lo,
+             least(coalesce(lead(d.submitted_at) over (partition by d.branch_id order by d.submitted_at, d.id), ${START_AT}),
+                   ${START_AT}) as hi
+        from d
+    ),
+    dv as (
+      select d.id as order_id,
+             coalesce(sum(coalesce(i.approved_qty, 0) * coalesce(i.unit_price, ip.unit_price, 0)), 0) as delivered
+        from d
+        join public.production_order_items i on i.production_order_id = d.id
+        left join public.products p on p.id = i.product_id
+        ${priceOnDateLateral('i.product_id', 'd.bd', 'p.price', 'ip')}
+       group by d.id
+    ),
+    ret as (
+      select w.order_id, coalesce(sum(round(r.qty * px.unit_price, 2)), 0) as amount
+        from w
+        join public.production_returns r
+          on r.branch_id = w.branch_id and r.created_at > w.lo and r.created_at <= w.hi
+        left join public.products p on p.id = r.product_id
+        ${UNIT_PRICE_LATERAL}
+       where r.status::text = 'accepted'
+       group by w.order_id
+    ),
+    disc as (
+      -- Claimed against the demand, and made before the go-live instant: one
+      -- made after it is the record's (ROWS_SQL places it by time), so it is
+      -- never counted on both sides.
+      select x.production_order_id as order_id, sum(x.amount) as amount
+        from public.branch_discounts x
+        join d on d.id = x.production_order_id
+       where x.status::text = 'approved' and x.created_at < ${START_AT}
+       group by x.production_order_id
+      union all
+      select w.order_id, sum(x.amount)
+        from w
+        join public.branch_discounts x
+          on x.branch_id = w.branch_id and x.created_at > w.lo and x.created_at <= w.hi
+       where x.status::text = 'approved'
+         and not exists (select 1 from public.production_orders o2
+                          where o2.id = x.production_order_id and o2.status::text in ${DELIVERED})
+       group by w.order_id
+    )
+    select d.id::text                                          as "orderId",
+           d.demand_number                                     as "demandNumber",
+           d.branch_id::text                                   as "branchId",
+           d.branch_name                                       as "branchName",
+           to_char(d.bd, 'YYYY-MM-DD')                         as "businessDate",
+           coalesce(dv.delivered, 0)::float8                   as "delivered",
+           coalesce(ret.amount, 0)::float8                     as "returns",
+           coalesce((select sum(amount) from disc where disc.order_id = d.id), 0)::float8 as "discount",
+           d.frozen_pct::float8                                as "frozenPct",
+           app.resolve_company_share_pct(d.branch_id)::float8  as "livePct"
+      from d
+      left join dv on dv.order_id = d.id
+      left join ret on ret.order_id = d.id
+     where d.bd between $3::date and $4::date
+     order by d.bd, d.demand_number, d.branch_name`,
+    q.branchId ?? null, start, q.from, q.to < start ? q.to : dayBeforeStr(start));
+
+  return {
+    start,
+    rows: rows.map(({ frozenPct, livePct, ...r }) => {
+      const sharePct = frozenPct ?? livePct;
+      const gTotal = toPaisa(r.delivered - r.returns - r.discount);
+      return { ...r, delivered: toPaisa(r.delivered), returns: toPaisa(r.returns), discount: toPaisa(r.discount), gTotal, sharePct, companyShare: companyShareOf(gTotal, sharePct) };
+    }),
+  };
+}
+
+/** '2026-10-01' → '2026-09-30'. */
+function dayBeforeStr(ymd: string): string {
+  return new Date(Date.parse(`${ymd}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10);
 }

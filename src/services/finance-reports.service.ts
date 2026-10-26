@@ -190,26 +190,39 @@ async function fetchEntries(
   to: string,
   extra?: { type?: 'income' | 'expense'; headIds?: string[] },
 ): Promise<{ entries: LedgerEntry[]; capped: boolean }> {
-  let query = withoutDeleted(
-    db
-      .from('ledger_entries')
-      .select('*')
-      .gte('entry_date', from)
-      .lte('entry_date', to)
-      .order('entry_date', { ascending: true })
-      .order('seq', { ascending: true })
-      .range(0, ROW_CAP - 1),
-  );
+  // Paged: the db layer returns at most DB_MAX_ROWS (1000) rows per read
+  // whatever range is asked for, so one `.range(0, ROW_CAP - 1)` came back
+  // short at 1000 with no sign of it. A short page is therefore not the end —
+  // only an empty one is. Rows already seen are skipped, so a voucher posted
+  // between two pages cannot appear twice.
+  const rows: Record<string, unknown>[] = [];
+  const seen = new Set<unknown>();
+  while (rows.length < ROW_CAP) {
+    let query = withoutDeleted(
+      db
+        .from('ledger_entries')
+        .select('*')
+        .gte('entry_date', from)
+        .lte('entry_date', to)
+        .order('entry_date', { ascending: true })
+        .order('seq', { ascending: true })
+        .range(rows.length, ROW_CAP - 1),
+    );
 
-  if (q.branchId) query = query.eq('branch_id', q.branchId);
-  if (q.ledgerHeadId) query = query.eq('ledger_head_id', q.ledgerHeadId);
-  if (extra?.type) query = query.eq('ledger_head_type', extra.type);
-  if (extra?.headIds) query = query.in('ledger_head_id', extra.headIds);
+    if (q.branchId) query = query.eq('branch_id', q.branchId);
+    if (q.ledgerHeadId) query = query.eq('ledger_head_id', q.ledgerHeadId);
+    if (extra?.type) query = query.eq('ledger_head_type', extra.type);
+    if (extra?.headIds) query = query.in('ledger_head_id', extra.headIds);
 
-  const { data, error } = await query;
-  if (error) throw error;
+    const { data, error } = await query;
+    if (error) throw error;
+    const fresh = ((data ?? []) as Record<string, unknown>[]).filter((r) => !seen.has(r['id']));
+    if (fresh.length === 0) break;
+    for (const r of fresh) seen.add(r['id']);
+    rows.push(...fresh);
+  }
 
-  const entries = rowToApi<LedgerEntry[]>(data ?? []).map((e) => ({
+  const entries = rowToApi<LedgerEntry[]>(rows.slice(0, ROW_CAP)).map((e) => ({
     ...e,
     debit: num(e.debit),
     credit: num(e.credit),

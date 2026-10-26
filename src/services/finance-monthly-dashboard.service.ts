@@ -1,4 +1,4 @@
-import { dbFor } from '../db';
+import { dbFor, getPrisma } from '../db';
 import {
   businessDateStr,
   type FinanceDashboardDay,
@@ -10,6 +10,7 @@ import {
   type FinanceDashboardRecordsPage,
   type FinanceMonthlyDashboard,
   type DemandRecordRow,
+  SYSTEM_LEDGER_HEAD_CODES,
 } from '../shared';
 import { round2 } from './finance-settings.service';
 import { getDemandRecordRows } from './branch-account.service';
@@ -36,7 +37,9 @@ const db = dbFor('finance-monthly-dashboard');
  *   Demand         = Delivered − Returns − Discount (the net demand)
  *   Company Share  = Demand × the demand's frozen share %
  *   Last Month Balance = each branch's Remaining carried into the month
- * Received is unchanged: the income ledger, as before.
+ *
+ * Received is the Daily Ledger's Company Share income only (no Fuel, no
+ * other head), per branch, by entry date — see applyCompanyShareReceipts.
  */
 
 const num = (v: unknown) => Number(v ?? 0);
@@ -144,15 +147,89 @@ export function applyDemandRecord(
   return out.sort((a, b) => a.date.localeCompare(b.date) || (a.branchId ?? '').localeCompare(b.branchId ?? ''));
 }
 
+/** Company Share ledger income summed per (entry date, branch). */
+export interface LedgerReceipt {
+  date: string;
+  branchId: string | null;
+  amount: number;
+  entries: number;
+}
+
+/**
+ * The Daily Ledger entries that count as Received: live (not deleted) income
+ * on the Company Share head (INC-COMPANY-SHARE) only — never Fuel or any other
+ * head. Σ debit − credit, so a reversal nets out, as the Daily Ledger totals
+ * it. Dated by the ledger entry date; $1/$2 the window, $3 the branch.
+ */
+const RECEIVED_FILTER = `
+  e.deleted_at is null and e.ledger_head_type::text = 'income' and h.code = '${SYSTEM_LEDGER_HEAD_CODES.COMPANY_SHARE}'
+  and e.entry_date between $1::date and $2::date
+  and ($3::uuid is null or e.branch_id = $3::uuid)`;
+
+async function companyShareReceipts(from: string, to: string, branchId: string | null): Promise<LedgerReceipt[]> {
+  return getPrisma().$queryRawUnsafe<LedgerReceipt[]>(`
+    select to_char(e.entry_date, 'YYYY-MM-DD') as "date", e.branch_id::text as "branchId",
+           sum(e.debit - e.credit)::float8 as "amount", count(*)::int as "entries"
+      from public.ledger_entries e
+      join public.ledger_heads h on h.id = e.ledger_head_id
+     where ${RECEIVED_FILTER}
+     group by e.entry_date, e.branch_id`, from, to, branchId);
+}
+
+/**
+ * Received on each (day, branch) becomes the Daily Ledger's Company Share
+ * income dated that day, and `receipts` the number of those entries — so Fuel
+ * Charges and every other income head stay out. A (day, branch) with Company
+ * Share entries but no other row is added.
+ */
+export function applyCompanyShareReceipts(
+  days: FinanceDashboardDay[],
+  receipts: LedgerReceipt[],
+  from: string,
+  to: string,
+): FinanceDashboardDay[] {
+  const byKey = new Map<string, LedgerReceipt>();
+  for (const r of receipts) {
+    if (r.date >= from && r.date <= to) byKey.set(`${r.date}|${r.branchId ?? ''}`, r);
+  }
+  const out = days.map((d) => {
+    const k = `${d.date}|${d.branchId ?? ''}`;
+    const r = byKey.get(k);
+    byKey.delete(k);
+    return { ...d, received: round2(r?.amount ?? 0), receipts: r?.entries ?? 0 };
+  });
+  for (const r of byKey.values()) {
+    out.push({
+      date: r.date, branchId: r.branchId, demand: 0, companyShare: 0, received: round2(r.amount),
+      returns: 0, discount: 0, orders: 0, unpricedLines: 0, receipts: r.entries, returnCount: 0, discountCount: 0,
+    });
+  }
+  return out.sort((a, b) => a.date.localeCompare(b.date) || (a.branchId ?? '').localeCompare(b.branchId ?? ''));
+}
+
 /**
  * Each branch's Remaining carried into a month: the closing balance of its last
- * Demand Record row dated before `monthFirst`. A branch with no row before it
- * has nothing carried and is left out (null on the table, not a made-up 0).
+ * Demand Record row dated before `monthFirst`.
+ *
+ * A branch in the record with no row before the month still carried something
+ * real: its opening row's balance (Finance's opening entry) or, with none, 0 —
+ * the owner's rule is that every branch starts the Demand Record at zero. So it
+ * is listed with that figure, not left blank, once the record has started by
+ * the month's end. A branch whose rows all fall after the month (the record
+ * had not begun) is left out: null on the table, "no records".
  */
-export function carriedBalances(rows: DemandRecordRow[], monthFirst: string): FinanceDashboardPreviousBalance[] {
-  const last = new Map<string, number>();
-  for (const r of rows) if (r.businessDate < monthFirst) last.set(r.branchId, r.remaining);
-  return [...last].map(([branchId, balance]) => ({ branchId, balance: round2(balance) }));
+export function carriedBalances(rows: DemandRecordRow[], monthFirst: string, monthLast: string): FinanceDashboardPreviousBalance[] {
+  const carried = new Map<string, number>();
+  for (const r of rows) {
+    if (r.businessDate < monthFirst) {
+      carried.set(r.branchId, r.remaining);
+    } else if (!carried.has(r.branchId) && r.businessDate <= monthLast) {
+      // The branch's first row in this month: an opening row's balance is
+      // brought forward; a demand's Previous is what it started from (0).
+      carried.set(r.branchId, r.orderId === null ? r.remaining : r.previousBalance);
+    }
+  }
+  return [...carried].map(([branchId, balance]) => ({ branchId, balance: round2(balance) }));
 }
 
 export async function getFinanceMonthlyDashboard(params: {
@@ -168,12 +245,14 @@ export async function getFinanceMonthlyDashboard(params: {
   const previousMonth = shiftMonth(month, -1);
   const trendFrom = monthBounds(shiftMonth(month, -5)).first;
 
-  const [current, window6, ledgerTotals, branchesRes, record] = await Promise.all([
+  const [current, window6, ledgerTotals, branchesRes, record, receipts] = await Promise.all([
     callDashboard(from, to, branchId, true),
     callDashboard(trendFrom, bounds.last, branchId, false),
     db.rpc('finance_ledger_totals', { p_from: from, p_to: to, p_branch_id: branchId }),
     db.from('branches').select('id, name, is_active').order('name'),
     getDemandRecordRows(branchId),
+    // The selected window always lies inside the trend's six months.
+    companyShareReceipts(trendFrom, bounds.last, branchId),
   ]);
   if (ledgerTotals.error) throw ledgerTotals.error;
   if (branchesRes.error) throw branchesRes.error;
@@ -185,6 +264,8 @@ export async function getFinanceMonthlyDashboard(params: {
     days = applyDemandRecord(days, record.rows, record.start, from, to);
     trendDays = applyDemandRecord(trendDays, record.rows, record.start, trendFrom, bounds.last);
   }
+  days = applyCompanyShareReceipts(days, receipts, from, to);
+  trendDays = applyCompanyShareReceipts(trendDays, receipts, trendFrom, bounds.last);
 
   // Six whole months, oldest first — a month with no rows is a real zero month
   // inside a window that has data, so it is emitted rather than skipped.
@@ -222,7 +303,7 @@ export async function getFinanceMonthlyDashboard(params: {
   // this month — its Remaining, previous balances included — not last month's
   // activity alone. Receipts with no branch keep their old line.
   if (record) {
-    previous = [...carriedBalances(record.rows, bounds.first), ...previous.filter((p) => p.branchId === null)];
+    previous = [...carriedBalances(record.rows, bounds.first, bounds.last), ...previous.filter((p) => p.branchId === null)];
   }
 
   const companyShare = sum(days, (r) => r.companyShare);
@@ -334,7 +415,65 @@ export async function getFinanceDashboardRecords(params: RecordsParams): Promise
     const record = await getDemandRecordRows(params.branchId);
     if (record) return demandRecordRecords(params, record);
   }
+  if (params.metric === 'received') return companyShareRecords(params);
   return callRecords(params, params.pageSize, (params.page - 1) * params.pageSize);
+}
+
+/**
+ * The drill-down list for Received: the Daily Ledger's Company Share entries
+ * behind it, each opening its own voucher.
+ */
+async function companyShareRecords(params: RecordsParams): Promise<FinanceDashboardRecordsPage> {
+  const q = params.search?.trim().toLowerCase() || null;
+  const res = await getPrisma().$queryRawUnsafe<{ total: number; amount: number; rows: Record<string, unknown>[] }[]>(`
+    with f as (
+      select e.id, e.voucher_no, e.entry_date, e.seq, e.branch_id, e.description, e.status, e.source_type,
+             coalesce(b.name, e.branch_name) as bname, coalesce(h.name, e.ledger_head_name) as hname,
+             e.debit - e.credit as amount, e.created_by_name, e.approved_by_name
+        from public.ledger_entries e
+        join public.ledger_heads h on h.id = e.ledger_head_id
+        left join public.branches b on b.id = e.branch_id
+       where ${RECEIVED_FILTER}
+         and (case when $7::boolean then e.branch_id is null else true end)
+         and ($4::text is null
+              or lower(e.voucher_no) like '%' || $4 || '%'
+              or lower(e.id::text) like '%' || $4 || '%'
+              or lower(coalesce(b.name, e.branch_name, '')) like '%' || $4 || '%'
+              or lower(coalesce(e.description, '')) like '%' || $4 || '%')
+    )
+    select (select count(*)::int from f) as "total",
+           (select coalesce(sum(amount), 0)::float8 from f) as "amount",
+           coalesce((select json_agg(json_build_object(
+                       'id', p.id::text, 'reference', p.voucher_no, 'date', to_char(p.entry_date, 'YYYY-MM-DD'),
+                       'branchId', p.branch_id::text, 'branchName', p.bname,
+                       'source', 'Ledger · ' || p.hname || ' · ' || p.source_type::text, 'detail', p.description,
+                       'status', p.status::text, 'amount', p.amount::float8,
+                       'createdBy', p.created_by_name, 'approvedBy', p.approved_by_name)
+                     order by p.entry_date, p.bname nulls last, p.seq)
+                     from (select * from f order by entry_date, bname nulls last, seq limit $5 offset $6) p),
+                    '[]'::json) as "rows"`,
+    params.from, params.to, params.noBranch ? null : params.branchId, q, params.pageSize,
+    (params.page - 1) * params.pageSize, params.noBranch);
+  const raw = res[0];
+  return {
+    total: num(raw?.total),
+    amount: round2(num(raw?.amount)),
+    page: params.page,
+    pageSize: params.pageSize,
+    rows: (raw?.rows ?? []).map((r): FinanceDashboardRecord => ({
+      id: String(r['id']),
+      reference: (r['reference'] as string | null) ?? null,
+      date: String(r['date']),
+      branchId: (r['branchId'] as string | null) ?? null,
+      branchName: (r['branchName'] as string | null) ?? null,
+      source: String(r['source'] ?? ''),
+      detail: (r['detail'] as string | null) ?? null,
+      status: String(r['status'] ?? ''),
+      amount: num(r['amount']),
+      createdBy: (r['createdBy'] as string | null) ?? null,
+      approvedBy: (r['approvedBy'] as string | null) ?? null,
+    })),
+  };
 }
 
 /** The drill-down list for Demand / Company Share, from the Demand Record's rows. */

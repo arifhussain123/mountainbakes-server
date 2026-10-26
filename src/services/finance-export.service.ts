@@ -300,7 +300,17 @@ export async function exportFinanceReportExcel(report: FinanceReport, companyNam
   const workbook = new ExcelJS.Workbook();
   workbook.creator = `${companyName} ERP — Finance Ledger`;
   workbook.created = new Date(report.generatedAt);
+  addFinanceReportSheet(workbook, report, companyName);
+  return workbook.xlsx.writeBuffer() as unknown as Promise<Buffer>;
+}
 
+/**
+ * The report's sheet, added to `workbook`. Split out of exportFinanceReportExcel
+ * so the Daily Ledger's accounting workbook can carry the same cash book sheet
+ * the Excel button always produced, ahead of its own sheets
+ * (finance-accounting-export.service.ts).
+ */
+export function addFinanceReportSheet(workbook: ExcelJS.Workbook, report: FinanceReport, companyName = 'Mountain Bakes'): ExcelJS.Worksheet {
   // `excelOmit` columns (e.g. Status, Approved By on the cash book) stay in
   // the PDF/CSV, which are printed and filed, but drop out of the workbook,
   // which is worked with.
@@ -482,7 +492,7 @@ export async function exportFinanceReportExcel(report: FinanceReport, companyNam
     }
   }
 
-  return workbook.xlsx.writeBuffer() as unknown as Promise<Buffer>;
+  return sheet;
 }
 
 /** Rows above the table — used to freeze the header pane at the right place. */
