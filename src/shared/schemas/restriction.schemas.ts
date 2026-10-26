@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { RESTRICTION_REQUEST_TYPES } from '../types/restriction.types';
+import { CASH_DEPOSIT_MAX_BACKDATE_DAYS, RESTRICTION_REQUEST_TYPES } from '../types/restriction.types';
 
 const dateOnly = z
   .string()
@@ -45,6 +45,11 @@ export const RestrictionGroupSchemas = {
       limit: z.number().int().min(1).max(100),
       allowExceptions: z.boolean(),
     }),
+    // Optional only for an older client that does not know the rule yet; the
+    // API keeps the saved value when it is left out.
+    backdate: z
+      .object({ enabled: z.boolean(), allowedDays: z.number().int().min(0).max(CASH_DEPOSIT_MAX_BACKDATE_DAYS) })
+      .optional(),
   }),
   ledger: z.object({
     backdate: z.object({ enabled: z.boolean(), allowedDays: z.number().int().min(0).max(365) }),

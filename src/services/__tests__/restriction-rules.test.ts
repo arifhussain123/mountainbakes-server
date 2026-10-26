@@ -8,6 +8,7 @@ import {
   backdatedDemandDate,
   closingContext,
   evalBackdatedDemand,
+  evalCashBackdate,
   evalCashLimit,
   evalCompanyShare,
   evalHourlySales,
@@ -275,6 +276,47 @@ describe('cash deposit — daily limit', () => {
     )!;
     assert.equal(r.severity, 'blocking');
     assert.equal(r.canRequestApproval, false);
+  });
+});
+
+describe('cash deposit — back-date period', () => {
+  const cfg = (allowedDays: number, enabled = true) => ({ enabled, allowedDays });
+  const at = (date: string, c = D.cash.backdate) => evalCashBackdate(c, { businessDate: date, today: TODAY });
+
+  test('the default is today or yesterday', () => {
+    assert.equal(at(TODAY), null);
+    assert.equal(at('2026-10-02'), null);
+    const r = at('2026-10-01')!;
+    assert.equal(r.code, 'CASH_DEPOSIT_BACKDATE');
+    assert.equal(r.severity, 'blocking');
+    assert.equal(allows(r), false);
+    assert.ok(r.messages.includes('A cash deposit can be dated today or yesterday only.'));
+    assert.equal(r.currentValue, 2);
+    assert.equal(r.canRequestApproval, undefined);
+  });
+
+  test('Admin can raise the period', () => {
+    assert.equal(at('2026-09-23', cfg(10)), null);
+    const r = at('2026-09-22', cfg(10))!;
+    assert.ok(r.messages.includes('A cash deposit can be dated up to 10 days back only.'));
+    assert.deepEqual(r.stats?.find((s) => s.label === 'Allowed from'), { label: 'Allowed from', value: '23-09-2026' });
+  });
+
+  test('0 means today only', () => {
+    assert.equal(at(TODAY, cfg(0)), null);
+    assert.ok(at('2026-10-02', cfg(0))!.messages.includes('A cash deposit can be dated today only.'));
+  });
+
+  test('off never fires', () => {
+    assert.equal(at('2026-09-01', cfg(1, false)), null);
+  });
+
+  test('the period is 0 to 30 days, and an older client may leave the rule out', () => {
+    const daily = D.cash.dailyLimit;
+    assert.equal(RestrictionGroupSchemas.cash.safeParse({ dailyLimit: daily, backdate: cfg(30) }).success, true);
+    assert.equal(RestrictionGroupSchemas.cash.safeParse({ dailyLimit: daily, backdate: cfg(31) }).success, false);
+    assert.equal(RestrictionGroupSchemas.cash.safeParse({ dailyLimit: daily, backdate: cfg(-1) }).success, false);
+    assert.equal(RestrictionGroupSchemas.cash.safeParse({ dailyLimit: daily }).success, true);
   });
 });
 

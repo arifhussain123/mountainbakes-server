@@ -18,11 +18,11 @@ import {
 } from '../shared';
 import { rowToApi } from '../utils/case';
 import { withoutDeleted } from '../utils/softDelete';
-import { resolveClientBusinessDate } from '../utils/clientBusinessDate';
+import { MAX_BACKDATE_DAYS, resolveClientBusinessDate } from '../utils/clientBusinessDate';
 import { bindAttachments, listAttachments, listAttachmentsFor } from './attachments.service';
 import { getLedgerEntry } from './finance-ledger.service';
 import { notify } from './push.service';
-import { checkCashDeposit, enforceRestrictions } from './restriction.service';
+import { checkCashDeposit, enforceRestrictions, getRestrictionRules } from './restriction.service';
 
 const db = dbFor('cash-transfers');
 
@@ -300,14 +300,23 @@ export async function createCashTransfer(input: {
 
   // The device's business date when the mobile app sends one, today's
   // otherwise — bounded and put through the day-closure check exactly as a
-  // sale or an expense is.
-  const businessDate = await resolveClientBusinessDate(input.body.businessDate, input.role);
+  // sale or an expense is. The window reaches further back only when Admin's
+  // back-date period for deposits does; a shorter period is the Restriction
+  // Rule below, which can explain itself in the popup.
+  const backdate = (await getRestrictionRules()).cash.backdate;
+  const businessDate = await resolveClientBusinessDate(
+    input.body.businessDate,
+    input.role,
+    new Date(),
+    backdate.enabled ? Math.max(backdate.allowedDays, MAX_BACKDATE_DAYS) : MAX_BACKDATE_DAYS,
+  );
 
-  // The daily limit is a Restriction Rule now (migration 136): the number comes
-  // from Admin Settings, and an approved one-time exception lifts it. The
-  // Idempotency-Key already collapses a double click or a retry into one row;
-  // this refuses the deliberate submission past the day's allowance. A rejected
-  // or deleted deposit does not count — the branch raises it again.
+  // The back-date period and the daily limit are Restriction Rules (migration
+  // 136): the numbers come from Admin Settings, and an approved one-time
+  // exception lifts the limit. The Idempotency-Key already collapses a double
+  // click or a retry into one row; this refuses the deliberate submission past
+  // the day's allowance. A rejected or deleted deposit does not count — the
+  // branch raises it again.
   const guard = await enforceRestrictions(
     await checkCashDeposit({ branchId: branch.id as string, businessDate }),
     {

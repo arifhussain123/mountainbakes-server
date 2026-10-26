@@ -13,6 +13,7 @@ export const RESTRICTION_CODES = [
   'LOW_SALES_AFTER_CLOSING',
   'HOURLY_SALES_LIMIT',
   'CASH_DEPOSIT_LIMIT',
+  'CASH_DEPOSIT_BACKDATE',
   'LEDGER_BACKDATE',
   'COMPANY_SHARE_INCOME',
   'PRODUCTION_STOCK_SHORTAGE',
@@ -101,6 +102,11 @@ export interface RestrictionRules {
   };
   cash: {
     dailyLimit: { enabled: boolean; limit: number; allowExceptions: boolean };
+    /**
+     * How far back a deposit may be dated, in business days before today
+     * (0 = today only). Off → the 7-day sync window every write has.
+     */
+    backdate: { enabled: boolean; allowedDays: number };
   };
   ledger: {
     backdate: { enabled: boolean; allowedDays: number };
@@ -120,7 +126,10 @@ export const DEFAULT_RESTRICTION_RULES: RestrictionRules = {
     hourly: { enabled: true, threshold: 2 },
   },
   production: { stockShortage: { enabled: true, allowAdminOverride: true } },
-  cash: { dailyLimit: { enabled: true, limit: 3, allowExceptions: true } },
+  cash: {
+    dailyLimit: { enabled: true, limit: 3, allowExceptions: true },
+    backdate: { enabled: true, allowedDays: 1 },
+  },
   ledger: { backdate: { enabled: true, allowedDays: 3 } },
   company: { shareIncome: { enabled: true, allowApproval: true } },
 };
@@ -136,6 +145,9 @@ export interface RestrictionRulesState {
 }
 
 // ─── Approval requests ───────────────────────────────────────────────────────
+
+/** The most a deposit's back-date period can be raised to, in days. */
+export const CASH_DEPOSIT_MAX_BACKDATE_DAYS = 30;
 
 /** The rules an admin can approve a one-time exception to. */
 export const RESTRICTION_REQUEST_TYPES = [

@@ -8,6 +8,7 @@ import {
   businessDateStr,
   closingContext,
   evalBackdatedDemand,
+  evalCashBackdate,
   evalCashLimit,
   evalCompanyShare,
   evalHourlySales,
@@ -84,6 +85,7 @@ const PRE_MIGRATION_RULES: RestrictionRules = (() => {
   rules.ledger.backdate.enabled = false;
   rules.company.shareIncome.enabled = false;
   rules.cash.dailyLimit = { enabled: true, limit: CASH_DEPOSITS_PER_DAY, allowExceptions: false };
+  rules.cash.backdate.enabled = false;
   return rules;
 })();
 
@@ -143,12 +145,17 @@ export async function getRestrictionRulesState(): Promise<RestrictionRulesState>
   };
 }
 
-/** Replace one group's configuration. `config` has already been through its Zod schema. */
-export async function saveRestrictionGroup(group: RestrictionGroup, config: unknown, actor: Actor): Promise<void> {
+/**
+ * Replace one group's configuration. `config` has already been through its Zod
+ * schema. A rule the body leaves out (an older client that does not know it
+ * yet) keeps its current setting rather than falling back to the default.
+ */
+export async function saveRestrictionGroup(group: RestrictionGroup, config: object, actor: Actor): Promise<void> {
+  const current = (await loadRules()).rules[group];
   const { error } = await db.from('restriction_rules').upsert(
     {
       group_key: group,
-      config,
+      config: { ...current, ...config },
       updated_by: actor.uid,
       updated_by_name: actor.name,
       updated_at: new Date().toISOString(),
@@ -588,8 +595,10 @@ export async function checkSale(input: { branchId: string; now?: Date }): Promis
 
 export async function checkCashDeposit(input: { branchId: string; businessDate: string }): Promise<Evaluation> {
   const rules = await getRestrictionRules();
+  const today = businessDateStr();
+  const backdate = evalCashBackdate(rules.cash.backdate, { businessDate: input.businessDate, today });
   const cfg = rules.cash.dailyLimit;
-  if (!cfg.enabled) return evaluation([], []);
+  if (!cfg.enabled) return evaluation([backdate], []);
 
   const transferNos = await liveDepositNumbers(input.branchId, input.businessDate);
   const request =
@@ -598,7 +607,7 @@ export async function checkCashDeposit(input: { branchId: string; businessDate: 
       : null;
 
   return evaluation(
-    [evalCashLimit(cfg, { transferNos, businessDate: input.businessDate, today: businessDateStr(), request })],
+    [backdate, evalCashLimit(cfg, { transferNos, businessDate: input.businessDate, today, request })],
     [request],
   );
 }
