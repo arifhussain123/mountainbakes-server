@@ -19,6 +19,7 @@ import {
   type CashTransferFilters,
 } from '../services/cash-transfers.service';
 import { logFinanceAudit } from '../services/finance-audit.service';
+import { getMissingDailyTransfers } from '../services/cash-transfer-missing.service';
 
 /**
  * /api/finance/cash-transfers — Finance's review board for branch handovers.
@@ -85,6 +86,33 @@ router.get('/', requireFinance('view'), async (req: AuthRequest, res, next) => {
 router.get('/summary', requireFinance('view'), async (req: AuthRequest, res, next) => {
   try {
     res.json(await summarizeCashTransfers(filtersFrom(req.query as Record<string, string | undefined>)));
+  } catch (err) {
+    next(err);
+  }
+});
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// GET /api/finance/cash-transfers/missing?from=&to=&branchId=
+// Which active branches have not handed over each due business date. The
+// window defaults to the last seven due dates and never reaches today (see
+// cash-transfer-missing.service.ts). Registered before /:id.
+router.get('/missing', requireFinance('view'), async (req: AuthRequest, res, next) => {
+  try {
+    const q = req.query as Record<string, string | undefined>;
+    const from = q['from'] || undefined;
+    const to = q['to'] || undefined;
+    const branchId = q['branchId'] || null;
+    if ((from && !DATE_RE.test(from)) || (to && !DATE_RE.test(to)) || (from && to && from > to)) {
+      res.status(400).json({ error: 'from/to must be dates, from not after to' });
+      return;
+    }
+    if (branchId && !UUID_RE.test(branchId)) {
+      res.status(400).json({ error: 'Unknown branch' });
+      return;
+    }
+    res.json(await getMissingDailyTransfers({ from, to, branchId }));
   } catch (err) {
     next(err);
   }
