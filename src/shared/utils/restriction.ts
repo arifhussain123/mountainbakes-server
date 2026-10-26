@@ -475,6 +475,42 @@ export function evalCashLimit(
   };
 }
 
+/**
+ * Back-dated deposit. A deposit dated up to `allowedDays` before the business
+ * date goes in; anything older is refused. A future date is not this rule's
+ * concern (the API refuses it before any rule runs).
+ */
+export function evalCashBackdate(
+  cfg: RestrictionRules['cash']['backdate'],
+  input: { businessDate: string; today: string },
+): Restriction | null {
+  if (!cfg.enabled) return null;
+  const daysBack = daysBetweenDateStr(input.businessDate, input.today);
+  if (daysBack <= cfg.allowedDays) return null;
+
+  const period =
+    cfg.allowedDays === 0 ? 'today only' : cfg.allowedDays === 1 ? 'today or yesterday only' : `up to ${cfg.allowedDays} days back only`;
+  return {
+    code: 'CASH_DEPOSIT_BACKDATE',
+    severity: 'blocking',
+    title: 'Back-dated Cash Deposit',
+    messages: [
+      `This deposit is dated ${restrictionDmy(input.businessDate)}.`,
+      `A cash deposit can be dated ${period}.`,
+      'For an older deposit, please contact Admin.',
+    ],
+    stats: [
+      { label: 'Deposit date', value: restrictionDmy(input.businessDate) },
+      { label: 'Business date', value: restrictionDmy(input.today) },
+      { label: 'Allowed from', value: restrictionDmy(addDaysToDateStr(input.today, -cfg.allowedDays)) },
+      { label: 'Days back', value: String(daysBack) },
+    ],
+    threshold: cfg.allowedDays,
+    currentValue: daysBack,
+    requiresAdminApproval: false,
+  };
+}
+
 // ─── Finance entry ───────────────────────────────────────────────────────────
 
 /**

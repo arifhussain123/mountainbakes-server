@@ -35,15 +35,15 @@ import { assertBusinessDayOpen } from '../middleware/assertBusinessDayOpen';
  * branch-facing lists already read back over, so a date the app can still show
  * is a date it can still sync.
  */
-const MAX_BACKDATE_DAYS = 6; // inclusive of today → 7 business days
+export const MAX_BACKDATE_DAYS = 6; // inclusive of today → 7 business days
 
 export async function resolveClientBusinessDate(
   claimed: string | undefined,
   role: UserRole,
   now: Date = new Date(),
   /**
-   * A tighter window for one kind of write, in business days before today.
-   * Cash deposits pass 1 (CASH_DEPOSIT_BACKDATE_DAYS): today or yesterday only.
+   * A wider window for one kind of write, in business days before today. Cash
+   * deposits pass Admin's back-date period when it reaches past the sync window.
    */
   maxBackdateDays: number = MAX_BACKDATE_DAYS,
 ): Promise<string> {
@@ -67,9 +67,7 @@ export async function resolveClientBusinessDate(
   const earliest = businessDaysAgoStr(maxBackdateDays, now);
   if (claimed < earliest) {
     throw Object.assign(
-      new Error(maxBackdateDays === MAX_BACKDATE_DAYS
-        ? `This transaction is dated ${claimed}, which is older than the ${MAX_BACKDATE_DAYS + 1}-day sync window. It has to be entered by hand.`
-        : `This entry is dated ${claimed}. It can be dated ${maxBackdateDays === 1 ? 'today or yesterday' : `at most ${maxBackdateDays} days back`} only.`),
+      new Error(`This transaction is dated ${claimed}, which is older than the ${maxBackdateDays + 1}-day sync window. It has to be entered by hand.`),
       { status: 400 },
     );
   }
