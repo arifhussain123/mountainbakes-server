@@ -10,6 +10,7 @@ import {
   type FinanceDashboardRecordsPage,
   type FinanceMonthlyDashboard,
   type DemandRecordRow,
+  SYSTEM_LEDGER_HEAD_CODES,
 } from '../shared';
 import { round2 } from './finance-settings.service';
 import { getDemandRecordRows } from './branch-account.service';
@@ -37,8 +38,8 @@ const db = dbFor('finance-monthly-dashboard');
  *   Company Share  = Demand × the demand's frozen share %
  *   Last Month Balance = each branch's Remaining carried into the month
  *
- * Received is the Cash Transfer Details table's Total Amount — see
- * applyCashTransfers — not the income ledger.
+ * Received is the Daily Ledger's Company Share income only (no Fuel, no
+ * other head), per branch, by entry date — see applyCompanyShareReceipts.
  */
 
 const num = (v: unknown) => Number(v ?? 0);
@@ -146,62 +147,61 @@ export function applyDemandRecord(
   return out.sort((a, b) => a.date.localeCompare(b.date) || (a.branchId ?? '').localeCompare(b.branchId ?? ''));
 }
 
-/** Approved cash transfers summed per (business date, branch). */
-export interface TransferReceipt {
+/** Company Share ledger income summed per (entry date, branch). */
+export interface LedgerReceipt {
   date: string;
-  branchId: string;
+  branchId: string | null;
   amount: number;
-  transfers: number;
+  entries: number;
 }
 
 /**
- * The approved, live cash transfers that count as Received — the same rows the
- * Demand Record counts (branch-account.service `pay`): status approved, not
- * soft-deleted, Total Amount > 0. Total Amount is `amount`
- * (cash + easypaisa + bank); Fuel Charges are not part of it. Dated by the
- * transfer's business date, the date the Cash Transfer Details table shows.
+ * The Daily Ledger entries that count as Received: live (not deleted) income
+ * on the Company Share head (INC-COMPANY-SHARE) only — never Fuel or any other
+ * head. Σ debit − credit, so a reversal nets out, as the Daily Ledger totals
+ * it. Dated by the ledger entry date; $1/$2 the window, $3 the branch.
  */
-const TRANSFER_FILTER = `
-  t.status::text = 'approved' and t.deleted_at is null and t.amount > 0
-  and t.business_date between $1::date and $2::date
-  and ($3::uuid is null or t.branch_id = $3::uuid)`;
+const RECEIVED_FILTER = `
+  e.deleted_at is null and e.ledger_head_type::text = 'income' and h.code = '${SYSTEM_LEDGER_HEAD_CODES.COMPANY_SHARE}'
+  and e.entry_date between $1::date and $2::date
+  and ($3::uuid is null or e.branch_id = $3::uuid)`;
 
-async function transferReceipts(from: string, to: string, branchId: string | null): Promise<TransferReceipt[]> {
-  return getPrisma().$queryRawUnsafe<TransferReceipt[]>(`
-    select to_char(t.business_date, 'YYYY-MM-DD') as "date", t.branch_id::text as "branchId",
-           sum(t.amount)::float8 as "amount", count(*)::int as "transfers"
-      from public.cash_transfers t
-     where ${TRANSFER_FILTER}
-     group by t.business_date, t.branch_id`, from, to, branchId);
+async function companyShareReceipts(from: string, to: string, branchId: string | null): Promise<LedgerReceipt[]> {
+  return getPrisma().$queryRawUnsafe<LedgerReceipt[]>(`
+    select to_char(e.entry_date, 'YYYY-MM-DD') as "date", e.branch_id::text as "branchId",
+           sum(e.debit - e.credit)::float8 as "amount", count(*)::int as "entries"
+      from public.ledger_entries e
+      join public.ledger_heads h on h.id = e.ledger_head_id
+     where ${RECEIVED_FILTER}
+     group by e.entry_date, e.branch_id`, from, to, branchId);
 }
 
 /**
- * Received on each (day, branch) becomes the Total Amount of the approved cash
- * transfers dated that day, and `receipts` their count — so the Income table
- * agrees with Cash Transfer Details. Ledger receipts with no branch drop to 0:
- * every transfer has a branch. A (day, branch) with transfers but no other row
- * is added.
+ * Received on each (day, branch) becomes the Daily Ledger's Company Share
+ * income dated that day, and `receipts` the number of those entries — so Fuel
+ * Charges and every other income head stay out. A (day, branch) with Company
+ * Share entries but no other row is added.
  */
-export function applyCashTransfers(
+export function applyCompanyShareReceipts(
   days: FinanceDashboardDay[],
-  receipts: TransferReceipt[],
+  receipts: LedgerReceipt[],
   from: string,
   to: string,
 ): FinanceDashboardDay[] {
-  const byKey = new Map<string, TransferReceipt>();
+  const byKey = new Map<string, LedgerReceipt>();
   for (const r of receipts) {
-    if (r.date >= from && r.date <= to) byKey.set(`${r.date}|${r.branchId}`, r);
+    if (r.date >= from && r.date <= to) byKey.set(`${r.date}|${r.branchId ?? ''}`, r);
   }
   const out = days.map((d) => {
     const k = `${d.date}|${d.branchId ?? ''}`;
     const r = byKey.get(k);
     byKey.delete(k);
-    return { ...d, received: round2(r?.amount ?? 0), receipts: r?.transfers ?? 0 };
+    return { ...d, received: round2(r?.amount ?? 0), receipts: r?.entries ?? 0 };
   });
   for (const r of byKey.values()) {
     out.push({
       date: r.date, branchId: r.branchId, demand: 0, companyShare: 0, received: round2(r.amount),
-      returns: 0, discount: 0, orders: 0, unpricedLines: 0, receipts: r.transfers, returnCount: 0, discountCount: 0,
+      returns: 0, discount: 0, orders: 0, unpricedLines: 0, receipts: r.entries, returnCount: 0, discountCount: 0,
     });
   }
   return out.sort((a, b) => a.date.localeCompare(b.date) || (a.branchId ?? '').localeCompare(b.branchId ?? ''));
@@ -245,14 +245,14 @@ export async function getFinanceMonthlyDashboard(params: {
   const previousMonth = shiftMonth(month, -1);
   const trendFrom = monthBounds(shiftMonth(month, -5)).first;
 
-  const [current, window6, ledgerTotals, branchesRes, record, transfers] = await Promise.all([
+  const [current, window6, ledgerTotals, branchesRes, record, receipts] = await Promise.all([
     callDashboard(from, to, branchId, true),
     callDashboard(trendFrom, bounds.last, branchId, false),
     db.rpc('finance_ledger_totals', { p_from: from, p_to: to, p_branch_id: branchId }),
     db.from('branches').select('id, name, is_active').order('name'),
     getDemandRecordRows(branchId),
     // The selected window always lies inside the trend's six months.
-    transferReceipts(trendFrom, bounds.last, branchId),
+    companyShareReceipts(trendFrom, bounds.last, branchId),
   ]);
   if (ledgerTotals.error) throw ledgerTotals.error;
   if (branchesRes.error) throw branchesRes.error;
@@ -264,8 +264,8 @@ export async function getFinanceMonthlyDashboard(params: {
     days = applyDemandRecord(days, record.rows, record.start, from, to);
     trendDays = applyDemandRecord(trendDays, record.rows, record.start, trendFrom, bounds.last);
   }
-  days = applyCashTransfers(days, transfers, from, to);
-  trendDays = applyCashTransfers(trendDays, transfers, trendFrom, bounds.last);
+  days = applyCompanyShareReceipts(days, receipts, from, to);
+  trendDays = applyCompanyShareReceipts(trendDays, receipts, trendFrom, bounds.last);
 
   // Six whole months, oldest first — a month with no rows is a real zero month
   // inside a window that has data, so it is emitted rather than skipped.
@@ -415,75 +415,60 @@ export async function getFinanceDashboardRecords(params: RecordsParams): Promise
     const record = await getDemandRecordRows(params.branchId);
     if (record) return demandRecordRecords(params, record);
   }
-  if (params.metric === 'received') return cashTransferRecords(params);
+  if (params.metric === 'received') return companyShareRecords(params);
   return callRecords(params, params.pageSize, (params.page - 1) * params.pageSize);
 }
 
 /**
- * The drill-down list for Received: the approved cash transfers behind it.
- * `id` and `reference` are the transfer's live Company Share ledger entry and
- * its voucher, so a row opens that voucher. The transfer's own `voucher_no`
- * lists every voucher it posted, the Fuel one too, so it is not used. The
- * transfer number is in `source`.
+ * The drill-down list for Received: the Daily Ledger's Company Share entries
+ * behind it, each opening its own voucher.
  */
-async function cashTransferRecords(params: RecordsParams): Promise<FinanceDashboardRecordsPage> {
-  const empty = { total: 0, amount: 0, page: params.page, pageSize: params.pageSize, rows: [] };
-  // Every transfer has a branch, so the "no branch" list is empty.
-  if (params.noBranch) return empty;
+async function companyShareRecords(params: RecordsParams): Promise<FinanceDashboardRecordsPage> {
   const q = params.search?.trim().toLowerCase() || null;
   const res = await getPrisma().$queryRawUnsafe<{ total: number; amount: number; rows: Record<string, unknown>[] }[]>(`
     with f as (
-      select t.*, coalesce(b.name, t.branch_name) as bname, cs.id as cs_entry_id, cs.voucher_no as cs_voucher_no
-        from public.cash_transfers t
-        left join public.branches b on b.id = t.branch_id
-        left join lateral (
-          select e.id, e.voucher_no
-            from public.ledger_entries e
-            join public.ledger_heads h on h.id = e.ledger_head_id
-           where e.source_type::text = 'cash_transfer' and e.source_id = t.id and h.code = 'INC-COMPANY-SHARE'
-             and e.deleted_at is null and e.status::text <> 'reversed' and e.reverses_entry_id is null
-           order by e.seq desc
-           limit 1
-        ) cs on true
-       where ${TRANSFER_FILTER}
+      select e.id, e.voucher_no, e.entry_date, e.seq, e.branch_id, e.description, e.status, e.source_type,
+             coalesce(b.name, e.branch_name) as bname, coalesce(h.name, e.ledger_head_name) as hname,
+             e.debit - e.credit as amount, e.created_by_name, e.approved_by_name
+        from public.ledger_entries e
+        join public.ledger_heads h on h.id = e.ledger_head_id
+        left join public.branches b on b.id = e.branch_id
+       where ${RECEIVED_FILTER}
+         and (case when $7::boolean then e.branch_id is null else true end)
          and ($4::text is null
-              or lower(t.transfer_no) like '%' || $4 || '%'
-              or lower(coalesce(cs.voucher_no, '')) like '%' || $4 || '%'
-              or lower(t.id::text) like '%' || $4 || '%'
-              or lower(coalesce(b.name, t.branch_name)) like '%' || $4 || '%'
-              or lower(coalesce(t.note, '')) like '%' || $4 || '%')
+              or lower(e.voucher_no) like '%' || $4 || '%'
+              or lower(e.id::text) like '%' || $4 || '%'
+              or lower(coalesce(b.name, e.branch_name, '')) like '%' || $4 || '%'
+              or lower(coalesce(e.description, '')) like '%' || $4 || '%')
     )
     select (select count(*)::int from f) as "total",
            (select coalesce(sum(amount), 0)::float8 from f) as "amount",
            coalesce((select json_agg(json_build_object(
-                       'id', coalesce(p.cs_entry_id, p.ledger_entry_id, p.id)::text, 'reference', p.cs_voucher_no,
-                       'transferNo', p.transfer_no, 'date', to_char(p.business_date, 'YYYY-MM-DD'),
+                       'id', p.id::text, 'reference', p.voucher_no, 'date', to_char(p.entry_date, 'YYYY-MM-DD'),
                        'branchId', p.branch_id::text, 'branchName', p.bname,
-                       'cash', p.cash_amount::float8, 'easypaisa', p.easypaisa_amount::float8, 'bank', p.bank_amount::float8,
-                       'amount', p.amount::float8, 'createdBy', p.created_by_name, 'approvedBy', p.approved_by_name)
-                     order by p.business_date, p.bname, p.transfer_no)
-                     from (select * from f order by business_date, bname, transfer_no limit $5 offset $6) p),
+                       'source', 'Ledger · ' || p.hname || ' · ' || p.source_type::text, 'detail', p.description,
+                       'status', p.status::text, 'amount', p.amount::float8,
+                       'createdBy', p.created_by_name, 'approvedBy', p.approved_by_name)
+                     order by p.entry_date, p.bname nulls last, p.seq)
+                     from (select * from f order by entry_date, bname nulls last, seq limit $5 offset $6) p),
                     '[]'::json) as "rows"`,
-    params.from, params.to, params.branchId, q, params.pageSize, (params.page - 1) * params.pageSize);
+    params.from, params.to, params.noBranch ? null : params.branchId, q, params.pageSize,
+    (params.page - 1) * params.pageSize, params.noBranch);
   const raw = res[0];
-  if (!raw) return empty;
   return {
-    total: num(raw.total),
-    amount: round2(num(raw.amount)),
+    total: num(raw?.total),
+    amount: round2(num(raw?.amount)),
     page: params.page,
     pageSize: params.pageSize,
-    rows: raw.rows.map((r): FinanceDashboardRecord => ({
+    rows: (raw?.rows ?? []).map((r): FinanceDashboardRecord => ({
       id: String(r['id']),
       reference: (r['reference'] as string | null) ?? null,
       date: String(r['date']),
       branchId: (r['branchId'] as string | null) ?? null,
       branchName: (r['branchName'] as string | null) ?? null,
-      source: `Cash transfer · ${String(r['transferNo'])}`,
-      detail: ([['Cash', r['cash']], ['Easypaisa', r['easypaisa']], ['Bank', r['bank']]] as [string, unknown][])
-        .filter(([, v]) => num(v) > 0)
-        .map(([k, v]) => `${k} ${money(num(v))}`)
-        .join(' · ') || null,
-      status: 'approved',
+      source: String(r['source'] ?? ''),
+      detail: (r['detail'] as string | null) ?? null,
+      status: String(r['status'] ?? ''),
       amount: num(r['amount']),
       createdBy: (r['createdBy'] as string | null) ?? null,
       approvedBy: (r['approvedBy'] as string | null) ?? null,

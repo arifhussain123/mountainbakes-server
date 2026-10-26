@@ -2063,7 +2063,7 @@ export interface FinanceDashboardDay {
   demand: number;
   /** Demand × the branch's company share %, rounded per order. */
   companyShare: number;
-  /** Total Amount of approved cash transfers (Cash Transfer Details), by business date. */
+  /** Daily Ledger income on the Company Share head only (no Fuel), by entry date. */
   received: number;
   /** Accepted production returns, qty × product price. */
   returns: number;
@@ -2072,7 +2072,7 @@ export interface FinanceDashboardDay {
   orders: number;
   /** Delivered lines whose product has no price — valued at 0. */
   unpricedLines: number;
-  /** Approved cash transfers counted in `received`. */
+  /** Company Share ledger entries counted in `received`. */
   receipts: number;
   returnCount: number;
   discountCount: number;
