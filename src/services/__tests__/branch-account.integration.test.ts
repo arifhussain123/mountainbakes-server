@@ -407,7 +407,7 @@ test('View Details lists exactly the records behind each figure', async () => {
   assert.deepEqual(d2.discounts.map((x: Json) => [x.amount, x.linked]), [[30, false]]);
 
   const open = ok(await call('accountant', 'GET', `${API}/detail?branchId=${ALPHA}`));
-  assert.deepEqual(open.payments, []); // the opening row lists Finance's entries only
+  assert.deepEqual(open.payments, []); // the opening row counts no deposits
   assert.deepEqual(open.adjustments.map((a: Json) => [a.kind, a.amount]), [['opening', 1000]]);
 
   assert.equal((await call('accountant', 'GET', `${API}/detail?branchId=${ALPHA}&orderId=${ORD.d3}`)).status, 404);
@@ -550,4 +550,27 @@ test('the Collections export carries the Demand Record figures, per branch', asy
   const byBranch = wb.get('By Branch')!;
   assert.equal(byBranch.at(-1)![0], 'GRAND TOTAL');
   assert.equal(byBranch.at(-1)![byBranch[0]!.indexOf('Closing')], record.totals.closingBalance);
+});
+
+test('an accepted return between the go-live day and the first demand counts in the opening row', async () => {
+  // Beta's opening window: go-live 09-01 02:00 → B1 09-20 09:00. Returns there
+  // count (the owner's rule, 2026-10-27); deposits there still do not.
+  await returnRow(BETA, 'accepted', '2026-09-01', '2026-09-01T01:30:00+05', 3); // before go-live → nowhere
+  await returnRow(BETA, 'accepted', '2026-09-05', '2026-09-05T10:00:00+05', 2); // 2 × Rs. 100 on 09-05 → opening
+  await returnRow(BETA, 'pending', '2026-09-06', '2026-09-06T10:00:00+05', 4);  // not accepted → nowhere
+  await transfer(BETA, 300, 'approved', '2026-09-06T11:00:00+05');              // deposit before B1 → nowhere
+
+  const [opening, b1] = (await rowsOf(`&branchId=${BETA}`)).rows as Json[];
+  assert.equal(opening.orderId, null);
+  assert.equal(opening.returns, 200);
+  assert.equal(opening.received, 0);
+  assert.equal(opening.gTotal, -200);
+  assert.equal(opening.pctFrozen, false); // no demand to freeze from: today's %
+  assert.equal(opening.companyShare, (-200 * opening.sharePct) / 100);
+  assert.equal(b1.returns, 0);
+  assert.equal(b1.previousBalance, opening.closingBalance);
+
+  const d = ok(await call('accountant', 'GET', `${API}/detail?branchId=${BETA}`));
+  assert.deepEqual(d.returns.map((r: Json) => [r.qty, r.unitPrice, r.amount]), [[2, 100, 200]]);
+  assert.deepEqual(d.payments, []);
 });

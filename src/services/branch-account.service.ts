@@ -38,12 +38,16 @@ import { priceOnDateLateral, UNIT_PRICE_LATERAL } from './returns-summary.servic
  * Only records from the go-live instant on count; everything earlier is the
  * branch's opening balance.
  *
- * The opening row holds Finance's entries only. A return, deposit, sale or
- * loose discount recorded before a branch's first demand in the record
+ * The opening row holds Finance's entries and accepted returns. A deposit,
+ * sale or loose discount recorded before a branch's first demand in the record
  * settles a demand from before the go-live day, so it is not counted, and the
  * first demand's Previous is 0 unless Finance entered an opening balance (the
  * owner's rule from 1 Oct 2026: on the live data, deposits made on the
  * morning of 1 Oct for 30 Sep's demands had opened two branches in credit).
+ * Returns are the exception (the owner's rule from 27 Oct 2026): an accepted
+ * return saved after the go-live instant counts even before the first demand,
+ * in the opening row at today's share %, so the Demand Record's returns match
+ * the Return Stock page from the go-live day.
  *
  * A row runs until the branch's NEXT demand, whatever its date, so the last row
  * of a branch stays open until that demand arrives. That is what keeps one
@@ -100,7 +104,7 @@ const ROWS_SQL = `
         on r.branch_id = w.branch_id and r.created_at > w.lo and (w.hi is null or r.created_at <= w.hi)
       left join public.products p on p.id = r.product_id
       ${UNIT_PRICE_LATERAL}
-     where w.order_id is not null and r.status::text = 'accepted' and r.created_at >= ${START_AT}
+     where r.status::text = 'accepted' and r.created_at >= ${START_AT}
      group by w.branch_id, w.order_id
   ),
   disc as (
@@ -325,7 +329,7 @@ export async function getDemandRecordDetail(branchId: string, orderId: string | 
   const win = (col: string) => `${col} > $3::timestamptz and ($4::timestamptz is null or ${col} <= $4::timestamptz) and ${col} >= ${START_AT}`;
   const args = [branchId, start, row.lo, row.hi] as const;
 
-  // The opening row counts Finance's entries only (see the header), so it lists nothing else.
+  // The opening row counts Finance's entries and returns only (see the header), so it lists nothing else.
   const counted = orderId !== null;
   const [lines, returns, discounts, payments, sales, adjustments] = await Promise.all([
     orderId
@@ -344,7 +348,7 @@ export async function getDemandRecordDetail(branchId: string, orderId: string | 
            where i.production_order_id = $1::uuid
            order by 1`, orderId)
       : Promise.resolve([]),
-    !counted ? Promise.resolve([]) : prisma.$queryRawUnsafe<DemandRecordDetail['returns']>(`
+    prisma.$queryRawUnsafe<DemandRecordDetail['returns']>(`
       select r.id::text as "id", to_char(r.business_date, 'YYYY-MM-DD') as "businessDate",
              coalesce(r.product_name, p.name) as "productName", r.qty::float8 as "qty",
              px.unit_price::float8 as "unitPrice", coalesce(round(r.qty * px.unit_price, 2), 0)::float8 as "amount",
