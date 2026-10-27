@@ -102,11 +102,20 @@ export const CreateFinanceTransactionSchema = z.object({
 // document, and the photos bound at creation stay bound. Rebinding on update
 // would let a rejected voucher swap its evidence for a different receipt before
 // coming back to the same approver.
-export const UpdateFinanceTransactionSchema = CreateFinanceTransactionSchema.partial().omit({
-  asDraft: true,
-  confirmDuplicate: true,
-  attachmentIds: true,
-});
+export const UpdateFinanceTransactionSchema = CreateFinanceTransactionSchema.partial()
+  .omit({
+    asDraft: true,
+    confirmDuplicate: true,
+    attachmentIds: true,
+  })
+  .extend({
+    /**
+     * Send a draft or a corrected rejected entry for approval in the same
+     * statement as the edit. Without it the edit is saved and the entry stays
+     * where it was — a rejected one keeps its remarks until it is resubmitted.
+     */
+    resubmit: z.boolean().optional(),
+  });
 
 // ---------------------------------------------------------------------------
 // Approvals — one shape reused by every document type
@@ -117,7 +126,7 @@ export const ApproveSchema = z.object({
 });
 
 export const RejectSchema = z.object({
-  reason: z.string().min(3, 'A reason is required').max(500),
+  reason: z.string().trim().min(3, 'A reason is required').max(500),
 });
 
 /**

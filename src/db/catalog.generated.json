@@ -2793,6 +2793,50 @@
    ],
    "refTable": "whatsapp_messages",
    "table": "whatsapp_outbox"
+  },
+  {
+   "columns": [
+    "resubmitted_by"
+   ],
+   "name": "cash_transfers_resubmitted_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "cash_transfers"
+  },
+  {
+   "columns": [
+    "rejected_by"
+   ],
+   "name": "finance_transactions_rejected_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "finance_transactions"
+  },
+  {
+   "columns": [
+    "submitted_by"
+   ],
+   "name": "finance_transactions_submitted_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "finance_transactions"
+  },
+  {
+   "columns": [
+    "updated_by"
+   ],
+   "name": "finance_transactions_updated_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "finance_transactions"
   }
  ],
  "functions": {
@@ -3455,6 +3499,37 @@
     ],
     "name": "approve_cash_transfer",
     "returnType": "public.cash_transfers",
+    "returns": "composite",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "approve_finance_transaction": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     },
+     {
+      "hasDefault": true,
+      "name": "p_note",
+      "type": "text"
+     }
+    ],
+    "name": "approve_finance_transaction",
+    "returnType": "public.finance_transactions",
     "returns": "composite",
     "returnsSet": false,
     "volatility": "v"
@@ -5620,6 +5695,62 @@
     "volatility": "v"
    }
   ],
+  "resubmit_cash_transfer": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_branch_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_cash",
+      "type": "numeric"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_easypaisa",
+      "type": "numeric"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_bank",
+      "type": "numeric"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_fuel",
+      "type": "numeric"
+     },
+     {
+      "hasDefault": true,
+      "name": "p_note",
+      "type": "text"
+     }
+    ],
+    "name": "resubmit_cash_transfer",
+    "returnType": "public.cash_transfers",
+    "returns": "composite",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
   "reverse_finance_ledger_entry": [
    {
     "args": [
@@ -6882,7 +7013,11 @@
     "bank_amount": "numeric",
     "fuel_charges": "numeric",
     "updated_by": "uuid",
-    "updated_by_name": "text"
+    "updated_by_name": "text",
+    "revision": "integer",
+    "resubmitted_at": "timestamp with time zone",
+    "resubmitted_by": "uuid",
+    "resubmitted_by_name": "text"
    },
    "pk": [
     "id"
@@ -7377,6 +7512,34 @@
     ]
    ]
   },
+  "finance_document_events": {
+   "columns": {
+    "id": "uuid",
+    "document_type": "text",
+    "document_id": "uuid",
+    "document_ref": "text",
+    "revision": "integer",
+    "event": "text",
+    "from_status": "text",
+    "to_status": "text",
+    "actor_id": "uuid",
+    "actor_name": "text",
+    "actor_role": "text",
+    "remarks": "text",
+    "changes": "jsonb",
+    "ledger_entry_id": "uuid",
+    "voucher_no": "text",
+    "created_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ]
+   ]
+  },
   "finance_employees": {
    "columns": {
     "id": "uuid",
@@ -7732,7 +7895,17 @@
     "deleted_by_name": "text",
     "delete_reason": "text",
     "deleted_query_id": "uuid",
-    "deleted_query_no": "text"
+    "deleted_query_no": "text",
+    "submitted_by": "uuid",
+    "submitted_by_name": "text",
+    "submitted_at": "timestamp with time zone",
+    "rejected_by": "uuid",
+    "rejected_by_name": "text",
+    "rejected_at": "timestamp with time zone",
+    "updated_by": "uuid",
+    "updated_by_name": "text",
+    "approval_note": "text",
+    "revision": "integer"
    },
    "pk": [
     "id"

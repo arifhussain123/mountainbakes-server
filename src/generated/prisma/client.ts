@@ -599,3 +599,9 @@ export type branch_account_adjustments = Prisma.branch_account_adjustmentsModel
  * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
  */
 export type production_order_share_snapshots = Prisma.production_order_share_snapshotsModel
+/**
+ * Model finance_document_events
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ * This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+ */
+export type finance_document_events = Prisma.finance_document_eventsModel

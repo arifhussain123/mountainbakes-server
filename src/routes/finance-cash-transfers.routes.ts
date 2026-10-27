@@ -18,6 +18,7 @@ import {
   summarizeCashTransfers,
   type CashTransferFilters,
 } from '../services/cash-transfers.service';
+import { getDocumentHistory } from '../services/finance-documents.service';
 import { logFinanceAudit } from '../services/finance-audit.service';
 import { getMissingDailyTransfers } from '../services/cash-transfer-missing.service';
 
@@ -123,6 +124,18 @@ router.get('/:id', requireFinance('view'), async (req: AuthRequest, res, next) =
     const transfer = await getCashTransfer(String(req.params['id']));
     if (!transfer) { res.status(404).json({ error: 'Cash transfer not found' }); return; }
     res.json(transfer);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/finance/cash-transfers/:id/history — every submission, rejection,
+// resubmission and approval of the deposit, oldest first.
+router.get('/:id/history', requireFinance('view'), async (req: AuthRequest, res, next) => {
+  try {
+    const id = String(req.params['id']);
+    if (!(await getCashTransfer(id))) { res.status(404).json({ error: 'Cash transfer not found' }); return; }
+    res.json({ events: await getDocumentHistory('cash_transfer', id) });
   } catch (err) {
     next(err);
   }

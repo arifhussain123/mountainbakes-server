@@ -158,7 +158,8 @@ export const ModelName = {
   whatsapp_outbox: 'whatsapp_outbox',
   whatsapp_webhook_events: 'whatsapp_webhook_events',
   branch_account_adjustments: 'branch_account_adjustments',
-  production_order_share_snapshots: 'production_order_share_snapshots'
+  production_order_share_snapshots: 'production_order_share_snapshots',
+  finance_document_events: 'finance_document_events'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -438,7 +439,11 @@ export const Cash_transfersScalarFieldEnum = {
   bank_amount: 'bank_amount',
   fuel_charges: 'fuel_charges',
   updated_by: 'updated_by',
-  updated_by_name: 'updated_by_name'
+  updated_by_name: 'updated_by_name',
+  revision: 'revision',
+  resubmitted_at: 'resubmitted_at',
+  resubmitted_by: 'resubmitted_by',
+  resubmitted_by_name: 'resubmitted_by_name'
 } as const
 
 export type Cash_transfersScalarFieldEnum = (typeof Cash_transfersScalarFieldEnum)[keyof typeof Cash_transfersScalarFieldEnum]
@@ -1038,7 +1043,17 @@ export const Finance_transactionsScalarFieldEnum = {
   deleted_by_name: 'deleted_by_name',
   delete_reason: 'delete_reason',
   deleted_query_id: 'deleted_query_id',
-  deleted_query_no: 'deleted_query_no'
+  deleted_query_no: 'deleted_query_no',
+  submitted_by: 'submitted_by',
+  submitted_by_name: 'submitted_by_name',
+  submitted_at: 'submitted_at',
+  rejected_by: 'rejected_by',
+  rejected_by_name: 'rejected_by_name',
+  rejected_at: 'rejected_at',
+  updated_by: 'updated_by',
+  updated_by_name: 'updated_by_name',
+  approval_note: 'approval_note',
+  revision: 'revision'
 } as const
 
 export type Finance_transactionsScalarFieldEnum = (typeof Finance_transactionsScalarFieldEnum)[keyof typeof Finance_transactionsScalarFieldEnum]
@@ -2515,6 +2530,28 @@ export const Production_order_share_snapshotsScalarFieldEnum = {
 } as const
 
 export type Production_order_share_snapshotsScalarFieldEnum = (typeof Production_order_share_snapshotsScalarFieldEnum)[keyof typeof Production_order_share_snapshotsScalarFieldEnum]
+
+
+export const Finance_document_eventsScalarFieldEnum = {
+  id: 'id',
+  document_type: 'document_type',
+  document_id: 'document_id',
+  document_ref: 'document_ref',
+  revision: 'revision',
+  event: 'event',
+  from_status: 'from_status',
+  to_status: 'to_status',
+  actor_id: 'actor_id',
+  actor_name: 'actor_name',
+  actor_role: 'actor_role',
+  remarks: 'remarks',
+  changes: 'changes',
+  ledger_entry_id: 'ledger_entry_id',
+  voucher_no: 'voucher_no',
+  created_at: 'created_at'
+} as const
+
+export type Finance_document_eventsScalarFieldEnum = (typeof Finance_document_eventsScalarFieldEnum)[keyof typeof Finance_document_eventsScalarFieldEnum]
 
 
 export const SortOrder = {

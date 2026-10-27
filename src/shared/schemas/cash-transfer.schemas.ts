@@ -91,6 +91,37 @@ export const RejectCashTransferSchema = z.object({
   reason: z.string().trim().min(3, 'Say why this transfer is refused').max(500),
 });
 
+/**
+ * A branch correcting a REJECTED deposit and sending the same CT- back. No
+ * branch and no business date: a rejection does not move a deposit to another
+ * branch or day. The slip photo already on it stays (it is the evidence the
+ * rejection was about); a new photo is added beside it, not instead of it.
+ */
+export const ResubmitCashTransferSchema = z
+  .object({
+    cashAmount: channelAmount.default(0),
+    easypaisaAmount: channelAmount.default(0),
+    bankAmount: channelAmount.default(0),
+    fuelCharges: channelAmount.default(0),
+    totalAmount: z.number().optional(),
+    note: z.string().trim().max(500).optional(),
+    attachmentIds: optionalAttachmentIds,
+  })
+  .superRefine((v, ctx) => {
+    const total = cashTransferTotal(v);
+    if (total <= 0 && v.fuelCharges <= 0) {
+      ctx.addIssue({ code: 'custom', path: ['cashAmount'], message: 'Enter at least one amount greater than 0' });
+    }
+    if (v.totalAmount !== undefined && Math.round(v.totalAmount * 100) !== Math.round(total * 100)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['totalAmount'],
+        message: 'Total Amount must equal Cash + Easypaisa + Bank',
+      });
+    }
+  });
+
 export type CreateCashTransferInput = z.infer<typeof CreateCashTransferSchema>;
+export type ResubmitCashTransferInput = z.infer<typeof ResubmitCashTransferSchema>;
 export type ApproveCashTransferInput = z.infer<typeof ApproveCashTransferSchema>;
 export type RejectCashTransferInput = z.infer<typeof RejectCashTransferSchema>;
