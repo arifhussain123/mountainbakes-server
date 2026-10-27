@@ -205,6 +205,62 @@ export interface DemandRecordDetail {
   adjustments: BranchAccountAdjustment[];
 }
 
+/**
+ * Month-end statement: one branch's month on one page, for sign-off.
+ *
+ * Payment is the Demand Record over the month (rows by their business date,
+ * balances read off the rows either side), so it agrees with the Demand Record
+ * page filtered to the same dates. Stock is the branch stock ledger over the
+ * same business days, valued at today's product prices as the Stock page is.
+ * `pending` is what is not decided yet and will still move the figures:
+ * returns Production has not accepted, and deposits Finance has not approved.
+ */
+export interface MonthStatementStock {
+  openingQty: number; openingAmount: number;
+  newQty: number; newAmount: number;
+  soldQty: number; soldAmount: number;
+  returnedQty: number; returnedAmount: number;
+  /** Signed: the direction is the information. */
+  adjustmentQty: number; adjustmentAmount: number;
+  closingQty: number; closingAmount: number;
+}
+
+export interface MonthStatementBranch {
+  branchId: string;
+  branchName: string;
+  payment: {
+    openingBalance: number;
+    delivered: number;
+    returns: number;
+    discount: number;
+    gTotal: number;
+    companyShare: number;
+    adjustments: number;
+    received: number;
+    closingBalance: number;
+    demands: number;
+    /** The branch's last demand of the month is still open: later returns and deposits land in it. */
+    lastRowOpen: boolean;
+  };
+  stock: MonthStatementStock;
+  pending: {
+    returns: { count: number; amount: number };
+    deposits: { count: number; amount: number };
+  };
+}
+
+export interface MonthStatement {
+  /** 'YYYY-MM'. */
+  month: string;
+  /** The days covered: the month, clamped to the Demand Record start and to today. */
+  from: string;
+  to: string;
+  /** False while the month is still running. */
+  complete: boolean;
+  start: string;
+  branches: MonthStatementBranch[];
+}
+
 export interface BranchAccountAdjustment {
   id: string;
   branchId: string;

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { BRANCH_ROLES } from '../shared';
-import { getDemandRecord, getDemandRecordDetail, getLedgerStart } from '../services/branch-account.service';
+import { getDemandRecord, getDemandRecordDetail, getLedgerStart, getMonthStatement } from '../services/branch-account.service';
 
 /**
  * /api/branch-account — a branch's OWN Demand Record, read-only. The same rows
@@ -59,6 +59,16 @@ router.get('/', async (req: AuthRequest, res, next) => {
       page: q['page'] ? Number(q['page']) : undefined,
       pageSize: q['pageSize'] ? Number(q['pageSize']) : undefined,
     }));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /statement?month=YYYY-MM — the branch's own month-end statement
+router.get('/statement', async (req: AuthRequest, res, next) => {
+  try {
+    const month = typeof req.query['month'] === 'string' ? req.query['month'] : '';
+    res.json(await getMonthStatement(month, ownBranch(req)));
   } catch (err) {
     next(err);
   }
