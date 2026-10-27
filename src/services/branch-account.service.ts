@@ -11,6 +11,9 @@ import {
   type DemandRecordDetail,
   type DemandRecordResult,
   type DemandRecordRow,
+  type MonthStatement,
+  type MonthStatementBranch,
+  type MonthStatementStock,
 } from '../shared';
 import { priceOnDateLateral, UNIT_PRICE_LATERAL } from './returns-summary.service';
 
@@ -284,6 +287,164 @@ export async function getDemandRecord(q: DemandRecordQuery): Promise<DemandRecor
     branches: balances,
     pagination: { page, pageSize, total, totalPages },
   };
+}
+
+// ---------------------------------------------------------------------------
+// Month-end statement
+// ---------------------------------------------------------------------------
+
+/**
+ * Stock over a run of business days, per branch, summed in Postgres: the
+ * ledger can hold tens of thousands of movements a month, far past what one
+ * row read returns. Closing is the live balance with every later movement
+ * taken back off, opening is closing less the days' net, and both are valued
+ * at today's product price per product, as the Stock page values them.
+ * $1 branch (null: every active branch), $2 first day, $3 last day.
+ */
+const STOCK_SQL = `
+  with br as (
+    select b.id from public.branches b where ($1::uuid is null and b.is_active) or b.id = $1::uuid
+  ),
+  mv as (
+    select h.branch_id, h.product_id,
+           coalesce(sum(h.delta) filter (where h.business_date > $3::date), 0) as later,
+           coalesce(sum(h.delta) filter (where h.business_date <= $3::date), 0) as net,
+           coalesce(sum(h.delta) filter (where h.business_date <= $3::date and h.type::text = 'production'), 0) as new_qty,
+           -coalesce(sum(h.delta) filter (where h.business_date <= $3::date and h.type::text = 'sale'), 0) as sold_qty,
+           -coalesce(sum(h.delta) filter (where h.business_date <= $3::date and h.type::text = 'return'), 0) as returned_qty,
+           coalesce(sum(h.delta) filter (where h.business_date <= $3::date and h.type::text = 'adjustment'), 0) as adj_qty
+      from public.stock_history h
+      join br on br.id = h.branch_id
+     where h.business_date >= $2::date
+     group by h.branch_id, h.product_id
+  ),
+  st as (
+    select s.branch_id, s.product_id, s.balance from public.stock s join br on br.id = s.branch_id
+  ),
+  pp as (
+    select coalesce(st.branch_id, mv.branch_id) as branch_id,
+           coalesce(st.product_id, mv.product_id) as product_id,
+           coalesce(st.balance, 0) - coalesce(mv.later, 0) as closing,
+           coalesce(mv.net, 0) as net,
+           coalesce(mv.new_qty, 0) as new_qty, coalesce(mv.sold_qty, 0) as sold_qty,
+           coalesce(mv.returned_qty, 0) as returned_qty, coalesce(mv.adj_qty, 0) as adj_qty
+      from st full outer join mv on mv.branch_id = st.branch_id and mv.product_id = st.product_id
+  )
+  select pp.branch_id::text                                          as "branchId",
+         sum(pp.closing - pp.net)::float8                            as "openingQty",
+         sum((pp.closing - pp.net) * coalesce(p.price, 0))::float8   as "openingAmount",
+         sum(pp.new_qty)::float8                                     as "newQty",
+         sum(pp.new_qty * coalesce(p.price, 0))::float8              as "newAmount",
+         sum(pp.sold_qty)::float8                                    as "soldQty",
+         sum(pp.sold_qty * coalesce(p.price, 0))::float8             as "soldAmount",
+         sum(pp.returned_qty)::float8                                as "returnedQty",
+         sum(pp.returned_qty * coalesce(p.price, 0))::float8         as "returnedAmount",
+         sum(pp.adj_qty)::float8                                     as "adjustmentQty",
+         sum(pp.adj_qty * coalesce(p.price, 0))::float8              as "adjustmentAmount",
+         sum(pp.closing)::float8                                     as "closingQty",
+         sum(pp.closing * coalesce(p.price, 0))::float8              as "closingAmount"
+    from pp
+    left join public.products p on p.id = pp.product_id
+   group by pp.branch_id
+`;
+
+/**
+ * What is still undecided in the month and will move its figures: returns not
+ * accepted yet (pending, or sent back to the branch) at the Return Summary's
+ * price, and deposits not approved yet. $1 branch, $2 first day, $3 last day.
+ */
+const PENDING_SQL = `
+  with br as (
+    select b.id from public.branches b where ($1::uuid is null and b.is_active) or b.id = $1::uuid
+  )
+  select br.id::text as "branchId",
+         (select count(*) from public.production_returns r
+           where r.branch_id = br.id and r.status::text in ('pending', 'returned')
+             and r.business_date between $2::date and $3::date)::int as "returnsCount",
+         (select coalesce(sum(round(r.qty * px.unit_price, 2)), 0) from public.production_returns r
+            left join public.products p on p.id = r.product_id
+            ${UNIT_PRICE_LATERAL}
+           where r.branch_id = br.id and r.status::text in ('pending', 'returned')
+             and r.business_date between $2::date and $3::date)::float8 as "returnsAmount",
+         (select count(*) from public.cash_transfers t
+           where t.branch_id = br.id and t.status::text = 'pending' and t.deleted_at is null
+             and t.business_date between $2::date and $3::date)::int as "depositsCount",
+         (select coalesce(sum(t.amount), 0) from public.cash_transfers t
+           where t.branch_id = br.id and t.status::text = 'pending' and t.deleted_at is null
+             and t.business_date between $2::date and $3::date)::float8 as "depositsAmount"
+    from br
+`;
+
+const MONTH = /^(\d{4})-(0[1-9]|1[0-2])$/;
+
+/**
+ * One month for every active branch (or one branch): its payment from the
+ * Demand Record and its stock from the ledger, side by side. A month before
+ * the go-live day, or after today, is refused; the running month is given up
+ * to today and marked incomplete.
+ */
+export async function getMonthStatement(month: string, branchId: string | null): Promise<MonthStatement> {
+  const m = MONTH.exec(month);
+  if (!m) throw httpError(400, 'month must be YYYY-MM');
+  const start = await requireLedgerStart();
+  const today = businessDateStr();
+  const first = `${month}-01`;
+  const last = new Date(Date.UTC(Number(m[1]), Number(m[2]), 0)).toISOString().slice(0, 10);
+  if (last < start) throw httpError(400, `The Demand Record starts on ${start}; there is no statement for ${month}.`);
+  if (first > today) throw httpError(400, `${month} has not started yet.`);
+  const from = first > start ? first : start;
+  const to = last < today ? last : today;
+
+  const prisma = getPrisma();
+  const [period, stockRows, pendingRows, names] = await Promise.all([
+    loadPeriod({ branchId, from, to }, start),
+    prisma.$queryRawUnsafe<(MonthStatementStock & { branchId: string })[]>(STOCK_SQL, branchId, from, to),
+    prisma.$queryRawUnsafe<{ branchId: string; returnsCount: number; returnsAmount: number; depositsCount: number; depositsAmount: number }[]>(
+      PENDING_SQL, branchId, from, to),
+    prisma.$queryRawUnsafe<{ id: string; name: string }[]>(
+      `select id::text as id, name from public.branches where ($1::uuid is null and is_active) or id = $1::uuid order by name`, branchId),
+  ]);
+
+  const zeroStock: MonthStatementStock = {
+    openingQty: 0, openingAmount: 0, newQty: 0, newAmount: 0, soldQty: 0, soldAmount: 0,
+    returnedQty: 0, returnedAmount: 0, adjustmentQty: 0, adjustmentAmount: 0, closingQty: 0, closingAmount: 0,
+  };
+  const stockBy = new Map(stockRows.map((r) => [r.branchId, r]));
+  const pendingBy = new Map(pendingRows.map((r) => [r.branchId, r]));
+  const balanceBy = new Map(period.balances.map((b) => [b.branchId, b]));
+
+  const branches: MonthStatementBranch[] = names.map(({ id, name }) => {
+    const rows = period.inPeriod.filter((r) => r.branchId === id);
+    const bal = balanceBy.get(id) ?? { openingBalance: 0, closingBalance: 0 };
+    const t = totalBranchAccount(rows, [bal]);
+    const { branchId: _b, ...stock } = stockBy.get(id) ?? { branchId: id, ...zeroStock };
+    for (const k of Object.keys(stock) as (keyof MonthStatementStock)[]) stock[k] = toPaisa(stock[k]);
+    const p = pendingBy.get(id);
+    return {
+      branchId: id,
+      branchName: name,
+      payment: {
+        openingBalance: t.openingBalance,
+        delivered: t.delivered,
+        returns: t.returns,
+        discount: t.discount,
+        gTotal: t.gTotal,
+        companyShare: t.companyShare,
+        adjustments: t.adjustments,
+        received: t.received,
+        closingBalance: t.closingBalance,
+        demands: rows.filter((r) => r.orderId !== null).length,
+        lastRowOpen: rows.length > 0 && rows[rows.length - 1]!.open,
+      },
+      stock,
+      pending: {
+        returns: { count: p?.returnsCount ?? 0, amount: toPaisa(p?.returnsAmount ?? 0) },
+        deposits: { count: p?.depositsCount ?? 0, amount: toPaisa(p?.depositsAmount ?? 0) },
+      },
+    };
+  });
+
+  return { month, from, to, complete: last < today, start, branches };
 }
 
 /**

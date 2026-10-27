@@ -47,10 +47,12 @@ const table = (name: string) => lift(`CREATE TABLE public.${name} (`, '\n);');
 const TYPES = [
   'price_change_source', 'price_change_status', 'branch_production_order_status', 'production_return_disposition',
   'production_return_status', 'branch_discount_status', 'cash_transfer_status', 'order_status', 'payment_method',
+  'stock_movement_type',
 ];
 const TABLES = [
   'branches', 'products', 'product_price_history', 'production_orders', 'production_order_items',
   'production_returns', 'branch_discounts', 'cash_transfers', 'orders', 'finance_settings', 'finance_audit_logs',
+  'stock', 'stock_history',
 ];
 
 const STUBS = `
@@ -153,6 +155,11 @@ async function transfer(branch: string, amount: number, status: 'approved' | 'pe
              case when $4 = 'approved' then gen_random_uuid() end, case when $4 = 'approved' then $3::timestamptz end,
              case when $5 then now() end)`, [branch, amount, createdAt, status, deleted]);
 }
+async function movement(branch: string, type: string, businessDate: string, delta: number) {
+  await db.query(
+    `insert into stock_history (branch_id, product_id, product_name, type, delta, balance_after, ref_id, business_date)
+     values ($1, $2, 'Bun', $3::stock_movement_type, $4, 0, gen_random_uuid()::text, $5)`, [branch, BUN, type, delta, businessDate]);
+}
 async function sale(branch: string, amount: number, method: string, status: string, createdAt: string) {
   await db.query(
     `insert into orders (order_number, branch_id, subtotal, grand_total, payment_method, status, business_date, created_at)
@@ -230,6 +237,17 @@ before(async () => {
   await discount(ALPHA, ORD.d0, 30, 'approved', '2026-09-13T10:00:00+05'); // against a pre-go-live demand → by time → D2
   await discount(ALPHA, ORD.d1, 40, 'pending', '2026-09-06T10:00:00+05');  // not approved → nowhere
 
+  // Alpha's Bun stock ledger, for the month-end statement: 3 carried in from
+  // August, September +10 −4 sold −1 returned −1 corrected, −2 sold in October,
+  // so 5 on hand today.
+  await movement(ALPHA, 'production', '2026-08-20', 3);
+  await movement(ALPHA, 'production', '2026-09-02', 10);
+  await movement(ALPHA, 'sale', '2026-09-03', -4);
+  await movement(ALPHA, 'return', '2026-09-03', -1);
+  await movement(ALPHA, 'adjustment', '2026-09-15', -1);
+  await movement(ALPHA, 'sale', '2026-10-02', -2);
+  await db.query(`insert into stock (branch_id, product_id, product_name, balance) values ($1, $2, 'Bun', 5)`, [ALPHA, BUN]);
+
   await usePglite(db);
   const prisma = new PrismaClient({ adapter: new PrismaPGlite(db) });
   setPrisma(prisma);
@@ -245,11 +263,13 @@ before(async () => {
 
   const express = (await import('express')).default;
   const { router } = await import('../../routes/finance-branch-account.routes');
+  const { router: branchRouter } = await import('../../routes/branch-account.routes');
   const { router: reportsRouter } = await import('../../routes/production-reports.routes');
   const { errorHandler } = await import('../../middleware/errorHandler');
   const app = express();
   app.use(express.json());
   app.use(API, router);
+  app.use('/api/branch-account', branchRouter);
   app.use('/api/production-reports', reportsRouter);
   app.use(errorHandler);
   server = app.listen(0);
@@ -367,6 +387,41 @@ test('rows, shares and the carried balance match the hand-worked figures', async
   assert.equal(d2.previousBalance, 1180);
   assert.equal(d2.closingBalance, 1579);
   assert.equal(d2.open, true);
+});
+
+test('the month-end statement puts the month\'s payment and stock side by side', async () => {
+  const s = ok(await call('accountant', 'GET', `${API}/statement?month=2026-09`));
+  assert.equal(s.from, '2026-09-01');
+  assert.equal(s.to, '2026-09-30');
+  assert.equal(s.complete, true);
+  assert.deepEqual(s.branches.map((b: Json) => b.branchName), ['Alpha', 'Beta']);
+  const [alpha, beta] = s.branches;
+
+  // The Demand Record over September, as the rows test worked it out.
+  assert.deepEqual(alpha.payment, {
+    openingBalance: 0, delivered: 1600, returns: 100, discount: 80, gTotal: 1420, companyShare: 1079,
+    adjustments: 1000, received: 500, closingBalance: 1579, demands: 2, lastRowOpen: true,
+  });
+  // The ledger over September at today's Rs. 120: opening 3, +10 −4 −1 −1 → 7.
+  assert.deepEqual(alpha.stock, {
+    openingQty: 3, openingAmount: 360, newQty: 10, newAmount: 1200, soldQty: 4, soldAmount: 480,
+    returnedQty: 1, returnedAmount: 120, adjustmentQty: -1, adjustmentAmount: -120, closingQty: 7, closingAmount: 840,
+  });
+  // Not decided yet: the pending return (5 × Rs. 100 on 09-04) and the pending deposit.
+  assert.deepEqual(alpha.pending, { returns: { count: 1, amount: 500 }, deposits: { count: 1, amount: 800 } });
+
+  assert.equal(beta.payment.demands, 1);
+  assert.equal(beta.stock.closingQty, 0);
+
+  // A branch reads its own statement only, whatever it asks for.
+  const own = ok(await call('branch', 'GET', `/api/branch-account/statement?month=2026-09&branchId=${BETA}`));
+  assert.deepEqual(own.branches.map((b: Json) => b.branchName), ['Alpha']);
+  assert.deepEqual(own.branches[0].payment, alpha.payment);
+  assert.equal((await call('branch', 'GET', `${API}/statement?month=2026-09`)).status, 403);
+
+  for (const month of ['2026-08', '2999-01', '2026-13', 'sept']) {
+    assert.equal((await call('accountant', 'GET', `${API}/statement?month=${month}`)).status, 400, month);
+  }
 });
 
 test('Test 8 — later price and % changes leave recorded demands as they were', async () => {

@@ -11,6 +11,7 @@ import {
   getDemandRecord,
   getDemandRecordDetail,
   getLedgerStart,
+  getMonthStatement,
   listAdjustments,
   postAdjustment,
   reverseAdjustment,
@@ -92,6 +93,16 @@ router.get('/', requireFinance('view'), async (req, res, next) => {
       page: q['page'] ? Number(q['page']) : undefined,
       pageSize: q['pageSize'] ? Number(q['pageSize']) : undefined,
     }));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /statement?month=YYYY-MM&branchId=  (no branchId: every active branch)
+router.get('/statement', requireFinance('view'), async (req, res, next) => {
+  try {
+    const q = req.query as Record<string, string | undefined>;
+    res.json(await getMonthStatement(q['month'] ?? '', optionalUuid(q['branchId'], 'branchId')));
   } catch (err) {
     next(err);
   }
