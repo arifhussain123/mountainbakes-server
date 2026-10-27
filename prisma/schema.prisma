@@ -314,44 +314,49 @@ model business_day_closures {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model cash_transfers {
-  id                                      String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  transfer_no                             String               @unique @default(dbgenerated("app.next_finance_number('cash_transfer'::text, 'CT'::text)"))
-  branch_id                               String               @db.Uuid
-  branch_name                             String
-  amount                                  Decimal              @db.Decimal(14, 2)
-  payment_method                          String?
-  note                                    String?
-  business_date                           DateTime             @db.Date
-  status                                  cash_transfer_status @default(pending)
-  created_by                              String?              @db.Uuid
-  created_by_name                         String?
-  approved_by                             String?              @db.Uuid
-  approved_by_name                        String?
-  approved_at                             DateTime?            @db.Timestamptz(6)
-  approval_note                           String?
-  rejection_reason                        String?
-  ledger_entry_id                         String?              @db.Uuid
-  voucher_no                              String?
-  created_at                              DateTime             @default(now()) @db.Timestamptz(6)
-  updated_at                              DateTime             @default(now()) @db.Timestamptz(6)
-  deleted_at                              DateTime?            @db.Timestamptz(6)
-  deleted_by                              String?              @db.Uuid
-  deleted_by_name                         String?
-  delete_reason                           String?
-  deleted_query_id                        String?              @db.Uuid
-  deleted_query_no                        String?
-  cash_amount                             Decimal              @default(0) @db.Decimal(14, 2)
-  easypaisa_amount                        Decimal              @default(0) @db.Decimal(14, 2)
-  bank_amount                             Decimal              @default(0) @db.Decimal(14, 2)
-  fuel_charges                            Decimal              @default(0) @db.Decimal(14, 2)
-  updated_by                              String?              @db.Uuid
-  updated_by_name                         String?
-  users_cash_transfers_approved_byTousers users?               @relation("cash_transfers_approved_byTousers", fields: [approved_by], references: [id], onUpdate: NoAction)
-  branches                                branches             @relation(fields: [branch_id], references: [id], onUpdate: NoAction)
-  users_cash_transfers_created_byTousers  users?               @relation("cash_transfers_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
-  users_cash_transfers_deleted_byTousers  users?               @relation("cash_transfers_deleted_byTousers", fields: [deleted_by], references: [id], onUpdate: NoAction)
-  ledger_entries                          ledger_entries?      @relation(fields: [ledger_entry_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
-  users_cash_transfers_updated_byTousers  users?               @relation("cash_transfers_updated_byTousers", fields: [updated_by], references: [id], onUpdate: NoAction)
+  id                                         String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  transfer_no                                String               @unique @default(dbgenerated("app.next_finance_number('cash_transfer'::text, 'CT'::text)"))
+  branch_id                                  String               @db.Uuid
+  branch_name                                String
+  amount                                     Decimal              @db.Decimal(14, 2)
+  payment_method                             String?
+  note                                       String?
+  business_date                              DateTime             @db.Date
+  status                                     cash_transfer_status @default(pending)
+  created_by                                 String?              @db.Uuid
+  created_by_name                            String?
+  approved_by                                String?              @db.Uuid
+  approved_by_name                           String?
+  approved_at                                DateTime?            @db.Timestamptz(6)
+  approval_note                              String?
+  rejection_reason                           String?
+  ledger_entry_id                            String?              @db.Uuid
+  voucher_no                                 String?
+  created_at                                 DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at                                 DateTime             @default(now()) @db.Timestamptz(6)
+  deleted_at                                 DateTime?            @db.Timestamptz(6)
+  deleted_by                                 String?              @db.Uuid
+  deleted_by_name                            String?
+  delete_reason                              String?
+  deleted_query_id                           String?              @db.Uuid
+  deleted_query_no                           String?
+  cash_amount                                Decimal              @default(0) @db.Decimal(14, 2)
+  easypaisa_amount                           Decimal              @default(0) @db.Decimal(14, 2)
+  bank_amount                                Decimal              @default(0) @db.Decimal(14, 2)
+  fuel_charges                               Decimal              @default(0) @db.Decimal(14, 2)
+  updated_by                                 String?              @db.Uuid
+  updated_by_name                            String?
+  revision                                   Int                  @default(1)
+  resubmitted_at                             DateTime?            @db.Timestamptz(6)
+  resubmitted_by                             String?              @db.Uuid
+  resubmitted_by_name                        String?
+  users_cash_transfers_approved_byTousers    users?               @relation("cash_transfers_approved_byTousers", fields: [approved_by], references: [id], onUpdate: NoAction)
+  branches                                   branches             @relation(fields: [branch_id], references: [id], onUpdate: NoAction)
+  users_cash_transfers_created_byTousers     users?               @relation("cash_transfers_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
+  users_cash_transfers_deleted_byTousers     users?               @relation("cash_transfers_deleted_byTousers", fields: [deleted_by], references: [id], onUpdate: NoAction)
+  ledger_entries                             ledger_entries?      @relation(fields: [ledger_entry_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  users_cash_transfers_resubmitted_byTousers users?               @relation("cash_transfers_resubmitted_byTousers", fields: [resubmitted_by], references: [id], onUpdate: NoAction)
+  users_cash_transfers_updated_byTousers     users?               @relation("cash_transfers_updated_byTousers", fields: [updated_by], references: [id], onUpdate: NoAction)
 
   @@index([branch_id, business_date(sort: Desc)], map: "cash_transfers_branch_idx")
   @@index([business_date(sort: Desc)], map: "cash_transfers_date_idx")
@@ -1022,48 +1027,62 @@ model finance_tickets {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model finance_transactions {
-  id                                            String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  txn_no                                        String             @unique @default(dbgenerated("app.next_finance_number('finance_txn'::text, 'FTX'::text)"))
-  txn_type                                      ledger_head_type
-  ledger_head_id                                String             @db.Uuid
-  ledger_head_name                              String
-  branch_id                                     String?            @db.Uuid
-  branch_name                                   String?
-  description                                   String
-  amount                                        Decimal            @db.Decimal(14, 2)
-  payment_method                                String
-  account                                       finance_account
-  business_date                                 DateTime           @db.Date
-  status                                        finance_doc_status @default(pending_approval)
-  reference_no                                  String?
-  notes                                         String?
-  created_by                                    String?            @db.Uuid
-  created_by_name                               String?
-  approved_by                                   String?            @db.Uuid
-  approved_by_name                              String?
-  approved_at                                   DateTime?          @db.Timestamptz(6)
-  rejection_reason                              String?
-  ledger_entry_id                               String?            @db.Uuid
-  created_at                                    DateTime           @default(now()) @db.Timestamptz(6)
-  updated_at                                    DateTime           @default(now()) @db.Timestamptz(6)
-  deleted_at                                    DateTime?          @db.Timestamptz(6)
-  deleted_by                                    String?            @db.Uuid
-  deleted_by_name                               String?
-  delete_reason                                 String?
-  deleted_query_id                              String?            @db.Uuid
-  deleted_query_no                              String?
-  users_finance_transactions_approved_byTousers users?             @relation("finance_transactions_approved_byTousers", fields: [approved_by], references: [id], onUpdate: NoAction)
-  branches                                      branches?          @relation(fields: [branch_id], references: [id], onUpdate: NoAction)
-  users_finance_transactions_created_byTousers  users?             @relation("finance_transactions_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
-  users_finance_transactions_deleted_byTousers  users?             @relation("finance_transactions_deleted_byTousers", fields: [deleted_by], references: [id], onUpdate: NoAction)
-  ledger_entries                                ledger_entries?    @relation(fields: [ledger_entry_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
-  ledger_heads                                  ledger_heads       @relation(fields: [ledger_head_id], references: [id], onUpdate: NoAction)
+  id                                             String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  txn_no                                         String             @unique @default(dbgenerated("app.next_finance_number('finance_txn'::text, 'FTX'::text)"))
+  txn_type                                       ledger_head_type
+  ledger_head_id                                 String             @db.Uuid
+  ledger_head_name                               String
+  branch_id                                      String?            @db.Uuid
+  branch_name                                    String?
+  description                                    String
+  amount                                         Decimal            @db.Decimal(14, 2)
+  payment_method                                 String
+  account                                        finance_account
+  business_date                                  DateTime           @db.Date
+  status                                         finance_doc_status @default(pending_approval)
+  reference_no                                   String?
+  notes                                          String?
+  created_by                                     String?            @db.Uuid
+  created_by_name                                String?
+  approved_by                                    String?            @db.Uuid
+  approved_by_name                               String?
+  approved_at                                    DateTime?          @db.Timestamptz(6)
+  rejection_reason                               String?
+  ledger_entry_id                                String?            @unique(map: "finance_transactions_ledger_entry_key", where: raw("(ledger_entry_id IS NOT NULL)")) @db.Uuid
+  created_at                                     DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at                                     DateTime           @default(now()) @db.Timestamptz(6)
+  deleted_at                                     DateTime?          @db.Timestamptz(6)
+  deleted_by                                     String?            @db.Uuid
+  deleted_by_name                                String?
+  delete_reason                                  String?
+  deleted_query_id                               String?            @db.Uuid
+  deleted_query_no                               String?
+  submitted_by                                   String?            @db.Uuid
+  submitted_by_name                              String?
+  submitted_at                                   DateTime?          @db.Timestamptz(6)
+  rejected_by                                    String?            @db.Uuid
+  rejected_by_name                               String?
+  rejected_at                                    DateTime?          @db.Timestamptz(6)
+  updated_by                                     String?            @db.Uuid
+  updated_by_name                                String?
+  approval_note                                  String?
+  revision                                       Int                @default(1)
+  users_finance_transactions_approved_byTousers  users?             @relation("finance_transactions_approved_byTousers", fields: [approved_by], references: [id], onUpdate: NoAction)
+  branches                                       branches?          @relation(fields: [branch_id], references: [id], onUpdate: NoAction)
+  users_finance_transactions_created_byTousers   users?             @relation("finance_transactions_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
+  users_finance_transactions_deleted_byTousers   users?             @relation("finance_transactions_deleted_byTousers", fields: [deleted_by], references: [id], onUpdate: NoAction)
+  ledger_entries                                 ledger_entries?    @relation(fields: [ledger_entry_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  ledger_heads                                   ledger_heads       @relation(fields: [ledger_head_id], references: [id], onUpdate: NoAction)
+  users_finance_transactions_rejected_byTousers  users?             @relation("finance_transactions_rejected_byTousers", fields: [rejected_by], references: [id], onUpdate: NoAction)
+  users_finance_transactions_submitted_byTousers users?             @relation("finance_transactions_submitted_byTousers", fields: [submitted_by], references: [id], onUpdate: NoAction)
+  users_finance_transactions_updated_byTousers   users?             @relation("finance_transactions_updated_byTousers", fields: [updated_by], references: [id], onUpdate: NoAction)
 
   @@index([deleted_at], map: "finance_transactions_live_idx", where: raw("(deleted_at IS NULL)"))
   @@index([branch_id, business_date(sort: Desc), created_at(sort: Desc)], map: "finance_txn_branch_date_idx", where: raw("((branch_id IS NOT NULL) AND (deleted_at IS NULL))"))
   @@index([business_date(sort: Desc), created_at(sort: Desc)], map: "finance_txn_date_idx")
   @@index([ledger_head_id], map: "finance_txn_head_idx")
   @@index([status, business_date(sort: Desc)], map: "finance_txn_status_idx")
+  @@index([submitted_at], map: "finance_transactions_queue_idx", where: raw("((status = 'pending_approval'::finance_doc_status) AND (deleted_at IS NULL))"))
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -1151,7 +1170,7 @@ model ledger_entries {
   branch_share_payments_branch_share_payments_ledger_entry_idToledger_entries       branch_share_payments[] @relation("branch_share_payments_ledger_entry_idToledger_entries")
   cash_transfers                                                                    cash_transfers[]
   employee_advances                                                                 employee_advances[]
-  finance_transactions                                                              finance_transactions[]
+  finance_transactions                                                              finance_transactions?
   users_ledger_entries_approved_byTousers                                           users?                  @relation("ledger_entries_approved_byTousers", fields: [approved_by], references: [id], onUpdate: NoAction)
   branches                                                                          branches?               @relation(fields: [branch_id], references: [id], onUpdate: NoAction)
   users_ledger_entries_created_byTousers                                            users?                  @relation("ledger_entries_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
@@ -2261,6 +2280,7 @@ model users {
   cash_transfers_cash_transfers_approved_byTousers                     cash_transfers[]             @relation("cash_transfers_approved_byTousers")
   cash_transfers_cash_transfers_created_byTousers                      cash_transfers[]             @relation("cash_transfers_created_byTousers")
   cash_transfers_cash_transfers_deleted_byTousers                      cash_transfers[]             @relation("cash_transfers_deleted_byTousers")
+  cash_transfers_cash_transfers_resubmitted_byTousers                  cash_transfers[]             @relation("cash_transfers_resubmitted_byTousers")
   cash_transfers_cash_transfers_updated_byTousers                      cash_transfers[]             @relation("cash_transfers_updated_byTousers")
   daily_sale_record_audits                                             daily_sale_record_audits[]
   daily_sale_records_daily_sale_records_created_byTousers              daily_sale_records[]         @relation("daily_sale_records_created_byTousers")
@@ -2297,6 +2317,9 @@ model users {
   finance_transactions_finance_transactions_approved_byTousers         finance_transactions[]       @relation("finance_transactions_approved_byTousers")
   finance_transactions_finance_transactions_created_byTousers          finance_transactions[]       @relation("finance_transactions_created_byTousers")
   finance_transactions_finance_transactions_deleted_byTousers          finance_transactions[]       @relation("finance_transactions_deleted_byTousers")
+  finance_transactions_finance_transactions_rejected_byTousers         finance_transactions[]       @relation("finance_transactions_rejected_byTousers")
+  finance_transactions_finance_transactions_submitted_byTousers        finance_transactions[]       @relation("finance_transactions_submitted_byTousers")
+  finance_transactions_finance_transactions_updated_byTousers          finance_transactions[]       @relation("finance_transactions_updated_byTousers")
   geofence_logs                                                        geofence_logs[]
   ingredient_stock_movements                                           ingredient_stock_movements[]
   ledger_entries_ledger_entries_approved_byTousers                     ledger_entries[]             @relation("ledger_entries_approved_byTousers")
@@ -2994,6 +3017,29 @@ model production_order_share_snapshots {
   frozen_at           DateTime          @default(now()) @db.Timestamptz(6)
   source              String
   production_orders   production_orders @relation(fields: [production_order_id], references: [id], onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model finance_document_events {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  document_type   String
+  document_id     String   @db.Uuid
+  document_ref    String?
+  revision        Int      @default(1)
+  event           String
+  from_status     String?
+  to_status       String
+  actor_id        String?  @db.Uuid
+  actor_name      String?
+  actor_role      String?
+  remarks         String?
+  changes         Json     @default("{}")
+  ledger_entry_id String?  @db.Uuid
+  voucher_no      String?
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([document_type, document_id, created_at], map: "finance_document_events_doc_idx")
 }
 
 enum app_theme {

@@ -6,13 +6,17 @@ import { validate } from '../middleware/validate';
 import {
   BRANCH_ROLES,
   CreateCashTransferSchema,
+  ResubmitCashTransferSchema,
   businessDaysAgoStr,
   isBranchRole,
   type CreateCashTransferInput,
+  type ResubmitCashTransferInput,
 } from '../shared';
+import { getDocumentHistory } from '../services/finance-documents.service';
 import {
   createCashTransfer,
   getCashTransfer,
+  resubmitCashTransfer,
   isCashTransferMethod,
   isCashTransferSortKey,
   isCashTransferStatus,
@@ -133,6 +137,41 @@ router.post(
         body: req.body as CreateCashTransferInput,
       });
       res.status(201).json(transfer);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// GET /api/cash-transfers/:id/history — the deposit's submissions, rejections
+// and approval, oldest first. Scoped like the read: a branch sees its own only.
+router.get('/:id/history', async (req: AuthRequest, res, next) => {
+  try {
+    const id = String(req.params['id']);
+    if (!(await getCashTransfer(id, scopeBranch(req)))) { res.status(404).json({ error: 'Cash transfer not found' }); return; }
+    res.json({ events: await getDocumentHistory('cash_transfer', id) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/cash-transfers/:id/resubmit — correct a REJECTED deposit and send
+// the same CT- back to Finance. The branch and the date stay as they were.
+router.post(
+  '/:id/resubmit',
+  idempotent('cash_transfer.resubmit'),
+  validate(ResubmitCashTransferSchema),
+  async (req: AuthRequest, res, next) => {
+    try {
+      const transfer = await resubmitCashTransfer({
+        id: String(req.params['id']),
+        // A branch manager can only reach its own branch's deposit; the SQL
+        // refuses another branch's id as not found.
+        branchId: isBranchRole(req.user!.role) ? req.user!.branchId : null,
+        actor: { uid: req.user!.uid, email: req.user!.email },
+        body: req.body as ResubmitCashTransferInput,
+      });
+      res.json(transfer);
     } catch (err) {
       next(err);
     }

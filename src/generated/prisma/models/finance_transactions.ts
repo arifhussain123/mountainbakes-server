@@ -28,10 +28,12 @@ export type AggregateFinance_transactions = {
 
 export type Finance_transactionsAvgAggregateOutputType = {
   amount: runtime.Decimal | null
+  revision: number | null
 }
 
 export type Finance_transactionsSumAggregateOutputType = {
   amount: runtime.Decimal | null
+  revision: number | null
 }
 
 export type Finance_transactionsMinAggregateOutputType = {
@@ -65,6 +67,16 @@ export type Finance_transactionsMinAggregateOutputType = {
   delete_reason: string | null
   deleted_query_id: string | null
   deleted_query_no: string | null
+  submitted_by: string | null
+  submitted_by_name: string | null
+  submitted_at: Date | null
+  rejected_by: string | null
+  rejected_by_name: string | null
+  rejected_at: Date | null
+  updated_by: string | null
+  updated_by_name: string | null
+  approval_note: string | null
+  revision: number | null
 }
 
 export type Finance_transactionsMaxAggregateOutputType = {
@@ -98,6 +110,16 @@ export type Finance_transactionsMaxAggregateOutputType = {
   delete_reason: string | null
   deleted_query_id: string | null
   deleted_query_no: string | null
+  submitted_by: string | null
+  submitted_by_name: string | null
+  submitted_at: Date | null
+  rejected_by: string | null
+  rejected_by_name: string | null
+  rejected_at: Date | null
+  updated_by: string | null
+  updated_by_name: string | null
+  approval_note: string | null
+  revision: number | null
 }
 
 export type Finance_transactionsCountAggregateOutputType = {
@@ -131,16 +153,28 @@ export type Finance_transactionsCountAggregateOutputType = {
   delete_reason: number
   deleted_query_id: number
   deleted_query_no: number
+  submitted_by: number
+  submitted_by_name: number
+  submitted_at: number
+  rejected_by: number
+  rejected_by_name: number
+  rejected_at: number
+  updated_by: number
+  updated_by_name: number
+  approval_note: number
+  revision: number
   _all: number
 }
 
 
 export type Finance_transactionsAvgAggregateInputType = {
   amount?: true
+  revision?: true
 }
 
 export type Finance_transactionsSumAggregateInputType = {
   amount?: true
+  revision?: true
 }
 
 export type Finance_transactionsMinAggregateInputType = {
@@ -174,6 +208,16 @@ export type Finance_transactionsMinAggregateInputType = {
   delete_reason?: true
   deleted_query_id?: true
   deleted_query_no?: true
+  submitted_by?: true
+  submitted_by_name?: true
+  submitted_at?: true
+  rejected_by?: true
+  rejected_by_name?: true
+  rejected_at?: true
+  updated_by?: true
+  updated_by_name?: true
+  approval_note?: true
+  revision?: true
 }
 
 export type Finance_transactionsMaxAggregateInputType = {
@@ -207,6 +251,16 @@ export type Finance_transactionsMaxAggregateInputType = {
   delete_reason?: true
   deleted_query_id?: true
   deleted_query_no?: true
+  submitted_by?: true
+  submitted_by_name?: true
+  submitted_at?: true
+  rejected_by?: true
+  rejected_by_name?: true
+  rejected_at?: true
+  updated_by?: true
+  updated_by_name?: true
+  approval_note?: true
+  revision?: true
 }
 
 export type Finance_transactionsCountAggregateInputType = {
@@ -240,6 +294,16 @@ export type Finance_transactionsCountAggregateInputType = {
   delete_reason?: true
   deleted_query_id?: true
   deleted_query_no?: true
+  submitted_by?: true
+  submitted_by_name?: true
+  submitted_at?: true
+  rejected_by?: true
+  rejected_by_name?: true
+  rejected_at?: true
+  updated_by?: true
+  updated_by_name?: true
+  approval_note?: true
+  revision?: true
   _all?: true
 }
 
@@ -360,6 +424,16 @@ export type Finance_transactionsGroupByOutputType = {
   delete_reason: string | null
   deleted_query_id: string | null
   deleted_query_no: string | null
+  submitted_by: string | null
+  submitted_by_name: string | null
+  submitted_at: Date | null
+  rejected_by: string | null
+  rejected_by_name: string | null
+  rejected_at: Date | null
+  updated_by: string | null
+  updated_by_name: string | null
+  approval_note: string | null
+  revision: number
   _count: Finance_transactionsCountAggregateOutputType | null
   _avg: Finance_transactionsAvgAggregateOutputType | null
   _sum: Finance_transactionsSumAggregateOutputType | null
@@ -416,12 +490,25 @@ export type finance_transactionsWhereInput = {
   delete_reason?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
   deleted_query_id?: Prisma.UuidNullableFilter<"finance_transactions"> | string | null
   deleted_query_no?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
+  submitted_by?: Prisma.UuidNullableFilter<"finance_transactions"> | string | null
+  submitted_by_name?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
+  submitted_at?: Prisma.DateTimeNullableFilter<"finance_transactions"> | Date | string | null
+  rejected_by?: Prisma.UuidNullableFilter<"finance_transactions"> | string | null
+  rejected_by_name?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
+  rejected_at?: Prisma.DateTimeNullableFilter<"finance_transactions"> | Date | string | null
+  updated_by?: Prisma.UuidNullableFilter<"finance_transactions"> | string | null
+  updated_by_name?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
+  approval_note?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
+  revision?: Prisma.IntFilter<"finance_transactions"> | number
   users_finance_transactions_approved_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   branches?: Prisma.XOR<Prisma.BranchesNullableScalarRelationFilter, Prisma.branchesWhereInput> | null
   users_finance_transactions_created_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   users_finance_transactions_deleted_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   ledger_entries?: Prisma.XOR<Prisma.Ledger_entriesNullableScalarRelationFilter, Prisma.ledger_entriesWhereInput> | null
   ledger_heads?: Prisma.XOR<Prisma.Ledger_headsScalarRelationFilter, Prisma.ledger_headsWhereInput>
+  users_finance_transactions_rejected_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
+  users_finance_transactions_submitted_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
+  users_finance_transactions_updated_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
 }
 
 export type finance_transactionsOrderByWithRelationInput = {
@@ -455,17 +542,31 @@ export type finance_transactionsOrderByWithRelationInput = {
   delete_reason?: Prisma.SortOrderInput | Prisma.SortOrder
   deleted_query_id?: Prisma.SortOrderInput | Prisma.SortOrder
   deleted_query_no?: Prisma.SortOrderInput | Prisma.SortOrder
+  submitted_by?: Prisma.SortOrderInput | Prisma.SortOrder
+  submitted_by_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  submitted_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  rejected_by?: Prisma.SortOrderInput | Prisma.SortOrder
+  rejected_by_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  rejected_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  updated_by?: Prisma.SortOrderInput | Prisma.SortOrder
+  updated_by_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  approval_note?: Prisma.SortOrderInput | Prisma.SortOrder
+  revision?: Prisma.SortOrder
   users_finance_transactions_approved_byTousers?: Prisma.usersOrderByWithRelationInput
   branches?: Prisma.branchesOrderByWithRelationInput
   users_finance_transactions_created_byTousers?: Prisma.usersOrderByWithRelationInput
   users_finance_transactions_deleted_byTousers?: Prisma.usersOrderByWithRelationInput
   ledger_entries?: Prisma.ledger_entriesOrderByWithRelationInput
   ledger_heads?: Prisma.ledger_headsOrderByWithRelationInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersOrderByWithRelationInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersOrderByWithRelationInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersOrderByWithRelationInput
 }
 
 export type finance_transactionsWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   txn_no?: string
+  ledger_entry_id?: string
   AND?: Prisma.finance_transactionsWhereInput | Prisma.finance_transactionsWhereInput[]
   OR?: Prisma.finance_transactionsWhereInput[]
   NOT?: Prisma.finance_transactionsWhereInput | Prisma.finance_transactionsWhereInput[]
@@ -488,7 +589,6 @@ export type finance_transactionsWhereUniqueInput = Prisma.AtLeast<{
   approved_by_name?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
   approved_at?: Prisma.DateTimeNullableFilter<"finance_transactions"> | Date | string | null
   rejection_reason?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
-  ledger_entry_id?: Prisma.UuidNullableFilter<"finance_transactions"> | string | null
   created_at?: Prisma.DateTimeFilter<"finance_transactions"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"finance_transactions"> | Date | string
   deleted_at?: Prisma.DateTimeNullableFilter<"finance_transactions"> | Date | string | null
@@ -497,13 +597,26 @@ export type finance_transactionsWhereUniqueInput = Prisma.AtLeast<{
   delete_reason?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
   deleted_query_id?: Prisma.UuidNullableFilter<"finance_transactions"> | string | null
   deleted_query_no?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
+  submitted_by?: Prisma.UuidNullableFilter<"finance_transactions"> | string | null
+  submitted_by_name?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
+  submitted_at?: Prisma.DateTimeNullableFilter<"finance_transactions"> | Date | string | null
+  rejected_by?: Prisma.UuidNullableFilter<"finance_transactions"> | string | null
+  rejected_by_name?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
+  rejected_at?: Prisma.DateTimeNullableFilter<"finance_transactions"> | Date | string | null
+  updated_by?: Prisma.UuidNullableFilter<"finance_transactions"> | string | null
+  updated_by_name?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
+  approval_note?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
+  revision?: Prisma.IntFilter<"finance_transactions"> | number
   users_finance_transactions_approved_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   branches?: Prisma.XOR<Prisma.BranchesNullableScalarRelationFilter, Prisma.branchesWhereInput> | null
   users_finance_transactions_created_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   users_finance_transactions_deleted_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   ledger_entries?: Prisma.XOR<Prisma.Ledger_entriesNullableScalarRelationFilter, Prisma.ledger_entriesWhereInput> | null
   ledger_heads?: Prisma.XOR<Prisma.Ledger_headsScalarRelationFilter, Prisma.ledger_headsWhereInput>
-}, "id" | "txn_no">
+  users_finance_transactions_rejected_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
+  users_finance_transactions_submitted_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
+  users_finance_transactions_updated_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
+}, "id" | "txn_no" | "ledger_entry_id">
 
 export type finance_transactionsOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -536,6 +649,16 @@ export type finance_transactionsOrderByWithAggregationInput = {
   delete_reason?: Prisma.SortOrderInput | Prisma.SortOrder
   deleted_query_id?: Prisma.SortOrderInput | Prisma.SortOrder
   deleted_query_no?: Prisma.SortOrderInput | Prisma.SortOrder
+  submitted_by?: Prisma.SortOrderInput | Prisma.SortOrder
+  submitted_by_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  submitted_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  rejected_by?: Prisma.SortOrderInput | Prisma.SortOrder
+  rejected_by_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  rejected_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  updated_by?: Prisma.SortOrderInput | Prisma.SortOrder
+  updated_by_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  approval_note?: Prisma.SortOrderInput | Prisma.SortOrder
+  revision?: Prisma.SortOrder
   _count?: Prisma.finance_transactionsCountOrderByAggregateInput
   _avg?: Prisma.finance_transactionsAvgOrderByAggregateInput
   _max?: Prisma.finance_transactionsMaxOrderByAggregateInput
@@ -577,6 +700,16 @@ export type finance_transactionsScalarWhereWithAggregatesInput = {
   delete_reason?: Prisma.StringNullableWithAggregatesFilter<"finance_transactions"> | string | null
   deleted_query_id?: Prisma.UuidNullableWithAggregatesFilter<"finance_transactions"> | string | null
   deleted_query_no?: Prisma.StringNullableWithAggregatesFilter<"finance_transactions"> | string | null
+  submitted_by?: Prisma.UuidNullableWithAggregatesFilter<"finance_transactions"> | string | null
+  submitted_by_name?: Prisma.StringNullableWithAggregatesFilter<"finance_transactions"> | string | null
+  submitted_at?: Prisma.DateTimeNullableWithAggregatesFilter<"finance_transactions"> | Date | string | null
+  rejected_by?: Prisma.UuidNullableWithAggregatesFilter<"finance_transactions"> | string | null
+  rejected_by_name?: Prisma.StringNullableWithAggregatesFilter<"finance_transactions"> | string | null
+  rejected_at?: Prisma.DateTimeNullableWithAggregatesFilter<"finance_transactions"> | Date | string | null
+  updated_by?: Prisma.UuidNullableWithAggregatesFilter<"finance_transactions"> | string | null
+  updated_by_name?: Prisma.StringNullableWithAggregatesFilter<"finance_transactions"> | string | null
+  approval_note?: Prisma.StringNullableWithAggregatesFilter<"finance_transactions"> | string | null
+  revision?: Prisma.IntWithAggregatesFilter<"finance_transactions"> | number
 }
 
 export type finance_transactionsCreateInput = {
@@ -604,12 +737,22 @@ export type finance_transactionsCreateInput = {
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
   users_finance_transactions_approved_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_approved_byTousersInput
   branches?: Prisma.branchesCreateNestedOneWithoutFinance_transactionsInput
   users_finance_transactions_created_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_created_byTousersInput
   users_finance_transactions_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_deleted_byTousersInput
   ledger_entries?: Prisma.ledger_entriesCreateNestedOneWithoutFinance_transactionsInput
   ledger_heads: Prisma.ledger_headsCreateNestedOneWithoutFinance_transactionsInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_rejected_byTousersInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_submitted_byTousersInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_updated_byTousersInput
 }
 
 export type finance_transactionsUncheckedCreateInput = {
@@ -643,6 +786,16 @@ export type finance_transactionsUncheckedCreateInput = {
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by?: string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by?: string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
 }
 
 export type finance_transactionsUpdateInput = {
@@ -670,12 +823,22 @@ export type finance_transactionsUpdateInput = {
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
   users_finance_transactions_approved_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_approved_byTousersNestedInput
   branches?: Prisma.branchesUpdateOneWithoutFinance_transactionsNestedInput
   users_finance_transactions_created_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_created_byTousersNestedInput
   users_finance_transactions_deleted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_deleted_byTousersNestedInput
   ledger_entries?: Prisma.ledger_entriesUpdateOneWithoutFinance_transactionsNestedInput
   ledger_heads?: Prisma.ledger_headsUpdateOneRequiredWithoutFinance_transactionsNestedInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_rejected_byTousersNestedInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_submitted_byTousersNestedInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_updated_byTousersNestedInput
 }
 
 export type finance_transactionsUncheckedUpdateInput = {
@@ -709,6 +872,16 @@ export type finance_transactionsUncheckedUpdateInput = {
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type finance_transactionsCreateManyInput = {
@@ -742,6 +915,16 @@ export type finance_transactionsCreateManyInput = {
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by?: string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by?: string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
 }
 
 export type finance_transactionsUpdateManyMutationInput = {
@@ -769,6 +952,13 @@ export type finance_transactionsUpdateManyMutationInput = {
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type finance_transactionsUncheckedUpdateManyInput = {
@@ -802,6 +992,16 @@ export type finance_transactionsUncheckedUpdateManyInput = {
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type Finance_transactionsListRelationFilter = {
@@ -845,10 +1045,21 @@ export type finance_transactionsCountOrderByAggregateInput = {
   delete_reason?: Prisma.SortOrder
   deleted_query_id?: Prisma.SortOrder
   deleted_query_no?: Prisma.SortOrder
+  submitted_by?: Prisma.SortOrder
+  submitted_by_name?: Prisma.SortOrder
+  submitted_at?: Prisma.SortOrder
+  rejected_by?: Prisma.SortOrder
+  rejected_by_name?: Prisma.SortOrder
+  rejected_at?: Prisma.SortOrder
+  updated_by?: Prisma.SortOrder
+  updated_by_name?: Prisma.SortOrder
+  approval_note?: Prisma.SortOrder
+  revision?: Prisma.SortOrder
 }
 
 export type finance_transactionsAvgOrderByAggregateInput = {
   amount?: Prisma.SortOrder
+  revision?: Prisma.SortOrder
 }
 
 export type finance_transactionsMaxOrderByAggregateInput = {
@@ -882,6 +1093,16 @@ export type finance_transactionsMaxOrderByAggregateInput = {
   delete_reason?: Prisma.SortOrder
   deleted_query_id?: Prisma.SortOrder
   deleted_query_no?: Prisma.SortOrder
+  submitted_by?: Prisma.SortOrder
+  submitted_by_name?: Prisma.SortOrder
+  submitted_at?: Prisma.SortOrder
+  rejected_by?: Prisma.SortOrder
+  rejected_by_name?: Prisma.SortOrder
+  rejected_at?: Prisma.SortOrder
+  updated_by?: Prisma.SortOrder
+  updated_by_name?: Prisma.SortOrder
+  approval_note?: Prisma.SortOrder
+  revision?: Prisma.SortOrder
 }
 
 export type finance_transactionsMinOrderByAggregateInput = {
@@ -915,10 +1136,26 @@ export type finance_transactionsMinOrderByAggregateInput = {
   delete_reason?: Prisma.SortOrder
   deleted_query_id?: Prisma.SortOrder
   deleted_query_no?: Prisma.SortOrder
+  submitted_by?: Prisma.SortOrder
+  submitted_by_name?: Prisma.SortOrder
+  submitted_at?: Prisma.SortOrder
+  rejected_by?: Prisma.SortOrder
+  rejected_by_name?: Prisma.SortOrder
+  rejected_at?: Prisma.SortOrder
+  updated_by?: Prisma.SortOrder
+  updated_by_name?: Prisma.SortOrder
+  approval_note?: Prisma.SortOrder
+  revision?: Prisma.SortOrder
 }
 
 export type finance_transactionsSumOrderByAggregateInput = {
   amount?: Prisma.SortOrder
+  revision?: Prisma.SortOrder
+}
+
+export type Finance_transactionsNullableScalarRelationFilter = {
+  is?: Prisma.finance_transactionsWhereInput | null
+  isNot?: Prisma.finance_transactionsWhereInput | null
 }
 
 export type finance_transactionsCreateNestedManyWithoutBranchesInput = {
@@ -967,46 +1204,36 @@ export type Enumledger_head_typeFieldUpdateOperationsInput = {
   set?: $Enums.ledger_head_type
 }
 
-export type finance_transactionsCreateNestedManyWithoutLedger_entriesInput = {
-  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutLedger_entriesInput, Prisma.finance_transactionsUncheckedCreateWithoutLedger_entriesInput> | Prisma.finance_transactionsCreateWithoutLedger_entriesInput[] | Prisma.finance_transactionsUncheckedCreateWithoutLedger_entriesInput[]
-  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutLedger_entriesInput | Prisma.finance_transactionsCreateOrConnectWithoutLedger_entriesInput[]
-  createMany?: Prisma.finance_transactionsCreateManyLedger_entriesInputEnvelope
-  connect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+export type finance_transactionsCreateNestedOneWithoutLedger_entriesInput = {
+  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutLedger_entriesInput, Prisma.finance_transactionsUncheckedCreateWithoutLedger_entriesInput>
+  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutLedger_entriesInput
+  connect?: Prisma.finance_transactionsWhereUniqueInput
 }
 
-export type finance_transactionsUncheckedCreateNestedManyWithoutLedger_entriesInput = {
-  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutLedger_entriesInput, Prisma.finance_transactionsUncheckedCreateWithoutLedger_entriesInput> | Prisma.finance_transactionsCreateWithoutLedger_entriesInput[] | Prisma.finance_transactionsUncheckedCreateWithoutLedger_entriesInput[]
-  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutLedger_entriesInput | Prisma.finance_transactionsCreateOrConnectWithoutLedger_entriesInput[]
-  createMany?: Prisma.finance_transactionsCreateManyLedger_entriesInputEnvelope
-  connect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+export type finance_transactionsUncheckedCreateNestedOneWithoutLedger_entriesInput = {
+  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutLedger_entriesInput, Prisma.finance_transactionsUncheckedCreateWithoutLedger_entriesInput>
+  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutLedger_entriesInput
+  connect?: Prisma.finance_transactionsWhereUniqueInput
 }
 
-export type finance_transactionsUpdateManyWithoutLedger_entriesNestedInput = {
-  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutLedger_entriesInput, Prisma.finance_transactionsUncheckedCreateWithoutLedger_entriesInput> | Prisma.finance_transactionsCreateWithoutLedger_entriesInput[] | Prisma.finance_transactionsUncheckedCreateWithoutLedger_entriesInput[]
-  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutLedger_entriesInput | Prisma.finance_transactionsCreateOrConnectWithoutLedger_entriesInput[]
-  upsert?: Prisma.finance_transactionsUpsertWithWhereUniqueWithoutLedger_entriesInput | Prisma.finance_transactionsUpsertWithWhereUniqueWithoutLedger_entriesInput[]
-  createMany?: Prisma.finance_transactionsCreateManyLedger_entriesInputEnvelope
-  set?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
-  disconnect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
-  delete?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
-  connect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
-  update?: Prisma.finance_transactionsUpdateWithWhereUniqueWithoutLedger_entriesInput | Prisma.finance_transactionsUpdateWithWhereUniqueWithoutLedger_entriesInput[]
-  updateMany?: Prisma.finance_transactionsUpdateManyWithWhereWithoutLedger_entriesInput | Prisma.finance_transactionsUpdateManyWithWhereWithoutLedger_entriesInput[]
-  deleteMany?: Prisma.finance_transactionsScalarWhereInput | Prisma.finance_transactionsScalarWhereInput[]
+export type finance_transactionsUpdateOneWithoutLedger_entriesNestedInput = {
+  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutLedger_entriesInput, Prisma.finance_transactionsUncheckedCreateWithoutLedger_entriesInput>
+  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutLedger_entriesInput
+  upsert?: Prisma.finance_transactionsUpsertWithoutLedger_entriesInput
+  disconnect?: Prisma.finance_transactionsWhereInput | boolean
+  delete?: Prisma.finance_transactionsWhereInput | boolean
+  connect?: Prisma.finance_transactionsWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.finance_transactionsUpdateToOneWithWhereWithoutLedger_entriesInput, Prisma.finance_transactionsUpdateWithoutLedger_entriesInput>, Prisma.finance_transactionsUncheckedUpdateWithoutLedger_entriesInput>
 }
 
-export type finance_transactionsUncheckedUpdateManyWithoutLedger_entriesNestedInput = {
-  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutLedger_entriesInput, Prisma.finance_transactionsUncheckedCreateWithoutLedger_entriesInput> | Prisma.finance_transactionsCreateWithoutLedger_entriesInput[] | Prisma.finance_transactionsUncheckedCreateWithoutLedger_entriesInput[]
-  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutLedger_entriesInput | Prisma.finance_transactionsCreateOrConnectWithoutLedger_entriesInput[]
-  upsert?: Prisma.finance_transactionsUpsertWithWhereUniqueWithoutLedger_entriesInput | Prisma.finance_transactionsUpsertWithWhereUniqueWithoutLedger_entriesInput[]
-  createMany?: Prisma.finance_transactionsCreateManyLedger_entriesInputEnvelope
-  set?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
-  disconnect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
-  delete?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
-  connect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
-  update?: Prisma.finance_transactionsUpdateWithWhereUniqueWithoutLedger_entriesInput | Prisma.finance_transactionsUpdateWithWhereUniqueWithoutLedger_entriesInput[]
-  updateMany?: Prisma.finance_transactionsUpdateManyWithWhereWithoutLedger_entriesInput | Prisma.finance_transactionsUpdateManyWithWhereWithoutLedger_entriesInput[]
-  deleteMany?: Prisma.finance_transactionsScalarWhereInput | Prisma.finance_transactionsScalarWhereInput[]
+export type finance_transactionsUncheckedUpdateOneWithoutLedger_entriesNestedInput = {
+  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutLedger_entriesInput, Prisma.finance_transactionsUncheckedCreateWithoutLedger_entriesInput>
+  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutLedger_entriesInput
+  upsert?: Prisma.finance_transactionsUpsertWithoutLedger_entriesInput
+  disconnect?: Prisma.finance_transactionsWhereInput | boolean
+  delete?: Prisma.finance_transactionsWhereInput | boolean
+  connect?: Prisma.finance_transactionsWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.finance_transactionsUpdateToOneWithWhereWithoutLedger_entriesInput, Prisma.finance_transactionsUpdateWithoutLedger_entriesInput>, Prisma.finance_transactionsUncheckedUpdateWithoutLedger_entriesInput>
 }
 
 export type finance_transactionsCreateNestedManyWithoutLedger_headsInput = {
@@ -1072,6 +1299,27 @@ export type finance_transactionsCreateNestedManyWithoutUsers_finance_transaction
   connect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
 }
 
+export type finance_transactionsCreateNestedManyWithoutUsers_finance_transactions_rejected_byTousersInput = {
+  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_rejected_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_rejected_byTousersInput> | Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_rejected_byTousersInput[] | Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_rejected_byTousersInput[]
+  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_rejected_byTousersInput | Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_rejected_byTousersInput[]
+  createMany?: Prisma.finance_transactionsCreateManyUsers_finance_transactions_rejected_byTousersInputEnvelope
+  connect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+}
+
+export type finance_transactionsCreateNestedManyWithoutUsers_finance_transactions_submitted_byTousersInput = {
+  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_submitted_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_submitted_byTousersInput> | Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_submitted_byTousersInput[] | Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_submitted_byTousersInput[]
+  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_submitted_byTousersInput | Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_submitted_byTousersInput[]
+  createMany?: Prisma.finance_transactionsCreateManyUsers_finance_transactions_submitted_byTousersInputEnvelope
+  connect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+}
+
+export type finance_transactionsCreateNestedManyWithoutUsers_finance_transactions_updated_byTousersInput = {
+  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_updated_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_updated_byTousersInput> | Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_updated_byTousersInput[] | Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_updated_byTousersInput[]
+  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_updated_byTousersInput | Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_updated_byTousersInput[]
+  createMany?: Prisma.finance_transactionsCreateManyUsers_finance_transactions_updated_byTousersInputEnvelope
+  connect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+}
+
 export type finance_transactionsUncheckedCreateNestedManyWithoutUsers_finance_transactions_approved_byTousersInput = {
   create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_approved_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_approved_byTousersInput> | Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_approved_byTousersInput[] | Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_approved_byTousersInput[]
   connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_approved_byTousersInput | Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_approved_byTousersInput[]
@@ -1090,6 +1338,27 @@ export type finance_transactionsUncheckedCreateNestedManyWithoutUsers_finance_tr
   create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_deleted_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_deleted_byTousersInput> | Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_deleted_byTousersInput[] | Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_deleted_byTousersInput[]
   connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_deleted_byTousersInput | Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_deleted_byTousersInput[]
   createMany?: Prisma.finance_transactionsCreateManyUsers_finance_transactions_deleted_byTousersInputEnvelope
+  connect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+}
+
+export type finance_transactionsUncheckedCreateNestedManyWithoutUsers_finance_transactions_rejected_byTousersInput = {
+  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_rejected_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_rejected_byTousersInput> | Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_rejected_byTousersInput[] | Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_rejected_byTousersInput[]
+  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_rejected_byTousersInput | Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_rejected_byTousersInput[]
+  createMany?: Prisma.finance_transactionsCreateManyUsers_finance_transactions_rejected_byTousersInputEnvelope
+  connect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+}
+
+export type finance_transactionsUncheckedCreateNestedManyWithoutUsers_finance_transactions_submitted_byTousersInput = {
+  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_submitted_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_submitted_byTousersInput> | Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_submitted_byTousersInput[] | Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_submitted_byTousersInput[]
+  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_submitted_byTousersInput | Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_submitted_byTousersInput[]
+  createMany?: Prisma.finance_transactionsCreateManyUsers_finance_transactions_submitted_byTousersInputEnvelope
+  connect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+}
+
+export type finance_transactionsUncheckedCreateNestedManyWithoutUsers_finance_transactions_updated_byTousersInput = {
+  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_updated_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_updated_byTousersInput> | Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_updated_byTousersInput[] | Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_updated_byTousersInput[]
+  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_updated_byTousersInput | Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_updated_byTousersInput[]
+  createMany?: Prisma.finance_transactionsCreateManyUsers_finance_transactions_updated_byTousersInputEnvelope
   connect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
 }
 
@@ -1135,6 +1404,48 @@ export type finance_transactionsUpdateManyWithoutUsers_finance_transactions_dele
   deleteMany?: Prisma.finance_transactionsScalarWhereInput | Prisma.finance_transactionsScalarWhereInput[]
 }
 
+export type finance_transactionsUpdateManyWithoutUsers_finance_transactions_rejected_byTousersNestedInput = {
+  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_rejected_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_rejected_byTousersInput> | Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_rejected_byTousersInput[] | Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_rejected_byTousersInput[]
+  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_rejected_byTousersInput | Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_rejected_byTousersInput[]
+  upsert?: Prisma.finance_transactionsUpsertWithWhereUniqueWithoutUsers_finance_transactions_rejected_byTousersInput | Prisma.finance_transactionsUpsertWithWhereUniqueWithoutUsers_finance_transactions_rejected_byTousersInput[]
+  createMany?: Prisma.finance_transactionsCreateManyUsers_finance_transactions_rejected_byTousersInputEnvelope
+  set?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  disconnect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  delete?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  connect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  update?: Prisma.finance_transactionsUpdateWithWhereUniqueWithoutUsers_finance_transactions_rejected_byTousersInput | Prisma.finance_transactionsUpdateWithWhereUniqueWithoutUsers_finance_transactions_rejected_byTousersInput[]
+  updateMany?: Prisma.finance_transactionsUpdateManyWithWhereWithoutUsers_finance_transactions_rejected_byTousersInput | Prisma.finance_transactionsUpdateManyWithWhereWithoutUsers_finance_transactions_rejected_byTousersInput[]
+  deleteMany?: Prisma.finance_transactionsScalarWhereInput | Prisma.finance_transactionsScalarWhereInput[]
+}
+
+export type finance_transactionsUpdateManyWithoutUsers_finance_transactions_submitted_byTousersNestedInput = {
+  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_submitted_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_submitted_byTousersInput> | Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_submitted_byTousersInput[] | Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_submitted_byTousersInput[]
+  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_submitted_byTousersInput | Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_submitted_byTousersInput[]
+  upsert?: Prisma.finance_transactionsUpsertWithWhereUniqueWithoutUsers_finance_transactions_submitted_byTousersInput | Prisma.finance_transactionsUpsertWithWhereUniqueWithoutUsers_finance_transactions_submitted_byTousersInput[]
+  createMany?: Prisma.finance_transactionsCreateManyUsers_finance_transactions_submitted_byTousersInputEnvelope
+  set?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  disconnect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  delete?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  connect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  update?: Prisma.finance_transactionsUpdateWithWhereUniqueWithoutUsers_finance_transactions_submitted_byTousersInput | Prisma.finance_transactionsUpdateWithWhereUniqueWithoutUsers_finance_transactions_submitted_byTousersInput[]
+  updateMany?: Prisma.finance_transactionsUpdateManyWithWhereWithoutUsers_finance_transactions_submitted_byTousersInput | Prisma.finance_transactionsUpdateManyWithWhereWithoutUsers_finance_transactions_submitted_byTousersInput[]
+  deleteMany?: Prisma.finance_transactionsScalarWhereInput | Prisma.finance_transactionsScalarWhereInput[]
+}
+
+export type finance_transactionsUpdateManyWithoutUsers_finance_transactions_updated_byTousersNestedInput = {
+  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_updated_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_updated_byTousersInput> | Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_updated_byTousersInput[] | Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_updated_byTousersInput[]
+  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_updated_byTousersInput | Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_updated_byTousersInput[]
+  upsert?: Prisma.finance_transactionsUpsertWithWhereUniqueWithoutUsers_finance_transactions_updated_byTousersInput | Prisma.finance_transactionsUpsertWithWhereUniqueWithoutUsers_finance_transactions_updated_byTousersInput[]
+  createMany?: Prisma.finance_transactionsCreateManyUsers_finance_transactions_updated_byTousersInputEnvelope
+  set?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  disconnect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  delete?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  connect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  update?: Prisma.finance_transactionsUpdateWithWhereUniqueWithoutUsers_finance_transactions_updated_byTousersInput | Prisma.finance_transactionsUpdateWithWhereUniqueWithoutUsers_finance_transactions_updated_byTousersInput[]
+  updateMany?: Prisma.finance_transactionsUpdateManyWithWhereWithoutUsers_finance_transactions_updated_byTousersInput | Prisma.finance_transactionsUpdateManyWithWhereWithoutUsers_finance_transactions_updated_byTousersInput[]
+  deleteMany?: Prisma.finance_transactionsScalarWhereInput | Prisma.finance_transactionsScalarWhereInput[]
+}
+
 export type finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_approved_byTousersNestedInput = {
   create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_approved_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_approved_byTousersInput> | Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_approved_byTousersInput[] | Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_approved_byTousersInput[]
   connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_approved_byTousersInput | Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_approved_byTousersInput[]
@@ -1177,6 +1488,48 @@ export type finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transact
   deleteMany?: Prisma.finance_transactionsScalarWhereInput | Prisma.finance_transactionsScalarWhereInput[]
 }
 
+export type finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_rejected_byTousersNestedInput = {
+  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_rejected_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_rejected_byTousersInput> | Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_rejected_byTousersInput[] | Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_rejected_byTousersInput[]
+  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_rejected_byTousersInput | Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_rejected_byTousersInput[]
+  upsert?: Prisma.finance_transactionsUpsertWithWhereUniqueWithoutUsers_finance_transactions_rejected_byTousersInput | Prisma.finance_transactionsUpsertWithWhereUniqueWithoutUsers_finance_transactions_rejected_byTousersInput[]
+  createMany?: Prisma.finance_transactionsCreateManyUsers_finance_transactions_rejected_byTousersInputEnvelope
+  set?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  disconnect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  delete?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  connect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  update?: Prisma.finance_transactionsUpdateWithWhereUniqueWithoutUsers_finance_transactions_rejected_byTousersInput | Prisma.finance_transactionsUpdateWithWhereUniqueWithoutUsers_finance_transactions_rejected_byTousersInput[]
+  updateMany?: Prisma.finance_transactionsUpdateManyWithWhereWithoutUsers_finance_transactions_rejected_byTousersInput | Prisma.finance_transactionsUpdateManyWithWhereWithoutUsers_finance_transactions_rejected_byTousersInput[]
+  deleteMany?: Prisma.finance_transactionsScalarWhereInput | Prisma.finance_transactionsScalarWhereInput[]
+}
+
+export type finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_submitted_byTousersNestedInput = {
+  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_submitted_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_submitted_byTousersInput> | Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_submitted_byTousersInput[] | Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_submitted_byTousersInput[]
+  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_submitted_byTousersInput | Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_submitted_byTousersInput[]
+  upsert?: Prisma.finance_transactionsUpsertWithWhereUniqueWithoutUsers_finance_transactions_submitted_byTousersInput | Prisma.finance_transactionsUpsertWithWhereUniqueWithoutUsers_finance_transactions_submitted_byTousersInput[]
+  createMany?: Prisma.finance_transactionsCreateManyUsers_finance_transactions_submitted_byTousersInputEnvelope
+  set?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  disconnect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  delete?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  connect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  update?: Prisma.finance_transactionsUpdateWithWhereUniqueWithoutUsers_finance_transactions_submitted_byTousersInput | Prisma.finance_transactionsUpdateWithWhereUniqueWithoutUsers_finance_transactions_submitted_byTousersInput[]
+  updateMany?: Prisma.finance_transactionsUpdateManyWithWhereWithoutUsers_finance_transactions_submitted_byTousersInput | Prisma.finance_transactionsUpdateManyWithWhereWithoutUsers_finance_transactions_submitted_byTousersInput[]
+  deleteMany?: Prisma.finance_transactionsScalarWhereInput | Prisma.finance_transactionsScalarWhereInput[]
+}
+
+export type finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_updated_byTousersNestedInput = {
+  create?: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_updated_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_updated_byTousersInput> | Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_updated_byTousersInput[] | Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_updated_byTousersInput[]
+  connectOrCreate?: Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_updated_byTousersInput | Prisma.finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_updated_byTousersInput[]
+  upsert?: Prisma.finance_transactionsUpsertWithWhereUniqueWithoutUsers_finance_transactions_updated_byTousersInput | Prisma.finance_transactionsUpsertWithWhereUniqueWithoutUsers_finance_transactions_updated_byTousersInput[]
+  createMany?: Prisma.finance_transactionsCreateManyUsers_finance_transactions_updated_byTousersInputEnvelope
+  set?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  disconnect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  delete?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  connect?: Prisma.finance_transactionsWhereUniqueInput | Prisma.finance_transactionsWhereUniqueInput[]
+  update?: Prisma.finance_transactionsUpdateWithWhereUniqueWithoutUsers_finance_transactions_updated_byTousersInput | Prisma.finance_transactionsUpdateWithWhereUniqueWithoutUsers_finance_transactions_updated_byTousersInput[]
+  updateMany?: Prisma.finance_transactionsUpdateManyWithWhereWithoutUsers_finance_transactions_updated_byTousersInput | Prisma.finance_transactionsUpdateManyWithWhereWithoutUsers_finance_transactions_updated_byTousersInput[]
+  deleteMany?: Prisma.finance_transactionsScalarWhereInput | Prisma.finance_transactionsScalarWhereInput[]
+}
+
 export type finance_transactionsCreateWithoutBranchesInput = {
   id?: string
   txn_no?: string
@@ -1202,11 +1555,21 @@ export type finance_transactionsCreateWithoutBranchesInput = {
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
   users_finance_transactions_approved_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_approved_byTousersInput
   users_finance_transactions_created_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_created_byTousersInput
   users_finance_transactions_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_deleted_byTousersInput
   ledger_entries?: Prisma.ledger_entriesCreateNestedOneWithoutFinance_transactionsInput
   ledger_heads: Prisma.ledger_headsCreateNestedOneWithoutFinance_transactionsInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_rejected_byTousersInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_submitted_byTousersInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_updated_byTousersInput
 }
 
 export type finance_transactionsUncheckedCreateWithoutBranchesInput = {
@@ -1239,6 +1602,16 @@ export type finance_transactionsUncheckedCreateWithoutBranchesInput = {
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by?: string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by?: string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
 }
 
 export type finance_transactionsCreateOrConnectWithoutBranchesInput = {
@@ -1301,6 +1674,16 @@ export type finance_transactionsScalarWhereInput = {
   delete_reason?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
   deleted_query_id?: Prisma.UuidNullableFilter<"finance_transactions"> | string | null
   deleted_query_no?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
+  submitted_by?: Prisma.UuidNullableFilter<"finance_transactions"> | string | null
+  submitted_by_name?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
+  submitted_at?: Prisma.DateTimeNullableFilter<"finance_transactions"> | Date | string | null
+  rejected_by?: Prisma.UuidNullableFilter<"finance_transactions"> | string | null
+  rejected_by_name?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
+  rejected_at?: Prisma.DateTimeNullableFilter<"finance_transactions"> | Date | string | null
+  updated_by?: Prisma.UuidNullableFilter<"finance_transactions"> | string | null
+  updated_by_name?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
+  approval_note?: Prisma.StringNullableFilter<"finance_transactions"> | string | null
+  revision?: Prisma.IntFilter<"finance_transactions"> | number
 }
 
 export type finance_transactionsCreateWithoutLedger_entriesInput = {
@@ -1328,11 +1711,21 @@ export type finance_transactionsCreateWithoutLedger_entriesInput = {
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
   users_finance_transactions_approved_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_approved_byTousersInput
   branches?: Prisma.branchesCreateNestedOneWithoutFinance_transactionsInput
   users_finance_transactions_created_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_created_byTousersInput
   users_finance_transactions_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_deleted_byTousersInput
   ledger_heads: Prisma.ledger_headsCreateNestedOneWithoutFinance_transactionsInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_rejected_byTousersInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_submitted_byTousersInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_updated_byTousersInput
 }
 
 export type finance_transactionsUncheckedCreateWithoutLedger_entriesInput = {
@@ -1365,6 +1758,16 @@ export type finance_transactionsUncheckedCreateWithoutLedger_entriesInput = {
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by?: string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by?: string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
 }
 
 export type finance_transactionsCreateOrConnectWithoutLedger_entriesInput = {
@@ -1372,25 +1775,99 @@ export type finance_transactionsCreateOrConnectWithoutLedger_entriesInput = {
   create: Prisma.XOR<Prisma.finance_transactionsCreateWithoutLedger_entriesInput, Prisma.finance_transactionsUncheckedCreateWithoutLedger_entriesInput>
 }
 
-export type finance_transactionsCreateManyLedger_entriesInputEnvelope = {
-  data: Prisma.finance_transactionsCreateManyLedger_entriesInput | Prisma.finance_transactionsCreateManyLedger_entriesInput[]
-  skipDuplicates?: boolean
-}
-
-export type finance_transactionsUpsertWithWhereUniqueWithoutLedger_entriesInput = {
-  where: Prisma.finance_transactionsWhereUniqueInput
+export type finance_transactionsUpsertWithoutLedger_entriesInput = {
   update: Prisma.XOR<Prisma.finance_transactionsUpdateWithoutLedger_entriesInput, Prisma.finance_transactionsUncheckedUpdateWithoutLedger_entriesInput>
   create: Prisma.XOR<Prisma.finance_transactionsCreateWithoutLedger_entriesInput, Prisma.finance_transactionsUncheckedCreateWithoutLedger_entriesInput>
+  where?: Prisma.finance_transactionsWhereInput
 }
 
-export type finance_transactionsUpdateWithWhereUniqueWithoutLedger_entriesInput = {
-  where: Prisma.finance_transactionsWhereUniqueInput
+export type finance_transactionsUpdateToOneWithWhereWithoutLedger_entriesInput = {
+  where?: Prisma.finance_transactionsWhereInput
   data: Prisma.XOR<Prisma.finance_transactionsUpdateWithoutLedger_entriesInput, Prisma.finance_transactionsUncheckedUpdateWithoutLedger_entriesInput>
 }
 
-export type finance_transactionsUpdateManyWithWhereWithoutLedger_entriesInput = {
-  where: Prisma.finance_transactionsScalarWhereInput
-  data: Prisma.XOR<Prisma.finance_transactionsUpdateManyMutationInput, Prisma.finance_transactionsUncheckedUpdateManyWithoutLedger_entriesInput>
+export type finance_transactionsUpdateWithoutLedger_entriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_no?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_type?: Prisma.Enumledger_head_typeFieldUpdateOperationsInput | $Enums.ledger_head_type
+  ledger_head_name?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
+  account?: Prisma.Enumfinance_accountFieldUpdateOperationsInput | $Enums.finance_account
+  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.Enumfinance_doc_statusFieldUpdateOperationsInput | $Enums.finance_doc_status
+  reference_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejection_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  users_finance_transactions_approved_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_approved_byTousersNestedInput
+  branches?: Prisma.branchesUpdateOneWithoutFinance_transactionsNestedInput
+  users_finance_transactions_created_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_created_byTousersNestedInput
+  users_finance_transactions_deleted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_deleted_byTousersNestedInput
+  ledger_heads?: Prisma.ledger_headsUpdateOneRequiredWithoutFinance_transactionsNestedInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_rejected_byTousersNestedInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_submitted_byTousersNestedInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_updated_byTousersNestedInput
+}
+
+export type finance_transactionsUncheckedUpdateWithoutLedger_entriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_no?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_type?: Prisma.Enumledger_head_typeFieldUpdateOperationsInput | $Enums.ledger_head_type
+  ledger_head_id?: Prisma.StringFieldUpdateOperationsInput | string
+  ledger_head_name?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
+  account?: Prisma.Enumfinance_accountFieldUpdateOperationsInput | $Enums.finance_account
+  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.Enumfinance_doc_statusFieldUpdateOperationsInput | $Enums.finance_doc_status
+  reference_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejection_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type finance_transactionsCreateWithoutLedger_headsInput = {
@@ -1418,11 +1895,21 @@ export type finance_transactionsCreateWithoutLedger_headsInput = {
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
   users_finance_transactions_approved_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_approved_byTousersInput
   branches?: Prisma.branchesCreateNestedOneWithoutFinance_transactionsInput
   users_finance_transactions_created_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_created_byTousersInput
   users_finance_transactions_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_deleted_byTousersInput
   ledger_entries?: Prisma.ledger_entriesCreateNestedOneWithoutFinance_transactionsInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_rejected_byTousersInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_submitted_byTousersInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_updated_byTousersInput
 }
 
 export type finance_transactionsUncheckedCreateWithoutLedger_headsInput = {
@@ -1455,6 +1942,16 @@ export type finance_transactionsUncheckedCreateWithoutLedger_headsInput = {
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by?: string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by?: string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
 }
 
 export type finance_transactionsCreateOrConnectWithoutLedger_headsInput = {
@@ -1508,11 +2005,21 @@ export type finance_transactionsCreateWithoutUsers_finance_transactions_approved
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
   branches?: Prisma.branchesCreateNestedOneWithoutFinance_transactionsInput
   users_finance_transactions_created_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_created_byTousersInput
   users_finance_transactions_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_deleted_byTousersInput
   ledger_entries?: Prisma.ledger_entriesCreateNestedOneWithoutFinance_transactionsInput
   ledger_heads: Prisma.ledger_headsCreateNestedOneWithoutFinance_transactionsInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_rejected_byTousersInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_submitted_byTousersInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_updated_byTousersInput
 }
 
 export type finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_approved_byTousersInput = {
@@ -1545,6 +2052,16 @@ export type finance_transactionsUncheckedCreateWithoutUsers_finance_transactions
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by?: string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by?: string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
 }
 
 export type finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_approved_byTousersInput = {
@@ -1582,11 +2099,21 @@ export type finance_transactionsCreateWithoutUsers_finance_transactions_created_
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
   users_finance_transactions_approved_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_approved_byTousersInput
   branches?: Prisma.branchesCreateNestedOneWithoutFinance_transactionsInput
   users_finance_transactions_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_deleted_byTousersInput
   ledger_entries?: Prisma.ledger_entriesCreateNestedOneWithoutFinance_transactionsInput
   ledger_heads: Prisma.ledger_headsCreateNestedOneWithoutFinance_transactionsInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_rejected_byTousersInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_submitted_byTousersInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_updated_byTousersInput
 }
 
 export type finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_created_byTousersInput = {
@@ -1619,6 +2146,16 @@ export type finance_transactionsUncheckedCreateWithoutUsers_finance_transactions
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by?: string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by?: string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
 }
 
 export type finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_created_byTousersInput = {
@@ -1656,11 +2193,21 @@ export type finance_transactionsCreateWithoutUsers_finance_transactions_deleted_
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
   users_finance_transactions_approved_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_approved_byTousersInput
   branches?: Prisma.branchesCreateNestedOneWithoutFinance_transactionsInput
   users_finance_transactions_created_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_created_byTousersInput
   ledger_entries?: Prisma.ledger_entriesCreateNestedOneWithoutFinance_transactionsInput
   ledger_heads: Prisma.ledger_headsCreateNestedOneWithoutFinance_transactionsInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_rejected_byTousersInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_submitted_byTousersInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_updated_byTousersInput
 }
 
 export type finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_deleted_byTousersInput = {
@@ -1693,6 +2240,16 @@ export type finance_transactionsUncheckedCreateWithoutUsers_finance_transactions
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by?: string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by?: string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
 }
 
 export type finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_deleted_byTousersInput = {
@@ -1702,6 +2259,288 @@ export type finance_transactionsCreateOrConnectWithoutUsers_finance_transactions
 
 export type finance_transactionsCreateManyUsers_finance_transactions_deleted_byTousersInputEnvelope = {
   data: Prisma.finance_transactionsCreateManyUsers_finance_transactions_deleted_byTousersInput | Prisma.finance_transactionsCreateManyUsers_finance_transactions_deleted_byTousersInput[]
+  skipDuplicates?: boolean
+}
+
+export type finance_transactionsCreateWithoutUsers_finance_transactions_rejected_byTousersInput = {
+  id?: string
+  txn_no?: string
+  txn_type: $Enums.ledger_head_type
+  ledger_head_name: string
+  branch_name?: string | null
+  description: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method: string
+  account: $Enums.finance_account
+  business_date: Date | string
+  status?: $Enums.finance_doc_status
+  reference_no?: string | null
+  notes?: string | null
+  created_by_name?: string | null
+  approved_by_name?: string | null
+  approved_at?: Date | string | null
+  rejection_reason?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  deleted_query_id?: string | null
+  deleted_query_no?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
+  users_finance_transactions_approved_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_approved_byTousersInput
+  branches?: Prisma.branchesCreateNestedOneWithoutFinance_transactionsInput
+  users_finance_transactions_created_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_created_byTousersInput
+  users_finance_transactions_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_deleted_byTousersInput
+  ledger_entries?: Prisma.ledger_entriesCreateNestedOneWithoutFinance_transactionsInput
+  ledger_heads: Prisma.ledger_headsCreateNestedOneWithoutFinance_transactionsInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_submitted_byTousersInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_updated_byTousersInput
+}
+
+export type finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_rejected_byTousersInput = {
+  id?: string
+  txn_no?: string
+  txn_type: $Enums.ledger_head_type
+  ledger_head_id: string
+  ledger_head_name: string
+  branch_id?: string | null
+  branch_name?: string | null
+  description: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method: string
+  account: $Enums.finance_account
+  business_date: Date | string
+  status?: $Enums.finance_doc_status
+  reference_no?: string | null
+  notes?: string | null
+  created_by?: string | null
+  created_by_name?: string | null
+  approved_by?: string | null
+  approved_by_name?: string | null
+  approved_at?: Date | string | null
+  rejection_reason?: string | null
+  ledger_entry_id?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by?: string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  deleted_query_id?: string | null
+  deleted_query_no?: string | null
+  submitted_by?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by?: string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
+}
+
+export type finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_rejected_byTousersInput = {
+  where: Prisma.finance_transactionsWhereUniqueInput
+  create: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_rejected_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_rejected_byTousersInput>
+}
+
+export type finance_transactionsCreateManyUsers_finance_transactions_rejected_byTousersInputEnvelope = {
+  data: Prisma.finance_transactionsCreateManyUsers_finance_transactions_rejected_byTousersInput | Prisma.finance_transactionsCreateManyUsers_finance_transactions_rejected_byTousersInput[]
+  skipDuplicates?: boolean
+}
+
+export type finance_transactionsCreateWithoutUsers_finance_transactions_submitted_byTousersInput = {
+  id?: string
+  txn_no?: string
+  txn_type: $Enums.ledger_head_type
+  ledger_head_name: string
+  branch_name?: string | null
+  description: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method: string
+  account: $Enums.finance_account
+  business_date: Date | string
+  status?: $Enums.finance_doc_status
+  reference_no?: string | null
+  notes?: string | null
+  created_by_name?: string | null
+  approved_by_name?: string | null
+  approved_at?: Date | string | null
+  rejection_reason?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  deleted_query_id?: string | null
+  deleted_query_no?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
+  users_finance_transactions_approved_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_approved_byTousersInput
+  branches?: Prisma.branchesCreateNestedOneWithoutFinance_transactionsInput
+  users_finance_transactions_created_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_created_byTousersInput
+  users_finance_transactions_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_deleted_byTousersInput
+  ledger_entries?: Prisma.ledger_entriesCreateNestedOneWithoutFinance_transactionsInput
+  ledger_heads: Prisma.ledger_headsCreateNestedOneWithoutFinance_transactionsInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_rejected_byTousersInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_updated_byTousersInput
+}
+
+export type finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_submitted_byTousersInput = {
+  id?: string
+  txn_no?: string
+  txn_type: $Enums.ledger_head_type
+  ledger_head_id: string
+  ledger_head_name: string
+  branch_id?: string | null
+  branch_name?: string | null
+  description: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method: string
+  account: $Enums.finance_account
+  business_date: Date | string
+  status?: $Enums.finance_doc_status
+  reference_no?: string | null
+  notes?: string | null
+  created_by?: string | null
+  created_by_name?: string | null
+  approved_by?: string | null
+  approved_by_name?: string | null
+  approved_at?: Date | string | null
+  rejection_reason?: string | null
+  ledger_entry_id?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by?: string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  deleted_query_id?: string | null
+  deleted_query_no?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by?: string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by?: string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
+}
+
+export type finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_submitted_byTousersInput = {
+  where: Prisma.finance_transactionsWhereUniqueInput
+  create: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_submitted_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_submitted_byTousersInput>
+}
+
+export type finance_transactionsCreateManyUsers_finance_transactions_submitted_byTousersInputEnvelope = {
+  data: Prisma.finance_transactionsCreateManyUsers_finance_transactions_submitted_byTousersInput | Prisma.finance_transactionsCreateManyUsers_finance_transactions_submitted_byTousersInput[]
+  skipDuplicates?: boolean
+}
+
+export type finance_transactionsCreateWithoutUsers_finance_transactions_updated_byTousersInput = {
+  id?: string
+  txn_no?: string
+  txn_type: $Enums.ledger_head_type
+  ledger_head_name: string
+  branch_name?: string | null
+  description: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method: string
+  account: $Enums.finance_account
+  business_date: Date | string
+  status?: $Enums.finance_doc_status
+  reference_no?: string | null
+  notes?: string | null
+  created_by_name?: string | null
+  approved_by_name?: string | null
+  approved_at?: Date | string | null
+  rejection_reason?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  deleted_query_id?: string | null
+  deleted_query_no?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
+  users_finance_transactions_approved_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_approved_byTousersInput
+  branches?: Prisma.branchesCreateNestedOneWithoutFinance_transactionsInput
+  users_finance_transactions_created_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_created_byTousersInput
+  users_finance_transactions_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_deleted_byTousersInput
+  ledger_entries?: Prisma.ledger_entriesCreateNestedOneWithoutFinance_transactionsInput
+  ledger_heads: Prisma.ledger_headsCreateNestedOneWithoutFinance_transactionsInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_rejected_byTousersInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersCreateNestedOneWithoutFinance_transactions_finance_transactions_submitted_byTousersInput
+}
+
+export type finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_updated_byTousersInput = {
+  id?: string
+  txn_no?: string
+  txn_type: $Enums.ledger_head_type
+  ledger_head_id: string
+  ledger_head_name: string
+  branch_id?: string | null
+  branch_name?: string | null
+  description: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method: string
+  account: $Enums.finance_account
+  business_date: Date | string
+  status?: $Enums.finance_doc_status
+  reference_no?: string | null
+  notes?: string | null
+  created_by?: string | null
+  created_by_name?: string | null
+  approved_by?: string | null
+  approved_by_name?: string | null
+  approved_at?: Date | string | null
+  rejection_reason?: string | null
+  ledger_entry_id?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by?: string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  deleted_query_id?: string | null
+  deleted_query_no?: string | null
+  submitted_by?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by?: string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
+}
+
+export type finance_transactionsCreateOrConnectWithoutUsers_finance_transactions_updated_byTousersInput = {
+  where: Prisma.finance_transactionsWhereUniqueInput
+  create: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_updated_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_updated_byTousersInput>
+}
+
+export type finance_transactionsCreateManyUsers_finance_transactions_updated_byTousersInputEnvelope = {
+  data: Prisma.finance_transactionsCreateManyUsers_finance_transactions_updated_byTousersInput | Prisma.finance_transactionsCreateManyUsers_finance_transactions_updated_byTousersInput[]
   skipDuplicates?: boolean
 }
 
@@ -1753,6 +2592,54 @@ export type finance_transactionsUpdateManyWithWhereWithoutUsers_finance_transact
   data: Prisma.XOR<Prisma.finance_transactionsUpdateManyMutationInput, Prisma.finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_deleted_byTousersInput>
 }
 
+export type finance_transactionsUpsertWithWhereUniqueWithoutUsers_finance_transactions_rejected_byTousersInput = {
+  where: Prisma.finance_transactionsWhereUniqueInput
+  update: Prisma.XOR<Prisma.finance_transactionsUpdateWithoutUsers_finance_transactions_rejected_byTousersInput, Prisma.finance_transactionsUncheckedUpdateWithoutUsers_finance_transactions_rejected_byTousersInput>
+  create: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_rejected_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_rejected_byTousersInput>
+}
+
+export type finance_transactionsUpdateWithWhereUniqueWithoutUsers_finance_transactions_rejected_byTousersInput = {
+  where: Prisma.finance_transactionsWhereUniqueInput
+  data: Prisma.XOR<Prisma.finance_transactionsUpdateWithoutUsers_finance_transactions_rejected_byTousersInput, Prisma.finance_transactionsUncheckedUpdateWithoutUsers_finance_transactions_rejected_byTousersInput>
+}
+
+export type finance_transactionsUpdateManyWithWhereWithoutUsers_finance_transactions_rejected_byTousersInput = {
+  where: Prisma.finance_transactionsScalarWhereInput
+  data: Prisma.XOR<Prisma.finance_transactionsUpdateManyMutationInput, Prisma.finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_rejected_byTousersInput>
+}
+
+export type finance_transactionsUpsertWithWhereUniqueWithoutUsers_finance_transactions_submitted_byTousersInput = {
+  where: Prisma.finance_transactionsWhereUniqueInput
+  update: Prisma.XOR<Prisma.finance_transactionsUpdateWithoutUsers_finance_transactions_submitted_byTousersInput, Prisma.finance_transactionsUncheckedUpdateWithoutUsers_finance_transactions_submitted_byTousersInput>
+  create: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_submitted_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_submitted_byTousersInput>
+}
+
+export type finance_transactionsUpdateWithWhereUniqueWithoutUsers_finance_transactions_submitted_byTousersInput = {
+  where: Prisma.finance_transactionsWhereUniqueInput
+  data: Prisma.XOR<Prisma.finance_transactionsUpdateWithoutUsers_finance_transactions_submitted_byTousersInput, Prisma.finance_transactionsUncheckedUpdateWithoutUsers_finance_transactions_submitted_byTousersInput>
+}
+
+export type finance_transactionsUpdateManyWithWhereWithoutUsers_finance_transactions_submitted_byTousersInput = {
+  where: Prisma.finance_transactionsScalarWhereInput
+  data: Prisma.XOR<Prisma.finance_transactionsUpdateManyMutationInput, Prisma.finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_submitted_byTousersInput>
+}
+
+export type finance_transactionsUpsertWithWhereUniqueWithoutUsers_finance_transactions_updated_byTousersInput = {
+  where: Prisma.finance_transactionsWhereUniqueInput
+  update: Prisma.XOR<Prisma.finance_transactionsUpdateWithoutUsers_finance_transactions_updated_byTousersInput, Prisma.finance_transactionsUncheckedUpdateWithoutUsers_finance_transactions_updated_byTousersInput>
+  create: Prisma.XOR<Prisma.finance_transactionsCreateWithoutUsers_finance_transactions_updated_byTousersInput, Prisma.finance_transactionsUncheckedCreateWithoutUsers_finance_transactions_updated_byTousersInput>
+}
+
+export type finance_transactionsUpdateWithWhereUniqueWithoutUsers_finance_transactions_updated_byTousersInput = {
+  where: Prisma.finance_transactionsWhereUniqueInput
+  data: Prisma.XOR<Prisma.finance_transactionsUpdateWithoutUsers_finance_transactions_updated_byTousersInput, Prisma.finance_transactionsUncheckedUpdateWithoutUsers_finance_transactions_updated_byTousersInput>
+}
+
+export type finance_transactionsUpdateManyWithWhereWithoutUsers_finance_transactions_updated_byTousersInput = {
+  where: Prisma.finance_transactionsScalarWhereInput
+  data: Prisma.XOR<Prisma.finance_transactionsUpdateManyMutationInput, Prisma.finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_updated_byTousersInput>
+}
+
 export type finance_transactionsCreateManyBranchesInput = {
   id?: string
   txn_no?: string
@@ -1783,6 +2670,16 @@ export type finance_transactionsCreateManyBranchesInput = {
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by?: string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by?: string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
 }
 
 export type finance_transactionsUpdateWithoutBranchesInput = {
@@ -1810,11 +2707,21 @@ export type finance_transactionsUpdateWithoutBranchesInput = {
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
   users_finance_transactions_approved_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_approved_byTousersNestedInput
   users_finance_transactions_created_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_created_byTousersNestedInput
   users_finance_transactions_deleted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_deleted_byTousersNestedInput
   ledger_entries?: Prisma.ledger_entriesUpdateOneWithoutFinance_transactionsNestedInput
   ledger_heads?: Prisma.ledger_headsUpdateOneRequiredWithoutFinance_transactionsNestedInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_rejected_byTousersNestedInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_submitted_byTousersNestedInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_updated_byTousersNestedInput
 }
 
 export type finance_transactionsUncheckedUpdateWithoutBranchesInput = {
@@ -1847,6 +2754,16 @@ export type finance_transactionsUncheckedUpdateWithoutBranchesInput = {
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type finance_transactionsUncheckedUpdateManyWithoutBranchesInput = {
@@ -1879,134 +2796,16 @@ export type finance_transactionsUncheckedUpdateManyWithoutBranchesInput = {
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-}
-
-export type finance_transactionsCreateManyLedger_entriesInput = {
-  id?: string
-  txn_no?: string
-  txn_type: $Enums.ledger_head_type
-  ledger_head_id: string
-  ledger_head_name: string
-  branch_id?: string | null
-  branch_name?: string | null
-  description: string
-  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
-  payment_method: string
-  account: $Enums.finance_account
-  business_date: Date | string
-  status?: $Enums.finance_doc_status
-  reference_no?: string | null
-  notes?: string | null
-  created_by?: string | null
-  created_by_name?: string | null
-  approved_by?: string | null
-  approved_by_name?: string | null
-  approved_at?: Date | string | null
-  rejection_reason?: string | null
-  created_at?: Date | string
-  updated_at?: Date | string
-  deleted_at?: Date | string | null
-  deleted_by?: string | null
-  deleted_by_name?: string | null
-  delete_reason?: string | null
-  deleted_query_id?: string | null
-  deleted_query_no?: string | null
-}
-
-export type finance_transactionsUpdateWithoutLedger_entriesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  txn_no?: Prisma.StringFieldUpdateOperationsInput | string
-  txn_type?: Prisma.Enumledger_head_typeFieldUpdateOperationsInput | $Enums.ledger_head_type
-  ledger_head_name?: Prisma.StringFieldUpdateOperationsInput | string
-  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  description?: Prisma.StringFieldUpdateOperationsInput | string
-  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
-  account?: Prisma.Enumfinance_accountFieldUpdateOperationsInput | $Enums.finance_account
-  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  status?: Prisma.Enumfinance_doc_statusFieldUpdateOperationsInput | $Enums.finance_doc_status
-  reference_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  rejection_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  users_finance_transactions_approved_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_approved_byTousersNestedInput
-  branches?: Prisma.branchesUpdateOneWithoutFinance_transactionsNestedInput
-  users_finance_transactions_created_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_created_byTousersNestedInput
-  users_finance_transactions_deleted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_deleted_byTousersNestedInput
-  ledger_heads?: Prisma.ledger_headsUpdateOneRequiredWithoutFinance_transactionsNestedInput
-}
-
-export type finance_transactionsUncheckedUpdateWithoutLedger_entriesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  txn_no?: Prisma.StringFieldUpdateOperationsInput | string
-  txn_type?: Prisma.Enumledger_head_typeFieldUpdateOperationsInput | $Enums.ledger_head_type
-  ledger_head_id?: Prisma.StringFieldUpdateOperationsInput | string
-  ledger_head_name?: Prisma.StringFieldUpdateOperationsInput | string
-  branch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  description?: Prisma.StringFieldUpdateOperationsInput | string
-  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
-  account?: Prisma.Enumfinance_accountFieldUpdateOperationsInput | $Enums.finance_account
-  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  status?: Prisma.Enumfinance_doc_statusFieldUpdateOperationsInput | $Enums.finance_doc_status
-  reference_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  approved_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  rejection_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-}
-
-export type finance_transactionsUncheckedUpdateManyWithoutLedger_entriesInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  txn_no?: Prisma.StringFieldUpdateOperationsInput | string
-  txn_type?: Prisma.Enumledger_head_typeFieldUpdateOperationsInput | $Enums.ledger_head_type
-  ledger_head_id?: Prisma.StringFieldUpdateOperationsInput | string
-  ledger_head_name?: Prisma.StringFieldUpdateOperationsInput | string
-  branch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  description?: Prisma.StringFieldUpdateOperationsInput | string
-  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
-  account?: Prisma.Enumfinance_accountFieldUpdateOperationsInput | $Enums.finance_account
-  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  status?: Prisma.Enumfinance_doc_statusFieldUpdateOperationsInput | $Enums.finance_doc_status
-  reference_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  approved_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  rejection_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type finance_transactionsCreateManyLedger_headsInput = {
@@ -2039,6 +2838,16 @@ export type finance_transactionsCreateManyLedger_headsInput = {
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by?: string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by?: string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
 }
 
 export type finance_transactionsUpdateWithoutLedger_headsInput = {
@@ -2066,11 +2875,21 @@ export type finance_transactionsUpdateWithoutLedger_headsInput = {
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
   users_finance_transactions_approved_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_approved_byTousersNestedInput
   branches?: Prisma.branchesUpdateOneWithoutFinance_transactionsNestedInput
   users_finance_transactions_created_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_created_byTousersNestedInput
   users_finance_transactions_deleted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_deleted_byTousersNestedInput
   ledger_entries?: Prisma.ledger_entriesUpdateOneWithoutFinance_transactionsNestedInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_rejected_byTousersNestedInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_submitted_byTousersNestedInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_updated_byTousersNestedInput
 }
 
 export type finance_transactionsUncheckedUpdateWithoutLedger_headsInput = {
@@ -2103,6 +2922,16 @@ export type finance_transactionsUncheckedUpdateWithoutLedger_headsInput = {
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type finance_transactionsUncheckedUpdateManyWithoutLedger_headsInput = {
@@ -2135,6 +2964,16 @@ export type finance_transactionsUncheckedUpdateManyWithoutLedger_headsInput = {
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type finance_transactionsCreateManyUsers_finance_transactions_approved_byTousersInput = {
@@ -2167,6 +3006,16 @@ export type finance_transactionsCreateManyUsers_finance_transactions_approved_by
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by?: string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by?: string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
 }
 
 export type finance_transactionsCreateManyUsers_finance_transactions_created_byTousersInput = {
@@ -2199,6 +3048,16 @@ export type finance_transactionsCreateManyUsers_finance_transactions_created_byT
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by?: string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by?: string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
 }
 
 export type finance_transactionsCreateManyUsers_finance_transactions_deleted_byTousersInput = {
@@ -2231,6 +3090,142 @@ export type finance_transactionsCreateManyUsers_finance_transactions_deleted_byT
   delete_reason?: string | null
   deleted_query_id?: string | null
   deleted_query_no?: string | null
+  submitted_by?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by?: string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by?: string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
+}
+
+export type finance_transactionsCreateManyUsers_finance_transactions_rejected_byTousersInput = {
+  id?: string
+  txn_no?: string
+  txn_type: $Enums.ledger_head_type
+  ledger_head_id: string
+  ledger_head_name: string
+  branch_id?: string | null
+  branch_name?: string | null
+  description: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method: string
+  account: $Enums.finance_account
+  business_date: Date | string
+  status?: $Enums.finance_doc_status
+  reference_no?: string | null
+  notes?: string | null
+  created_by?: string | null
+  created_by_name?: string | null
+  approved_by?: string | null
+  approved_by_name?: string | null
+  approved_at?: Date | string | null
+  rejection_reason?: string | null
+  ledger_entry_id?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by?: string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  deleted_query_id?: string | null
+  deleted_query_no?: string | null
+  submitted_by?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by?: string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
+}
+
+export type finance_transactionsCreateManyUsers_finance_transactions_submitted_byTousersInput = {
+  id?: string
+  txn_no?: string
+  txn_type: $Enums.ledger_head_type
+  ledger_head_id: string
+  ledger_head_name: string
+  branch_id?: string | null
+  branch_name?: string | null
+  description: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method: string
+  account: $Enums.finance_account
+  business_date: Date | string
+  status?: $Enums.finance_doc_status
+  reference_no?: string | null
+  notes?: string | null
+  created_by?: string | null
+  created_by_name?: string | null
+  approved_by?: string | null
+  approved_by_name?: string | null
+  approved_at?: Date | string | null
+  rejection_reason?: string | null
+  ledger_entry_id?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by?: string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  deleted_query_id?: string | null
+  deleted_query_no?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by?: string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by?: string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
+}
+
+export type finance_transactionsCreateManyUsers_finance_transactions_updated_byTousersInput = {
+  id?: string
+  txn_no?: string
+  txn_type: $Enums.ledger_head_type
+  ledger_head_id: string
+  ledger_head_name: string
+  branch_id?: string | null
+  branch_name?: string | null
+  description: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method: string
+  account: $Enums.finance_account
+  business_date: Date | string
+  status?: $Enums.finance_doc_status
+  reference_no?: string | null
+  notes?: string | null
+  created_by?: string | null
+  created_by_name?: string | null
+  approved_by?: string | null
+  approved_by_name?: string | null
+  approved_at?: Date | string | null
+  rejection_reason?: string | null
+  ledger_entry_id?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by?: string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  deleted_query_id?: string | null
+  deleted_query_no?: string | null
+  submitted_by?: string | null
+  submitted_by_name?: string | null
+  submitted_at?: Date | string | null
+  rejected_by?: string | null
+  rejected_by_name?: string | null
+  rejected_at?: Date | string | null
+  updated_by_name?: string | null
+  approval_note?: string | null
+  revision?: number
 }
 
 export type finance_transactionsUpdateWithoutUsers_finance_transactions_approved_byTousersInput = {
@@ -2258,11 +3253,21 @@ export type finance_transactionsUpdateWithoutUsers_finance_transactions_approved
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
   branches?: Prisma.branchesUpdateOneWithoutFinance_transactionsNestedInput
   users_finance_transactions_created_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_created_byTousersNestedInput
   users_finance_transactions_deleted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_deleted_byTousersNestedInput
   ledger_entries?: Prisma.ledger_entriesUpdateOneWithoutFinance_transactionsNestedInput
   ledger_heads?: Prisma.ledger_headsUpdateOneRequiredWithoutFinance_transactionsNestedInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_rejected_byTousersNestedInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_submitted_byTousersNestedInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_updated_byTousersNestedInput
 }
 
 export type finance_transactionsUncheckedUpdateWithoutUsers_finance_transactions_approved_byTousersInput = {
@@ -2295,6 +3300,16 @@ export type finance_transactionsUncheckedUpdateWithoutUsers_finance_transactions
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_approved_byTousersInput = {
@@ -2327,6 +3342,16 @@ export type finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transact
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type finance_transactionsUpdateWithoutUsers_finance_transactions_created_byTousersInput = {
@@ -2354,11 +3379,21 @@ export type finance_transactionsUpdateWithoutUsers_finance_transactions_created_
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
   users_finance_transactions_approved_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_approved_byTousersNestedInput
   branches?: Prisma.branchesUpdateOneWithoutFinance_transactionsNestedInput
   users_finance_transactions_deleted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_deleted_byTousersNestedInput
   ledger_entries?: Prisma.ledger_entriesUpdateOneWithoutFinance_transactionsNestedInput
   ledger_heads?: Prisma.ledger_headsUpdateOneRequiredWithoutFinance_transactionsNestedInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_rejected_byTousersNestedInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_submitted_byTousersNestedInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_updated_byTousersNestedInput
 }
 
 export type finance_transactionsUncheckedUpdateWithoutUsers_finance_transactions_created_byTousersInput = {
@@ -2391,6 +3426,16 @@ export type finance_transactionsUncheckedUpdateWithoutUsers_finance_transactions
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_created_byTousersInput = {
@@ -2423,6 +3468,16 @@ export type finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transact
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type finance_transactionsUpdateWithoutUsers_finance_transactions_deleted_byTousersInput = {
@@ -2450,11 +3505,21 @@ export type finance_transactionsUpdateWithoutUsers_finance_transactions_deleted_
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
   users_finance_transactions_approved_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_approved_byTousersNestedInput
   branches?: Prisma.branchesUpdateOneWithoutFinance_transactionsNestedInput
   users_finance_transactions_created_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_created_byTousersNestedInput
   ledger_entries?: Prisma.ledger_entriesUpdateOneWithoutFinance_transactionsNestedInput
   ledger_heads?: Prisma.ledger_headsUpdateOneRequiredWithoutFinance_transactionsNestedInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_rejected_byTousersNestedInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_submitted_byTousersNestedInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_updated_byTousersNestedInput
 }
 
 export type finance_transactionsUncheckedUpdateWithoutUsers_finance_transactions_deleted_byTousersInput = {
@@ -2487,6 +3552,16 @@ export type finance_transactionsUncheckedUpdateWithoutUsers_finance_transactions
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_deleted_byTousersInput = {
@@ -2519,6 +3594,394 @@ export type finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transact
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+}
+
+export type finance_transactionsUpdateWithoutUsers_finance_transactions_rejected_byTousersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_no?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_type?: Prisma.Enumledger_head_typeFieldUpdateOperationsInput | $Enums.ledger_head_type
+  ledger_head_name?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
+  account?: Prisma.Enumfinance_accountFieldUpdateOperationsInput | $Enums.finance_account
+  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.Enumfinance_doc_statusFieldUpdateOperationsInput | $Enums.finance_doc_status
+  reference_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejection_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  users_finance_transactions_approved_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_approved_byTousersNestedInput
+  branches?: Prisma.branchesUpdateOneWithoutFinance_transactionsNestedInput
+  users_finance_transactions_created_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_created_byTousersNestedInput
+  users_finance_transactions_deleted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_deleted_byTousersNestedInput
+  ledger_entries?: Prisma.ledger_entriesUpdateOneWithoutFinance_transactionsNestedInput
+  ledger_heads?: Prisma.ledger_headsUpdateOneRequiredWithoutFinance_transactionsNestedInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_submitted_byTousersNestedInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_updated_byTousersNestedInput
+}
+
+export type finance_transactionsUncheckedUpdateWithoutUsers_finance_transactions_rejected_byTousersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_no?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_type?: Prisma.Enumledger_head_typeFieldUpdateOperationsInput | $Enums.ledger_head_type
+  ledger_head_id?: Prisma.StringFieldUpdateOperationsInput | string
+  ledger_head_name?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
+  account?: Prisma.Enumfinance_accountFieldUpdateOperationsInput | $Enums.finance_account
+  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.Enumfinance_doc_statusFieldUpdateOperationsInput | $Enums.finance_doc_status
+  reference_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejection_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ledger_entry_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+}
+
+export type finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_rejected_byTousersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_no?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_type?: Prisma.Enumledger_head_typeFieldUpdateOperationsInput | $Enums.ledger_head_type
+  ledger_head_id?: Prisma.StringFieldUpdateOperationsInput | string
+  ledger_head_name?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
+  account?: Prisma.Enumfinance_accountFieldUpdateOperationsInput | $Enums.finance_account
+  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.Enumfinance_doc_statusFieldUpdateOperationsInput | $Enums.finance_doc_status
+  reference_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejection_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ledger_entry_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+}
+
+export type finance_transactionsUpdateWithoutUsers_finance_transactions_submitted_byTousersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_no?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_type?: Prisma.Enumledger_head_typeFieldUpdateOperationsInput | $Enums.ledger_head_type
+  ledger_head_name?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
+  account?: Prisma.Enumfinance_accountFieldUpdateOperationsInput | $Enums.finance_account
+  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.Enumfinance_doc_statusFieldUpdateOperationsInput | $Enums.finance_doc_status
+  reference_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejection_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  users_finance_transactions_approved_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_approved_byTousersNestedInput
+  branches?: Prisma.branchesUpdateOneWithoutFinance_transactionsNestedInput
+  users_finance_transactions_created_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_created_byTousersNestedInput
+  users_finance_transactions_deleted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_deleted_byTousersNestedInput
+  ledger_entries?: Prisma.ledger_entriesUpdateOneWithoutFinance_transactionsNestedInput
+  ledger_heads?: Prisma.ledger_headsUpdateOneRequiredWithoutFinance_transactionsNestedInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_rejected_byTousersNestedInput
+  users_finance_transactions_updated_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_updated_byTousersNestedInput
+}
+
+export type finance_transactionsUncheckedUpdateWithoutUsers_finance_transactions_submitted_byTousersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_no?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_type?: Prisma.Enumledger_head_typeFieldUpdateOperationsInput | $Enums.ledger_head_type
+  ledger_head_id?: Prisma.StringFieldUpdateOperationsInput | string
+  ledger_head_name?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
+  account?: Prisma.Enumfinance_accountFieldUpdateOperationsInput | $Enums.finance_account
+  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.Enumfinance_doc_statusFieldUpdateOperationsInput | $Enums.finance_doc_status
+  reference_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejection_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ledger_entry_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+}
+
+export type finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_submitted_byTousersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_no?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_type?: Prisma.Enumledger_head_typeFieldUpdateOperationsInput | $Enums.ledger_head_type
+  ledger_head_id?: Prisma.StringFieldUpdateOperationsInput | string
+  ledger_head_name?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
+  account?: Prisma.Enumfinance_accountFieldUpdateOperationsInput | $Enums.finance_account
+  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.Enumfinance_doc_statusFieldUpdateOperationsInput | $Enums.finance_doc_status
+  reference_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejection_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ledger_entry_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+}
+
+export type finance_transactionsUpdateWithoutUsers_finance_transactions_updated_byTousersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_no?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_type?: Prisma.Enumledger_head_typeFieldUpdateOperationsInput | $Enums.ledger_head_type
+  ledger_head_name?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
+  account?: Prisma.Enumfinance_accountFieldUpdateOperationsInput | $Enums.finance_account
+  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.Enumfinance_doc_statusFieldUpdateOperationsInput | $Enums.finance_doc_status
+  reference_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejection_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  users_finance_transactions_approved_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_approved_byTousersNestedInput
+  branches?: Prisma.branchesUpdateOneWithoutFinance_transactionsNestedInput
+  users_finance_transactions_created_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_created_byTousersNestedInput
+  users_finance_transactions_deleted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_deleted_byTousersNestedInput
+  ledger_entries?: Prisma.ledger_entriesUpdateOneWithoutFinance_transactionsNestedInput
+  ledger_heads?: Prisma.ledger_headsUpdateOneRequiredWithoutFinance_transactionsNestedInput
+  users_finance_transactions_rejected_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_rejected_byTousersNestedInput
+  users_finance_transactions_submitted_byTousers?: Prisma.usersUpdateOneWithoutFinance_transactions_finance_transactions_submitted_byTousersNestedInput
+}
+
+export type finance_transactionsUncheckedUpdateWithoutUsers_finance_transactions_updated_byTousersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_no?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_type?: Prisma.Enumledger_head_typeFieldUpdateOperationsInput | $Enums.ledger_head_type
+  ledger_head_id?: Prisma.StringFieldUpdateOperationsInput | string
+  ledger_head_name?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
+  account?: Prisma.Enumfinance_accountFieldUpdateOperationsInput | $Enums.finance_account
+  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.Enumfinance_doc_statusFieldUpdateOperationsInput | $Enums.finance_doc_status
+  reference_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejection_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ledger_entry_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+}
+
+export type finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_updated_byTousersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_no?: Prisma.StringFieldUpdateOperationsInput | string
+  txn_type?: Prisma.Enumledger_head_typeFieldUpdateOperationsInput | $Enums.ledger_head_type
+  ledger_head_id?: Prisma.StringFieldUpdateOperationsInput | string
+  ledger_head_name?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method?: Prisma.StringFieldUpdateOperationsInput | string
+  account?: Prisma.Enumfinance_accountFieldUpdateOperationsInput | $Enums.finance_account
+  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.Enumfinance_doc_statusFieldUpdateOperationsInput | $Enums.finance_doc_status
+  reference_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejection_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ledger_entry_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  rejected_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejected_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 
@@ -2554,12 +4017,25 @@ export type finance_transactionsSelect<ExtArgs extends runtime.Types.Extensions.
   delete_reason?: boolean
   deleted_query_id?: boolean
   deleted_query_no?: boolean
+  submitted_by?: boolean
+  submitted_by_name?: boolean
+  submitted_at?: boolean
+  rejected_by?: boolean
+  rejected_by_name?: boolean
+  rejected_at?: boolean
+  updated_by?: boolean
+  updated_by_name?: boolean
+  approval_note?: boolean
+  revision?: boolean
   users_finance_transactions_approved_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_approved_byTousersArgs<ExtArgs>
   branches?: boolean | Prisma.finance_transactions$branchesArgs<ExtArgs>
   users_finance_transactions_created_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_created_byTousersArgs<ExtArgs>
   users_finance_transactions_deleted_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_deleted_byTousersArgs<ExtArgs>
   ledger_entries?: boolean | Prisma.finance_transactions$ledger_entriesArgs<ExtArgs>
   ledger_heads?: boolean | Prisma.ledger_headsDefaultArgs<ExtArgs>
+  users_finance_transactions_rejected_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_rejected_byTousersArgs<ExtArgs>
+  users_finance_transactions_submitted_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_submitted_byTousersArgs<ExtArgs>
+  users_finance_transactions_updated_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_updated_byTousersArgs<ExtArgs>
 }, ExtArgs["result"]["finance_transactions"]>
 
 export type finance_transactionsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -2593,12 +4069,25 @@ export type finance_transactionsSelectCreateManyAndReturn<ExtArgs extends runtim
   delete_reason?: boolean
   deleted_query_id?: boolean
   deleted_query_no?: boolean
+  submitted_by?: boolean
+  submitted_by_name?: boolean
+  submitted_at?: boolean
+  rejected_by?: boolean
+  rejected_by_name?: boolean
+  rejected_at?: boolean
+  updated_by?: boolean
+  updated_by_name?: boolean
+  approval_note?: boolean
+  revision?: boolean
   users_finance_transactions_approved_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_approved_byTousersArgs<ExtArgs>
   branches?: boolean | Prisma.finance_transactions$branchesArgs<ExtArgs>
   users_finance_transactions_created_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_created_byTousersArgs<ExtArgs>
   users_finance_transactions_deleted_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_deleted_byTousersArgs<ExtArgs>
   ledger_entries?: boolean | Prisma.finance_transactions$ledger_entriesArgs<ExtArgs>
   ledger_heads?: boolean | Prisma.ledger_headsDefaultArgs<ExtArgs>
+  users_finance_transactions_rejected_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_rejected_byTousersArgs<ExtArgs>
+  users_finance_transactions_submitted_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_submitted_byTousersArgs<ExtArgs>
+  users_finance_transactions_updated_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_updated_byTousersArgs<ExtArgs>
 }, ExtArgs["result"]["finance_transactions"]>
 
 export type finance_transactionsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -2632,12 +4121,25 @@ export type finance_transactionsSelectUpdateManyAndReturn<ExtArgs extends runtim
   delete_reason?: boolean
   deleted_query_id?: boolean
   deleted_query_no?: boolean
+  submitted_by?: boolean
+  submitted_by_name?: boolean
+  submitted_at?: boolean
+  rejected_by?: boolean
+  rejected_by_name?: boolean
+  rejected_at?: boolean
+  updated_by?: boolean
+  updated_by_name?: boolean
+  approval_note?: boolean
+  revision?: boolean
   users_finance_transactions_approved_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_approved_byTousersArgs<ExtArgs>
   branches?: boolean | Prisma.finance_transactions$branchesArgs<ExtArgs>
   users_finance_transactions_created_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_created_byTousersArgs<ExtArgs>
   users_finance_transactions_deleted_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_deleted_byTousersArgs<ExtArgs>
   ledger_entries?: boolean | Prisma.finance_transactions$ledger_entriesArgs<ExtArgs>
   ledger_heads?: boolean | Prisma.ledger_headsDefaultArgs<ExtArgs>
+  users_finance_transactions_rejected_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_rejected_byTousersArgs<ExtArgs>
+  users_finance_transactions_submitted_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_submitted_byTousersArgs<ExtArgs>
+  users_finance_transactions_updated_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_updated_byTousersArgs<ExtArgs>
 }, ExtArgs["result"]["finance_transactions"]>
 
 export type finance_transactionsSelectScalar = {
@@ -2671,9 +4173,19 @@ export type finance_transactionsSelectScalar = {
   delete_reason?: boolean
   deleted_query_id?: boolean
   deleted_query_no?: boolean
+  submitted_by?: boolean
+  submitted_by_name?: boolean
+  submitted_at?: boolean
+  rejected_by?: boolean
+  rejected_by_name?: boolean
+  rejected_at?: boolean
+  updated_by?: boolean
+  updated_by_name?: boolean
+  approval_note?: boolean
+  revision?: boolean
 }
 
-export type finance_transactionsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "txn_no" | "txn_type" | "ledger_head_id" | "ledger_head_name" | "branch_id" | "branch_name" | "description" | "amount" | "payment_method" | "account" | "business_date" | "status" | "reference_no" | "notes" | "created_by" | "created_by_name" | "approved_by" | "approved_by_name" | "approved_at" | "rejection_reason" | "ledger_entry_id" | "created_at" | "updated_at" | "deleted_at" | "deleted_by" | "deleted_by_name" | "delete_reason" | "deleted_query_id" | "deleted_query_no", ExtArgs["result"]["finance_transactions"]>
+export type finance_transactionsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "txn_no" | "txn_type" | "ledger_head_id" | "ledger_head_name" | "branch_id" | "branch_name" | "description" | "amount" | "payment_method" | "account" | "business_date" | "status" | "reference_no" | "notes" | "created_by" | "created_by_name" | "approved_by" | "approved_by_name" | "approved_at" | "rejection_reason" | "ledger_entry_id" | "created_at" | "updated_at" | "deleted_at" | "deleted_by" | "deleted_by_name" | "delete_reason" | "deleted_query_id" | "deleted_query_no" | "submitted_by" | "submitted_by_name" | "submitted_at" | "rejected_by" | "rejected_by_name" | "rejected_at" | "updated_by" | "updated_by_name" | "approval_note" | "revision", ExtArgs["result"]["finance_transactions"]>
 export type finance_transactionsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users_finance_transactions_approved_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_approved_byTousersArgs<ExtArgs>
   branches?: boolean | Prisma.finance_transactions$branchesArgs<ExtArgs>
@@ -2681,6 +4193,9 @@ export type finance_transactionsInclude<ExtArgs extends runtime.Types.Extensions
   users_finance_transactions_deleted_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_deleted_byTousersArgs<ExtArgs>
   ledger_entries?: boolean | Prisma.finance_transactions$ledger_entriesArgs<ExtArgs>
   ledger_heads?: boolean | Prisma.ledger_headsDefaultArgs<ExtArgs>
+  users_finance_transactions_rejected_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_rejected_byTousersArgs<ExtArgs>
+  users_finance_transactions_submitted_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_submitted_byTousersArgs<ExtArgs>
+  users_finance_transactions_updated_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_updated_byTousersArgs<ExtArgs>
 }
 export type finance_transactionsIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users_finance_transactions_approved_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_approved_byTousersArgs<ExtArgs>
@@ -2689,6 +4204,9 @@ export type finance_transactionsIncludeCreateManyAndReturn<ExtArgs extends runti
   users_finance_transactions_deleted_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_deleted_byTousersArgs<ExtArgs>
   ledger_entries?: boolean | Prisma.finance_transactions$ledger_entriesArgs<ExtArgs>
   ledger_heads?: boolean | Prisma.ledger_headsDefaultArgs<ExtArgs>
+  users_finance_transactions_rejected_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_rejected_byTousersArgs<ExtArgs>
+  users_finance_transactions_submitted_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_submitted_byTousersArgs<ExtArgs>
+  users_finance_transactions_updated_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_updated_byTousersArgs<ExtArgs>
 }
 export type finance_transactionsIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users_finance_transactions_approved_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_approved_byTousersArgs<ExtArgs>
@@ -2697,6 +4215,9 @@ export type finance_transactionsIncludeUpdateManyAndReturn<ExtArgs extends runti
   users_finance_transactions_deleted_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_deleted_byTousersArgs<ExtArgs>
   ledger_entries?: boolean | Prisma.finance_transactions$ledger_entriesArgs<ExtArgs>
   ledger_heads?: boolean | Prisma.ledger_headsDefaultArgs<ExtArgs>
+  users_finance_transactions_rejected_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_rejected_byTousersArgs<ExtArgs>
+  users_finance_transactions_submitted_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_submitted_byTousersArgs<ExtArgs>
+  users_finance_transactions_updated_byTousers?: boolean | Prisma.finance_transactions$users_finance_transactions_updated_byTousersArgs<ExtArgs>
 }
 
 export type $finance_transactionsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2708,6 +4229,9 @@ export type $finance_transactionsPayload<ExtArgs extends runtime.Types.Extension
     users_finance_transactions_deleted_byTousers: Prisma.$usersPayload<ExtArgs> | null
     ledger_entries: Prisma.$ledger_entriesPayload<ExtArgs> | null
     ledger_heads: Prisma.$ledger_headsPayload<ExtArgs>
+    users_finance_transactions_rejected_byTousers: Prisma.$usersPayload<ExtArgs> | null
+    users_finance_transactions_submitted_byTousers: Prisma.$usersPayload<ExtArgs> | null
+    users_finance_transactions_updated_byTousers: Prisma.$usersPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2740,6 +4264,16 @@ export type $finance_transactionsPayload<ExtArgs extends runtime.Types.Extension
     delete_reason: string | null
     deleted_query_id: string | null
     deleted_query_no: string | null
+    submitted_by: string | null
+    submitted_by_name: string | null
+    submitted_at: Date | null
+    rejected_by: string | null
+    rejected_by_name: string | null
+    rejected_at: Date | null
+    updated_by: string | null
+    updated_by_name: string | null
+    approval_note: string | null
+    revision: number
   }, ExtArgs["result"]["finance_transactions"]>
   composites: {}
 }
@@ -3140,6 +4674,9 @@ export interface Prisma__finance_transactionsClient<T, Null = never, ExtArgs ext
   users_finance_transactions_deleted_byTousers<T extends Prisma.finance_transactions$users_finance_transactions_deleted_byTousersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.finance_transactions$users_finance_transactions_deleted_byTousersArgs<ExtArgs>>): Prisma.Prisma__usersClient<runtime.Types.Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   ledger_entries<T extends Prisma.finance_transactions$ledger_entriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.finance_transactions$ledger_entriesArgs<ExtArgs>>): Prisma.Prisma__ledger_entriesClient<runtime.Types.Result.GetResult<Prisma.$ledger_entriesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   ledger_heads<T extends Prisma.ledger_headsDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ledger_headsDefaultArgs<ExtArgs>>): Prisma.Prisma__ledger_headsClient<runtime.Types.Result.GetResult<Prisma.$ledger_headsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  users_finance_transactions_rejected_byTousers<T extends Prisma.finance_transactions$users_finance_transactions_rejected_byTousersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.finance_transactions$users_finance_transactions_rejected_byTousersArgs<ExtArgs>>): Prisma.Prisma__usersClient<runtime.Types.Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  users_finance_transactions_submitted_byTousers<T extends Prisma.finance_transactions$users_finance_transactions_submitted_byTousersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.finance_transactions$users_finance_transactions_submitted_byTousersArgs<ExtArgs>>): Prisma.Prisma__usersClient<runtime.Types.Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  users_finance_transactions_updated_byTousers<T extends Prisma.finance_transactions$users_finance_transactions_updated_byTousersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.finance_transactions$users_finance_transactions_updated_byTousersArgs<ExtArgs>>): Prisma.Prisma__usersClient<runtime.Types.Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3199,6 +4736,16 @@ export interface finance_transactionsFieldRefs {
   readonly delete_reason: Prisma.FieldRef<"finance_transactions", 'String'>
   readonly deleted_query_id: Prisma.FieldRef<"finance_transactions", 'String'>
   readonly deleted_query_no: Prisma.FieldRef<"finance_transactions", 'String'>
+  readonly submitted_by: Prisma.FieldRef<"finance_transactions", 'String'>
+  readonly submitted_by_name: Prisma.FieldRef<"finance_transactions", 'String'>
+  readonly submitted_at: Prisma.FieldRef<"finance_transactions", 'DateTime'>
+  readonly rejected_by: Prisma.FieldRef<"finance_transactions", 'String'>
+  readonly rejected_by_name: Prisma.FieldRef<"finance_transactions", 'String'>
+  readonly rejected_at: Prisma.FieldRef<"finance_transactions", 'DateTime'>
+  readonly updated_by: Prisma.FieldRef<"finance_transactions", 'String'>
+  readonly updated_by_name: Prisma.FieldRef<"finance_transactions", 'String'>
+  readonly approval_note: Prisma.FieldRef<"finance_transactions", 'String'>
+  readonly revision: Prisma.FieldRef<"finance_transactions", 'Int'>
 }
     
 
@@ -3692,6 +5239,63 @@ export type finance_transactions$ledger_entriesArgs<ExtArgs extends runtime.Type
    */
   include?: Prisma.ledger_entriesInclude<ExtArgs> | null
   where?: Prisma.ledger_entriesWhereInput
+}
+
+/**
+ * finance_transactions.users_finance_transactions_rejected_byTousers
+ */
+export type finance_transactions$users_finance_transactions_rejected_byTousersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the users
+   */
+  select?: Prisma.usersSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the users
+   */
+  omit?: Prisma.usersOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.usersInclude<ExtArgs> | null
+  where?: Prisma.usersWhereInput
+}
+
+/**
+ * finance_transactions.users_finance_transactions_submitted_byTousers
+ */
+export type finance_transactions$users_finance_transactions_submitted_byTousersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the users
+   */
+  select?: Prisma.usersSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the users
+   */
+  omit?: Prisma.usersOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.usersInclude<ExtArgs> | null
+  where?: Prisma.usersWhereInput
+}
+
+/**
+ * finance_transactions.users_finance_transactions_updated_byTousers
+ */
+export type finance_transactions$users_finance_transactions_updated_byTousersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the users
+   */
+  select?: Prisma.usersSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the users
+   */
+  omit?: Prisma.usersOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.usersInclude<ExtArgs> | null
+  where?: Prisma.usersWhereInput
 }
 
 /**

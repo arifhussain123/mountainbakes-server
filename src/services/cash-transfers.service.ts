@@ -13,6 +13,7 @@ import {
   type CashTransferStatus,
   type CreateCashTransferInput,
   type LedgerEntry,
+  type ResubmitCashTransferInput,
   type PaymentReceivedItem,
   type UserRole,
 } from '../shared';
@@ -463,6 +464,66 @@ export async function rejectCashTransfer(
 
   const transfer = { ...toApi(row), attachments: await listAttachments('cash_transfer', id) };
   await notifyBranch(transfer, 'rejected');
+  return transfer;
+}
+
+/**
+ * The branch corrects a REJECTED deposit and sends the same CT- back to
+ * Finance (resubmit_cash_transfer, one statement). Its branch and business date
+ * are not inputs: they stay what they were, and the history keeps the rejection
+ * this answers. A new slip photo is added beside the old one.
+ *
+ * Not re-counted against the day's deposit limit: it was counted when it was
+ * raised, and this is the same deposit, not another.
+ */
+export async function resubmitCashTransfer(input: {
+  id: string;
+  /** The caller's branch; null only for a Super Admin, who may act for any. */
+  branchId: string | null;
+  actor: { uid: string; email: string };
+  body: ResubmitCashTransferInput;
+}): Promise<CashTransfer> {
+  const { data, error } = await db.rpc('resubmit_cash_transfer', {
+    p_id: input.id,
+    p_branch_id: input.branchId,
+    p_actor_id: input.actor.uid,
+    p_actor_name: input.actor.email,
+    p_cash: input.body.cashAmount,
+    p_easypaisa: input.body.easypaisaAmount,
+    p_bank: input.body.bankAmount,
+    p_fuel: input.body.fuelCharges,
+    p_note: input.body.note ?? null,
+  });
+  if (error) throw asClientError(error);
+
+  const row = (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | null;
+  if (!row) throw Object.assign(new Error('Cash transfer not found'), { status: 404 });
+
+  if (input.body.attachmentIds.length) {
+    await bindAttachments({
+      entity: 'cash_transfer',
+      entityId: input.id,
+      attachmentIds: input.body.attachmentIds,
+      actor: { uid: input.actor.uid },
+    });
+  }
+  const transfer = { ...toApi(row), attachments: await listAttachments('cash_transfer', input.id) };
+
+  const summary = depositSummary(transfer);
+  for (const targetRole of ['finance_admin', 'finance_manager'] as const) {
+    try {
+      await notify({
+        type: 'cash_transfer',
+        title: 'Cash Transfer Resubmitted',
+        message: `${transfer.branchName} corrected ${transfer.transferNo} (${summary}, revision ${transfer.revision}) — awaiting approval`,
+        targetRole,
+        branchId: null,
+        relatedId: transfer.id,
+      });
+    } catch (err) {
+      console.error('[cash-transfers] notify failed', err);
+    }
+  }
   return transfer;
 }
 

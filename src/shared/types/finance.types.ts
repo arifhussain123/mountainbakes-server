@@ -443,15 +443,88 @@ export interface FinanceTransaction {
   notes: string | null;
   createdBy: string | null;
   createdByName: string | null;
+  /** Who last sent it for approval, and when — the first time or a resubmission. */
+  submittedBy: string | null;
+  submittedByName: string | null;
+  submittedAt: string | null;
   approvedBy: string | null;
   approvedByName: string | null;
   approvedAt: string | null;
+  /** What the approver wrote when approving. Never overwrites `notes`. */
+  approvalNote: string | null;
+  /** The latest rejection. Earlier ones are in the entry's history. */
+  rejectedBy: string | null;
+  rejectedByName: string | null;
+  rejectedAt: string | null;
   rejectionReason: string | null;
+  updatedBy: string | null;
+  updatedByName: string | null;
+  /** 1, then one more for each correction resubmitted after a rejection. */
+  revision: number;
   ledgerEntryId: string | null;
   createdAt: string;
   updatedAt: string;
   /** Photo of the receipt or voucher, captured when the entry was raised. */
   attachments?: Attachment[];
+  /** The posted voucher (RV-/PV-), on the single-entry read once approved. */
+  voucherNo?: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// Workflow history
+// ---------------------------------------------------------------------------
+
+export type FinanceDocumentType = 'finance_transaction' | 'cash_transfer';
+
+export type FinanceDocumentEventType =
+  | 'created'
+  | 'edited'
+  | 'corrected'
+  | 'submitted'
+  | 'resubmitted'
+  | 'approved'
+  | 'rejected'
+  | 'locked'
+  | 'reopened'
+  | 'deleted';
+
+export const FINANCE_DOCUMENT_EVENT_LABELS: Record<FinanceDocumentEventType, string> = {
+  created: 'Created',
+  edited: 'Edited',
+  corrected: 'Corrected (Help Desk)',
+  submitted: 'Submitted for approval',
+  resubmitted: 'Corrected and resubmitted',
+  approved: 'Approved and posted',
+  rejected: 'Rejected',
+  locked: 'Locked by day closing',
+  reopened: 'Day reopened',
+  deleted: 'Deleted',
+};
+
+/**
+ * One step in an entry's or a deposit's life (migration
+ * 20261028000001_finance_approval_workflow). Written by database triggers, so
+ * no code path can change a document without one; never updated or deleted.
+ */
+export interface FinanceDocumentEvent {
+  id: string;
+  documentType: FinanceDocumentType;
+  documentId: string;
+  documentRef: string | null;
+  revision: number;
+  event: FinanceDocumentEventType;
+  fromStatus: string | null;
+  toStatus: string;
+  actorId: string | null;
+  actorName: string | null;
+  actorRole: string | null;
+  /** Rejection remarks, the approver's note, a delete reason or the deposit note. */
+  remarks: string | null;
+  /** Every figure the step changed: `{ amount: { from: 500, to: 450 } }`. */
+  changes: Record<string, { from: unknown; to: unknown }>;
+  ledgerEntryId: string | null;
+  voucherNo: string | null;
+  createdAt: string;
 }
 
 // ---------------------------------------------------------------------------

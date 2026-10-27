@@ -25,7 +25,9 @@ import {
 import {
   approveTransaction,
   createTransaction,
+  getDocumentHistory,
   getTransaction,
+  listSubmitters,
   listTransactions,
   rejectTransaction,
   submitTransaction,
@@ -227,10 +229,43 @@ entriesRouter.get('/', requireFinance('view'), async (req: AuthRequest, res, nex
       maxAmount: q['maxAmount'] ? Number(q['maxAmount']) : undefined,
       limit: q['limit'] ? Number(q['limit']) : undefined,
       offset: q['offset'] ? Number(q['offset']) : undefined,
+      submittedBy: q['submittedBy'],
       sortBy: q['sortBy'] as TransactionQuery['sortBy'],
       sortDir: q['sortDir'] as TransactionQuery['sortDir'],
     });
     res.json({ entries, total });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// The approval queue's "Submitted by" choices. Before '/:id', or it would be read as an id.
+entriesRouter.get('/submitters', requireFinance('view'), async (_req: AuthRequest, res, next) => {
+  try {
+    res.json({ submitters: await listSubmitters() });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /entries/:id/history — every create, edit, submission, rejection and
+// approval of the entry, oldest first, from finance_document_events.
+entriesRouter.get('/:id/history', requireFinance('view'), async (req: AuthRequest, res, next) => {
+  try {
+    const id = String(req.params['id']);
+    if (!(await getTransaction(id))) { res.status(404).json({ error: 'Entry not found' }); return; }
+    res.json({ events: await getDocumentHistory('finance_transaction', id) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /entries/:id — one entry with its photo and, once posted, its voucher.
+entriesRouter.get('/:id', requireFinance('view'), async (req: AuthRequest, res, next) => {
+  try {
+    const entry = await getTransaction(String(req.params['id']));
+    if (!entry) { res.status(404).json({ error: 'Entry not found' }); return; }
+    res.json({ entry });
   } catch (err) {
     next(err);
   }
@@ -277,7 +312,7 @@ entriesRouter.put(
         previousValues: before
           ? auditSnapshot(before as unknown as Record<string, unknown>, ['ledgerHeadName', 'description', 'amount', 'account', 'businessDate', 'status'])
           : null,
-        newValues: auditSnapshot(doc as unknown as Record<string, unknown>, ['ledgerHeadName', 'description', 'amount', 'account', 'businessDate', 'status']),
+        newValues: auditSnapshot(doc as unknown as Record<string, unknown>, ['ledgerHeadName', 'description', 'amount', 'account', 'businessDate', 'status', 'revision']),
       });
 
       res.json({ entry: doc });
@@ -289,13 +324,13 @@ entriesRouter.put(
 
 entriesRouter.post('/:id/submit', requireFinance('create'), async (req: AuthRequest, res, next) => {
   try {
-    const doc = await submitTransaction(String(req.params['id']));
+    const doc = await submitTransaction(String(req.params['id']), actorOf(req));
     await logFinanceAudit(req, {
       entity: 'finance_transaction',
       entityId: doc.id,
       entityRef: doc.txnNo,
       action: 'submitted',
-      newValues: { amount: doc.amount, status: doc.status },
+      newValues: { amount: doc.amount, status: doc.status, revision: doc.revision },
     });
     res.json({ entry: doc });
   } catch (err) {

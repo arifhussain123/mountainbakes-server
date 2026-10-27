@@ -112,6 +112,14 @@ export interface CashTransfer extends CashTransferChannels {
   /** Last corrected by (Help Desk / Support Center) — migration 121. */
   updatedBy: string | null;
   updatedByName: string | null;
+  /**
+   * 1, then one more each time the branch corrects a rejected deposit and sends
+   * it back (resubmit_cash_transfer). The rejections stay in its history.
+   */
+  revision: number;
+  resubmittedAt: string | null;
+  resubmittedBy: string | null;
+  resubmittedByName: string | null;
   /** The first RV- receipt this became; null until approved. */
   ledgerEntryId: string | null;
   /** Every RV- the approval posted (the Total, and Fuel when entered), comma separated. */

@@ -6,6 +6,8 @@ import {
   type CreateFinanceTransactionInput,
   type CreatePartnerExpenseInput,
   type FinanceDocStatus,
+  type FinanceDocumentEvent,
+  type FinanceDocumentType,
   type FinancePartner,
   type FinanceTransaction,
   type LedgerEntry,
@@ -20,7 +22,7 @@ import {
 import { rowToApi } from '../utils/case';
 import { withoutDeleted } from '../utils/softDelete';
 import { bindAttachments, listAttachments, listAttachmentsFor } from './attachments.service';
-import { getLedgerSummary, postEntry, requireActiveHead } from './finance-ledger.service';
+import { getLedgerEntry, getLedgerSummary, postEntry, requireActiveHead } from './finance-ledger.service';
 import { getLedgerHeadByCode, round2 } from './finance-settings.service';
 import { checkFinanceEntry, enforceRestrictions, type RestrictionGuard } from './restriction.service';
 
@@ -81,7 +83,9 @@ export type TransactionSortKey =
   | 'notes'
   | 'amount'
   | 'paymentMethod'
-  | 'status';
+  | 'status'
+  | 'submittedAt'
+  | 'submittedByName';
 
 const TRANSACTION_SORTABLE_COLUMNS: Record<TransactionSortKey, string> = {
   txnNo: 'txn_no',
@@ -93,6 +97,8 @@ const TRANSACTION_SORTABLE_COLUMNS: Record<TransactionSortKey, string> = {
   amount: 'amount',
   paymentMethod: 'payment_method',
   status: 'status',
+  submittedAt: 'submitted_at',
+  submittedByName: 'submitted_by_name',
 };
 
 export interface TransactionQuery {
@@ -101,6 +107,8 @@ export interface TransactionQuery {
   branchId?: string;
   ledgerHeadId?: string;
   paymentMethod?: string;
+  /** The user who last sent it for approval — the approval queue's filter. */
+  submittedBy?: string;
   from?: string;
   to?: string;
   search?: string;
@@ -136,6 +144,7 @@ export async function listTransactions(
   if (q.branchId) query = query.eq('branch_id', q.branchId);
   if (q.ledgerHeadId) query = query.eq('ledger_head_id', q.ledgerHeadId);
   if (q.paymentMethod) query = query.eq('payment_method', q.paymentMethod);
+  if (q.submittedBy) query = query.eq('submitted_by', q.submittedBy);
   if (q.from) query = query.gte('business_date', q.from);
   if (q.to) query = query.lte('business_date', q.to);
   if (q.minAmount !== undefined) query = query.gte('amount', q.minAmount);
@@ -256,6 +265,7 @@ export async function createTransaction(
   // Last, so an approval is only spent on an entry that has passed every other
   // check and is about to be written.
   const guard = await guardFinanceEntry({ ledgerHeadId: head.id, businessDate, amount: input.amount, branch }, actor);
+  const status = initialStatus(input.asDraft);
 
   const { data, error } = await db
     .from('finance_transactions')
@@ -270,11 +280,12 @@ export async function createTransaction(
       payment_method: input.paymentMethod,
       account: input.account,
       business_date: businessDate,
-      status: initialStatus(input.asDraft),
-      reference_no: input.referenceNo ?? null,
-      notes: input.notes ?? null,
+      status,
+      reference_no: input.referenceNo?.trim() || null,
+      notes: input.notes?.trim() || null,
       created_by: actor.uid,
       created_by_name: actor.name,
+      ...(status === 'pending_approval' ? submittedStamp(actor) : {}),
     })
     .select('*')
     .single();
@@ -348,14 +359,22 @@ export async function updateTransaction(
   if (input.paymentMethod !== undefined) row['payment_method'] = input.paymentMethod;
   if (input.account !== undefined) row['account'] = input.account;
   if (input.businessDate !== undefined) row['business_date'] = input.businessDate;
-  if (input.referenceNo !== undefined) row['reference_no'] = input.referenceNo;
-  if (input.notes !== undefined) row['notes'] = input.notes;
+  // A cleared box is "none", not an empty string — so an untouched blank field
+  // is no change at all in the entry's history.
+  if (input.referenceNo !== undefined) row['reference_no'] = input.referenceNo?.trim() || null;
+  if (input.notes !== undefined) row['notes'] = input.notes?.trim() || null;
+  if (actor) {
+    row['updated_by'] = actor.uid;
+    row['updated_by_name'] = actor.name;
+  }
 
-  // Editing a rejected document puts it back in the queue — otherwise the fix
-  // sits in limbo with nobody prompted to look at it again.
-  if (current.status === 'rejected') {
-    row['status'] = 'pending_approval';
-    row['rejection_reason'] = null;
+  // "Save and resubmit": the correction and the submission are one statement,
+  // so the approver can never be shown the entry before its correction. A plain
+  // save leaves a rejected entry rejected, remarks and all, until the author
+  // chooses to send it back.
+  if (input.resubmit) {
+    if (!actor) throw Object.assign(new Error('Submitting needs a signed-in user.'), { status: 401 });
+    Object.assign(row, { status: 'pending_approval', rejection_reason: null }, submittedStamp(actor));
   }
 
   const { data, error } = await withoutDeleted(
@@ -377,67 +396,182 @@ export async function getTransaction(id: string): Promise<FinanceTransaction | n
   ).maybeSingle();
   if (error) throw error;
   if (!data) return null;
+  const ledgerEntryId = (data as Record<string, unknown>)['ledger_entry_id'] as string | null;
+  const [attachments, voucher] = await Promise.all([
+    listAttachments('finance_transaction', id),
+    ledgerEntryId
+      ? db.from('ledger_entries').select('voucher_no').eq('id', ledgerEntryId).maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+  if (voucher.error) throw voucher.error;
   return {
     ...rowToApi<FinanceTransaction>(data),
     amount: num((data as Record<string, unknown>)['amount']),
-    attachments: await listAttachments('finance_transaction', id),
+    attachments,
+    voucherNo: (voucher.data?.['voucher_no'] as string | undefined) ?? null,
   };
 }
 
-/** Move a draft into the approval queue. */
-export async function submitTransaction(id: string): Promise<FinanceTransaction> {
+/** Who sent an entry for approval, and when — on every submission and resubmission. */
+function submittedStamp(actor: { uid: string; name: string }) {
+  return {
+    submitted_by: actor.uid,
+    submitted_by_name: actor.name,
+    submitted_at: new Date().toISOString(),
+  };
+}
+
+/**
+ * Move a draft, or a corrected rejected entry, into the approval queue.
+ *
+ * The entry is checked again first — its head may have been closed since it was
+ * keyed — so the approver is not handed something that can only fail to post.
+ * A resubmission is the same row: the trigger raises its revision and the
+ * history keeps the rejection it answers.
+ */
+export async function submitTransaction(
+  id: string,
+  actor: { uid: string; name: string },
+): Promise<FinanceTransaction> {
+  const current = await getTransaction(id);
+  if (!current) throw Object.assign(new Error('Entry not found'), { status: 404 });
+  if (!EDITABLE_DOC_STATUSES.includes(current.status)) {
+    throw Object.assign(
+      new Error(
+        current.status === 'pending_approval'
+          ? `${current.txnNo} is already awaiting approval.`
+          : `${current.txnNo} is ${current.status}; only a draft or rejected entry can be submitted.`,
+      ),
+      { status: 409 },
+    );
+  }
+  await requireActiveHead(current.ledgerHeadId);
+
   const { data, error } = await withoutDeleted(
     db
       .from('finance_transactions')
-      .update({ status: 'pending_approval', rejection_reason: null })
+      .update({ status: 'pending_approval', rejection_reason: null, ...submittedStamp(actor) })
       .eq('id', id)
-      .in('status', ['draft', 'rejected']),
+      .in('status', EDITABLE_DOC_STATUSES),
   )
     .select('*')
-    .single();
-  if (error) throw Object.assign(new Error('Only a draft or rejected entry can be submitted.'), { status: 409 });
+    .maybeSingle();
+  if (error) throw error;
+  // Lost a race with another tab or user: say what it is now.
+  if (!data) throw Object.assign(new Error(`${current.txnNo} was just submitted by someone else.`), { status: 409 });
   return rowToApi<FinanceTransaction>(data);
 }
 
+/**
+ * Approve and post, as ONE database transaction (approve_finance_transaction):
+ * the voucher number, the ledger row and the entry's `posted` status are
+ * committed together or not at all. Two approvers at once: the row lock makes
+ * the second wait, find it posted, and get a 409. A refused posting (closed
+ * day, inactive head) leaves the entry pending with no voucher spent.
+ */
 export async function approveTransaction(
   id: string,
   actor: { uid: string; name: string },
   notes?: string | null,
 ): Promise<{ document: FinanceTransaction; entry: LedgerEntry }> {
-  const doc = await getTransaction(id);
-  if (!doc) throw Object.assign(new Error('Entry not found'), { status: 404 });
-
-  const entry = await approveDocument({
-    table: 'finance_transactions',
-    id,
-    ref: doc.txnNo,
-    status: doc.status,
-    actor,
-    notes,
-    posting: {
-      entryDate: doc.businessDate,
-      ledgerHeadId: doc.ledgerHeadId,
-      headType: doc.txnType,
-      description: `${doc.description} (${doc.txnNo})`,
-      amount: doc.amount,
-      account: doc.account,
-      paymentMethod: doc.paymentMethod,
-      branchId: doc.branchId,
-      branchName: doc.branchName,
-      sourceType: 'manual',
-    },
+  const { data, error } = await db.rpc('approve_finance_transaction', {
+    p_id: id,
+    p_actor_id: actor.uid,
+    p_actor_name: actor.name,
+    p_note: notes ?? null,
   });
+  if (error) {
+    if (error.code === 'P0002') throw Object.assign(new Error('Entry not found'), { status: 404 });
+    if (error.code === 'P0001') throw Object.assign(new Error(error.message), { status: 409 });
+    throw error;
+  }
+  const row = (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | null;
+  if (!row) throw Object.assign(new Error('Entry not found'), { status: 404 });
 
-  return { document: (await getTransaction(id))!, entry };
+  const [document, entry] = await Promise.all([
+    getTransaction(id),
+    getLedgerEntry(String(row['ledger_entry_id'])),
+  ]);
+  return { document: document!, entry: entry! };
 }
 
+/**
+ * Send an entry back to its author. The rejecter goes in rejected_*, not
+ * approved_*, and the remarks stay in the history after the entry is corrected.
+ */
 export async function rejectTransaction(
   id: string,
   reason: string,
   actor: { uid: string; name: string },
 ): Promise<FinanceTransaction> {
-  await rejectDocument('finance_transactions', id, reason, actor);
+  const remarks = reason.trim();
+  if (remarks.length < 3) throw Object.assign(new Error('A reason is required to reject an entry.'), { status: 400 });
+
+  const { data, error } = await withoutDeleted(
+    db
+      .from('finance_transactions')
+      .update({
+        status: 'rejected',
+        rejection_reason: remarks,
+        rejected_by: actor.uid,
+        rejected_by_name: actor.name,
+        rejected_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .in('status', ['draft', 'pending_approval']),
+  )
+    .select('id')
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) {
+    const current = await getTransaction(id);
+    if (!current) throw Object.assign(new Error('Entry not found'), { status: 404 });
+    throw Object.assign(
+      new Error(
+        `${current.txnNo} is ${current.status}. Only a pending entry can be rejected; a posted one needs a reversal instead.`,
+      ),
+      { status: 409 },
+    );
+  }
   return (await getTransaction(id))!;
+}
+
+/** The entry's workflow history, oldest first. */
+export async function getDocumentHistory(
+  documentType: FinanceDocumentType,
+  documentId: string,
+): Promise<FinanceDocumentEvent[]> {
+  const { data, error } = await db
+    .from('finance_document_events')
+    .select('*')
+    .eq('document_type', documentType)
+    .eq('document_id', documentId)
+    .order('created_at', { ascending: true })
+    .limit(500);
+  if (error) throw error;
+  return rowToApi<FinanceDocumentEvent[]>(data ?? []).map((e) => ({ ...e, changes: e.changes ?? {} }));
+}
+
+/**
+ * Everyone who has sent an entry for approval — the approval queue's
+ * "Submitted by" choices. Distinct by user; the newest name wins.
+ */
+export async function listSubmitters(): Promise<{ id: string; name: string }[]> {
+  const { data, error } = await withoutDeleted(
+    db
+      .from('finance_transactions')
+      .select('submitted_by, submitted_by_name')
+      .not('submitted_by', 'is', null)
+      .order('submitted_at', { ascending: false })
+      .limit(1000),
+  );
+  if (error) throw error;
+  const seen = new Map<string, string>();
+  for (const r of data ?? []) {
+    const id = String(r['submitted_by']);
+    if (!seen.has(id)) seen.set(id, String(r['submitted_by_name'] ?? 'Unknown'));
+  }
+  return [...seen].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
 }
 
 // ---------------------------------------------------------------------------
