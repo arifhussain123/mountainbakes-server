@@ -466,7 +466,7 @@ export interface FinanceTransaction {
   updatedAt: string;
   /** Photo of the receipt or voucher, captured when the entry was raised. */
   attachments?: Attachment[];
-  /** The posted voucher (RV-/PV-), on the single-entry read once approved. */
+  /** The posted voucher (RV-/PV-) once approved — on the list and the single-entry read. */
   voucherNo?: string | null;
 }
 

@@ -85,7 +85,8 @@ export type TransactionSortKey =
   | 'paymentMethod'
   | 'status'
   | 'submittedAt'
-  | 'submittedByName';
+  | 'submittedByName'
+  | 'createdByName';
 
 const TRANSACTION_SORTABLE_COLUMNS: Record<TransactionSortKey, string> = {
   txnNo: 'txn_no',
@@ -99,6 +100,7 @@ const TRANSACTION_SORTABLE_COLUMNS: Record<TransactionSortKey, string> = {
   status: 'status',
   submittedAt: 'submitted_at',
   submittedByName: 'submitted_by_name',
+  createdByName: 'created_by_name',
 };
 
 export interface TransactionQuery {
@@ -126,7 +128,9 @@ export async function listTransactions(
   const limit = Math.min(Math.max(Number(q.limit ?? 200), 1), 500);
   const offset = Math.max(Number(q.offset ?? 0), 0);
 
-  const sortCol = q.sortBy ? TRANSACTION_SORTABLE_COLUMNS[q.sortBy] : 'business_date';
+  // An unknown key (a column the screen sorts but the API does not) falls back
+  // to the default rather than ordering by nothing.
+  const sortCol = (q.sortBy && TRANSACTION_SORTABLE_COLUMNS[q.sortBy]) || 'business_date';
   const ascending = q.sortDir === 'asc';
 
   let query = withoutDeleted(
@@ -162,13 +166,28 @@ export async function listTransactions(
   if (error) throw error;
 
   const rows = rowToApi<FinanceTransaction[]>(data ?? []).map((t) => ({ ...t, amount: num(t.amount) }));
-  // One query and one signing call for the whole page, not one per row.
-  const photos = await listAttachmentsFor(
-    'finance_transaction',
-    rows.map((t) => t.id),
+  // One query and one signing call for the whole page, not one per row; the
+  // same for the RV-/PV- of the posted rows.
+  const ledgerIds = rows.map((t) => t.ledgerEntryId).filter((id): id is string => !!id);
+  const [photos, vouchers] = await Promise.all([
+    listAttachmentsFor(
+      'finance_transaction',
+      rows.map((t) => t.id),
+    ),
+    ledgerIds.length
+      ? db.from('ledger_entries').select('id, voucher_no').in('id', ledgerIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (vouchers.error) throw vouchers.error;
+  const voucherOf = new Map(
+    ((vouchers.data ?? []) as Record<string, unknown>[]).map((v) => [v['id'] as string, v['voucher_no'] as string]),
   );
   return {
-    transactions: rows.map((t) => ({ ...t, attachments: photos.get(t.id) ?? [] })),
+    transactions: rows.map((t) => ({
+      ...t,
+      attachments: photos.get(t.id) ?? [],
+      voucherNo: t.ledgerEntryId ? (voucherOf.get(t.ledgerEntryId) ?? null) : null,
+    })),
     total: count ?? 0,
   };
 }
