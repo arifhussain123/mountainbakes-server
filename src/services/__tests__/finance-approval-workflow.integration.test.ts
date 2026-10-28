@@ -431,6 +431,9 @@ describe('Finance Admin: reject, correct, resubmit, approve', () => {
     assert.equal(last.voucherNo, r.ledgerEntry.voucherNo);
     assert.equal(last.remarks, 'Checked against the bill');
 
+    const listed = ok(await call('accountant', 'GET', `${ENTRIES}?status=posted`)).entries;
+    assert.equal(listed.find((t: { id: string }) => t.id === rent.id)?.voucherNo, r.ledgerEntry.voucherNo, 'the list shows the voucher too');
+
     assert.equal((await call('accountant', 'PUT', `${ENTRIES}/${rent.id}`, { amount: 1 })).status, 409, 'a posted entry is not edited');
   });
 
