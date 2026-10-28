@@ -443,7 +443,10 @@ export const Cash_transfersScalarFieldEnum = {
   revision: 'revision',
   resubmitted_at: 'resubmitted_at',
   resubmitted_by: 'resubmitted_by',
-  resubmitted_by_name: 'resubmitted_by_name'
+  resubmitted_by_name: 'resubmitted_by_name',
+  forwarded_at: 'forwarded_at',
+  forwarded_by: 'forwarded_by',
+  forwarded_by_name: 'forwarded_by_name'
 } as const
 
 export type Cash_transfersScalarFieldEnum = (typeof Cash_transfersScalarFieldEnum)[keyof typeof Cash_transfersScalarFieldEnum]

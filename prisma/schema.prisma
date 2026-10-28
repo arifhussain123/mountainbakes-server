@@ -350,10 +350,14 @@ model cash_transfers {
   resubmitted_at                             DateTime?            @db.Timestamptz(6)
   resubmitted_by                             String?              @db.Uuid
   resubmitted_by_name                        String?
+  forwarded_at                               DateTime?            @db.Timestamptz(6)
+  forwarded_by                               String?              @db.Uuid
+  forwarded_by_name                          String?
   users_cash_transfers_approved_byTousers    users?               @relation("cash_transfers_approved_byTousers", fields: [approved_by], references: [id], onUpdate: NoAction)
   branches                                   branches             @relation(fields: [branch_id], references: [id], onUpdate: NoAction)
   users_cash_transfers_created_byTousers     users?               @relation("cash_transfers_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
   users_cash_transfers_deleted_byTousers     users?               @relation("cash_transfers_deleted_byTousers", fields: [deleted_by], references: [id], onUpdate: NoAction)
+  users_cash_transfers_forwarded_byTousers   users?               @relation("cash_transfers_forwarded_byTousers", fields: [forwarded_by], references: [id], onUpdate: NoAction)
   ledger_entries                             ledger_entries?      @relation(fields: [ledger_entry_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
   users_cash_transfers_resubmitted_byTousers users?               @relation("cash_transfers_resubmitted_byTousers", fields: [resubmitted_by], references: [id], onUpdate: NoAction)
   users_cash_transfers_updated_byTousers     users?               @relation("cash_transfers_updated_byTousers", fields: [updated_by], references: [id], onUpdate: NoAction)
@@ -2281,6 +2285,7 @@ model users {
   cash_transfers_cash_transfers_created_byTousers                      cash_transfers[]             @relation("cash_transfers_created_byTousers")
   cash_transfers_cash_transfers_deleted_byTousers                      cash_transfers[]             @relation("cash_transfers_deleted_byTousers")
   cash_transfers_cash_transfers_resubmitted_byTousers                  cash_transfers[]             @relation("cash_transfers_resubmitted_byTousers")
+  cash_transfers_cash_transfers_forwarded_byTousers                    cash_transfers[]             @relation("cash_transfers_forwarded_byTousers")
   cash_transfers_cash_transfers_updated_byTousers                      cash_transfers[]             @relation("cash_transfers_updated_byTousers")
   daily_sale_record_audits                                             daily_sale_record_audits[]
   daily_sale_records_daily_sale_records_created_byTousers              daily_sale_records[]         @relation("daily_sale_records_created_byTousers")

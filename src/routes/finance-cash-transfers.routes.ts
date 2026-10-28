@@ -4,11 +4,17 @@ import { requireFinance } from '../middleware/requireFinance';
 import { validate } from '../middleware/validate';
 import {
   ApproveCashTransferSchema,
+  CASH_TRANSFER_QUEUES,
+  EditCashTransferSchema,
   RejectCashTransferSchema,
   businessDaysAgoStr,
+  type CashTransferQueue,
+  type EditCashTransferInput,
 } from '../shared';
 import {
   approveCashTransfer,
+  editCashTransfer,
+  forwardCashTransfer,
   getCashTransfer,
   isCashTransferMethod,
   isCashTransferSortKey,
@@ -29,6 +35,10 @@ import { getMissingDailyTransfers } from '../services/cash-transfer-missing.serv
  * matches mounts in registration order and `/api/finance` would otherwise
  * swallow the path.
  *
+ * A branch's deposit lands with Accounts first (migration
+ * 20261028000002): `create` — the Accountant — may correct it (PUT /:id) and
+ * submit it for approval (PUT /:id/forward). Only then may `approve` decide it.
+ *
  * `requireFinance('approve')` on the two decisions is the same gate every other
  * finance document uses: finance_admin and finance_manager, and super_admin
  * only when the Finance Settings toggle allows it. Viewing is `view`, which
@@ -45,16 +55,24 @@ const actorOf = (req: AuthRequest) => ({ uid: req.user!.uid, name: req.user!.ema
  * summary so the figures above the table always describe the table's rows.
  */
 function filtersFrom(q: Record<string, string | undefined>): CashTransferFilters {
+  // `status` also takes the two halves of pending: with Accounts, or
+  // submitted and awaiting Finance Admin.
+  const queue = (CASH_TRANSFER_QUEUES as readonly string[]).includes(q['status'] ?? '')
+    ? (q['status'] as CashTransferQueue)
+    : undefined;
+  const status = queue ? 'pending' : isCashTransferStatus(q['status']) ? q['status'] : undefined;
+
   // A pending queue is asked for whole — Finance must not miss a handover
   // because it was submitted 31 days ago — so the rolling default applies
   // only when no status is chosen. An explicit range always wins.
-  const from = q['from'] || (isCashTransferStatus(q['status']) && q['status'] === 'pending' ? undefined : businessDaysAgoStr(29));
+  const from = q['from'] || (status === 'pending' ? undefined : businessDaysAgoStr(29));
 
   return {
     branchId: q['branchId'] || undefined,
     from,
     to: q['to'] || undefined,
-    status: isCashTransferStatus(q['status']) ? q['status'] : undefined,
+    status,
+    forwarded: queue ? queue === 'awaiting_approval' : undefined,
     paymentMethod: isCashTransferMethod(q['paymentMethod']) ? q['paymentMethod'] : undefined,
     search: q['search']?.trim() || undefined,
   };
@@ -136,6 +154,54 @@ router.get('/:id/history', requireFinance('view'), async (req: AuthRequest, res,
     const id = String(req.params['id']);
     if (!(await getCashTransfer(id))) { res.status(404).json({ error: 'Cash transfer not found' }); return; }
     res.json({ events: await getDocumentHistory('cash_transfer', id) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /api/finance/cash-transfers/:id — Accounts corrects the figures or note
+// of a deposit still with it. The deposit stays with Accounts.
+router.put(
+  '/:id',
+  requireFinance('create'),
+  validate(EditCashTransferSchema),
+  async (req: AuthRequest, res, next) => {
+    try {
+      const transfer = await editCashTransfer(String(req.params['id']), actorOf(req), req.body as EditCashTransferInput);
+      await logFinanceAudit(req, {
+        entity: 'cash_transfer',
+        entityId: transfer.id,
+        entityRef: transfer.transferNo,
+        action: 'updated',
+        newValues: {
+          amount: transfer.amount,
+          cashAmount: transfer.cashAmount,
+          easypaisaAmount: transfer.easypaisaAmount,
+          bankAmount: transfer.bankAmount,
+          fuelCharges: transfer.fuelCharges,
+          note: transfer.note,
+        },
+      });
+      res.json({ transfer });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// PUT /api/finance/cash-transfers/:id/forward — Accounts submits the deposit
+// for approval; it moves to Finance Admin's queue.
+router.put('/:id/forward', requireFinance('create'), async (req: AuthRequest, res, next) => {
+  try {
+    const transfer = await forwardCashTransfer(String(req.params['id']), actorOf(req));
+    await logFinanceAudit(req, {
+      entity: 'cash_transfer',
+      entityId: transfer.id,
+      entityRef: transfer.transferNo,
+      action: 'submitted',
+      newValues: { status: transfer.status, forwardedAt: transfer.forwardedAt, amount: transfer.amount, branchName: transfer.branchName },
+    });
+    res.json({ transfer });
   } catch (err) {
     next(err);
   }

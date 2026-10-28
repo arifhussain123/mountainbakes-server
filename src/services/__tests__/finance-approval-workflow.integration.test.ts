@@ -23,6 +23,9 @@ import { businessDateStr, businessDaysAgoStr } from '../../shared';
  * correct → resubmit (same row, revision 2) → approve, which posts the voucher
  * and the entry together or not at all. Cash deposits: rejected → corrected and
  * resubmitted by the branch with its branch and date unchanged → approved.
+ * Since 20261028000002_cash_deposit_accounts_review a deposit is with Accounts
+ * first: the Accountant edits it and submits it for approval, and only then
+ * may Finance Admin decide it; a resubmission returns to Accounts.
  *
  * Two approvers at the same instant cannot be shown here: pglite is one
  * connection. That case rests on the row lock in approve_finance_transaction
@@ -32,6 +35,7 @@ import { businessDateStr, businessDaysAgoStr } from '../../shared';
 const PRISMA = join(__dirname, '../../../prisma/migrations');
 const BASELINE = readFileSync(join(PRISMA, '0_baseline/migration.sql'), 'utf8');
 const MIGRATION = readFileSync(join(PRISMA, '20261028000001_finance_approval_workflow/migration.sql'), 'utf8');
+const ACCOUNTS_REVIEW = readFileSync(join(PRISMA, '20261028000002_cash_deposit_accounts_review/migration.sql'), 'utf8');
 const AUTH = readFileSync(join(__dirname, '../../../db/history/migrations/20261009000149_custom_auth.sql'), 'utf8');
 
 function lift(head: string, tail: string): string {
@@ -102,6 +106,7 @@ const CT = '/api/cash-transfers';
 const TODAY = businessDateStr();
 const YESTERDAY = businessDaysAgoStr(1);
 const PHOTO = '80000000-0000-4000-8000-000000000001';
+const LEGACY_CT = { pending: '90000000-0000-4000-8000-000000000001', rejected: '90000000-0000-4000-8000-000000000002' };
 
 let db: PGlite;
 let server: Server;
@@ -216,8 +221,21 @@ before(async () => {
     alter table finance_transactions enable trigger finance_transactions_touch;
   `);
 
-  // The migration under test, in one transaction, as `prisma migrate deploy` runs it.
+  // Deposits raised before the Accounts step existed: one already in Finance
+  // Admin's queue, one decided.
+  await db.query(`
+    insert into cash_transfers (id, branch_id, branch_name, amount, cash_amount, business_date, status, created_by, created_by_name, created_at,
+      approved_at, rejection_reason)
+    values
+      ('${LEGACY_CT.pending}', '${ALPHA}', 'Alpha', 700, 700, '${YESTERDAY}', 'pending', '${ACTORS.branch!.id}', 'alpha@mb.test', '2026-10-20T09:00:00+05',
+       null, null),
+      ('${LEGACY_CT.rejected}', '${ALPHA}', 'Alpha', 800, 800, '${YESTERDAY}', 'rejected', '${ACTORS.branch!.id}', 'alpha@mb.test', '2026-10-21T09:00:00+05',
+       '2026-10-21T10:00:00+05', 'no slip')
+  `);
+
+  // The migrations under test, each in one transaction, as `prisma migrate deploy` runs them.
   await db.exec(`begin;${MIGRATION}commit;`);
+  await db.exec(`begin;${ACCOUNTS_REVIEW}commit;`);
 
   await usePglite(db);
   const prisma = new PrismaClient({ adapter: new PrismaPGlite(db) });
@@ -505,6 +523,7 @@ describe('cash deposits: a rejected deposit is corrected and resubmitted by its 
 
     assert.equal((await call('branch', 'POST', `${CT}/${ct.id}/resubmit`, { cashAmount: 1 })).status, 409, 'a pending deposit is not resubmitted');
 
+    ok(await call('accountant', 'PUT', `${FIN_CT}/${ct.id}/forward`));
     const rejected = ok(await call('admin', 'PUT', `${FIN_CT}/${ct.id}/reject`, { reason: 'Slip shows Rs. 4,500, not 5,000' })).transfer;
     assert.equal(rejected.status, 'rejected');
     assert.equal(rejected.voucherNo, null);
@@ -532,6 +551,7 @@ describe('cash deposits: a rejected deposit is corrected and resubmitted by its 
     assert.equal(fixed.rejectionReason, null);
     assert.equal(fixed.resubmittedByName, 'alpha@mb.test');
     assert.equal(fixed.attachments.length, 2, 'the new slip is added beside the old one');
+    assert.equal(fixed.forwardedAt, null, 'a resubmission goes back to Accounts');
 
     const count = Number((await db.query<{ n: string }>(`select count(*) n from cash_transfers where transfer_no = $1`, [ct.transferNo])).rows[0]!.n);
     assert.equal(count, 1);
@@ -539,11 +559,14 @@ describe('cash deposits: a rejected deposit is corrected and resubmitted by its 
 
   test('Finance sees the history, approves the corrected figures, and the voucher is issued only now', async () => {
     const events = ok(await call('admin', 'GET', `${FIN_CT}/${ct.id}/history`)).events as Json[];
-    assert.deepEqual(events.map((e) => [e.event, e.revision]), [['created', 1], ['rejected', 1], ['resubmitted', 2]]);
-    assert.match(events[1].remarks, /Slip shows/);
-    assert.deepEqual(events[2].changes, {
+    assert.deepEqual(events.map((e) => [e.event, e.revision]), [['created', 1], ['submitted', 1], ['rejected', 1], ['resubmitted', 2]]);
+    assert.match(events[2].remarks, /Slip shows/);
+    assert.deepEqual(events[3].changes, {
       amount: { from: 5000, to: 4500 }, cashAmount: { from: 5000, to: 4500 }, note: { from: null, to: 'Corrected to the slip' },
     });
+
+    assert.equal((await call('admin', 'PUT', `${FIN_CT}/${ct.id}/approve`, {})).status, 409, 'back with Accounts, not yet decidable');
+    ok(await call('accountant', 'PUT', `${FIN_CT}/${ct.id}/forward`));
 
     const approved = ok(await call('admin', 'PUT', `${FIN_CT}/${ct.id}/approve`, {}));
     assert.equal(approved.transfer.status, 'approved');
@@ -554,6 +577,97 @@ describe('cash deposits: a rejected deposit is corrected and resubmitted by its 
     const branchView = ok(await call('branch', 'GET', `${CT}/${ct.id}/history`)).events as Json[];
     assert.equal(branchView.at(-1).event, 'approved');
     assert.equal((await call('branch', 'POST', `${CT}/${ct.id}/resubmit`, { cashAmount: 1 })).status, 409, 'an approved deposit is final');
+  });
+});
+
+describe('cash deposits: with Accounts first, then Finance Admin', () => {
+  let ct: Json;
+  const pendingIds = async (status: string) =>
+    (ok(await call('admin', 'GET', `${FIN_CT}?status=${status}`)).transfers as Json[]).map((t) => t.id);
+
+  test('a deposit raised before the Accounts step stays in Finance Admin\'s queue; a decided one is untouched', async () => {
+    const legacy = ok(await call('admin', 'GET', `${FIN_CT}/${LEGACY_CT.pending}`));
+    assert.equal(new Date(legacy.forwardedAt).toISOString(), new Date('2026-10-20T09:00:00+05:00').toISOString(), 'forwarded when it was raised');
+    assert.equal(legacy.forwardedByName, null);
+    assert.equal(ok(await call('admin', 'GET', `${FIN_CT}/${LEGACY_CT.rejected}`)).forwardedAt, null);
+    const events = ok(await call('admin', 'GET', `${FIN_CT}/${LEGACY_CT.pending}/history`)).events as Json[];
+    assert.deepEqual(events, [], 'the backfill writes no history');
+  });
+
+  test('a new deposit lands with Accounts: listed there, not in Finance Admin\'s queue, and Accounts is notified', async () => {
+    const photo = await stagedPhoto('cash_transfer', 'branch');
+    ct = ok(await call('branch', 'POST', CT, { cashAmount: 3000, easypaisaAmount: 0, bankAmount: 0, fuelCharges: 200, attachmentIds: [photo], businessDate: YESTERDAY }), 201);
+    assert.equal(ct.status, 'pending');
+    assert.equal(ct.forwardedAt, null);
+
+    assert.ok((await pendingIds('with_accounts')).includes(ct.id));
+    assert.ok(!(await pendingIds('awaiting_approval')).includes(ct.id));
+    assert.ok((await pendingIds('awaiting_approval')).includes(LEGACY_CT.pending));
+    assert.ok((await pendingIds('pending')).includes(ct.id), 'plain pending still means both halves');
+
+    const notes = (await db.query<{ target_role: string }>(`select target_role from notifications where related_id = $1`, [ct.id])).rows;
+    assert.deepEqual(notes.map((n) => n.target_role), ['accountant']);
+  });
+
+  test('Finance Admin cannot approve or reject it while it is with Accounts', async () => {
+    const approve = await call('admin', 'PUT', `${FIN_CT}/${ct.id}/approve`, {});
+    assert.equal(approve.status, 409);
+    assert.match(approve.body.error, /still with Accounts/);
+    assert.equal((await call('admin', 'PUT', `${FIN_CT}/${ct.id}/reject`, { reason: 'too early' })).status, 409);
+    assert.equal(ok(await call('admin', 'GET', `${FIN_CT}/${ct.id}`)).status, 'pending');
+  });
+
+  test('the Accountant edits it: figures and note change, the Total is recomputed, it stays with Accounts', async () => {
+    assert.equal((await call('auditor', 'PUT', `${FIN_CT}/${ct.id}`, { cashAmount: 2500 })).status, 403);
+    assert.equal((await call('branch', 'PUT', `${FIN_CT}/${ct.id}`, { cashAmount: 2500 })).status, 403);
+    assert.equal((await call('accountant', 'PUT', `${FIN_CT}/${ct.id}`, { cashAmount: 0 })).status, 400, 'an empty deposit is refused');
+    assert.equal((await call('accountant', 'PUT', `${FIN_CT}/${ct.id}`, { cashAmount: 2000, bankAmount: 500, totalAmount: 9 })).status, 400);
+
+    const edited = ok(await call('accountant', 'PUT', `${FIN_CT}/${ct.id}`, {
+      cashAmount: 2000, easypaisaAmount: 0, bankAmount: 500, fuelCharges: 200, totalAmount: 2500, note: 'Split per the slip',
+    })).transfer;
+    assert.equal(edited.amount, 2500);
+    assert.equal(edited.bankAmount, 500);
+    assert.equal(edited.note, 'Split per the slip');
+    assert.equal(edited.updatedByName, 'accountant@mb.test');
+    assert.equal(edited.forwardedAt, null);
+    assert.equal(edited.attachments.length, 1, 'the branch\'s slip stays');
+  });
+
+  test('the Accountant submits it for approval: it moves to Finance Admin, who is notified', async () => {
+    assert.equal((await call('auditor', 'PUT', `${FIN_CT}/${ct.id}/forward`)).status, 403);
+    const sent = ok(await call('accountant', 'PUT', `${FIN_CT}/${ct.id}/forward`)).transfer;
+    assert.ok(sent.forwardedAt);
+    assert.equal(sent.forwardedByName, 'accountant@mb.test');
+    assert.equal(sent.status, 'pending');
+
+    assert.ok(!(await pendingIds('with_accounts')).includes(ct.id));
+    assert.ok((await pendingIds('awaiting_approval')).includes(ct.id));
+
+    const notes = (await db.query<{ target_role: string }>(`select target_role from notifications where related_id = $1 order by target_role`, [ct.id])).rows;
+    assert.deepEqual(notes.map((n) => n.target_role), ['accountant', 'finance_admin', 'finance_manager']);
+
+    assert.equal((await call('accountant', 'PUT', `${FIN_CT}/${ct.id}/forward`)).status, 409, 'submitted once');
+    const late = await call('accountant', 'PUT', `${FIN_CT}/${ct.id}`, { cashAmount: 1 });
+    assert.equal(late.status, 409, 'no edits once it is with Finance Admin');
+    assert.match(late.body.error, /already been submitted/);
+  });
+
+  test('Finance Admin approves the edited figures; the history reads created → edited → submitted → approved', async () => {
+    const approved = ok(await call('admin', 'PUT', `${FIN_CT}/${ct.id}/approve`, {}));
+    assert.equal(approved.transfer.status, 'approved');
+    assert.match(approved.transfer.voucherNo, /^RV-/);
+    assert.equal(Number(approved.ledgerEntry.debit), 2500);
+
+    const events = ok(await call('admin', 'GET', `${FIN_CT}/${ct.id}/history`)).events as Json[];
+    assert.deepEqual(events.map((e) => e.event), ['created', 'edited', 'submitted', 'approved']);
+    assert.equal(events[1].actorName, 'accountant@mb.test');
+    assert.deepEqual(events[1].changes.bankAmount, { from: 0, to: 500 });
+    assert.equal(events[2].actorName, 'accountant@mb.test');
+    assert.equal(events[2].actorRole, 'accountant');
+
+    assert.equal((await call('accountant', 'PUT', `${FIN_CT}/${ct.id}/forward`)).status, 409, 'a decided deposit cannot be sent again');
+    assert.equal((await call('accountant', 'PUT', `${FIN_CT}/${ct.id}`, { cashAmount: 1 })).status, 409);
   });
 });
 

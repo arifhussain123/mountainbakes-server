@@ -82,6 +82,9 @@ export type Cash_transfersMinAggregateOutputType = {
   resubmitted_at: Date | null
   resubmitted_by: string | null
   resubmitted_by_name: string | null
+  forwarded_at: Date | null
+  forwarded_by: string | null
+  forwarded_by_name: string | null
 }
 
 export type Cash_transfersMaxAggregateOutputType = {
@@ -121,6 +124,9 @@ export type Cash_transfersMaxAggregateOutputType = {
   resubmitted_at: Date | null
   resubmitted_by: string | null
   resubmitted_by_name: string | null
+  forwarded_at: Date | null
+  forwarded_by: string | null
+  forwarded_by_name: string | null
 }
 
 export type Cash_transfersCountAggregateOutputType = {
@@ -160,6 +166,9 @@ export type Cash_transfersCountAggregateOutputType = {
   resubmitted_at: number
   resubmitted_by: number
   resubmitted_by_name: number
+  forwarded_at: number
+  forwarded_by: number
+  forwarded_by_name: number
   _all: number
 }
 
@@ -219,6 +228,9 @@ export type Cash_transfersMinAggregateInputType = {
   resubmitted_at?: true
   resubmitted_by?: true
   resubmitted_by_name?: true
+  forwarded_at?: true
+  forwarded_by?: true
+  forwarded_by_name?: true
 }
 
 export type Cash_transfersMaxAggregateInputType = {
@@ -258,6 +270,9 @@ export type Cash_transfersMaxAggregateInputType = {
   resubmitted_at?: true
   resubmitted_by?: true
   resubmitted_by_name?: true
+  forwarded_at?: true
+  forwarded_by?: true
+  forwarded_by_name?: true
 }
 
 export type Cash_transfersCountAggregateInputType = {
@@ -297,6 +312,9 @@ export type Cash_transfersCountAggregateInputType = {
   resubmitted_at?: true
   resubmitted_by?: true
   resubmitted_by_name?: true
+  forwarded_at?: true
+  forwarded_by?: true
+  forwarded_by_name?: true
   _all?: true
 }
 
@@ -423,6 +441,9 @@ export type Cash_transfersGroupByOutputType = {
   resubmitted_at: Date | null
   resubmitted_by: string | null
   resubmitted_by_name: string | null
+  forwarded_at: Date | null
+  forwarded_by: string | null
+  forwarded_by_name: string | null
   _count: Cash_transfersCountAggregateOutputType | null
   _avg: Cash_transfersAvgAggregateOutputType | null
   _sum: Cash_transfersSumAggregateOutputType | null
@@ -485,10 +506,14 @@ export type cash_transfersWhereInput = {
   resubmitted_at?: Prisma.DateTimeNullableFilter<"cash_transfers"> | Date | string | null
   resubmitted_by?: Prisma.UuidNullableFilter<"cash_transfers"> | string | null
   resubmitted_by_name?: Prisma.StringNullableFilter<"cash_transfers"> | string | null
+  forwarded_at?: Prisma.DateTimeNullableFilter<"cash_transfers"> | Date | string | null
+  forwarded_by?: Prisma.UuidNullableFilter<"cash_transfers"> | string | null
+  forwarded_by_name?: Prisma.StringNullableFilter<"cash_transfers"> | string | null
   users_cash_transfers_approved_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   branches?: Prisma.XOR<Prisma.BranchesScalarRelationFilter, Prisma.branchesWhereInput>
   users_cash_transfers_created_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   users_cash_transfers_deleted_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
+  users_cash_transfers_forwarded_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   ledger_entries?: Prisma.XOR<Prisma.Ledger_entriesNullableScalarRelationFilter, Prisma.ledger_entriesWhereInput> | null
   users_cash_transfers_resubmitted_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   users_cash_transfers_updated_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
@@ -531,10 +556,14 @@ export type cash_transfersOrderByWithRelationInput = {
   resubmitted_at?: Prisma.SortOrderInput | Prisma.SortOrder
   resubmitted_by?: Prisma.SortOrderInput | Prisma.SortOrder
   resubmitted_by_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  forwarded_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  forwarded_by?: Prisma.SortOrderInput | Prisma.SortOrder
+  forwarded_by_name?: Prisma.SortOrderInput | Prisma.SortOrder
   users_cash_transfers_approved_byTousers?: Prisma.usersOrderByWithRelationInput
   branches?: Prisma.branchesOrderByWithRelationInput
   users_cash_transfers_created_byTousers?: Prisma.usersOrderByWithRelationInput
   users_cash_transfers_deleted_byTousers?: Prisma.usersOrderByWithRelationInput
+  users_cash_transfers_forwarded_byTousers?: Prisma.usersOrderByWithRelationInput
   ledger_entries?: Prisma.ledger_entriesOrderByWithRelationInput
   users_cash_transfers_resubmitted_byTousers?: Prisma.usersOrderByWithRelationInput
   users_cash_transfers_updated_byTousers?: Prisma.usersOrderByWithRelationInput
@@ -580,10 +609,14 @@ export type cash_transfersWhereUniqueInput = Prisma.AtLeast<{
   resubmitted_at?: Prisma.DateTimeNullableFilter<"cash_transfers"> | Date | string | null
   resubmitted_by?: Prisma.UuidNullableFilter<"cash_transfers"> | string | null
   resubmitted_by_name?: Prisma.StringNullableFilter<"cash_transfers"> | string | null
+  forwarded_at?: Prisma.DateTimeNullableFilter<"cash_transfers"> | Date | string | null
+  forwarded_by?: Prisma.UuidNullableFilter<"cash_transfers"> | string | null
+  forwarded_by_name?: Prisma.StringNullableFilter<"cash_transfers"> | string | null
   users_cash_transfers_approved_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   branches?: Prisma.XOR<Prisma.BranchesScalarRelationFilter, Prisma.branchesWhereInput>
   users_cash_transfers_created_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   users_cash_transfers_deleted_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
+  users_cash_transfers_forwarded_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   ledger_entries?: Prisma.XOR<Prisma.Ledger_entriesNullableScalarRelationFilter, Prisma.ledger_entriesWhereInput> | null
   users_cash_transfers_resubmitted_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   users_cash_transfers_updated_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
@@ -626,6 +659,9 @@ export type cash_transfersOrderByWithAggregationInput = {
   resubmitted_at?: Prisma.SortOrderInput | Prisma.SortOrder
   resubmitted_by?: Prisma.SortOrderInput | Prisma.SortOrder
   resubmitted_by_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  forwarded_at?: Prisma.SortOrderInput | Prisma.SortOrder
+  forwarded_by?: Prisma.SortOrderInput | Prisma.SortOrder
+  forwarded_by_name?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.cash_transfersCountOrderByAggregateInput
   _avg?: Prisma.cash_transfersAvgOrderByAggregateInput
   _max?: Prisma.cash_transfersMaxOrderByAggregateInput
@@ -673,6 +709,9 @@ export type cash_transfersScalarWhereWithAggregatesInput = {
   resubmitted_at?: Prisma.DateTimeNullableWithAggregatesFilter<"cash_transfers"> | Date | string | null
   resubmitted_by?: Prisma.UuidNullableWithAggregatesFilter<"cash_transfers"> | string | null
   resubmitted_by_name?: Prisma.StringNullableWithAggregatesFilter<"cash_transfers"> | string | null
+  forwarded_at?: Prisma.DateTimeNullableWithAggregatesFilter<"cash_transfers"> | Date | string | null
+  forwarded_by?: Prisma.UuidNullableWithAggregatesFilter<"cash_transfers"> | string | null
+  forwarded_by_name?: Prisma.StringNullableWithAggregatesFilter<"cash_transfers"> | string | null
 }
 
 export type cash_transfersCreateInput = {
@@ -705,10 +744,13 @@ export type cash_transfersCreateInput = {
   revision?: number
   resubmitted_at?: Date | string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by_name?: string | null
   users_cash_transfers_approved_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_approved_byTousersInput
   branches: Prisma.branchesCreateNestedOneWithoutCash_transfersInput
   users_cash_transfers_created_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_created_byTousersInput
   users_cash_transfers_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_deleted_byTousersInput
+  users_cash_transfers_forwarded_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_forwarded_byTousersInput
   ledger_entries?: Prisma.ledger_entriesCreateNestedOneWithoutCash_transfersInput
   users_cash_transfers_resubmitted_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_resubmitted_byTousersInput
   users_cash_transfers_updated_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_updated_byTousersInput
@@ -751,6 +793,9 @@ export type cash_transfersUncheckedCreateInput = {
   resubmitted_at?: Date | string | null
   resubmitted_by?: string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by?: string | null
+  forwarded_by_name?: string | null
 }
 
 export type cash_transfersUpdateInput = {
@@ -783,10 +828,13 @@ export type cash_transfersUpdateInput = {
   revision?: Prisma.IntFieldUpdateOperationsInput | number
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   users_cash_transfers_approved_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_approved_byTousersNestedInput
   branches?: Prisma.branchesUpdateOneRequiredWithoutCash_transfersNestedInput
   users_cash_transfers_created_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_created_byTousersNestedInput
   users_cash_transfers_deleted_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_deleted_byTousersNestedInput
+  users_cash_transfers_forwarded_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_forwarded_byTousersNestedInput
   ledger_entries?: Prisma.ledger_entriesUpdateOneWithoutCash_transfersNestedInput
   users_cash_transfers_resubmitted_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_resubmitted_byTousersNestedInput
   users_cash_transfers_updated_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_updated_byTousersNestedInput
@@ -829,6 +877,9 @@ export type cash_transfersUncheckedUpdateInput = {
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type cash_transfersCreateManyInput = {
@@ -868,6 +919,9 @@ export type cash_transfersCreateManyInput = {
   resubmitted_at?: Date | string | null
   resubmitted_by?: string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by?: string | null
+  forwarded_by_name?: string | null
 }
 
 export type cash_transfersUpdateManyMutationInput = {
@@ -900,6 +954,8 @@ export type cash_transfersUpdateManyMutationInput = {
   revision?: Prisma.IntFieldUpdateOperationsInput | number
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type cash_transfersUncheckedUpdateManyInput = {
@@ -939,6 +995,9 @@ export type cash_transfersUncheckedUpdateManyInput = {
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type Cash_transfersListRelationFilter = {
@@ -988,6 +1047,9 @@ export type cash_transfersCountOrderByAggregateInput = {
   resubmitted_at?: Prisma.SortOrder
   resubmitted_by?: Prisma.SortOrder
   resubmitted_by_name?: Prisma.SortOrder
+  forwarded_at?: Prisma.SortOrder
+  forwarded_by?: Prisma.SortOrder
+  forwarded_by_name?: Prisma.SortOrder
 }
 
 export type cash_transfersAvgOrderByAggregateInput = {
@@ -1036,6 +1098,9 @@ export type cash_transfersMaxOrderByAggregateInput = {
   resubmitted_at?: Prisma.SortOrder
   resubmitted_by?: Prisma.SortOrder
   resubmitted_by_name?: Prisma.SortOrder
+  forwarded_at?: Prisma.SortOrder
+  forwarded_by?: Prisma.SortOrder
+  forwarded_by_name?: Prisma.SortOrder
 }
 
 export type cash_transfersMinOrderByAggregateInput = {
@@ -1075,6 +1140,9 @@ export type cash_transfersMinOrderByAggregateInput = {
   resubmitted_at?: Prisma.SortOrder
   resubmitted_by?: Prisma.SortOrder
   resubmitted_by_name?: Prisma.SortOrder
+  forwarded_at?: Prisma.SortOrder
+  forwarded_by?: Prisma.SortOrder
+  forwarded_by_name?: Prisma.SortOrder
 }
 
 export type cash_transfersSumOrderByAggregateInput = {
@@ -1202,6 +1270,13 @@ export type cash_transfersCreateNestedManyWithoutUsers_cash_transfers_resubmitte
   connect?: Prisma.cash_transfersWhereUniqueInput | Prisma.cash_transfersWhereUniqueInput[]
 }
 
+export type cash_transfersCreateNestedManyWithoutUsers_cash_transfers_forwarded_byTousersInput = {
+  create?: Prisma.XOR<Prisma.cash_transfersCreateWithoutUsers_cash_transfers_forwarded_byTousersInput, Prisma.cash_transfersUncheckedCreateWithoutUsers_cash_transfers_forwarded_byTousersInput> | Prisma.cash_transfersCreateWithoutUsers_cash_transfers_forwarded_byTousersInput[] | Prisma.cash_transfersUncheckedCreateWithoutUsers_cash_transfers_forwarded_byTousersInput[]
+  connectOrCreate?: Prisma.cash_transfersCreateOrConnectWithoutUsers_cash_transfers_forwarded_byTousersInput | Prisma.cash_transfersCreateOrConnectWithoutUsers_cash_transfers_forwarded_byTousersInput[]
+  createMany?: Prisma.cash_transfersCreateManyUsers_cash_transfers_forwarded_byTousersInputEnvelope
+  connect?: Prisma.cash_transfersWhereUniqueInput | Prisma.cash_transfersWhereUniqueInput[]
+}
+
 export type cash_transfersCreateNestedManyWithoutUsers_cash_transfers_updated_byTousersInput = {
   create?: Prisma.XOR<Prisma.cash_transfersCreateWithoutUsers_cash_transfers_updated_byTousersInput, Prisma.cash_transfersUncheckedCreateWithoutUsers_cash_transfers_updated_byTousersInput> | Prisma.cash_transfersCreateWithoutUsers_cash_transfers_updated_byTousersInput[] | Prisma.cash_transfersUncheckedCreateWithoutUsers_cash_transfers_updated_byTousersInput[]
   connectOrCreate?: Prisma.cash_transfersCreateOrConnectWithoutUsers_cash_transfers_updated_byTousersInput | Prisma.cash_transfersCreateOrConnectWithoutUsers_cash_transfers_updated_byTousersInput[]
@@ -1234,6 +1309,13 @@ export type cash_transfersUncheckedCreateNestedManyWithoutUsers_cash_transfers_r
   create?: Prisma.XOR<Prisma.cash_transfersCreateWithoutUsers_cash_transfers_resubmitted_byTousersInput, Prisma.cash_transfersUncheckedCreateWithoutUsers_cash_transfers_resubmitted_byTousersInput> | Prisma.cash_transfersCreateWithoutUsers_cash_transfers_resubmitted_byTousersInput[] | Prisma.cash_transfersUncheckedCreateWithoutUsers_cash_transfers_resubmitted_byTousersInput[]
   connectOrCreate?: Prisma.cash_transfersCreateOrConnectWithoutUsers_cash_transfers_resubmitted_byTousersInput | Prisma.cash_transfersCreateOrConnectWithoutUsers_cash_transfers_resubmitted_byTousersInput[]
   createMany?: Prisma.cash_transfersCreateManyUsers_cash_transfers_resubmitted_byTousersInputEnvelope
+  connect?: Prisma.cash_transfersWhereUniqueInput | Prisma.cash_transfersWhereUniqueInput[]
+}
+
+export type cash_transfersUncheckedCreateNestedManyWithoutUsers_cash_transfers_forwarded_byTousersInput = {
+  create?: Prisma.XOR<Prisma.cash_transfersCreateWithoutUsers_cash_transfers_forwarded_byTousersInput, Prisma.cash_transfersUncheckedCreateWithoutUsers_cash_transfers_forwarded_byTousersInput> | Prisma.cash_transfersCreateWithoutUsers_cash_transfers_forwarded_byTousersInput[] | Prisma.cash_transfersUncheckedCreateWithoutUsers_cash_transfers_forwarded_byTousersInput[]
+  connectOrCreate?: Prisma.cash_transfersCreateOrConnectWithoutUsers_cash_transfers_forwarded_byTousersInput | Prisma.cash_transfersCreateOrConnectWithoutUsers_cash_transfers_forwarded_byTousersInput[]
+  createMany?: Prisma.cash_transfersCreateManyUsers_cash_transfers_forwarded_byTousersInputEnvelope
   connect?: Prisma.cash_transfersWhereUniqueInput | Prisma.cash_transfersWhereUniqueInput[]
 }
 
@@ -1297,6 +1379,20 @@ export type cash_transfersUpdateManyWithoutUsers_cash_transfers_resubmitted_byTo
   connect?: Prisma.cash_transfersWhereUniqueInput | Prisma.cash_transfersWhereUniqueInput[]
   update?: Prisma.cash_transfersUpdateWithWhereUniqueWithoutUsers_cash_transfers_resubmitted_byTousersInput | Prisma.cash_transfersUpdateWithWhereUniqueWithoutUsers_cash_transfers_resubmitted_byTousersInput[]
   updateMany?: Prisma.cash_transfersUpdateManyWithWhereWithoutUsers_cash_transfers_resubmitted_byTousersInput | Prisma.cash_transfersUpdateManyWithWhereWithoutUsers_cash_transfers_resubmitted_byTousersInput[]
+  deleteMany?: Prisma.cash_transfersScalarWhereInput | Prisma.cash_transfersScalarWhereInput[]
+}
+
+export type cash_transfersUpdateManyWithoutUsers_cash_transfers_forwarded_byTousersNestedInput = {
+  create?: Prisma.XOR<Prisma.cash_transfersCreateWithoutUsers_cash_transfers_forwarded_byTousersInput, Prisma.cash_transfersUncheckedCreateWithoutUsers_cash_transfers_forwarded_byTousersInput> | Prisma.cash_transfersCreateWithoutUsers_cash_transfers_forwarded_byTousersInput[] | Prisma.cash_transfersUncheckedCreateWithoutUsers_cash_transfers_forwarded_byTousersInput[]
+  connectOrCreate?: Prisma.cash_transfersCreateOrConnectWithoutUsers_cash_transfers_forwarded_byTousersInput | Prisma.cash_transfersCreateOrConnectWithoutUsers_cash_transfers_forwarded_byTousersInput[]
+  upsert?: Prisma.cash_transfersUpsertWithWhereUniqueWithoutUsers_cash_transfers_forwarded_byTousersInput | Prisma.cash_transfersUpsertWithWhereUniqueWithoutUsers_cash_transfers_forwarded_byTousersInput[]
+  createMany?: Prisma.cash_transfersCreateManyUsers_cash_transfers_forwarded_byTousersInputEnvelope
+  set?: Prisma.cash_transfersWhereUniqueInput | Prisma.cash_transfersWhereUniqueInput[]
+  disconnect?: Prisma.cash_transfersWhereUniqueInput | Prisma.cash_transfersWhereUniqueInput[]
+  delete?: Prisma.cash_transfersWhereUniqueInput | Prisma.cash_transfersWhereUniqueInput[]
+  connect?: Prisma.cash_transfersWhereUniqueInput | Prisma.cash_transfersWhereUniqueInput[]
+  update?: Prisma.cash_transfersUpdateWithWhereUniqueWithoutUsers_cash_transfers_forwarded_byTousersInput | Prisma.cash_transfersUpdateWithWhereUniqueWithoutUsers_cash_transfers_forwarded_byTousersInput[]
+  updateMany?: Prisma.cash_transfersUpdateManyWithWhereWithoutUsers_cash_transfers_forwarded_byTousersInput | Prisma.cash_transfersUpdateManyWithWhereWithoutUsers_cash_transfers_forwarded_byTousersInput[]
   deleteMany?: Prisma.cash_transfersScalarWhereInput | Prisma.cash_transfersScalarWhereInput[]
 }
 
@@ -1370,6 +1466,20 @@ export type cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_resubmi
   deleteMany?: Prisma.cash_transfersScalarWhereInput | Prisma.cash_transfersScalarWhereInput[]
 }
 
+export type cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_forwarded_byTousersNestedInput = {
+  create?: Prisma.XOR<Prisma.cash_transfersCreateWithoutUsers_cash_transfers_forwarded_byTousersInput, Prisma.cash_transfersUncheckedCreateWithoutUsers_cash_transfers_forwarded_byTousersInput> | Prisma.cash_transfersCreateWithoutUsers_cash_transfers_forwarded_byTousersInput[] | Prisma.cash_transfersUncheckedCreateWithoutUsers_cash_transfers_forwarded_byTousersInput[]
+  connectOrCreate?: Prisma.cash_transfersCreateOrConnectWithoutUsers_cash_transfers_forwarded_byTousersInput | Prisma.cash_transfersCreateOrConnectWithoutUsers_cash_transfers_forwarded_byTousersInput[]
+  upsert?: Prisma.cash_transfersUpsertWithWhereUniqueWithoutUsers_cash_transfers_forwarded_byTousersInput | Prisma.cash_transfersUpsertWithWhereUniqueWithoutUsers_cash_transfers_forwarded_byTousersInput[]
+  createMany?: Prisma.cash_transfersCreateManyUsers_cash_transfers_forwarded_byTousersInputEnvelope
+  set?: Prisma.cash_transfersWhereUniqueInput | Prisma.cash_transfersWhereUniqueInput[]
+  disconnect?: Prisma.cash_transfersWhereUniqueInput | Prisma.cash_transfersWhereUniqueInput[]
+  delete?: Prisma.cash_transfersWhereUniqueInput | Prisma.cash_transfersWhereUniqueInput[]
+  connect?: Prisma.cash_transfersWhereUniqueInput | Prisma.cash_transfersWhereUniqueInput[]
+  update?: Prisma.cash_transfersUpdateWithWhereUniqueWithoutUsers_cash_transfers_forwarded_byTousersInput | Prisma.cash_transfersUpdateWithWhereUniqueWithoutUsers_cash_transfers_forwarded_byTousersInput[]
+  updateMany?: Prisma.cash_transfersUpdateManyWithWhereWithoutUsers_cash_transfers_forwarded_byTousersInput | Prisma.cash_transfersUpdateManyWithWhereWithoutUsers_cash_transfers_forwarded_byTousersInput[]
+  deleteMany?: Prisma.cash_transfersScalarWhereInput | Prisma.cash_transfersScalarWhereInput[]
+}
+
 export type cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_updated_byTousersNestedInput = {
   create?: Prisma.XOR<Prisma.cash_transfersCreateWithoutUsers_cash_transfers_updated_byTousersInput, Prisma.cash_transfersUncheckedCreateWithoutUsers_cash_transfers_updated_byTousersInput> | Prisma.cash_transfersCreateWithoutUsers_cash_transfers_updated_byTousersInput[] | Prisma.cash_transfersUncheckedCreateWithoutUsers_cash_transfers_updated_byTousersInput[]
   connectOrCreate?: Prisma.cash_transfersCreateOrConnectWithoutUsers_cash_transfers_updated_byTousersInput | Prisma.cash_transfersCreateOrConnectWithoutUsers_cash_transfers_updated_byTousersInput[]
@@ -1414,9 +1524,12 @@ export type cash_transfersCreateWithoutBranchesInput = {
   revision?: number
   resubmitted_at?: Date | string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by_name?: string | null
   users_cash_transfers_approved_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_approved_byTousersInput
   users_cash_transfers_created_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_created_byTousersInput
   users_cash_transfers_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_deleted_byTousersInput
+  users_cash_transfers_forwarded_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_forwarded_byTousersInput
   ledger_entries?: Prisma.ledger_entriesCreateNestedOneWithoutCash_transfersInput
   users_cash_transfers_resubmitted_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_resubmitted_byTousersInput
   users_cash_transfers_updated_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_updated_byTousersInput
@@ -1458,6 +1571,9 @@ export type cash_transfersUncheckedCreateWithoutBranchesInput = {
   resubmitted_at?: Date | string | null
   resubmitted_by?: string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by?: string | null
+  forwarded_by_name?: string | null
 }
 
 export type cash_transfersCreateOrConnectWithoutBranchesInput = {
@@ -1526,6 +1642,9 @@ export type cash_transfersScalarWhereInput = {
   resubmitted_at?: Prisma.DateTimeNullableFilter<"cash_transfers"> | Date | string | null
   resubmitted_by?: Prisma.UuidNullableFilter<"cash_transfers"> | string | null
   resubmitted_by_name?: Prisma.StringNullableFilter<"cash_transfers"> | string | null
+  forwarded_at?: Prisma.DateTimeNullableFilter<"cash_transfers"> | Date | string | null
+  forwarded_by?: Prisma.UuidNullableFilter<"cash_transfers"> | string | null
+  forwarded_by_name?: Prisma.StringNullableFilter<"cash_transfers"> | string | null
 }
 
 export type cash_transfersCreateWithoutLedger_entriesInput = {
@@ -1558,10 +1677,13 @@ export type cash_transfersCreateWithoutLedger_entriesInput = {
   revision?: number
   resubmitted_at?: Date | string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by_name?: string | null
   users_cash_transfers_approved_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_approved_byTousersInput
   branches: Prisma.branchesCreateNestedOneWithoutCash_transfersInput
   users_cash_transfers_created_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_created_byTousersInput
   users_cash_transfers_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_deleted_byTousersInput
+  users_cash_transfers_forwarded_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_forwarded_byTousersInput
   users_cash_transfers_resubmitted_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_resubmitted_byTousersInput
   users_cash_transfers_updated_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_updated_byTousersInput
 }
@@ -1602,6 +1724,9 @@ export type cash_transfersUncheckedCreateWithoutLedger_entriesInput = {
   resubmitted_at?: Date | string | null
   resubmitted_by?: string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by?: string | null
+  forwarded_by_name?: string | null
 }
 
 export type cash_transfersCreateOrConnectWithoutLedger_entriesInput = {
@@ -1660,9 +1785,12 @@ export type cash_transfersCreateWithoutUsers_cash_transfers_approved_byTousersIn
   revision?: number
   resubmitted_at?: Date | string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by_name?: string | null
   branches: Prisma.branchesCreateNestedOneWithoutCash_transfersInput
   users_cash_transfers_created_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_created_byTousersInput
   users_cash_transfers_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_deleted_byTousersInput
+  users_cash_transfers_forwarded_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_forwarded_byTousersInput
   ledger_entries?: Prisma.ledger_entriesCreateNestedOneWithoutCash_transfersInput
   users_cash_transfers_resubmitted_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_resubmitted_byTousersInput
   users_cash_transfers_updated_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_updated_byTousersInput
@@ -1704,6 +1832,9 @@ export type cash_transfersUncheckedCreateWithoutUsers_cash_transfers_approved_by
   resubmitted_at?: Date | string | null
   resubmitted_by?: string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by?: string | null
+  forwarded_by_name?: string | null
 }
 
 export type cash_transfersCreateOrConnectWithoutUsers_cash_transfers_approved_byTousersInput = {
@@ -1746,9 +1877,12 @@ export type cash_transfersCreateWithoutUsers_cash_transfers_created_byTousersInp
   revision?: number
   resubmitted_at?: Date | string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by_name?: string | null
   users_cash_transfers_approved_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_approved_byTousersInput
   branches: Prisma.branchesCreateNestedOneWithoutCash_transfersInput
   users_cash_transfers_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_deleted_byTousersInput
+  users_cash_transfers_forwarded_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_forwarded_byTousersInput
   ledger_entries?: Prisma.ledger_entriesCreateNestedOneWithoutCash_transfersInput
   users_cash_transfers_resubmitted_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_resubmitted_byTousersInput
   users_cash_transfers_updated_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_updated_byTousersInput
@@ -1790,6 +1924,9 @@ export type cash_transfersUncheckedCreateWithoutUsers_cash_transfers_created_byT
   resubmitted_at?: Date | string | null
   resubmitted_by?: string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by?: string | null
+  forwarded_by_name?: string | null
 }
 
 export type cash_transfersCreateOrConnectWithoutUsers_cash_transfers_created_byTousersInput = {
@@ -1832,9 +1969,12 @@ export type cash_transfersCreateWithoutUsers_cash_transfers_deleted_byTousersInp
   revision?: number
   resubmitted_at?: Date | string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by_name?: string | null
   users_cash_transfers_approved_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_approved_byTousersInput
   branches: Prisma.branchesCreateNestedOneWithoutCash_transfersInput
   users_cash_transfers_created_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_created_byTousersInput
+  users_cash_transfers_forwarded_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_forwarded_byTousersInput
   ledger_entries?: Prisma.ledger_entriesCreateNestedOneWithoutCash_transfersInput
   users_cash_transfers_resubmitted_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_resubmitted_byTousersInput
   users_cash_transfers_updated_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_updated_byTousersInput
@@ -1876,6 +2016,9 @@ export type cash_transfersUncheckedCreateWithoutUsers_cash_transfers_deleted_byT
   resubmitted_at?: Date | string | null
   resubmitted_by?: string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by?: string | null
+  forwarded_by_name?: string | null
 }
 
 export type cash_transfersCreateOrConnectWithoutUsers_cash_transfers_deleted_byTousersInput = {
@@ -1918,10 +2061,13 @@ export type cash_transfersCreateWithoutUsers_cash_transfers_resubmitted_byTouser
   revision?: number
   resubmitted_at?: Date | string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by_name?: string | null
   users_cash_transfers_approved_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_approved_byTousersInput
   branches: Prisma.branchesCreateNestedOneWithoutCash_transfersInput
   users_cash_transfers_created_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_created_byTousersInput
   users_cash_transfers_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_deleted_byTousersInput
+  users_cash_transfers_forwarded_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_forwarded_byTousersInput
   ledger_entries?: Prisma.ledger_entriesCreateNestedOneWithoutCash_transfersInput
   users_cash_transfers_updated_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_updated_byTousersInput
 }
@@ -1962,6 +2108,9 @@ export type cash_transfersUncheckedCreateWithoutUsers_cash_transfers_resubmitted
   revision?: number
   resubmitted_at?: Date | string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by?: string | null
+  forwarded_by_name?: string | null
 }
 
 export type cash_transfersCreateOrConnectWithoutUsers_cash_transfers_resubmitted_byTousersInput = {
@@ -1971,6 +2120,98 @@ export type cash_transfersCreateOrConnectWithoutUsers_cash_transfers_resubmitted
 
 export type cash_transfersCreateManyUsers_cash_transfers_resubmitted_byTousersInputEnvelope = {
   data: Prisma.cash_transfersCreateManyUsers_cash_transfers_resubmitted_byTousersInput | Prisma.cash_transfersCreateManyUsers_cash_transfers_resubmitted_byTousersInput[]
+  skipDuplicates?: boolean
+}
+
+export type cash_transfersCreateWithoutUsers_cash_transfers_forwarded_byTousersInput = {
+  id?: string
+  transfer_no?: string
+  branch_name: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method?: string | null
+  note?: string | null
+  business_date: Date | string
+  status?: $Enums.cash_transfer_status
+  created_by_name?: string | null
+  approved_by_name?: string | null
+  approved_at?: Date | string | null
+  approval_note?: string | null
+  rejection_reason?: string | null
+  voucher_no?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  deleted_query_id?: string | null
+  deleted_query_no?: string | null
+  cash_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  easypaisa_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  bank_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  fuel_charges?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  updated_by_name?: string | null
+  revision?: number
+  resubmitted_at?: Date | string | null
+  resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by_name?: string | null
+  users_cash_transfers_approved_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_approved_byTousersInput
+  branches: Prisma.branchesCreateNestedOneWithoutCash_transfersInput
+  users_cash_transfers_created_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_created_byTousersInput
+  users_cash_transfers_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_deleted_byTousersInput
+  ledger_entries?: Prisma.ledger_entriesCreateNestedOneWithoutCash_transfersInput
+  users_cash_transfers_resubmitted_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_resubmitted_byTousersInput
+  users_cash_transfers_updated_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_updated_byTousersInput
+}
+
+export type cash_transfersUncheckedCreateWithoutUsers_cash_transfers_forwarded_byTousersInput = {
+  id?: string
+  transfer_no?: string
+  branch_id: string
+  branch_name: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method?: string | null
+  note?: string | null
+  business_date: Date | string
+  status?: $Enums.cash_transfer_status
+  created_by?: string | null
+  created_by_name?: string | null
+  approved_by?: string | null
+  approved_by_name?: string | null
+  approved_at?: Date | string | null
+  approval_note?: string | null
+  rejection_reason?: string | null
+  ledger_entry_id?: string | null
+  voucher_no?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by?: string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  deleted_query_id?: string | null
+  deleted_query_no?: string | null
+  cash_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  easypaisa_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  bank_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  fuel_charges?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  updated_by?: string | null
+  updated_by_name?: string | null
+  revision?: number
+  resubmitted_at?: Date | string | null
+  resubmitted_by?: string | null
+  resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by_name?: string | null
+}
+
+export type cash_transfersCreateOrConnectWithoutUsers_cash_transfers_forwarded_byTousersInput = {
+  where: Prisma.cash_transfersWhereUniqueInput
+  create: Prisma.XOR<Prisma.cash_transfersCreateWithoutUsers_cash_transfers_forwarded_byTousersInput, Prisma.cash_transfersUncheckedCreateWithoutUsers_cash_transfers_forwarded_byTousersInput>
+}
+
+export type cash_transfersCreateManyUsers_cash_transfers_forwarded_byTousersInputEnvelope = {
+  data: Prisma.cash_transfersCreateManyUsers_cash_transfers_forwarded_byTousersInput | Prisma.cash_transfersCreateManyUsers_cash_transfers_forwarded_byTousersInput[]
   skipDuplicates?: boolean
 }
 
@@ -2004,10 +2245,13 @@ export type cash_transfersCreateWithoutUsers_cash_transfers_updated_byTousersInp
   revision?: number
   resubmitted_at?: Date | string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by_name?: string | null
   users_cash_transfers_approved_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_approved_byTousersInput
   branches: Prisma.branchesCreateNestedOneWithoutCash_transfersInput
   users_cash_transfers_created_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_created_byTousersInput
   users_cash_transfers_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_deleted_byTousersInput
+  users_cash_transfers_forwarded_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_forwarded_byTousersInput
   ledger_entries?: Prisma.ledger_entriesCreateNestedOneWithoutCash_transfersInput
   users_cash_transfers_resubmitted_byTousers?: Prisma.usersCreateNestedOneWithoutCash_transfers_cash_transfers_resubmitted_byTousersInput
 }
@@ -2048,6 +2292,9 @@ export type cash_transfersUncheckedCreateWithoutUsers_cash_transfers_updated_byT
   resubmitted_at?: Date | string | null
   resubmitted_by?: string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by?: string | null
+  forwarded_by_name?: string | null
 }
 
 export type cash_transfersCreateOrConnectWithoutUsers_cash_transfers_updated_byTousersInput = {
@@ -2124,6 +2371,22 @@ export type cash_transfersUpdateManyWithWhereWithoutUsers_cash_transfers_resubmi
   data: Prisma.XOR<Prisma.cash_transfersUpdateManyMutationInput, Prisma.cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_resubmitted_byTousersInput>
 }
 
+export type cash_transfersUpsertWithWhereUniqueWithoutUsers_cash_transfers_forwarded_byTousersInput = {
+  where: Prisma.cash_transfersWhereUniqueInput
+  update: Prisma.XOR<Prisma.cash_transfersUpdateWithoutUsers_cash_transfers_forwarded_byTousersInput, Prisma.cash_transfersUncheckedUpdateWithoutUsers_cash_transfers_forwarded_byTousersInput>
+  create: Prisma.XOR<Prisma.cash_transfersCreateWithoutUsers_cash_transfers_forwarded_byTousersInput, Prisma.cash_transfersUncheckedCreateWithoutUsers_cash_transfers_forwarded_byTousersInput>
+}
+
+export type cash_transfersUpdateWithWhereUniqueWithoutUsers_cash_transfers_forwarded_byTousersInput = {
+  where: Prisma.cash_transfersWhereUniqueInput
+  data: Prisma.XOR<Prisma.cash_transfersUpdateWithoutUsers_cash_transfers_forwarded_byTousersInput, Prisma.cash_transfersUncheckedUpdateWithoutUsers_cash_transfers_forwarded_byTousersInput>
+}
+
+export type cash_transfersUpdateManyWithWhereWithoutUsers_cash_transfers_forwarded_byTousersInput = {
+  where: Prisma.cash_transfersScalarWhereInput
+  data: Prisma.XOR<Prisma.cash_transfersUpdateManyMutationInput, Prisma.cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_forwarded_byTousersInput>
+}
+
 export type cash_transfersUpsertWithWhereUniqueWithoutUsers_cash_transfers_updated_byTousersInput = {
   where: Prisma.cash_transfersWhereUniqueInput
   update: Prisma.XOR<Prisma.cash_transfersUpdateWithoutUsers_cash_transfers_updated_byTousersInput, Prisma.cash_transfersUncheckedUpdateWithoutUsers_cash_transfers_updated_byTousersInput>
@@ -2176,6 +2439,9 @@ export type cash_transfersCreateManyBranchesInput = {
   resubmitted_at?: Date | string | null
   resubmitted_by?: string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by?: string | null
+  forwarded_by_name?: string | null
 }
 
 export type cash_transfersUpdateWithoutBranchesInput = {
@@ -2208,9 +2474,12 @@ export type cash_transfersUpdateWithoutBranchesInput = {
   revision?: Prisma.IntFieldUpdateOperationsInput | number
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   users_cash_transfers_approved_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_approved_byTousersNestedInput
   users_cash_transfers_created_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_created_byTousersNestedInput
   users_cash_transfers_deleted_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_deleted_byTousersNestedInput
+  users_cash_transfers_forwarded_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_forwarded_byTousersNestedInput
   ledger_entries?: Prisma.ledger_entriesUpdateOneWithoutCash_transfersNestedInput
   users_cash_transfers_resubmitted_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_resubmitted_byTousersNestedInput
   users_cash_transfers_updated_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_updated_byTousersNestedInput
@@ -2252,6 +2521,9 @@ export type cash_transfersUncheckedUpdateWithoutBranchesInput = {
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type cash_transfersUncheckedUpdateManyWithoutBranchesInput = {
@@ -2290,6 +2562,9 @@ export type cash_transfersUncheckedUpdateManyWithoutBranchesInput = {
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type cash_transfersCreateManyLedger_entriesInput = {
@@ -2328,6 +2603,9 @@ export type cash_transfersCreateManyLedger_entriesInput = {
   resubmitted_at?: Date | string | null
   resubmitted_by?: string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by?: string | null
+  forwarded_by_name?: string | null
 }
 
 export type cash_transfersUpdateWithoutLedger_entriesInput = {
@@ -2360,10 +2638,13 @@ export type cash_transfersUpdateWithoutLedger_entriesInput = {
   revision?: Prisma.IntFieldUpdateOperationsInput | number
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   users_cash_transfers_approved_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_approved_byTousersNestedInput
   branches?: Prisma.branchesUpdateOneRequiredWithoutCash_transfersNestedInput
   users_cash_transfers_created_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_created_byTousersNestedInput
   users_cash_transfers_deleted_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_deleted_byTousersNestedInput
+  users_cash_transfers_forwarded_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_forwarded_byTousersNestedInput
   users_cash_transfers_resubmitted_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_resubmitted_byTousersNestedInput
   users_cash_transfers_updated_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_updated_byTousersNestedInput
 }
@@ -2404,6 +2685,9 @@ export type cash_transfersUncheckedUpdateWithoutLedger_entriesInput = {
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type cash_transfersUncheckedUpdateManyWithoutLedger_entriesInput = {
@@ -2442,6 +2726,9 @@ export type cash_transfersUncheckedUpdateManyWithoutLedger_entriesInput = {
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type cash_transfersCreateManyUsers_cash_transfers_approved_byTousersInput = {
@@ -2480,6 +2767,9 @@ export type cash_transfersCreateManyUsers_cash_transfers_approved_byTousersInput
   resubmitted_at?: Date | string | null
   resubmitted_by?: string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by?: string | null
+  forwarded_by_name?: string | null
 }
 
 export type cash_transfersCreateManyUsers_cash_transfers_created_byTousersInput = {
@@ -2518,6 +2808,9 @@ export type cash_transfersCreateManyUsers_cash_transfers_created_byTousersInput 
   resubmitted_at?: Date | string | null
   resubmitted_by?: string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by?: string | null
+  forwarded_by_name?: string | null
 }
 
 export type cash_transfersCreateManyUsers_cash_transfers_deleted_byTousersInput = {
@@ -2556,6 +2849,9 @@ export type cash_transfersCreateManyUsers_cash_transfers_deleted_byTousersInput 
   resubmitted_at?: Date | string | null
   resubmitted_by?: string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by?: string | null
+  forwarded_by_name?: string | null
 }
 
 export type cash_transfersCreateManyUsers_cash_transfers_resubmitted_byTousersInput = {
@@ -2594,6 +2890,50 @@ export type cash_transfersCreateManyUsers_cash_transfers_resubmitted_byTousersIn
   revision?: number
   resubmitted_at?: Date | string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by?: string | null
+  forwarded_by_name?: string | null
+}
+
+export type cash_transfersCreateManyUsers_cash_transfers_forwarded_byTousersInput = {
+  id?: string
+  transfer_no?: string
+  branch_id: string
+  branch_name: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method?: string | null
+  note?: string | null
+  business_date: Date | string
+  status?: $Enums.cash_transfer_status
+  created_by?: string | null
+  created_by_name?: string | null
+  approved_by?: string | null
+  approved_by_name?: string | null
+  approved_at?: Date | string | null
+  approval_note?: string | null
+  rejection_reason?: string | null
+  ledger_entry_id?: string | null
+  voucher_no?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by?: string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  deleted_query_id?: string | null
+  deleted_query_no?: string | null
+  cash_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  easypaisa_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  bank_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  fuel_charges?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  updated_by?: string | null
+  updated_by_name?: string | null
+  revision?: number
+  resubmitted_at?: Date | string | null
+  resubmitted_by?: string | null
+  resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by_name?: string | null
 }
 
 export type cash_transfersCreateManyUsers_cash_transfers_updated_byTousersInput = {
@@ -2632,6 +2972,9 @@ export type cash_transfersCreateManyUsers_cash_transfers_updated_byTousersInput 
   resubmitted_at?: Date | string | null
   resubmitted_by?: string | null
   resubmitted_by_name?: string | null
+  forwarded_at?: Date | string | null
+  forwarded_by?: string | null
+  forwarded_by_name?: string | null
 }
 
 export type cash_transfersUpdateWithoutUsers_cash_transfers_approved_byTousersInput = {
@@ -2664,9 +3007,12 @@ export type cash_transfersUpdateWithoutUsers_cash_transfers_approved_byTousersIn
   revision?: Prisma.IntFieldUpdateOperationsInput | number
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   branches?: Prisma.branchesUpdateOneRequiredWithoutCash_transfersNestedInput
   users_cash_transfers_created_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_created_byTousersNestedInput
   users_cash_transfers_deleted_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_deleted_byTousersNestedInput
+  users_cash_transfers_forwarded_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_forwarded_byTousersNestedInput
   ledger_entries?: Prisma.ledger_entriesUpdateOneWithoutCash_transfersNestedInput
   users_cash_transfers_resubmitted_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_resubmitted_byTousersNestedInput
   users_cash_transfers_updated_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_updated_byTousersNestedInput
@@ -2708,6 +3054,9 @@ export type cash_transfersUncheckedUpdateWithoutUsers_cash_transfers_approved_by
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_approved_byTousersInput = {
@@ -2746,6 +3095,9 @@ export type cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_approve
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type cash_transfersUpdateWithoutUsers_cash_transfers_created_byTousersInput = {
@@ -2778,9 +3130,12 @@ export type cash_transfersUpdateWithoutUsers_cash_transfers_created_byTousersInp
   revision?: Prisma.IntFieldUpdateOperationsInput | number
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   users_cash_transfers_approved_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_approved_byTousersNestedInput
   branches?: Prisma.branchesUpdateOneRequiredWithoutCash_transfersNestedInput
   users_cash_transfers_deleted_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_deleted_byTousersNestedInput
+  users_cash_transfers_forwarded_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_forwarded_byTousersNestedInput
   ledger_entries?: Prisma.ledger_entriesUpdateOneWithoutCash_transfersNestedInput
   users_cash_transfers_resubmitted_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_resubmitted_byTousersNestedInput
   users_cash_transfers_updated_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_updated_byTousersNestedInput
@@ -2822,6 +3177,9 @@ export type cash_transfersUncheckedUpdateWithoutUsers_cash_transfers_created_byT
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_created_byTousersInput = {
@@ -2860,6 +3218,9 @@ export type cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_created
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type cash_transfersUpdateWithoutUsers_cash_transfers_deleted_byTousersInput = {
@@ -2892,9 +3253,12 @@ export type cash_transfersUpdateWithoutUsers_cash_transfers_deleted_byTousersInp
   revision?: Prisma.IntFieldUpdateOperationsInput | number
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   users_cash_transfers_approved_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_approved_byTousersNestedInput
   branches?: Prisma.branchesUpdateOneRequiredWithoutCash_transfersNestedInput
   users_cash_transfers_created_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_created_byTousersNestedInput
+  users_cash_transfers_forwarded_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_forwarded_byTousersNestedInput
   ledger_entries?: Prisma.ledger_entriesUpdateOneWithoutCash_transfersNestedInput
   users_cash_transfers_resubmitted_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_resubmitted_byTousersNestedInput
   users_cash_transfers_updated_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_updated_byTousersNestedInput
@@ -2936,6 +3300,9 @@ export type cash_transfersUncheckedUpdateWithoutUsers_cash_transfers_deleted_byT
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_deleted_byTousersInput = {
@@ -2974,6 +3341,9 @@ export type cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_deleted
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type cash_transfersUpdateWithoutUsers_cash_transfers_resubmitted_byTousersInput = {
@@ -3006,10 +3376,13 @@ export type cash_transfersUpdateWithoutUsers_cash_transfers_resubmitted_byTouser
   revision?: Prisma.IntFieldUpdateOperationsInput | number
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   users_cash_transfers_approved_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_approved_byTousersNestedInput
   branches?: Prisma.branchesUpdateOneRequiredWithoutCash_transfersNestedInput
   users_cash_transfers_created_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_created_byTousersNestedInput
   users_cash_transfers_deleted_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_deleted_byTousersNestedInput
+  users_cash_transfers_forwarded_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_forwarded_byTousersNestedInput
   ledger_entries?: Prisma.ledger_entriesUpdateOneWithoutCash_transfersNestedInput
   users_cash_transfers_updated_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_updated_byTousersNestedInput
 }
@@ -3050,6 +3423,9 @@ export type cash_transfersUncheckedUpdateWithoutUsers_cash_transfers_resubmitted
   revision?: Prisma.IntFieldUpdateOperationsInput | number
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_resubmitted_byTousersInput = {
@@ -3088,6 +3464,132 @@ export type cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_resubmi
   revision?: Prisma.IntFieldUpdateOperationsInput | number
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type cash_transfersUpdateWithoutUsers_cash_transfers_forwarded_byTousersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  transfer_no?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_name?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.Enumcash_transfer_statusFieldUpdateOperationsInput | $Enums.cash_transfer_status
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejection_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  voucher_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cash_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  easypaisa_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  bank_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  fuel_charges?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  users_cash_transfers_approved_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_approved_byTousersNestedInput
+  branches?: Prisma.branchesUpdateOneRequiredWithoutCash_transfersNestedInput
+  users_cash_transfers_created_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_created_byTousersNestedInput
+  users_cash_transfers_deleted_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_deleted_byTousersNestedInput
+  ledger_entries?: Prisma.ledger_entriesUpdateOneWithoutCash_transfersNestedInput
+  users_cash_transfers_resubmitted_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_resubmitted_byTousersNestedInput
+  users_cash_transfers_updated_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_updated_byTousersNestedInput
+}
+
+export type cash_transfersUncheckedUpdateWithoutUsers_cash_transfers_forwarded_byTousersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  transfer_no?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_id?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_name?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.Enumcash_transfer_statusFieldUpdateOperationsInput | $Enums.cash_transfer_status
+  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejection_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ledger_entry_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  voucher_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cash_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  easypaisa_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  bank_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  fuel_charges?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resubmitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_forwarded_byTousersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  transfer_no?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_id?: Prisma.StringFieldUpdateOperationsInput | string
+  branch_name?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  payment_method?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  business_date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  status?: Prisma.Enumcash_transfer_statusFieldUpdateOperationsInput | $Enums.cash_transfer_status
+  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  approved_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approval_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rejection_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ledger_entry_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  voucher_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_query_no?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cash_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  easypaisa_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  bank_amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  fuel_charges?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  updated_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  updated_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  resubmitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type cash_transfersUpdateWithoutUsers_cash_transfers_updated_byTousersInput = {
@@ -3120,10 +3622,13 @@ export type cash_transfersUpdateWithoutUsers_cash_transfers_updated_byTousersInp
   revision?: Prisma.IntFieldUpdateOperationsInput | number
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   users_cash_transfers_approved_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_approved_byTousersNestedInput
   branches?: Prisma.branchesUpdateOneRequiredWithoutCash_transfersNestedInput
   users_cash_transfers_created_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_created_byTousersNestedInput
   users_cash_transfers_deleted_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_deleted_byTousersNestedInput
+  users_cash_transfers_forwarded_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_forwarded_byTousersNestedInput
   ledger_entries?: Prisma.ledger_entriesUpdateOneWithoutCash_transfersNestedInput
   users_cash_transfers_resubmitted_byTousers?: Prisma.usersUpdateOneWithoutCash_transfers_cash_transfers_resubmitted_byTousersNestedInput
 }
@@ -3164,6 +3669,9 @@ export type cash_transfersUncheckedUpdateWithoutUsers_cash_transfers_updated_byT
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_updated_byTousersInput = {
@@ -3202,6 +3710,9 @@ export type cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_updated
   resubmitted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   resubmitted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resubmitted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  forwarded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  forwarded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -3243,10 +3754,14 @@ export type cash_transfersSelect<ExtArgs extends runtime.Types.Extensions.Intern
   resubmitted_at?: boolean
   resubmitted_by?: boolean
   resubmitted_by_name?: boolean
+  forwarded_at?: boolean
+  forwarded_by?: boolean
+  forwarded_by_name?: boolean
   users_cash_transfers_approved_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_approved_byTousersArgs<ExtArgs>
   branches?: boolean | Prisma.branchesDefaultArgs<ExtArgs>
   users_cash_transfers_created_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_created_byTousersArgs<ExtArgs>
   users_cash_transfers_deleted_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_deleted_byTousersArgs<ExtArgs>
+  users_cash_transfers_forwarded_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_forwarded_byTousersArgs<ExtArgs>
   ledger_entries?: boolean | Prisma.cash_transfers$ledger_entriesArgs<ExtArgs>
   users_cash_transfers_resubmitted_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_resubmitted_byTousersArgs<ExtArgs>
   users_cash_transfers_updated_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_updated_byTousersArgs<ExtArgs>
@@ -3289,10 +3804,14 @@ export type cash_transfersSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   resubmitted_at?: boolean
   resubmitted_by?: boolean
   resubmitted_by_name?: boolean
+  forwarded_at?: boolean
+  forwarded_by?: boolean
+  forwarded_by_name?: boolean
   users_cash_transfers_approved_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_approved_byTousersArgs<ExtArgs>
   branches?: boolean | Prisma.branchesDefaultArgs<ExtArgs>
   users_cash_transfers_created_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_created_byTousersArgs<ExtArgs>
   users_cash_transfers_deleted_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_deleted_byTousersArgs<ExtArgs>
+  users_cash_transfers_forwarded_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_forwarded_byTousersArgs<ExtArgs>
   ledger_entries?: boolean | Prisma.cash_transfers$ledger_entriesArgs<ExtArgs>
   users_cash_transfers_resubmitted_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_resubmitted_byTousersArgs<ExtArgs>
   users_cash_transfers_updated_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_updated_byTousersArgs<ExtArgs>
@@ -3335,10 +3854,14 @@ export type cash_transfersSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   resubmitted_at?: boolean
   resubmitted_by?: boolean
   resubmitted_by_name?: boolean
+  forwarded_at?: boolean
+  forwarded_by?: boolean
+  forwarded_by_name?: boolean
   users_cash_transfers_approved_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_approved_byTousersArgs<ExtArgs>
   branches?: boolean | Prisma.branchesDefaultArgs<ExtArgs>
   users_cash_transfers_created_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_created_byTousersArgs<ExtArgs>
   users_cash_transfers_deleted_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_deleted_byTousersArgs<ExtArgs>
+  users_cash_transfers_forwarded_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_forwarded_byTousersArgs<ExtArgs>
   ledger_entries?: boolean | Prisma.cash_transfers$ledger_entriesArgs<ExtArgs>
   users_cash_transfers_resubmitted_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_resubmitted_byTousersArgs<ExtArgs>
   users_cash_transfers_updated_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_updated_byTousersArgs<ExtArgs>
@@ -3381,14 +3904,18 @@ export type cash_transfersSelectScalar = {
   resubmitted_at?: boolean
   resubmitted_by?: boolean
   resubmitted_by_name?: boolean
+  forwarded_at?: boolean
+  forwarded_by?: boolean
+  forwarded_by_name?: boolean
 }
 
-export type cash_transfersOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "transfer_no" | "branch_id" | "branch_name" | "amount" | "payment_method" | "note" | "business_date" | "status" | "created_by" | "created_by_name" | "approved_by" | "approved_by_name" | "approved_at" | "approval_note" | "rejection_reason" | "ledger_entry_id" | "voucher_no" | "created_at" | "updated_at" | "deleted_at" | "deleted_by" | "deleted_by_name" | "delete_reason" | "deleted_query_id" | "deleted_query_no" | "cash_amount" | "easypaisa_amount" | "bank_amount" | "fuel_charges" | "updated_by" | "updated_by_name" | "revision" | "resubmitted_at" | "resubmitted_by" | "resubmitted_by_name", ExtArgs["result"]["cash_transfers"]>
+export type cash_transfersOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "transfer_no" | "branch_id" | "branch_name" | "amount" | "payment_method" | "note" | "business_date" | "status" | "created_by" | "created_by_name" | "approved_by" | "approved_by_name" | "approved_at" | "approval_note" | "rejection_reason" | "ledger_entry_id" | "voucher_no" | "created_at" | "updated_at" | "deleted_at" | "deleted_by" | "deleted_by_name" | "delete_reason" | "deleted_query_id" | "deleted_query_no" | "cash_amount" | "easypaisa_amount" | "bank_amount" | "fuel_charges" | "updated_by" | "updated_by_name" | "revision" | "resubmitted_at" | "resubmitted_by" | "resubmitted_by_name" | "forwarded_at" | "forwarded_by" | "forwarded_by_name", ExtArgs["result"]["cash_transfers"]>
 export type cash_transfersInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users_cash_transfers_approved_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_approved_byTousersArgs<ExtArgs>
   branches?: boolean | Prisma.branchesDefaultArgs<ExtArgs>
   users_cash_transfers_created_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_created_byTousersArgs<ExtArgs>
   users_cash_transfers_deleted_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_deleted_byTousersArgs<ExtArgs>
+  users_cash_transfers_forwarded_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_forwarded_byTousersArgs<ExtArgs>
   ledger_entries?: boolean | Prisma.cash_transfers$ledger_entriesArgs<ExtArgs>
   users_cash_transfers_resubmitted_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_resubmitted_byTousersArgs<ExtArgs>
   users_cash_transfers_updated_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_updated_byTousersArgs<ExtArgs>
@@ -3398,6 +3925,7 @@ export type cash_transfersIncludeCreateManyAndReturn<ExtArgs extends runtime.Typ
   branches?: boolean | Prisma.branchesDefaultArgs<ExtArgs>
   users_cash_transfers_created_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_created_byTousersArgs<ExtArgs>
   users_cash_transfers_deleted_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_deleted_byTousersArgs<ExtArgs>
+  users_cash_transfers_forwarded_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_forwarded_byTousersArgs<ExtArgs>
   ledger_entries?: boolean | Prisma.cash_transfers$ledger_entriesArgs<ExtArgs>
   users_cash_transfers_resubmitted_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_resubmitted_byTousersArgs<ExtArgs>
   users_cash_transfers_updated_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_updated_byTousersArgs<ExtArgs>
@@ -3407,6 +3935,7 @@ export type cash_transfersIncludeUpdateManyAndReturn<ExtArgs extends runtime.Typ
   branches?: boolean | Prisma.branchesDefaultArgs<ExtArgs>
   users_cash_transfers_created_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_created_byTousersArgs<ExtArgs>
   users_cash_transfers_deleted_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_deleted_byTousersArgs<ExtArgs>
+  users_cash_transfers_forwarded_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_forwarded_byTousersArgs<ExtArgs>
   ledger_entries?: boolean | Prisma.cash_transfers$ledger_entriesArgs<ExtArgs>
   users_cash_transfers_resubmitted_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_resubmitted_byTousersArgs<ExtArgs>
   users_cash_transfers_updated_byTousers?: boolean | Prisma.cash_transfers$users_cash_transfers_updated_byTousersArgs<ExtArgs>
@@ -3419,6 +3948,7 @@ export type $cash_transfersPayload<ExtArgs extends runtime.Types.Extensions.Inte
     branches: Prisma.$branchesPayload<ExtArgs>
     users_cash_transfers_created_byTousers: Prisma.$usersPayload<ExtArgs> | null
     users_cash_transfers_deleted_byTousers: Prisma.$usersPayload<ExtArgs> | null
+    users_cash_transfers_forwarded_byTousers: Prisma.$usersPayload<ExtArgs> | null
     ledger_entries: Prisma.$ledger_entriesPayload<ExtArgs> | null
     users_cash_transfers_resubmitted_byTousers: Prisma.$usersPayload<ExtArgs> | null
     users_cash_transfers_updated_byTousers: Prisma.$usersPayload<ExtArgs> | null
@@ -3460,6 +3990,9 @@ export type $cash_transfersPayload<ExtArgs extends runtime.Types.Extensions.Inte
     resubmitted_at: Date | null
     resubmitted_by: string | null
     resubmitted_by_name: string | null
+    forwarded_at: Date | null
+    forwarded_by: string | null
+    forwarded_by_name: string | null
   }, ExtArgs["result"]["cash_transfers"]>
   composites: {}
 }
@@ -3858,6 +4391,7 @@ export interface Prisma__cash_transfersClient<T, Null = never, ExtArgs extends r
   branches<T extends Prisma.branchesDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.branchesDefaultArgs<ExtArgs>>): Prisma.Prisma__branchesClient<runtime.Types.Result.GetResult<Prisma.$branchesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   users_cash_transfers_created_byTousers<T extends Prisma.cash_transfers$users_cash_transfers_created_byTousersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.cash_transfers$users_cash_transfers_created_byTousersArgs<ExtArgs>>): Prisma.Prisma__usersClient<runtime.Types.Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   users_cash_transfers_deleted_byTousers<T extends Prisma.cash_transfers$users_cash_transfers_deleted_byTousersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.cash_transfers$users_cash_transfers_deleted_byTousersArgs<ExtArgs>>): Prisma.Prisma__usersClient<runtime.Types.Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  users_cash_transfers_forwarded_byTousers<T extends Prisma.cash_transfers$users_cash_transfers_forwarded_byTousersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.cash_transfers$users_cash_transfers_forwarded_byTousersArgs<ExtArgs>>): Prisma.Prisma__usersClient<runtime.Types.Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   ledger_entries<T extends Prisma.cash_transfers$ledger_entriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.cash_transfers$ledger_entriesArgs<ExtArgs>>): Prisma.Prisma__ledger_entriesClient<runtime.Types.Result.GetResult<Prisma.$ledger_entriesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   users_cash_transfers_resubmitted_byTousers<T extends Prisma.cash_transfers$users_cash_transfers_resubmitted_byTousersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.cash_transfers$users_cash_transfers_resubmitted_byTousersArgs<ExtArgs>>): Prisma.Prisma__usersClient<runtime.Types.Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   users_cash_transfers_updated_byTousers<T extends Prisma.cash_transfers$users_cash_transfers_updated_byTousersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.cash_transfers$users_cash_transfers_updated_byTousersArgs<ExtArgs>>): Prisma.Prisma__usersClient<runtime.Types.Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -3926,6 +4460,9 @@ export interface cash_transfersFieldRefs {
   readonly resubmitted_at: Prisma.FieldRef<"cash_transfers", 'DateTime'>
   readonly resubmitted_by: Prisma.FieldRef<"cash_transfers", 'String'>
   readonly resubmitted_by_name: Prisma.FieldRef<"cash_transfers", 'String'>
+  readonly forwarded_at: Prisma.FieldRef<"cash_transfers", 'DateTime'>
+  readonly forwarded_by: Prisma.FieldRef<"cash_transfers", 'String'>
+  readonly forwarded_by_name: Prisma.FieldRef<"cash_transfers", 'String'>
 }
     
 
@@ -4368,6 +4905,25 @@ export type cash_transfers$users_cash_transfers_created_byTousersArgs<ExtArgs ex
  * cash_transfers.users_cash_transfers_deleted_byTousers
  */
 export type cash_transfers$users_cash_transfers_deleted_byTousersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the users
+   */
+  select?: Prisma.usersSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the users
+   */
+  omit?: Prisma.usersOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.usersInclude<ExtArgs> | null
+  where?: Prisma.usersWhereInput
+}
+
+/**
+ * cash_transfers.users_cash_transfers_forwarded_byTousers
+ */
+export type cash_transfers$users_cash_transfers_forwarded_byTousersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the users
    */

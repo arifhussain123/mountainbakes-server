@@ -70,8 +70,10 @@ export const CASH_DEPOSITS_PER_DAY = 3;
 
 
 /**
- * pending  — waiting on Finance. The branch cannot edit it; a wrong figure is
- *            rejected and raised again under a fresh photo.
+ * pending  — not yet decided. It is first with Accounts (`forwardedAt` null),
+ *            who may correct it and submit it for approval; then with Finance
+ *            Admin (`forwardedAt` set), who approves or rejects it. The branch
+ *            cannot edit it.
  * approved — booked; `voucherNo` / `ledgerEntryId` are set. Final.
  * rejected — refused with a reason. The record and photo stay. Final.
  */
@@ -83,6 +85,15 @@ export const CASH_TRANSFER_STATUS_LABELS: Record<CashTransferStatus, string> = {
   approved: 'Approved',
   rejected: 'Rejected',
 };
+
+/**
+ * The two halves of `pending`, as Finance's board filters them (`?status=`
+ * takes these as well as the three statuses):
+ * with_accounts     — pending, not yet submitted for approval by Accounts;
+ * awaiting_approval — pending, submitted, waiting on Finance Admin.
+ */
+export const CASH_TRANSFER_QUEUES = ['with_accounts', 'awaiting_approval'] as const;
+export type CashTransferQueue = (typeof CASH_TRANSFER_QUEUES)[number];
 
 export interface CashTransfer extends CashTransferChannels {
   id: string;
@@ -120,6 +131,14 @@ export interface CashTransfer extends CashTransferChannels {
   resubmittedAt: string | null;
   resubmittedBy: string | null;
   resubmittedByName: string | null;
+  /**
+   * When Accounts submitted it for Finance Admin approval. Null while a pending
+   * deposit is still with Accounts; cleared again when a rejected deposit is
+   * resubmitted. Finance Admin decides only a forwarded deposit.
+   */
+  forwardedAt: string | null;
+  forwardedBy: string | null;
+  forwardedByName: string | null;
   /** The first RV- receipt this became; null until approved. */
   ledgerEntryId: string | null;
   /** Every RV- the approval posted (the Total, and Fuel when entered), comma separated. */

@@ -121,7 +121,36 @@ export const ResubmitCashTransferSchema = z
     }
   });
 
+/**
+ * Accounts correcting a deposit that is still with it, before submitting it to
+ * Finance Admin. Figures and note only — the same fields a branch corrects on a
+ * resubmission. The branch's slip photo is the evidence and stays as it is.
+ */
+export const EditCashTransferSchema = z
+  .object({
+    cashAmount: channelAmount.default(0),
+    easypaisaAmount: channelAmount.default(0),
+    bankAmount: channelAmount.default(0),
+    fuelCharges: channelAmount.default(0),
+    totalAmount: z.number().optional(),
+    note: z.string().trim().max(500).optional(),
+  })
+  .superRefine((v, ctx) => {
+    const total = cashTransferTotal(v);
+    if (total <= 0 && v.fuelCharges <= 0) {
+      ctx.addIssue({ code: 'custom', path: ['cashAmount'], message: 'Enter at least one amount greater than 0' });
+    }
+    if (v.totalAmount !== undefined && Math.round(v.totalAmount * 100) !== Math.round(total * 100)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['totalAmount'],
+        message: 'Total Amount must equal Cash + Easypaisa + Bank',
+      });
+    }
+  });
+
 export type CreateCashTransferInput = z.infer<typeof CreateCashTransferSchema>;
 export type ResubmitCashTransferInput = z.infer<typeof ResubmitCashTransferSchema>;
+export type EditCashTransferInput = z.infer<typeof EditCashTransferSchema>;
 export type ApproveCashTransferInput = z.infer<typeof ApproveCashTransferSchema>;
 export type RejectCashTransferInput = z.infer<typeof RejectCashTransferSchema>;
