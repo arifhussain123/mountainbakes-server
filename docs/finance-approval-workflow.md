@@ -82,6 +82,41 @@ role.
 - **Branch → Cash Transfer Details**: a rejected deposit shows Finance's remarks
   and "Correct & resubmit"; branch and date are shown, not editable.
 
+## Accounts first (migration `20261028000002_cash_deposit_accounts_review`)
+
+By the owner's order (2026-10-28) nothing reaches Finance Admin straight from
+whoever raised it.
+
+**Cash deposits.** A branch's deposit lands *With Accounts*. The Accountant
+opens it (View) and may **Edit** its figures and note, then **Submit for
+Approval**. Only then does Finance Admin see **Approve** / **Reject**. The status
+stays `pending` throughout, so every reader that counts unconfirmed money is
+unchanged; `cash_transfers.forwarded_at/_by/_by_name` tells the halves apart.
+
+| Endpoint | Who | What |
+|---|---|---|
+| `PUT /api/finance/cash-transfers/:id` | create | edit a deposit still with Accounts (409 once submitted) |
+| `PUT /api/finance/cash-transfers/:id/forward` | create | submit it for approval; notifies Finance Admin and Manager |
+| `GET /api/finance/cash-transfers?status=with_accounts` / `awaiting_approval` | view | the two halves of pending (`pending` still means both) |
+
+The guard trigger refuses approving or rejecting a deposit not yet submitted,
+and a resubmission by the branch clears `forwarded_*`, so a corrected deposit
+goes back to Accounts. History gains a `submitted` event (with any correction
+made by Accounts recorded as `edited` before it). New deposits notify the
+Accountant instead of Finance Admin. Deposits already pending when the
+migration ran were already in Finance Admin's queue and stay there
+(`forwarded_at` = when they were raised or resubmitted, no forwarder).
+
+**Income & Expense.** The entry form only saves (a draft, or a rejected entry's
+correction). The entry then shows in the list, and View offers Edit and Submit
+for Approval; Finance Admin approves or rejects from there. The API's
+`asDraft: false` and `resubmit: true` still exist for older clients.
+
+Screens: Cash Transfer Details opens on *With Accounts* for an Accountant and
+*Awaiting Approval* for everyone else; the Daily Ledger's pending panel lists
+only submitted deposits; the branch sees *With Accounts* / *Awaiting Approval*
+on its pending deposits.
+
 ## PV / RV behaviour
 
 Numbers are issued only inside `approve_finance_transaction` (entries) or the

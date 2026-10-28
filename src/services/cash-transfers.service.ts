@@ -12,6 +12,7 @@ import {
   type CashTransferSortKey,
   type CashTransferStatus,
   type CreateCashTransferInput,
+  type EditCashTransferInput,
   type LedgerEntry,
   type ResubmitCashTransferInput,
   type PaymentReceivedItem,
@@ -138,6 +139,11 @@ export interface CashTransferFilters {
   from?: string;
   to?: string;
   status?: CashTransferStatus;
+  /**
+   * Which half of `pending`: false = still with Accounts, true = submitted to
+   * Finance Admin. Read only with status 'pending'.
+   */
+  forwarded?: boolean;
   paymentMethod?: CashTransferMethod;
   search?: string;
 }
@@ -157,6 +163,7 @@ interface CashTransferFilterable<T> {
   lte(column: string, value: unknown): T;
   or(filters: string): T;
   is(column: string, value: null): T;
+  not(column: string, operator: string, value: unknown): T;
 }
 
 /**
@@ -173,6 +180,9 @@ function filterCashTransfers<T extends CashTransferFilterable<T>>(query: T, q: C
   if (q.from) filtered = filtered.gte('business_date', q.from);
   if (q.to) filtered = filtered.lte('business_date', q.to);
   if (q.status) filtered = filtered.eq('status', q.status);
+  if (q.status === 'pending' && q.forwarded !== undefined) {
+    filtered = q.forwarded ? filtered.not('forwarded_at', 'is', null) : filtered.is('forwarded_at', null);
+  }
   if (q.paymentMethod) filtered = filtered.gt(CHANNEL_COLUMNS[q.paymentMethod], 0);
 
   // Free-text over the two numbers, the branch and the note — same convention
@@ -372,28 +382,35 @@ export async function createCashTransfer(input: {
 
   const transfer = { ...toApi(created as Record<string, unknown>), attachments };
 
-  // Finance is two roles, and a role broadcast reaches one role — so one row
-  // each. branchId null: a finance user has no branch, and the notification
-  // feed leaves out a role broadcast whose branch is not the reader's. Best
-  // effort: the transfer is saved, and a failed notice must not turn a 201
-  // into a 500 that the client would retry.
-  const summary = depositSummary(transfer);
-  for (const targetRole of ['finance_admin', 'finance_manager'] as const) {
+  // A new deposit goes to Accounts, not to Finance Admin: the Accountant
+  // checks it and submits it for approval (forwardCashTransfer).
+  await notifyFinance(['accountant'], {
+    title: 'Cash Transfer Submitted',
+    message: `${branch.name} sent ${depositSummary(transfer)} (${transfer.transferNo}) — check and submit it for approval`,
+    relatedId: transfer.id,
+  });
+
+  return transfer;
+}
+
+/**
+ * A role broadcast reaches one role — so one row per role. branchId null: a
+ * finance user has no branch, and the notification feed leaves out a role
+ * broadcast whose branch is not the reader's. Best effort: the deposit is
+ * saved, and a failed notice must not turn a success into a 500 that the
+ * client would retry.
+ */
+async function notifyFinance(
+  roles: readonly UserRole[],
+  notice: { title: string; message: string; relatedId: string },
+): Promise<void> {
+  for (const targetRole of roles) {
     try {
-      await notify({
-        type: 'cash_transfer',
-        title: 'Cash Transfer Submitted',
-        message: `${branch.name} sent ${summary} (${transfer.transferNo}) — awaiting approval`,
-        targetRole,
-        branchId: null,
-        relatedId: transfer.id,
-      });
+      await notify({ type: 'cash_transfer', ...notice, targetRole, branchId: null });
     } catch (err) {
       console.error('[cash-transfers] notify failed', err);
     }
   }
-
-  return transfer;
 }
 
 /** "Rs. 80,000 (Cash + Easypaisa + Bank) + fuel Rs. 2,000" — for the notices. */
@@ -415,6 +432,102 @@ export interface CashTransferActor {
 }
 
 /**
+ * Why a deposit cannot be decided yet, or null when Finance Admin may approve
+ * or reject it. The guard trigger refuses the same move (migration
+ * 20261028000002); asking first returns the sentence as a 409 without a raise
+ * from inside the decision. Race-free: a submitted deposit never returns to
+ * Accounts while it is pending.
+ */
+async function decisionRefusal(id: string): Promise<Error | null> {
+  const current = await getCashTransfer(id);
+  if (!current) return Object.assign(new Error('Cash transfer not found'), { status: 404 });
+  if (current.status === 'pending' && !current.forwardedAt) {
+    return Object.assign(
+      new Error(`${current.transferNo} is still with Accounts — it must be submitted for approval first.`),
+      { status: 409 },
+    );
+  }
+  return null;
+}
+
+/**
+ * The one write Accounts makes to a deposit still with it: correct the figures
+ * and note (`edit`), submit it to Finance Admin (`forward`), or both in one
+ * statement. Conditional on the row still being pending, with Accounts and
+ * live, so a deposit submitted or decided meanwhile is refused with a 409
+ * rather than changed under the approver.
+ */
+async function reviewCashTransfer(
+  id: string,
+  actor: CashTransferActor,
+  change: { edit?: EditCashTransferInput; forward: boolean },
+): Promise<CashTransfer> {
+  const patch: Record<string, unknown> = {};
+  if (change.edit) {
+    const { cashAmount, easypaisaAmount, bankAmount, fuelCharges, note } = change.edit;
+    Object.assign(patch, {
+      cash_amount: cashAmount,
+      easypaisa_amount: easypaisaAmount,
+      bank_amount: bankAmount,
+      fuel_charges: fuelCharges,
+      amount: cashTransferTotal({ cashAmount, easypaisaAmount, bankAmount }),
+      note: note?.trim() || null,
+      updated_by: actor.uid,
+      updated_by_name: actor.name,
+    });
+  }
+  if (change.forward) {
+    Object.assign(patch, {
+      forwarded_at: new Date().toISOString(),
+      forwarded_by: actor.uid,
+      forwarded_by_name: actor.name,
+    });
+  }
+
+  const { data, error } = await withoutDeleted(
+    db.from('cash_transfers').update(patch).eq('id', id).eq('status', 'pending').is('forwarded_at', null),
+  )
+    .select('*')
+    .maybeSingle();
+  if (error) throw asClientError(error);
+
+  if (!data) {
+    const current = await getCashTransfer(id);
+    if (!current) throw Object.assign(new Error('Cash transfer not found'), { status: 404 });
+    throw Object.assign(
+      new Error(
+        current.status === 'pending'
+          ? `${current.transferNo} has already been submitted for approval.`
+          : `${current.transferNo} is ${current.status} — only a deposit still with Accounts can be changed.`,
+      ),
+      { status: 409 },
+    );
+  }
+
+  return { ...toApi(data as Record<string, unknown>), attachments: await listAttachments('cash_transfer', id) };
+}
+
+/** Accounts corrects a deposit before submitting it. It stays with Accounts. */
+export async function editCashTransfer(
+  id: string,
+  actor: CashTransferActor,
+  edit: EditCashTransferInput,
+): Promise<CashTransfer> {
+  return reviewCashTransfer(id, actor, { edit, forward: false });
+}
+
+/** Accounts submits the deposit for approval: it moves to Finance Admin's queue. */
+export async function forwardCashTransfer(id: string, actor: CashTransferActor): Promise<CashTransfer> {
+  const transfer = await reviewCashTransfer(id, actor, { forward: true });
+  await notifyFinance(['finance_admin', 'finance_manager'], {
+    title: 'Cash Transfer Awaiting Approval',
+    message: `${transfer.branchName} sent ${depositSummary(transfer)} (${transfer.transferNo}) — submitted by ${actor.name}, awaiting approval`,
+    relatedId: transfer.id,
+  });
+  return transfer;
+}
+
+/**
  * Approve: one RPC, one transaction — the receipt is posted and the transfer
  * marked in the same statement, so the book and the record cannot disagree.
  * Returns the transfer and the RV- entry it became.
@@ -424,6 +537,9 @@ export async function approveCashTransfer(
   actor: CashTransferActor,
   note?: string | null,
 ): Promise<{ transfer: CashTransfer; ledgerEntry: LedgerEntry | null }> {
+  const refusal = await decisionRefusal(id);
+  if (refusal) throw refusal;
+
   const { data, error } = await db.rpc('approve_cash_transfer', {
     p_id: id,
     p_actor_id: actor.uid,
@@ -451,6 +567,9 @@ export async function rejectCashTransfer(
   actor: CashTransferActor,
   reason: string,
 ): Promise<CashTransfer> {
+  const refusal = await decisionRefusal(id);
+  if (refusal) throw refusal;
+
   const { data, error } = await db.rpc('reject_cash_transfer', {
     p_id: id,
     p_actor_id: actor.uid,
@@ -509,21 +628,12 @@ export async function resubmitCashTransfer(input: {
   }
   const transfer = { ...toApi(row), attachments: await listAttachments('cash_transfer', input.id) };
 
-  const summary = depositSummary(transfer);
-  for (const targetRole of ['finance_admin', 'finance_manager'] as const) {
-    try {
-      await notify({
-        type: 'cash_transfer',
-        title: 'Cash Transfer Resubmitted',
-        message: `${transfer.branchName} corrected ${transfer.transferNo} (${summary}, revision ${transfer.revision}) — awaiting approval`,
-        targetRole,
-        branchId: null,
-        relatedId: transfer.id,
-      });
-    } catch (err) {
-      console.error('[cash-transfers] notify failed', err);
-    }
-  }
+  // Back to Accounts, as a new deposit goes (the guard trigger cleared forwarded_at).
+  await notifyFinance(['accountant'], {
+    title: 'Cash Transfer Resubmitted',
+    message: `${transfer.branchName} corrected ${transfer.transferNo} (${depositSummary(transfer)}, revision ${transfer.revision}) — check and submit it for approval`,
+    relatedId: transfer.id,
+  });
   return transfer;
 }
 

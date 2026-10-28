@@ -2807,6 +2807,17 @@
   },
   {
    "columns": [
+    "forwarded_by"
+   ],
+   "name": "cash_transfers_forwarded_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "cash_transfers"
+  },
+  {
+   "columns": [
     "rejected_by"
    ],
    "name": "finance_transactions_rejected_by_fkey",
@@ -7017,7 +7028,10 @@
     "revision": "integer",
     "resubmitted_at": "timestamp with time zone",
     "resubmitted_by": "uuid",
-    "resubmitted_by_name": "text"
+    "resubmitted_by_name": "text",
+    "forwarded_at": "timestamp with time zone",
+    "forwarded_by": "uuid",
+    "forwarded_by_name": "text"
    },
    "pk": [
     "id"
