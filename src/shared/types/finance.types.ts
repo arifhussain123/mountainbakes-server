@@ -99,6 +99,17 @@ export function canAccessFinance(role: UserRole | string | null | undefined): bo
   return role === 'super_admin' || isFinanceRole(role);
 }
 
+/**
+ * Edit and Submit for Approval on an Income & Expense entry or a branch's cash
+ * deposit — the Accountant's step alone, by the owner's order (2026-10-29).
+ * Finance Admin and Finance Manager approve or reject what the Accountant sends;
+ * they do not prepare it. Deliberately not a `FinancePermission`: finance_admin
+ * holds every one of those, and no Super Admin grant reaches this either.
+ */
+export function financeCanReview(role: UserRole | string | null | undefined): boolean {
+  return role === 'accountant';
+}
+
 // ---------------------------------------------------------------------------
 // Shared vocabulary
 // ---------------------------------------------------------------------------

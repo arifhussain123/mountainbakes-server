@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import { authenticate, type AuthRequest } from '../middleware/auth';
-import { requireFinance, requireIncomeVerifier } from '../middleware/requireFinance';
+import { requireFinance, requireFinanceReviewer, requireIncomeVerifier } from '../middleware/requireFinance';
 import { validate } from '../middleware/validate';
 import {
   ApproveSchema,
   CreateFinanceTransactionSchema,
+  financeCanReview,
   ImportBranchIncomeSchema,
   RejectSchema,
   UpdateFinanceTransactionSchema,
@@ -277,7 +278,10 @@ entriesRouter.post(
   validate(CreateFinanceTransactionSchema),
   async (req: AuthRequest, res, next) => {
     try {
-      const doc = await createTransaction(req.body, actorOf(req));
+      // Anyone with `create` may save an entry, but only the Accountant sends
+      // one for approval — anyone else's is saved for the Accountant to submit.
+      const input = financeCanReview(req.user!.role) ? req.body : { ...req.body, asDraft: true };
+      const doc = await createTransaction(input, actorOf(req));
       await logFinanceAudit(req, {
         entity: 'finance_transaction',
         entityId: doc.id,
@@ -294,9 +298,10 @@ entriesRouter.post(
   },
 );
 
+// Edit and Submit for Approval are the Accountant's alone (requireFinanceReviewer).
 entriesRouter.put(
   '/:id',
-  requireFinance('create'),
+  requireFinanceReviewer(),
   validate(UpdateFinanceTransactionSchema),
   async (req: AuthRequest, res, next) => {
     try {
@@ -322,7 +327,7 @@ entriesRouter.put(
   },
 );
 
-entriesRouter.post('/:id/submit', requireFinance('create'), async (req: AuthRequest, res, next) => {
+entriesRouter.post('/:id/submit', requireFinanceReviewer(), async (req: AuthRequest, res, next) => {
   try {
     const doc = await submitTransaction(String(req.params['id']), actorOf(req));
     await logFinanceAudit(req, {
