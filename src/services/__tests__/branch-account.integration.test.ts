@@ -574,7 +574,7 @@ test('the Collections export carries the Demand Record figures, per branch', asy
   // today's (which earlier tests in this file move).
   const pct = Number((await db.query<{ p: string }>(`select company_share_pct::text as p from finance_settings`)).rows[0]!.p);
   const august = (await collectionsWorkbook('&from=2026-08-01&to=2026-08-31')).get('Collections')!;
-  assert.deepEqual(august[1]!.slice(1), ['DMD-000100', 'PO-20260831-', 'Alpha', 1000, 0, 0, 1000, (1000 * pct) / 100]);
+  assert.deepEqual(august[1]!.slice(1), ['DMD-000100', 'Alpha', 1000, 0, 0, 1000, (1000 * pct) / 100]);
 
   const main = wb.get('Collections')!;
   const h = main[0]!;
@@ -586,7 +586,7 @@ test('the Collections export carries the Demand Record figures, per branch', asy
   // balance on the sheet sits that row's extra share above the page's.
   const shift = new Map<string, number>();
   for (const b of record.branches as Json[]) {
-    const open = main.find((x) => x[at('Branch')] === b.branchName && x[at('Slip No.')] === 'Opening Stock');
+    const open = main.find((x) => x[at('Branch')] === b.branchName && x[at('Demand No.')] === 'Opening Stock');
     assert.ok(open, `no Opening Stock row for ${b.branchName}`);
     const recOpen = (record.rows as Json[]).find((r) => r.branchName === b.branchName && r.orderId === null);
     assert.equal(open[at('Return')], recOpen?.returns ?? 0);
@@ -619,7 +619,7 @@ test('the Collections export carries the Demand Record figures, per branch', asy
     assert.equal(tab[head]!.includes('Branch'), false);
     const rows = tab.slice(head + 1, -1);
     const lines = main.filter((x) => x[at('Branch')] === b.branchName && x[0] !== 'TOTAL');
-    assert.deepEqual(rows.map((x) => x[1] || x[2]), lines.map((x) => x[at('Demand No.')] || x[at('Slip No.')]));
+    assert.deepEqual(rows.map((x) => x[1]), lines.map((x) => x[at('Demand No.')]));
     const closing = b.closingBalance + shift.get(b.branchName)!;
     assert.equal(rows.at(-1)![tab[head]!.indexOf('Closing')], closing);
     assert.deepEqual(tab.find((x) => x[0] === 'Balance'), ['Balance', '', closing]);

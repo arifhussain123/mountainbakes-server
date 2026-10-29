@@ -13,7 +13,14 @@ type Cell = string | number;
  * 'YYYY-MM-DD' string into a real date cell so `numFmt` can show it; any other
  * value (a footnote in that column) is written as it is.
  */
-export interface ExcelColumn { numFmt?: string; date?: boolean; width?: number; /** Replaces `numFmt` on the TOTAL rows. */ totalNumFmt?: string }
+export interface ExcelColumn {
+  numFmt?: string;
+  date?: boolean;
+  /** A fixed width; without one the column is sized to its text (see autoFit). */
+  width?: number;
+  /** Replaces `numFmt` on the TOTAL rows. */
+  totalNumFmt?: string;
+}
 
 export interface ExcelSheet {
   title: string;
@@ -80,10 +87,9 @@ export async function genericExcel(title: string, headers: string[], rows: Cell[
     cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
     cell.alignment = { vertical: 'middle', horizontal: 'center' };
   });
-  headerRow.height = 20;
 
   for (const row of rows) sheet.addRow(row);
-  sheet.columns.forEach((c) => { c.width = 18; });
+  autoFit(sheet);
 
   return wb.xlsx.writeBuffer() as unknown as Promise<Buffer>;
 }
@@ -102,7 +108,7 @@ export async function genericExcelMultiSheet(sheets: ExcelSheet[]): Promise<Buff
   for (const { title, headers, rows, columns, totalRows, preamble = [] } of sheets) {
     const sheet = wb.addWorksheet(uniqueSheetName(title, used));
     for (const line of preamble) {
-      const row = sheet.addRow(line.cells);
+      const row = sheet.addRow(trimNote(line.cells));
       if (line.bold || line.size) row.font = { bold: line.bold, size: line.size };
       line.numFmts?.forEach((numFmt, i) => { if (numFmt) row.getCell(i + 1).numFmt = numFmt; });
     }
@@ -115,13 +121,11 @@ export async function genericExcelMultiSheet(sheets: ExcelSheet[]): Promise<Buff
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
       cell.alignment = { vertical: 'middle', horizontal: 'center' };
     });
-    headerRow.height = 20;
 
     for (const row of rows) {
-      sheet.addRow(row.map((v, i) => (columns?.[i]?.date && typeof v === 'string' && ISO_DATE.test(v) ? new Date(`${v}T00:00:00Z`) : v)));
+      sheet.addRow(trimNote(row).map((v, i) => (columns?.[i]?.date && typeof v === 'string' && ISO_DATE.test(v) ? new Date(`${v}T00:00:00Z`) : v)));
     }
     sheet.columns.forEach((c, i) => {
-      c.width = columns?.[i]?.width ?? 18;
       const numFmt = columns?.[i]?.numFmt;
       // Data rows only, so the header keeps its own look.
       if (numFmt) c.eachCell?.((cell, rowNumber) => { if (rowNumber > headerAt) cell.numFmt = numFmt; });
@@ -134,12 +138,59 @@ export async function genericExcelMultiSheet(sheets: ExcelSheet[]): Promise<Buff
         if (numFmt) cell.numFmt = numFmt;
       });
     }
+    autoFit(sheet);
+    columns?.forEach((c, i) => { if (c.width) sheet.getColumn(i + 1).width = c.width; });
   }
 
   return wb.xlsx.writeBuffer() as unknown as Promise<Buffer>;
 }
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** A line with text in its first cell only — a title, a footnote. */
+const isNote = (cells: Cell[]) => cells.length > 0 && cells.slice(1).every((v) => v === '' || v === null || v === undefined);
+
+/**
+ * A note keeps only its first cell. The blank ('') cells after it would stop
+ * its text spilling across the empty columns, cutting it at the first one.
+ */
+function trimNote(cells: Cell[]): Cell[] {
+  return isNote(cells) ? cells.slice(0, 1) : cells;
+}
+
+/** Roughly what a cell shows, in characters: a number as its format draws it, a date as dd mmm yyyy. */
+function shownLength(cell: ExcelJS.Cell): number {
+  const v = cell.value;
+  if (v === null || v === undefined || v === '') return 0;
+  if (v instanceof Date) return 11;
+  if (typeof v === 'number') {
+    const digits = Math.round(Math.abs(v)).toLocaleString('en-US').length + (v < 0 ? 1 : 0);
+    return digits + (typeof cell.numFmt === 'string' && cell.numFmt.includes('Rs.') ? 4 : 0);
+  }
+  return String(v).length;
+}
+
+/**
+ * Every column as wide as its widest cell (owner's call, 2026-10-29), header
+ * included, so nothing shows cut off or as ####. A note line is left out: it
+ * spills across the empty columns beside it instead of widening the first.
+ * Row heights are left unset, so Excel sizes each row to its font.
+ */
+function autoFit(sheet: ExcelJS.Worksheet): void {
+  const widths: number[] = [];
+  sheet.eachRow((row) => {
+    // A styled row (a bold title) has empty cells too: count the ones with text.
+    let valued = 0;
+    row.eachCell((cell) => { if (shownLength(cell) > 0) valued++; });
+    if (valued <= 1) return;
+    row.eachCell((cell, col) => {
+      const shown = shownLength(cell) * ((cell.font ?? row.font)?.bold ? 1.1 : 1);
+      widths[col - 1] = Math.max(widths[col - 1] ?? 0, Math.ceil(shown));
+    });
+  });
+  // At least 10: ExcelJS leaves a width of exactly 9 (its default) unwritten.
+  widths.forEach((w, i) => { sheet.getColumn(i + 1).width = Math.min(60, Math.max(10, (w ?? 0) + 2)); });
+}
 
 /**
  * A tab name Excel will accept. Tab titles can now come from data (a branch
