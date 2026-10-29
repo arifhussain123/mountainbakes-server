@@ -34,8 +34,26 @@ export interface ExcelSheet {
    * line between them and the header row. `numFmts` formats a line's cells by
    * position; the columns' own formats start below the header.
    */
-  preamble?: { cells: Cell[]; bold?: boolean; size?: number; numFmts?: (string | undefined)[] }[];
+  preamble?: { cells: Cell[]; bold?: boolean; size?: number; numFmts?: (string | undefined)[]; highlight?: boolean }[];
+  /** Cells shown in bold red (a statement's final balance): `row` indexes into `rows`, `col` from 0. */
+  highlight?: { row: number; col: number }[];
+  /** Thin borders round the header and the data cells. */
+  borders?: boolean;
+  /**
+   * Notes under the table, after a blank line: each across the table's width,
+   * wrapped, its row as tall as its text. A part can be bold.
+   */
+  notes?: { text: string; bold?: boolean }[][];
 }
+
+/** The bold red of a statement's final balance. */
+const HIGHLIGHT: Partial<ExcelJS.Font> = { bold: true, color: { argb: 'FFDC2626' } };
+const THIN: Partial<ExcelJS.Borders> = {
+  top: { style: 'thin', color: { argb: 'FFBFBFBF' } },
+  left: { style: 'thin', color: { argb: 'FFBFBFBF' } },
+  bottom: { style: 'thin', color: { argb: 'FFBFBFBF' } },
+  right: { style: 'thin', color: { argb: 'FFBFBFBF' } },
+};
 
 export function genericPDF(title: string, headers: string[], rows: Cell[][]): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -105,11 +123,14 @@ export async function genericExcelMultiSheet(sheets: ExcelSheet[]): Promise<Buff
   wb.creator = 'Mountain Bakes ERP';
   const used = new Set<string>();
 
-  for (const { title, headers, rows, columns, totalRows, preamble = [] } of sheets) {
+  for (const { title, headers, rows, columns, totalRows, preamble = [], highlight = [], borders, notes = [] } of sheets) {
     const sheet = wb.addWorksheet(uniqueSheetName(title, used));
+    // A statement is printed: landscape, the whole width on one page.
+    sheet.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
     for (const line of preamble) {
       const row = sheet.addRow(trimNote(line.cells));
       if (line.bold || line.size) row.font = { bold: line.bold, size: line.size };
+      if (line.highlight) row.eachCell((cell) => { if (cell.value !== '') cell.font = { ...HIGHLIGHT, size: line.size }; });
       line.numFmts?.forEach((numFmt, i) => { if (numFmt) row.getCell(i + 1).numFmt = numFmt; });
     }
     if (preamble.length > 0) sheet.addRow([]);
@@ -138,8 +159,33 @@ export async function genericExcelMultiSheet(sheets: ExcelSheet[]): Promise<Buff
         if (numFmt) cell.numFmt = numFmt;
       });
     }
+    for (const { row, col } of highlight) sheet.getRow(headerAt + 1 + row).getCell(col + 1).font = HIGHLIGHT;
+    if (borders) {
+      [headers, ...rows].forEach((cells, i) => {
+        if (i > 0 && isNote(cells)) return;
+        const row = sheet.getRow(headerAt + i);
+        for (let col = 1; col <= headers.length; col++) row.getCell(col).border = THIN;
+      });
+    }
     autoFit(sheet);
     columns?.forEach((c, i) => { if (c.width) sheet.getColumn(i + 1).width = c.width; });
+    // After autoFit: a merged note would otherwise widen its first column.
+    if (notes.length > 0) {
+      sheet.addRow([]);
+      const span = Math.max(1, headers.length);
+      let lineChars = 0;
+      for (let col = 1; col <= span; col++) lineChars += sheet.getColumn(col).width ?? 9;
+      for (const note of notes) {
+        const row = sheet.addRow([]);
+        sheet.mergeCells(row.number, 1, row.number, span);
+        const cell = row.getCell(1);
+        cell.value = { richText: note.map((p) => ({ text: p.text, ...(p.bold ? { font: { bold: true } } : {}) })) };
+        cell.alignment = { wrapText: true, vertical: 'top' };
+        // Excel does not size a merged cell's row to its text, so set it: ~15pt a line.
+        const chars = note.reduce((a, p) => a + p.text.length, 0);
+        row.height = Math.max(1, Math.ceil((chars * 1.1) / lineChars)) * 15 + 3;
+      }
+    }
   }
 
   return wb.xlsx.writeBuffer() as unknown as Promise<Buffer>;
@@ -165,7 +211,8 @@ function shownLength(cell: ExcelJS.Cell): number {
   if (v instanceof Date) return 11;
   if (typeof v === 'number') {
     const digits = Math.round(Math.abs(v)).toLocaleString('en-US').length + (v < 0 ? 1 : 0);
-    return digits + (typeof cell.numFmt === 'string' && cell.numFmt.includes('Rs.') ? 4 : 0);
+    const fmt = typeof cell.numFmt === 'string' ? cell.numFmt : '';
+    return digits + (fmt.includes('Rs.') ? 4 : 0) + (fmt.includes('0.00') ? 3 : 0);
   }
   return String(v).length;
 }
@@ -174,7 +221,8 @@ function shownLength(cell: ExcelJS.Cell): number {
  * Every column as wide as its widest cell (owner's call, 2026-10-29), header
  * included, so nothing shows cut off or as ####. A note line is left out: it
  * spills across the empty columns beside it instead of widening the first.
- * Row heights are left unset, so Excel sizes each row to its font.
+ * Row heights are left unset, so Excel sizes each row to its font (a
+ * sheet's notes, which are merged, set their own).
  */
 function autoFit(sheet: ExcelJS.Worksheet): void {
   const widths: number[] = [];
