@@ -604,6 +604,17 @@ test('the Collections export carries the Demand Record figures, per branch', asy
     assert.equal(line[at('Previous')], r.previousBalance + d, `${r.demandNumber} Previous`);
     assert.equal(line[at('Closing')], r.closingBalance + d, `${r.demandNumber} Closing`);
   }
+  // September runs to its last day, so each branch closes it on a Closing
+  // Stock row: the stock still held then, its share taken back off.
+  for (const b of record.branches as Json[]) {
+    const close = main.find((x) => x[at('Branch')] === b.branchName && x[at('Demand No.')] === 'Closing Stock');
+    assert.ok(close, `no Closing Stock row for ${b.branchName}`);
+    assert.equal((close[0] as Date).toISOString().slice(0, 10), '2026-09-30');
+    assert.ok(close[at('Co. Share')] <= 0);
+    assert.equal(close[at('Previous')], b.closingBalance + shift.get(b.branchName)!);
+    shift.set(b.branchName, shift.get(b.branchName)! + close[at('Co. Share')]);
+    assert.equal(close[at('Closing')], b.closingBalance + shift.get(b.branchName)!);
+  }
   const shifted = [...shift.values()].reduce((a, v) => a + v, 0);
   const total = main.at(-1)!;
   assert.equal(total[0], 'TOTAL');
@@ -617,7 +628,7 @@ test('the Collections export carries the Demand Record figures, per branch', asy
     assert.deepEqual(tab[0], [`Mountain Bakes - ${b.branchName}`]);
     const head = tab.findIndex((x) => x[0] === 'Date');
     assert.equal(tab[head]!.includes('Branch'), false);
-    const rows = tab.slice(head + 1, -1);
+    const rows = tab.slice(head + 1).filter((x) => !(x[0] && typeof x[0] === 'object' && 'richText' in x[0])).slice(0, -1);
     const lines = main.filter((x) => x[at('Branch')] === b.branchName && x[0] !== 'TOTAL');
     assert.deepEqual(rows.map((x) => x[1]), lines.map((x) => x[at('Demand No.')]));
     const closing = b.closingBalance + shift.get(b.branchName)!;

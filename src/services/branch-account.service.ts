@@ -349,6 +349,58 @@ const STOCK_SQL = `
 `;
 
 /**
+ * The value of each branch's stock at one moment of a business day, from the
+ * stock ledger: the live balance with every movement after that moment taken
+ * back off. Valued at each product's price in force on that day
+ * (priceOnDateLateral), never today's, so a past month's statement keeps its
+ * own rates. $1 branch (null: every active branch), $2 the day, $3 false for
+ * the start of the day (before any of its movements), true for its end.
+ */
+const STOCK_VALUE_SQL = `
+  with br as (
+    select b.id from public.branches b where ($1::uuid is null and b.is_active) or b.id = $1::uuid
+  ),
+  mv as (
+    select h.branch_id, h.product_id, sum(h.delta) as later
+      from public.stock_history h
+      join br on br.id = h.branch_id
+     where h.business_date > $2::date or (not $3::boolean and h.business_date = $2::date)
+     group by h.branch_id, h.product_id
+  ),
+  st as (
+    select s.branch_id, s.product_id, s.balance from public.stock s join br on br.id = s.branch_id
+  ),
+  q as (
+    select coalesce(st.branch_id, mv.branch_id) as branch_id,
+           coalesce(st.product_id, mv.product_id) as product_id,
+           coalesce(st.balance, 0) - coalesce(mv.later, 0) as qty
+      from st full outer join mv on mv.branch_id = st.branch_id and mv.product_id = st.product_id
+  )
+  select q.branch_id::text as "branchId",
+         coalesce(sum(q.qty * coalesce(px.unit_price, 0)), 0)::float8 as "amount"
+    from q
+    left join public.products p on p.id = q.product_id
+    ${priceOnDateLateral('q.product_id', '$2::date', 'p.price', 'px')}
+   group by q.branch_id
+`;
+
+/** A Collections row: a Demand Record row, or one of a branch's two stock rows (`orderId` null). */
+export interface CollectionsRow extends DemandRecordRow {
+  stockRow: 'opening' | 'closing' | null;
+}
+
+export interface CollectionsMonth extends Omit<DemandRecordResult, 'pagination' | 'rows'> {
+  rows: CollectionsRow[];
+  /** The window reaches its month's last day, so each branch ends on a Closing Stock row. */
+  monthClosed: boolean;
+}
+
+/** The last day of a 'YYYY-MM-DD' date's month. */
+function monthEndOf(ymd: string): string {
+  return new Date(Date.UTC(Number(ymd.slice(0, 4)), Number(ymd.slice(5, 7)), 0)).toISOString().slice(0, 10);
+}
+
+/**
  * What is still undecided in the month and will move its figures: returns not
  * accepted yet (pending, or sent back to the branch) at the Return Summary's
  * price, and deposits not approved yet. $1 branch, $2 first day, $3 last day.
@@ -492,6 +544,15 @@ export async function getDemandRecordPeriod(q: { branchId?: string | null; from?
  *  - A demand submitted before the go-live day but required inside the
  *    window (submitted 30 Sep for 1 Oct) follows the opening stock as a row
  *    of its own, with no Received.
+ *  - When the window reaches the last day of its month (owner's rule,
+ *    2026-10-29), each branch closes it with a "Closing Stock" row on that
+ *    day: the stock still held at the end of it, deducted — Delivered is
+ *    minus its value, so its Company Share comes off the balance — the
+ *    mirror of the next month's Opening Stock, which charges it back. Nothing
+ *    is posted: it is worked out from the records on every export, so
+ *    exporting a month again gives the same figures and deducts nothing twice.
+ *  - Both stock rows are valued at the prices in force on their own day
+ *    (STOCK_VALUE_SQL), so a closed month keeps its rates.
  *  - Previous / Closing run per branch down the rows in date order, starting
  *    from the balance of every row dated before the window. Counting the opening
  *    stock adds to that balance, so this sheet's Closing is NOT the Demand
@@ -499,7 +560,7 @@ export async function getDemandRecordPeriod(q: { branchId?: string | null; from?
  *
  * Null while the Demand Record is not switched on.
  */
-export async function getCollectionsMonth(q: { branchId?: string | null; from: string; to: string }): Promise<Omit<DemandRecordResult, 'pagination'> | null> {
+export async function getCollectionsMonth(q: { branchId?: string | null; from: string; to: string }): Promise<CollectionsMonth | null> {
   const start = await getLedgerStart();
   if (!start) return null;
   const from = q.from > start ? q.from : start;
@@ -511,14 +572,18 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
 
   const all = await loadAccounts(branchId, start);
   const orderIds = all.flatMap((r) => (r.orderId ? [r.orderId] : []));
-  const [required, stock, branchRows, before] = await Promise.all([
+  const monthClosed = to === monthEndOf(to);
+  const [required, stock, closingStock, branchRows, before] = await Promise.all([
     orderIds.length === 0
       ? Promise.resolve([] as { id: string; day: string }[])
       : prisma.$queryRawUnsafe<{ id: string; day: string }[]>(
         `select id::text as id, to_char(coalesce(required_date, business_date), 'YYYY-MM-DD') as day
            from public.production_orders where id = any($1::uuid[])`, orderIds),
-    // The window's first morning: STOCK_SQL's opening for a one-day window.
-    prisma.$queryRawUnsafe<(MonthStatementStock & { branchId: string })[]>(STOCK_SQL, branchId, from, from),
+    // The window's first morning, and the end of the month's last day.
+    prisma.$queryRawUnsafe<{ branchId: string; amount: number }[]>(STOCK_VALUE_SQL, branchId, from, false),
+    monthClosed
+      ? prisma.$queryRawUnsafe<{ branchId: string; amount: number }[]>(STOCK_VALUE_SQL, branchId, to, true)
+      : Promise.resolve([] as { branchId: string; amount: number }[]),
     prisma.$queryRawUnsafe<{ id: string; name: string; pct: number }[]>(
       `select id::text as id, name, app.resolve_company_share_pct(id)::float8 as pct
          from public.branches where $1::uuid is null or id = $1::uuid order by name`, branchId),
@@ -530,7 +595,8 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
     if (list) list.push(r); else beforeByBranch.set(r.branchId, [r]);
   }
   const dayOf = new Map(required.map((r) => [r.id, r.day]));
-  const stockOf = new Map(stock.map((s) => [s.branchId, toPaisa(s.openingAmount)]));
+  const stockOf = new Map(stock.map((s) => [s.branchId, toPaisa(s.amount)]));
+  const closingStockOf = new Map(closingStock.map((s) => [s.branchId, toPaisa(s.amount)]));
   const dateOf = (r: BranchAccountRow) => (r.orderId ? dayOf.get(r.orderId) ?? r.businessDate : r.businessDate);
 
   const byBranch = new Map<string, (BranchAccountRow & { lo: string; hi: string | null })[]>();
@@ -539,7 +605,7 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
     if (list) list.push(r); else byBranch.set(r.branchId, [r]);
   }
 
-  const rows: DemandRecordRow[] = [];
+  const rows: CollectionsRow[] = [];
   const balances: DemandRecordResult['branches'] = [];
   for (const b of branchRows) {
     const list = byBranch.get(b.id) ?? [];
@@ -569,7 +635,8 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
       })),
     ].sort((x, y) => x.fact.businessDate.localeCompare(y.fact.businessDate) || Date.parse(x.fact.at) - Date.parse(y.fact.at));
     const stockValue = stockOf.get(b.id) ?? 0;
-    if (demands.length === 0 && !recordOpening && stockValue === 0 && carried === 0) continue;
+    const closingValue = closingStockOf.get(b.id) ?? 0;
+    if (demands.length === 0 && !recordOpening && stockValue === 0 && closingValue === 0 && carried === 0) continue;
 
     const opening: BranchAccountFacts = {
       branchId: b.id,
@@ -590,8 +657,20 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
       adjustments: recordOpening?.adjustments ?? 0,
       unpricedLines: 0,
     };
-    const computed = computeBranchAccount([opening, ...demands.map((d) => d.fact)], carried);
-    computed.forEach((r, i) => rows.push({ ...r, open: i === 0 ? false : demands[i - 1]!.open }));
+    // Last of all on the month's last day, after every demand of that day.
+    const closing: BranchAccountFacts | null = !monthClosed ? null : {
+      ...opening,
+      businessDate: to,
+      at: new Date(Date.parse(`${to}T23:59:59+05:00`)).toISOString(),
+      delivered: -closingValue,
+      returns: 0, returnsQty: 0, discount: 0, received: 0, sales: 0, adjustments: 0,
+    };
+    const computed = computeBranchAccount([opening, ...demands.map((d) => d.fact), ...(closing ? [closing] : [])], carried);
+    computed.forEach((r, i) => rows.push({
+      ...r,
+      open: i === 0 || i > demands.length ? false : demands[i - 1]!.open,
+      stockRow: i === 0 ? 'opening' : i > demands.length ? 'closing' : null,
+    }));
     balances.push({
       branchId: b.id,
       branchName: opening.branchName,
@@ -599,8 +678,10 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
       closingBalance: computed[computed.length - 1]!.closingBalance,
     });
   }
-  rows.sort((a, b) => a.branchName.localeCompare(b.branchName) || a.businessDate.localeCompare(b.businessDate) || Date.parse(a.at) - Date.parse(b.at));
-  return { start, from, to, rows, totals: totalBranchAccount(rows, balances), branches: balances };
+  const rank = (r: CollectionsRow) => (r.stockRow === 'opening' ? 0 : r.stockRow === 'closing' ? 2 : 1);
+  rows.sort((a, b) => a.branchName.localeCompare(b.branchName) || a.businessDate.localeCompare(b.businessDate)
+    || rank(a) - rank(b) || Date.parse(a.at) - Date.parse(b.at));
+  return { start, from, to, rows, totals: totalBranchAccount(rows, balances), branches: balances, monthClosed };
 }
 
 function stripBounds<T extends { lo: string; hi: string | null }>(r: T): Omit<T, 'lo' | 'hi'> {
