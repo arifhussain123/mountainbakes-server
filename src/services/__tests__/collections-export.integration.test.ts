@@ -31,7 +31,10 @@ import { signAccessToken } from '../auth/tokens';
  * window with an Opening Stock row worth the stock it held that morning —
  * Saddar 20 Bun on 1 Oct (Rs. 2,000 → 1,600 share), 30 after 10 more on
  * 2 Oct — and a demand is placed by its required date: Blue Area's
- * DMD-000130, submitted 3 Oct for 4 Oct, is 4 Oct's.
+ * DMD-000130, submitted 3 Oct for 4 Oct, is 4 Oct's. Committee Chowk is the
+ * owner's case of the same day: 5 Bun of stock (Rs. 500 → 400) and
+ * DMD-000093, submitted on 30 Sep — before the record — for 1 Oct
+ * (Rs. 300 → 240), which follows the stock: Previous 400, Closing 640.
  */
 
 const PRISMA = join(__dirname, '../../../prisma/migrations');
@@ -153,9 +156,11 @@ const SADDAR = '40000000-0000-4000-8000-000000000001';
 const BLUE = '40000000-0000-4000-8000-000000000002';
 const GULBERG = '40000000-0000-4000-8000-000000000003';
 const F7 = '40000000-0000-4000-8000-000000000004';
+const CHOWK = '40000000-0000-4000-8000-000000000005';
 const BUN = '50000000-0000-4000-8000-000000000001';
 const D130 = '60000000-0000-4000-8000-000000000130';
 const D131 = '60000000-0000-4000-8000-000000000131';
+const D093 = '60000000-0000-4000-8000-000000000904';
 
 /** demand, branch, date, hour submitted, pieces delivered, pieces returned, discount, received. */
 const DEMANDS: [string, string, string, number, number, number, number, number][] = [
@@ -192,6 +197,7 @@ before(async () => {
     insert into branches (id, name, slug) values ('${SADDAR}', 'Saddar', 'saddar'), ('${BLUE}', 'Blue Area', 'blue-area'),
       ('${GULBERG}', 'Gulberg', 'gulberg');
     insert into branches (id, name, slug, company_share_pct) values ('${F7}', 'F-7', 'f-7', 75);
+    insert into branches (id, name, slug) values ('${CHOWK}', 'Committee Chowk', 'committee-chowk');
     insert into products (id, name, price) values ('${BUN}', 'Bun', 100);
   `);
   await db.exec(`begin;${MIGRATION}commit;`);
@@ -240,9 +246,16 @@ before(async () => {
   await setStatus(D131, 'awaiting_verification');
   await setStatus(D131, 'approved');
 
+  // Submitted late on 30 Sep, before the record began, for 1 Oct.
+  await order(D093, CHOWK, '2026-09-30', '2026-09-30T23:31:00+05', 'DMD-000093', [{ qty: 3, approved: 3, unitPrice: 100 }]);
+  await db.query(`update production_orders set required_date = '2026-10-01' where id = $1`, [D093]);
+  await setStatus(D093, 'awaiting_verification');
+  await setStatus(D093, 'approved');
+
   // Saddar holds 30 Bun now, 10 of them made on 2 Oct: 20 on the morning of 1 Oct.
   await db.exec(`
     insert into stock (branch_id, product_id, product_name, balance) values ('${SADDAR}', '${BUN}', 'Bun', 30);
+    insert into stock (branch_id, product_id, product_name, balance) values ('${CHOWK}', '${BUN}', 'Bun', 5);
     insert into stock_history (branch_id, product_id, product_name, type, delta, balance_after, ref_id, business_date)
       values ('${SADDAR}', '${BUN}', 'Bun', 'production', 10, 30, 'test', '2026-10-02');
   `);
@@ -297,20 +310,28 @@ const valuesOf = (ws: { eachRow: (cb: (r: { values: unknown }) => void) => void 
 };
 
 const HEADERS = ['Date', 'Demand No.', 'Slip No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share',
-  'Received', 'Previous', 'Closing', 'Closing Status'];
+  'Received', 'Previous', 'Closing'];
+/** A branch's tab: the same columns without Branch. */
+const BRANCH_HEADERS = HEADERS.filter((h) => h !== 'Branch');
+/** A branch's tab split at its header row: the lines above it, then the table. */
+const branchTab = (ws: Parameters<typeof valuesOf>[0]) => {
+  const all = valuesOf(ws);
+  const at = all.findIndex((r) => r[0] === 'Date');
+  return { preamble: all.slice(0, at), table: all.slice(at) };
+};
 
 test('the Collections sheet is the Demand Record page, row for row, in the page\'s columns', async () => {
   const page = ok(await call('accountant', 'GET', `${API}?from=2026-10-01&to=2026-10-03&sortDir=asc&pageSize=500`));
   const wb = await workbook('&from=2026-10-01&to=2026-10-03');
-  assert.deepEqual(wb.worksheets.map((w) => w.name), ['Collections', 'By Branch', 'Blue Area', 'F-7', 'Gulberg', 'Saddar']);
+  assert.deepEqual(wb.worksheets.map((w) => w.name), ['Collections', 'By Branch', 'Blue Area', 'Committee Chowk', 'F-7', 'Gulberg', 'Saddar']);
   const main = valuesOf(wb.getWorksheet('Collections')!);
   assert.deepEqual(main[0], HEADERS);
 
   const data = main.slice(1, -1);
   // Each branch's Opening Stock row first (1 Oct, no demand number), then the demands.
   assert.deepEqual(data.map((r) => r[1] || `${r[2]} ${r[3]}`), [
-    'Opening Stock Blue Area', 'Opening Stock F-7', 'Opening Stock Gulberg', 'Opening Stock Saddar',
-    'DMD-000123', 'DMD-000126', 'DMD-000127', 'DMD-000124', 'DMD-000128', 'DMD-000125', 'DMD-000129']);
+    'Opening Stock Blue Area', 'Opening Stock Committee Chowk', 'Opening Stock F-7', 'Opening Stock Gulberg', 'Opening Stock Saddar',
+    'DMD-000093', 'DMD-000123', 'DMD-000126', 'DMD-000127', 'DMD-000124', 'DMD-000128', 'DMD-000125', 'DMD-000129']);
   // DMD-000130 and 131 were submitted on 3 Oct but are required later: not in this window.
   const pageRows = (page.rows as Json[]).filter((p) => !['DMD-000130', 'DMD-000131'].includes(p.demandNumber));
   assert.equal(pageRows.length, 7);
@@ -327,25 +348,29 @@ test('the Collections sheet is the Demand Record page, row for row, in the page\
 
   const opening = (b: string) => data.find((x) => x[2] === 'Opening Stock' && x[3] === b)!;
   assert.equal((opening('Saddar')[0] as Date).toISOString().slice(0, 10), '2026-10-01');
-  // Closing is blank on the Opening Stock row: the stock is already in its Delivered and Co. Share.
+  // The Opening Stock row opens the chain: its Closing is the first demand's Previous.
   //                                            Delivered Ret Disc G.Total Share Received Previous Closing
-  assert.deepEqual(opening('Saddar').slice(4), [2000, 0, 0, 2000, 1600, 0, 0, '', '']);
-  assert.deepEqual(opening('Gulberg').slice(4), [0, 0, 0, 0, 0, 0, 0, '', '']);
+  assert.deepEqual(opening('Saddar').slice(4), [2000, 0, 0, 2000, 1600, 0, 0, 1600]);
+  assert.deepEqual(opening('Gulberg').slice(4), [0, 0, 0, 0, 0, 0, 0, 0]);
+  assert.deepEqual(opening('Committee Chowk').slice(4), [500, 0, 0, 500, 400, 0, 0, 400]);
 
   const row = (d: string) => data.find((x) => x[1] === d)!;
   //                                            Co. Share Received  Previous Closing
-  assert.deepEqual(row('DMD-000123').slice(8), [34240, 28000, 1600, 7840, 'OUTSTANDING']);
-  assert.deepEqual(row('DMD-000124').slice(8), [38400, 42200, 7840, 4040, 'OUTSTANDING']);
-  assert.deepEqual(row('DMD-000127').slice(8), [10000, 12000, 0, -2000, 'CREDIT']);
-  assert.deepEqual(row('DMD-000129').slice(8), [24000, 18000, -2000, 4000, 'OUTSTANDING']);
-  assert.deepEqual(row('DMD-000128').slice(8), [19125, 11405, 0, 7720, 'OUTSTANDING']); // F-7 at 75%
+  assert.deepEqual(row('DMD-000123').slice(8), [34240, 28000, 1600, 7840]);
+  assert.deepEqual(row('DMD-000124').slice(8), [38400, 42200, 7840, 4040]);
+  assert.deepEqual(row('DMD-000127').slice(8), [10000, 12000, 0, -2000]);
+  assert.deepEqual(row('DMD-000129').slice(8), [24000, 18000, -2000, 4000]);
+  assert.deepEqual(row('DMD-000128').slice(8), [19125, 11405, 0, 7720]); // F-7 at 75%
+  // Submitted before the record, required on 1 Oct: after the stock, no Received.
+  assert.equal(row('DMD-000093')[2], 'PO-20260930-2331');
+  assert.deepEqual(row('DMD-000093').slice(3), ['Committee Chowk', 300, 0, 0, 300, 240, 0, 400, 640]);
 
-  assert.deepEqual(main.at(-1), ['TOTAL', '', '', '', 313500, 4100, 6300, 303100, 241205, 211605, '', '', '']);
+  assert.deepEqual(main.at(-1), ['TOTAL', '', '', '', 314300, 4100, 6300, 303900, 241845, 211605, '', '']);
 });
 
 test('cells stay numeric and carry the page\'s formats', async () => {
   const ws = (await workbook('&from=2026-10-01&to=2026-10-03')).getWorksheet('Collections')!;
-  const r124 = ws.getRow(9); // header, four Opening Stock rows, 123, 126, 127, then 124
+  const r124 = ws.getRow(11); // header, five Opening Stock rows, 093, 123, 126, 127, then 124
   assert.equal(r124.getCell(2).value, 'DMD-000124');
   assert.ok(r124.getCell(1).value instanceof Date);
   assert.equal(r124.getCell(1).numFmt, 'dd mmm yyyy');
@@ -360,29 +385,48 @@ test('cells stay numeric and carry the page\'s formats', async () => {
 
 test('each branch keeps its own chain; By Branch adds up to the same totals', async () => {
   const wb = await workbook('&from=2026-10-01&to=2026-10-03');
-  const gulberg = valuesOf(wb.getWorksheet('Gulberg')!);
-  assert.deepEqual(gulberg[0], HEADERS);
-  assert.deepEqual(gulberg.slice(1, -1).map((r) => [r[1] || r[2], r[10], r[11]]),
-    [['Opening Stock', 0, ''], ['DMD-000127', 0, -2000], ['DMD-000129', -2000, 4000]]);
-  assert.deepEqual(gulberg.at(-1), ['TOTAL', '', '', '', 45000, 1400, 1100, 42500, 34000, 30000, '', '', '']);
+  const gulberg = branchTab(wb.getWorksheet('Gulberg')!);
+  // Headed by the branch, the period (from the 1st of the month) and a summary of the chain.
+  assert.deepEqual(gulberg.preamble, [
+    ['Mountain Bakes - Gulberg'],
+    ['Period: 01 Oct 2026 to 03 Oct 2026'],
+    ['Summary'],
+    ['Total Demands', '', 2],
+    ['Total Demand Amount', '', 45000],
+    ['Total Company Share', '', 34000],
+    ['Total Received', '', 30000],
+    ['Balance', '', 4000],
+  ]);
+  assert.deepEqual(gulberg.table[0], BRANCH_HEADERS);
+  assert.deepEqual(gulberg.table.slice(1, -1).map((r) => [r[1] || r[2], r[9], r[10]]),
+    [['Opening Stock', 0, 0], ['DMD-000127', 0, -2000], ['DMD-000129', -2000, 4000]]);
+  assert.deepEqual(gulberg.table.at(-1), ['TOTAL', '', '', 45000, 1400, 1100, 42500, 34000, 30000, '', '']);
+  const ws = wb.getWorksheet('Gulberg')!;
+  assert.equal(ws.getRow(ws.rowCount).getCell(4).font?.bold, true); // the TOTAL, below the preamble
+  assert.equal(ws.getRow(ws.rowCount).getCell(4).numFmt, '"Rs. "#,##0;-"Rs. "#,##0;');
 
   const byBranch = valuesOf(wb.getWorksheet('By Branch')!);
-  assert.deepEqual(byBranch[0], ['Branch', 'Demands', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Received', 'Previous', 'Closing', 'Closing Status']);
+  assert.deepEqual(byBranch[0], ['Branch', 'Demands', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Received', 'Previous', 'Closing']);
   // Saddar's Delivered and Co. Share include its opening stock (2,000 → 1,600).
-  assert.deepEqual(byBranch.find((r) => r[0] === 'Saddar'), ['Saddar', 3, 136000, 1700, 4000, 130300, 104240, 90200, 0, 14040, 'OUTSTANDING']);
-  assert.deepEqual(byBranch.at(-1), ['GRAND TOTAL', 7, 313500, 4100, 6300, 303100, 241205, 211605, 0, 29600, 'OUTSTANDING']);
+  assert.deepEqual(byBranch.find((r) => r[0] === 'Saddar'), ['Saddar', 3, 136000, 1700, 4000, 130300, 104240, 90200, 0, 14040]);
+  assert.deepEqual(byBranch.at(-1), ['GRAND TOTAL', 8, 314300, 4100, 6300, 303900, 241845, 211605, 0, 30240]);
 });
 
-test('a later period starts each branch from its own carried balance, with that morning\'s stock', async () => {
-  const main = valuesOf((await workbook('&from=2026-10-03&to=2026-10-03')).getWorksheet('Collections')!);
-  // Blue Area and F-7 have no demand required on 3 Oct but carry a balance in.
-  assert.deepEqual(main.slice(1, -1).map((r) => [r[1] || r[2], r[3], r[10], r[11]]), [
-    ['Opening Stock', 'Blue Area', 3840, ''],
-    ['Opening Stock', 'F-7', 7720, ''],
-    ['Opening Stock', 'Gulberg', -2000, ''],
-    ['Opening Stock', 'Saddar', 2440, ''], // 30 Bun = 3,000 → 2,400, carried into 125's Previous
-    ['DMD-000125', 'Saddar', 4840, 14840],
-    ['DMD-000129', 'Gulberg', -2000, 4000],
+test('the window always starts on the 1st of the To date\'s month', async () => {
+  const picked = valuesOf((await workbook('&from=2026-10-03&to=2026-10-03')).getWorksheet('Collections')!);
+  const month = valuesOf((await workbook('&from=2026-10-01&to=2026-10-03')).getWorksheet('Collections')!);
+  assert.deepEqual(picked, month);
+});
+
+test('a later month starts each branch from its own carried balance, with that morning\'s stock', async () => {
+  const main = valuesOf((await workbook('&from=2026-11-05&to=2026-11-05')).getWorksheet('Collections')!);
+  // No demand is required in 1–5 Nov; each branch carries October's balance in.
+  assert.deepEqual(main.slice(1, -1).map((r) => [(r[0] as Date).toISOString().slice(0, 10), r[2], r[3], r[10], r[11]]), [
+    ['2026-11-01', 'Opening Stock', 'Blue Area', 4640, 4640],
+    ['2026-11-01', 'Opening Stock', 'Committee Chowk', 0, 400], // DMD-000093 had no balance of the record's to carry
+    ['2026-11-01', 'Opening Stock', 'F-7', 7720, 7720],
+    ['2026-11-01', 'Opening Stock', 'Gulberg', 4000, 4000],
+    ['2026-11-01', 'Opening Stock', 'Saddar', 12440, 14840], // 30 Bun = 3,000 → 2,400
   ]);
   assert.deepEqual(main.find((r) => r[3] === 'Saddar')!.slice(4, 9), [3000, 0, 0, 3000, 2400]);
 });
@@ -394,7 +438,7 @@ test('a demand is placed and dated by its required date, not the day it was subm
   assert.equal((r[0] as Date).toISOString().slice(0, 10), '2026-10-04');
   assert.equal(r[2], 'PO-20261003-2000'); // the slip still prints the day it was submitted
   //                            Delivered        Share Received Previous Closing
-  assert.deepEqual(r.slice(3), ['Blue Area', 1000, 0, 0, 1000, 800, 0, 3840, 4640, 'OUTSTANDING']);
+  assert.deepEqual(r.slice(3), ['Blue Area', 1000, 0, 0, 1000, 800, 0, 3840, 4640]);
 });
 
 test('To may run past today: a demand required later is shown on its required date', async () => {
@@ -428,40 +472,31 @@ test('July–September, before the Demand Record began: each demand\'s figures, 
   ]);
 });
 
-test('a window running into October keeps October as the Demand Record and adds the earlier demands on their own tab', async () => {
+test('a demand submitted before the record for its first day follows the opening stock on the branch\'s tab', async () => {
   const wb = await workbook('&from=2026-09-01&to=2026-10-03');
-  assert.equal(wb.worksheets[0]!.name, 'Collections');
-  assert.ok(wb.getWorksheet('Before 01 Oct 2026'));
-  const main = valuesOf(wb.getWorksheet('Collections')!);
-  assert.deepEqual(main[0], HEADERS);
-  // October's demands as before, then the pointer to the other tab.
-  assert.ok(main.some((r) => r[1] === 'DMD-000123'));
-  assert.ok(!main.some((r) => r[1] === 'DMD-000090'));
-  assert.match(String(main[main.length - 1]![0]), /^Demands before 01 Oct 2026 are on the "Before 01 Oct 2026" tab and at the top of each branch's tab/);
-  const before = valuesOf(wb.getWorksheet('Before 01 Oct 2026')!);
-  assert.deepEqual(before.slice(1, 4).map((r) => r[1]), ['DMD-000090', 'DMD-000091', 'DMD-000092']);
-
-  // Each branch's tab holds every demand of the window: September first, with
-  // its own total and no Received or balance, then October as the record.
-  const saddar = valuesOf(wb.getWorksheet('Saddar')!);
-  assert.deepEqual(saddar[0], HEADERS);
-  assert.deepEqual(saddar.slice(1, 4), [
-    [saddar[1]![0], 'DMD-000090', 'PO-20260910-0900', 'Saddar', 1000, 100, 50, 850, 680, '', '', '', ''],
-    [saddar[2]![0], 'DMD-000092', 'PO-20260925-0900', 'Saddar', 500, 100, 0, 400, 320, '', '', '', ''],
-    ['TOTAL BEFORE 01 OCT 2026', '', '', '', 1500, 200, 50, 1250, 1000, '', '', '', ''],
+  // From is the 1st of October, the To date's month: nothing of September is in the file.
+  assert.ok(!wb.worksheets.some((w) => w.name.startsWith('Before')));
+  const chowk = branchTab(wb.getWorksheet('Committee Chowk')!);
+  assert.deepEqual(chowk.preamble, [
+    ['Mountain Bakes - Committee Chowk'],
+    ['Period: 01 Oct 2026 to 03 Oct 2026'],
+    ['Summary'],
+    ['Total Demands', '', 1],
+    ['Total Demand Amount', '', 300], // the demand only, not the stock
+    ['Total Company Share', '', 640], // stock 400 + demand 240
+    ['Total Received', '', 0],
+    ['Balance', '', 640],
   ]);
-  assert.deepEqual(saddar[4]!.slice(1, 5), ['', 'Opening Stock', 'Saddar', 2000]);
-  assert.equal(saddar[5]![1], 'DMD-000123');
-  assert.equal(saddar.at(-1)![0], 'TOTAL');
-  const ws = wb.getWorksheet('Saddar')!;
-  assert.equal(ws.getRow(4).getCell(5).font?.bold, true); // the September total
-  assert.equal(ws.getRow(ws.rowCount).getCell(5).font?.bold, true); // October's
-  const f7 = valuesOf(wb.getWorksheet('F-7')!);
-  assert.deepEqual(f7.slice(1, 3).map((r) => r[1] || r[0]), ['DMD-000091', 'TOTAL BEFORE 01 OCT 2026']);
-
-  // Every delivered demand of the window is somewhere in the file, by its demand number.
-  const everywhere = new Set(wb.worksheets.flatMap((w) => valuesOf(w).map((r) => r[1])));
-  for (const d of ['DMD-000090', 'DMD-000091', 'DMD-000092', 'DMD-000123', 'DMD-000124', 'DMD-000125', 'DMD-000126', 'DMD-000127', 'DMD-000128', 'DMD-000129']) {
-    assert.ok(everywhere.has(d), d);
-  }
+  assert.deepEqual(chowk.table[0], BRANCH_HEADERS);
+  //                          Delivered Ret Disc G.Total Share Received Previous Closing
+  assert.deepEqual(chowk.table.slice(1).map((r) => r.slice(1)), [
+    ['', 'Opening Stock', 500, 0, 0, 500, 400, 0, 0, 400],
+    ['DMD-000093', 'PO-20260930-2331', 300, 0, 0, 300, 240, 0, 400, 640],
+    ['', '', 800, 0, 0, 800, 640, 0, '', ''],
+  ]);
+  assert.equal(chowk.table.at(-1)![0], 'TOTAL');
+  assert.ok(!wb.worksheets.some((w) => valuesOf(w).some((r) => String(r[0]).startsWith('TOTAL BEFORE'))));
+  const ws = wb.getWorksheet('Committee Chowk')!;
+  assert.equal(ws.getRow(1).font?.bold, true);
+  assert.equal(ws.getRow(8).getCell(3).numFmt, '"Rs. "#,##0;-"Rs. "#,##0;"Rs. "0'); // Total Received: Rs. 0, not a blank
 });

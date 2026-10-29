@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { dbFor, getPrisma } from '../db';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
-import { balanceStanding, businessDateStr, businessDaysAgoStr, toPaisa } from '../shared';
+import { businessDateStr, businessDaysAgoStr, toPaisa } from '../shared';
 import { getProductionStockRows } from '../services/production-stock.service';
 import { getReturnStockRows } from '../services/return-stock.service';
 import { genericPDF, genericExcel, genericExcelMultiSheet, genericCSV, type ExcelColumn, type ExcelSheet } from '../services/production-export.service';
@@ -93,6 +93,16 @@ function explicitDateRange(from: unknown, to: unknown): { fromStr: string; toStr
   const a = clean(from) || clean(to) || todayStr;
   const b = clean(to) || clean(from) || todayStr;
   return a <= b ? { fromStr: a, toStr: b } : { fromStr: b, toStr: a };
+}
+
+/**
+ * The window a report runs on. Collections always starts on the 1st of the To
+ * date's month (owner's call, 2026-10-29): a branch's detail opens with that
+ * month's Opening Stock, whatever From was picked.
+ */
+function reportDateRange(report: string, from: unknown, to: unknown): { fromStr: string; toStr: string } {
+  const range = explicitDateRange(from, to);
+  return report === 'collections' ? { fromStr: `${range.toStr.slice(0, 7)}-01`, toStr: range.toStr } : range;
 }
 
 /** A delivered order as the Collections export chains them. */
@@ -246,6 +256,8 @@ const AMOUNT = '#,##0;-#,##0;';
 /** A TOTAL line's money, the only cells that carry the currency: Rs. 311,500; a zero total is blank too. */
 const RS_TOTAL = '"Rs. "#,##0;-"Rs. "#,##0;';
 const money: ExcelColumn = { numFmt: AMOUNT, totalNumFmt: RS_TOTAL };
+/** A summary figure above a branch's table: Rs. 311,500, and a zero reads Rs. 0 rather than a blank. */
+const RS_SUMMARY = '"Rs. "#,##0;-"Rs. "#,##0;"Rs. "0';
 
 /**
  * The Collections export: the Demand Record page's table (Finance → Demand
@@ -274,31 +286,33 @@ const money: ExcelColumn = { numFmt: AMOUNT, totalNumFmt: RS_TOTAL };
  * not see sales (see the router's note), and it is never a collection figure.
  *
  * Sheets: Collections (every row, by date then demand number), By Branch, then
- * one tab per branch. A TOTAL sums the activity columns only — a carried
+ * one tab per branch, headed by the branch's name, the period and a summary
+ * (see preambleOf). A TOTAL sums the activity columns only — a carried
  * balance summed row by row would count the same money once per demand.
  */
 function collectionsFromDemandRecord(
   record: NonNullable<Awaited<ReturnType<typeof getCollectionsMonth>>>,
   slips: Map<string, string>,
+  /** The window asked for, printed above each branch's table. */
+  period: { fromStr: string; toStr: string },
   /** Demands before the record began, when the window runs back past its start: listed first on each branch's tab. */
   earlier: { start: string; rows: DemandBeforeRecordRow[] } | null = null,
 ): { title: string; headers: string[]; rows: (string | number)[][]; specialRowCount: number; columns: ExcelColumn[]; totalRows: number[]; extraSheets: ExcelSheet[] } {
   type Row = (typeof record.rows)[number];
-  const headers = ['Date', 'Demand No.', 'Slip No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Received', 'Previous', 'Closing', 'Closing Status'];
+  // No Closing Status column (owner's call, 2026-10-29): a negative Closing already reads as a credit.
+  const headers = ['Date', 'Demand No.', 'Slip No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Received', 'Previous', 'Closing'];
   const columns: ExcelColumn[] = [
     { date: true, numFmt: 'dd mmm yyyy', width: 13 }, { width: 13 }, { width: 17 }, { width: 22 },
     money, money, money, money, money,
-    money, money, money, { width: 15 },
+    money, money, money,
   ];
-  const STATUS = { owed: 'OUTSTANDING', settled: 'SETTLED', credit: 'CREDIT' } as const;
-  // The Opening Stock row leaves Closing blank (owner's call, 2026-10-29): the
-  // stock is already counted in its own Delivered and Co. Share, and the next
-  // demand's Previous carries the balance on.
+  // The Opening Stock row is the branch's first row of the chain (owner's
+  // call, 2026-10-29): its Co. Share opens the balance, and its Closing is the
+  // next demand's Previous.
   const line = (r: Row): (string | number)[] => [
     r.businessDate, r.demandNumber ?? '', r.orderId ? slips.get(r.orderId) ?? '' : 'Opening Stock', r.branchName,
     r.delivered, r.returns, r.discount, r.gTotal, r.companyShare, r.received,
-    r.previousBalance,
-    ...(r.orderId ? [r.closingBalance, STATUS[balanceStanding(r.closingBalance)]] : ['', '']),
+    r.previousBalance, r.closingBalance,
   ];
   const sumOf = (rows: Row[]) => {
     const t = { delivered: 0, returns: 0, discount: 0, gTotal: 0, share: 0, received: 0 };
@@ -311,7 +325,7 @@ function collectionsFromDemandRecord(
   };
   const totalLine = (rows: Row[]): (string | number)[] => {
     const t = sumOf(rows);
-    return ['TOTAL', '', '', '', t.delivered, t.returns, t.discount, t.gTotal, t.share, t.received, '', '', ''];
+    return ['TOTAL', '', '', '', t.delivered, t.returns, t.discount, t.gTotal, t.share, t.received, '', ''];
   };
   // Date, then demand number; a branch's Opening Stock row (no number) before its demands.
   const byDate = (a: Row, b: Row) =>
@@ -336,23 +350,23 @@ function collectionsFromDemandRecord(
   const branches = record.branches.filter((b) => rowsByBranch.has(b.branchId) || b.openingBalance !== 0 || b.closingBalance !== 0);
 
   // Previous / Closing here are each branch's balance before and after the period.
-  const byBranchHeaders = ['Branch', 'Demands', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Received', 'Previous', 'Closing', 'Closing Status'];
+  const byBranchHeaders = ['Branch', 'Demands', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Received', 'Previous', 'Closing'];
   const byBranchColumns: ExcelColumn[] = [
     { width: 22 }, { width: 9, numFmt: '0;-0;' }, money, money, money,
-    money, money, money, money, money, { width: 15 },
+    money, money, money, money, money,
   ];
   const byBranchRows: (string | number)[][] = branches.map((b) => {
     const list = rowsByBranch.get(b.branchId) ?? [];
     const t = sumOf(list);
     return [b.branchName, list.filter((r) => r.orderId).length, t.delivered, t.returns, t.discount, t.gTotal, t.share,
-      t.received, b.openingBalance, b.closingBalance, STATUS[balanceStanding(b.closingBalance)]];
+      t.received, b.openingBalance, b.closingBalance];
   });
   if (byBranchRows.length > 0) {
     const t = sumOf(record.rows);
     const opening = toPaisa(branches.reduce((a, b) => a + b.openingBalance, 0));
     const closing = toPaisa(branches.reduce((a, b) => a + b.closingBalance, 0));
     byBranchRows.push(['GRAND TOTAL', record.rows.filter((r) => r.orderId).length, t.delivered, t.returns, t.discount, t.gTotal, t.share,
-      t.received, opening, closing, STATUS[balanceStanding(closing)]]);
+      t.received, opening, closing]);
   }
 
   // A window running back past the record's start: each branch's earlier
@@ -369,10 +383,37 @@ function collectionsFromDemandRecord(
     const t = { delivered: 0, returns: 0, discount: 0, gTotal: 0, share: 0 };
     const rows: (string | number)[][] = list.map((r) => {
       t.delivered += r.delivered; t.returns += r.returns; t.discount += r.discount; t.gTotal += r.gTotal; t.share += r.companyShare;
-      return [r.businessDate, r.demandNumber ?? '', slips.get(r.orderId) ?? '', r.branchName, r.delivered, r.returns, r.discount, r.gTotal, r.companyShare, '', '', '', ''];
+      return [r.businessDate, r.demandNumber ?? '', slips.get(r.orderId) ?? '', r.branchName, r.delivered, r.returns, r.discount, r.gTotal, r.companyShare, '', '', ''];
     });
-    rows.push([`TOTAL BEFORE ${dmy(earlier!.start).toUpperCase()}`, '', '', '', toPaisa(t.delivered), toPaisa(t.returns), toPaisa(t.discount), toPaisa(t.gTotal), toPaisa(t.share), '', '', '', '']);
+    rows.push([`TOTAL BEFORE ${dmy(earlier!.start).toUpperCase()}`, '', '', '', toPaisa(t.delivered), toPaisa(t.returns), toPaisa(t.discount), toPaisa(t.gTotal), toPaisa(t.share), '', '', '']);
     return rows;
+  };
+
+  // A branch's tab (owner's layout, 2026-10-29): "Mountain Bakes - <branch>",
+  // the period, then a summary, above a table without the Branch column (the
+  // tab is the branch). The summary covers the balance chain only — the
+  // Opening Stock row and the demands — so Balance = Previous + Total Company
+  // Share − Total Received; Total Demands and Total Demand Amount (Delivered)
+  // leave the Opening Stock out, as it is not a demand.
+  const withoutBranch = (row: (string | number)[]) => [...row.slice(0, 3), ...row.slice(4)];
+  const branchHeaders = withoutBranch(headers) as string[];
+  const branchColumns = columns.filter((_, i) => i !== 3);
+  const preambleOf = (name: string, list: Row[], balance: number | null): NonNullable<ExcelSheet['preamble']> => {
+    const t = sumOf(list);
+    const demands = list.filter((r) => r.orderId);
+    const demandAmount = toPaisa(demands.reduce((a, r) => a + r.delivered, 0));
+    const item = (label: string, value: number | string, numFmt = RS_SUMMARY) => ({ cells: [label, '', value], numFmts: [undefined, undefined, numFmt] });
+    return [
+      { cells: [`Mountain Bakes - ${name}`], bold: true, size: 14 },
+      { cells: [`Period: ${dmy(period.fromStr)} to ${dmy(period.toStr)}`] },
+      { cells: [] },
+      { cells: ['Summary'], bold: true },
+      item('Total Demands', demands.length, '0'),
+      item('Total Demand Amount', demandAmount),
+      item('Total Company Share', t.share),
+      item('Total Received', t.received),
+      { ...item('Balance', balance ?? ''), bold: true },
+    ];
   };
 
   const tabs = [
@@ -383,12 +424,19 @@ function collectionsFromDemandRecord(
       .sort((a, b) => a.name.localeCompare(b.name)),
   ];
   const branchSheets: ExcelSheet[] = tabs.map((b) => {
-    const sheet = sheetOf(b.name || 'Branch', rowsByBranch.get(b.branchId) ?? []);
+    const list = rowsByBranch.get(b.branchId) ?? [];
+    const sheet = sheetOf(b.name || 'Branch', list);
     if (sheet.rows.length === 0 && b.closingBalance !== null) sheet.rows.push([`No demand in this period. Balance carried: ${b.closingBalance}`, ...new Array<string>(headers.length - 1).fill('')]);
     const before = earlierByBranch.get(b.branchId);
-    if (!before) return sheet;
-    const top = earlierSection(before);
-    return { ...sheet, rows: [...top, ...sheet.rows], totalRows: [top.length - 1, ...(sheet.totalRows ?? []).map((i) => i + top.length)] };
+    const top = before ? earlierSection(before) : [];
+    return {
+      title: sheet.title,
+      headers: branchHeaders,
+      columns: branchColumns,
+      preamble: preambleOf(b.name, list, b.closingBalance),
+      rows: [...top, ...sheet.rows].map(withoutBranch),
+      totalRows: [...(before ? [top.length - 1] : []), ...(sheet.totalRows ?? []).map((i) => i + top.length)],
+    };
   });
 
   const { rows, totalRows = [], specialRowCount } = sheetOf('Collections', record.rows);
@@ -793,8 +841,11 @@ async function buildReport(
         const slips = await slipNumbers([...record.rows.map((r) => r.orderId), ...(before?.rows ?? []).map((r) => r.orderId)]);
         // A window wholly before the record is the Collections sheet itself.
         if (before && toStr < record.start) return { ...collectionsBeforeRecord(before.rows, before.start, slips), title: 'Collections' };
-        const earlier = before && before.rows.length > 0 ? before : null;
-        const result = collectionsFromDemandRecord(record, slips, earlier);
+        // Those required inside the record's window are its demands already
+        // (getCollectionsMonth); the rest are required before it began.
+        const beforeRows = (before?.rows ?? []).filter((r) => r.businessDate < record.from);
+        const earlier = before && beforeRows.length > 0 ? { start: before.start, rows: beforeRows } : null;
+        const result = collectionsFromDemandRecord(record, slips, { fromStr, toStr }, earlier);
         if (earlier) {
           const sheet = collectionsBeforeRecord(earlier.rows, earlier.start, slips);
           result.rows.push([`Demands before ${dmy(earlier.start)} are on the "${sheet.title}" tab and at the top of each branch's tab: demand figures only, no Received or balance.`, ...new Array<string>(result.headers.length - 1).fill('')]);
@@ -1067,7 +1118,7 @@ router.get('/summary', async (req: AuthRequest, res, next) => {
   try {
     const report = String(req.query['report'] || 'production');
     const period = String(req.query['period'] || 'monthly');
-    const range = usesDateRange(report) ? explicitDateRange(req.query['from'], req.query['to']) : undefined;
+    const range = usesDateRange(report) ? reportDateRange(report, req.query['from'], req.query['to']) : undefined;
     const branchId = typeof req.query['branchId'] === 'string' ? req.query['branchId'] : '';
     // Extra Excel tabs are for the file, not the on-screen preview.
     const { extraSheets: _extraSheets, columns: _columns, totalRows: _totalRows, ...data } = await buildReport(report, period, range, branchId);
@@ -1114,7 +1165,7 @@ router.get('/export', async (req: AuthRequest, res, next) => {
     const report = String(req.query['report'] || 'production');
     const period = String(req.query['period'] || 'monthly');
     const exportType = String(req.query['type'] || 'excel');
-    const range = usesDateRange(report) ? explicitDateRange(req.query['from'], req.query['to']) : undefined;
+    const range = usesDateRange(report) ? reportDateRange(report, req.query['from'], req.query['to']) : undefined;
     const branchId = typeof req.query['branchId'] === 'string' ? req.query['branchId'] : '';
     const { title, headers, rows, extraSheets, columns, totalRows } = await buildReport(report, period, range, branchId);
     // A range report names the window it covers, so two exports taken the same
