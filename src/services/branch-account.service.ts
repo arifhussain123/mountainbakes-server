@@ -489,6 +489,9 @@ export async function getDemandRecordPeriod(q: { branchId?: string | null; from?
  *    % today, into the balance. When the window holds the record's own opening
  *    row (the go-live month), its returns, deposits and Finance entries are
  *    folded into this row.
+ *  - A demand submitted before the go-live day but required inside the
+ *    window (submitted 30 Sep for 1 Oct) follows the opening stock as a row
+ *    of its own, with no Received.
  *  - Previous / Closing run per branch down the rows in date order, starting
  *    from the balance of every row dated before the window. Counting the opening
  *    stock adds to that balance, so this sheet's Closing is NOT the Demand
@@ -508,7 +511,7 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
 
   const all = await loadAccounts(branchId, start);
   const orderIds = all.flatMap((r) => (r.orderId ? [r.orderId] : []));
-  const [required, stock, branchRows] = await Promise.all([
+  const [required, stock, branchRows, before] = await Promise.all([
     orderIds.length === 0
       ? Promise.resolve([] as { id: string; day: string }[])
       : prisma.$queryRawUnsafe<{ id: string; day: string }[]>(
@@ -519,7 +522,13 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
     prisma.$queryRawUnsafe<{ id: string; name: string; pct: number }[]>(
       `select id::text as id, name, app.resolve_company_share_pct(id)::float8 as pct
          from public.branches where $1::uuid is null or id = $1::uuid order by name`, branchId),
+    getDemandFiguresBeforeRecord({ branchId, from, to }),
   ]);
+  const beforeByBranch = new Map<string, DemandBeforeRecordRow[]>();
+  for (const r of before?.rows ?? []) {
+    const list = beforeByBranch.get(r.branchId);
+    if (list) list.push(r); else beforeByBranch.set(r.branchId, [r]);
+  }
   const dayOf = new Map(required.map((r) => [r.id, r.day]));
   const stockOf = new Map(stock.map((s) => [s.branchId, toPaisa(s.openingAmount)]));
   const dateOf = (r: BranchAccountRow) => (r.orderId ? dayOf.get(r.orderId) ?? r.businessDate : r.businessDate);
@@ -540,7 +549,25 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
       .filter((r) => { const d = dateOf(r); return d >= from && d <= to; })
       .sort((x, y) => dateOf(x).localeCompare(dateOf(y)) || Date.parse(x.at) - Date.parse(y.at));
     const recordOpening = inWindow.find((r) => r.orderId === null);
-    const demands = inWindow.filter((r) => r.orderId !== null);
+    // A demand submitted before the go-live day but required inside the
+    // window is a demand of the window like any other (owner's rule,
+    // 2026-10-29): its own figures (getDemandFiguresBeforeRecord), no Received
+    // — cash then was not in the app — and into the balance after the opening
+    // stock. Its returns and discounts stop at the go-live instant, and what
+    // came after is the record's opening row, folded in below, so nothing
+    // counts twice.
+    const demands: { fact: BranchAccountFacts; open: boolean }[] = [
+      ...inWindow.filter((r) => r.orderId !== null).map(({ lo: _lo, hi, ...r }) => ({ fact: { ...r, businessDate: dateOf(r) }, open: hi === null })),
+      ...(beforeByBranch.get(b.id) ?? []).map((r) => ({
+        fact: {
+          branchId: b.id, branchName: r.branchName, orderId: r.orderId, demandNumber: r.demandNumber,
+          businessDate: r.businessDate, at: r.submittedAt, status: null, frozenPct: r.sharePct, livePct: b.pct,
+          delivered: r.delivered, returns: r.returns, returnsQty: 0, discount: r.discount,
+          received: 0, sales: 0, adjustments: 0, unpricedLines: 0,
+        },
+        open: false,
+      })),
+    ].sort((x, y) => x.fact.businessDate.localeCompare(y.fact.businessDate) || Date.parse(x.fact.at) - Date.parse(y.fact.at));
     const stockValue = stockOf.get(b.id) ?? 0;
     if (demands.length === 0 && !recordOpening && stockValue === 0 && carried === 0) continue;
 
@@ -563,12 +590,8 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
       adjustments: recordOpening?.adjustments ?? 0,
       unpricedLines: 0,
     };
-    const facts: BranchAccountFacts[] = [
-      opening,
-      ...demands.map(({ lo: _lo, hi: _hi, ...r }) => ({ ...r, businessDate: dateOf(r) })),
-    ];
-    const computed = computeBranchAccount(facts, carried);
-    computed.forEach((r, i) => rows.push({ ...r, open: i === 0 ? false : demands[i - 1]!.hi === null }));
+    const computed = computeBranchAccount([opening, ...demands.map((d) => d.fact)], carried);
+    computed.forEach((r, i) => rows.push({ ...r, open: i === 0 ? false : demands[i - 1]!.open }));
     balances.push({
       branchId: b.id,
       branchName: opening.branchName,
@@ -924,6 +947,8 @@ export interface DemandBeforeRecordRow {
   branchName: string;
   /** The demand's required date (its business date when it has none). */
   businessDate: string;
+  /** ISO time the demand was submitted. */
+  submittedAt: string;
   delivered: number;
   returns: number;
   discount: number;
@@ -1016,6 +1041,7 @@ export async function getDemandFiguresBeforeRecord(
            d.branch_id::text                                   as "branchId",
            d.branch_name                                       as "branchName",
            to_char(d.rd, 'YYYY-MM-DD')                         as "businessDate",
+           to_json(d.submitted_at)#>>'{}'                      as "submittedAt",
            coalesce(dv.delivered, 0)::float8                   as "delivered",
            coalesce(ret.amount, 0)::float8                     as "returns",
            coalesce((select sum(amount) from disc where disc.order_id = d.id), 0)::float8 as "discount",

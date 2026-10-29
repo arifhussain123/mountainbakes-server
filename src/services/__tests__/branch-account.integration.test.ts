@@ -564,17 +564,17 @@ test('requests are validated', async () => {
 });
 
 test('the Collections export carries the Demand Record figures, per branch', async () => {
-  const today = new Date().toISOString().slice(0, 10);
-  const record = await rowsOf(`&from=2026-09-01&to=${today}`);
-  const wb = await collectionsWorkbook(`&from=2026-08-01&to=${today}`);
-  // August is before the 1 Sep start: its demand is on its own tab (figures only).
-  assert.deepEqual([...wb.keys()], ['Collections', 'By Branch', 'Alpha', 'Beta', 'Before 01 Sep 2026']);
-  // D0's 30 discount was approved after the start, so the record holds it (in D2)
-  // and the pre-start tab does not count it again. Nothing froze D0's %, so its
-  // share is at today's (which earlier tests in this file move).
+  const record = await rowsOf('&from=2026-09-01&to=2026-09-30');
+  // From is ignored: the export always starts on the 1st of the To date's month.
+  const wb = await collectionsWorkbook('&from=2026-08-01&to=2026-09-30');
+  assert.deepEqual([...wb.keys()], ['Collections', 'By Branch', 'Alpha', 'Beta']);
+  // August, before the 1 Sep start, exports on its own (figures only). D0's 30
+  // discount was approved after the start, so the record holds it (in D2) and
+  // August does not count it again. Nothing froze D0's %, so its share is at
+  // today's (which earlier tests in this file move).
   const pct = Number((await db.query<{ p: string }>(`select company_share_pct::text as p from finance_settings`)).rows[0]!.p);
-  const before = wb.get('Before 01 Sep 2026')!;
-  assert.deepEqual(before[1]!.slice(1), ['DMD-000100', 'PO-20260831-', 'Alpha', 1000, 0, 0, 1000, (1000 * pct) / 100]);
+  const august = (await collectionsWorkbook('&from=2026-08-01&to=2026-08-31')).get('Collections')!;
+  assert.deepEqual(august[1]!.slice(1), ['DMD-000100', 'PO-20260831-', 'Alpha', 1000, 0, 0, 1000, (1000 * pct) / 100]);
 
   const main = wb.get('Collections')!;
   const h = main[0]!;
@@ -605,20 +605,24 @@ test('the Collections export carries the Demand Record figures, per branch', asy
     assert.equal(line[at('Closing')], r.closingBalance + d, `${r.demandNumber} Closing`);
   }
   const shifted = [...shift.values()].reduce((a, v) => a + v, 0);
-  // The last line points at the pre-start tab; TOTAL is just above it.
-  assert.match(String(main.at(-1)![0]), /^Demands before 01 Sep 2026 are on the "Before 01 Sep 2026" tab/);
-  const total = main.at(-2)!;
+  const total = main.at(-1)!;
   assert.equal(total[0], 'TOTAL');
   assert.equal(total[at('Received')], record.totals.received);
   assert.equal(total[at('Co. Share')], record.totals.companyShare + shifted);
 
-  // Each branch tab holds only that branch's rows and ends on its own balance.
+  // Each branch tab is headed by its name, holds only that branch's rows (no
+  // Branch column) and ends on its own balance, which its summary repeats.
   for (const b of record.branches as Json[]) {
     const tab = wb.get(b.branchName)!;
-    const rows = tab.slice(1, -1);
-    // Its demands from before the start open the tab, under their own TOTAL line.
-    assert.ok(rows.filter((x) => !String(x[0]).startsWith('TOTAL')).every((x) => x[at('Branch')] === b.branchName));
-    assert.equal(rows.at(-1)![at('Closing')], b.closingBalance + shift.get(b.branchName)!);
+    assert.deepEqual(tab[0], [`Mountain Bakes - ${b.branchName}`]);
+    const head = tab.findIndex((x) => x[0] === 'Date');
+    assert.equal(tab[head]!.includes('Branch'), false);
+    const rows = tab.slice(head + 1, -1);
+    const lines = main.filter((x) => x[at('Branch')] === b.branchName && x[0] !== 'TOTAL');
+    assert.deepEqual(rows.map((x) => x[1] || x[2]), lines.map((x) => x[at('Demand No.')] || x[at('Slip No.')]));
+    const closing = b.closingBalance + shift.get(b.branchName)!;
+    assert.equal(rows.at(-1)![tab[head]!.indexOf('Closing')], closing);
+    assert.deepEqual(tab.find((x) => x[0] === 'Balance'), ['Balance', '', closing]);
   }
   const byBranch = wb.get('By Branch')!;
   assert.equal(byBranch.at(-1)![0], 'GRAND TOTAL');

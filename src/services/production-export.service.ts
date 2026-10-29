@@ -22,6 +22,12 @@ export interface ExcelSheet {
   columns?: ExcelColumn[];
   /** Indexes into `rows` that are TOTAL lines: bold, and in each column's `totalNumFmt`. */
   totalRows?: number[];
+  /**
+   * Lines above the table — a title, the period, a summary — with a blank
+   * line between them and the header row. `numFmts` formats a line's cells by
+   * position; the columns' own formats start below the header.
+   */
+  preamble?: { cells: Cell[]; bold?: boolean; size?: number; numFmts?: (string | undefined)[] }[];
 }
 
 export function genericPDF(title: string, headers: string[], rows: Cell[][]): Promise<Buffer> {
@@ -93,10 +99,17 @@ export async function genericExcelMultiSheet(sheets: ExcelSheet[]): Promise<Buff
   wb.creator = 'Mountain Bakes ERP';
   const used = new Set<string>();
 
-  for (const { title, headers, rows, columns, totalRows } of sheets) {
+  for (const { title, headers, rows, columns, totalRows, preamble = [] } of sheets) {
     const sheet = wb.addWorksheet(uniqueSheetName(title, used));
+    for (const line of preamble) {
+      const row = sheet.addRow(line.cells);
+      if (line.bold || line.size) row.font = { bold: line.bold, size: line.size };
+      line.numFmts?.forEach((numFmt, i) => { if (numFmt) row.getCell(i + 1).numFmt = numFmt; });
+    }
+    if (preamble.length > 0) sheet.addRow([]);
+    const headerAt = sheet.rowCount + 1;
     sheet.addRow(headers);
-    const headerRow = sheet.getRow(1);
+    const headerRow = sheet.getRow(headerAt);
     headerRow.eachCell((cell) => {
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF97316' } };
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
@@ -111,10 +124,10 @@ export async function genericExcelMultiSheet(sheets: ExcelSheet[]): Promise<Buff
       c.width = columns?.[i]?.width ?? 18;
       const numFmt = columns?.[i]?.numFmt;
       // Data rows only, so the header keeps its own look.
-      if (numFmt) c.eachCell?.((cell, rowNumber) => { if (rowNumber > 1) cell.numFmt = numFmt; });
+      if (numFmt) c.eachCell?.((cell, rowNumber) => { if (rowNumber > headerAt) cell.numFmt = numFmt; });
     });
     for (const i of totalRows ?? []) {
-      const row = sheet.getRow(i + 2);
+      const row = sheet.getRow(headerAt + 1 + i);
       row.font = { bold: true };
       row.eachCell((cell, col) => {
         const numFmt = columns?.[col - 1]?.totalNumFmt;
