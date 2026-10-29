@@ -8,7 +8,7 @@ import { getReturnStockRows } from '../services/return-stock.service';
 import { genericPDF, genericExcel, genericExcelMultiSheet, genericCSV, type ExcelColumn, type ExcelSheet } from '../services/production-export.service';
 import { getPreviousOrderBalance } from '../services/previous-balance.service';
 import { getCollectionsReturnRows } from '../services/returns-summary.service';
-import { getDemandFiguresBeforeRecord, getDemandRecordPeriod, type DemandBeforeRecordRow } from '../services/branch-account.service';
+import { getCollectionsMonth, getDemandFiguresBeforeRecord, type DemandBeforeRecordRow } from '../services/branch-account.service';
 import { format } from 'date-fns';
 import { sortRows } from '../utils/sortRows';
 
@@ -249,8 +249,12 @@ const money: ExcelColumn = { numFmt: AMOUNT, totalNumFmt: RS_TOTAL };
 
 /**
  * The Collections export: the Demand Record page's table (Finance → Demand
- * Record, `shared/utils/branch-account.ts`), row for row — the same rows from
- * the same query, so the sheet and that page cannot disagree:
+ * Record, `shared/utils/branch-account.ts`), on the same money rules, with
+ * the owner's two changes (2026-10-29, getCollectionsMonth): a demand is
+ * dated and placed by its REQUIRED date, and each branch opens the window
+ * with an "Opening Stock" row (Slip No.) whose Delivered is the stock it held
+ * that first morning, counted like a demand. So Previous / Closing here are
+ * the sheet's own and differ from the page's:
  *
  *   G. Total  = Delivered − Return − Discount
  *   Co. Share = G. Total × the demand's frozen share % ÷ 100 (the % itself
@@ -274,7 +278,7 @@ const money: ExcelColumn = { numFmt: AMOUNT, totalNumFmt: RS_TOTAL };
  * balance summed row by row would count the same money once per demand.
  */
 function collectionsFromDemandRecord(
-  record: NonNullable<Awaited<ReturnType<typeof getDemandRecordPeriod>>>,
+  record: NonNullable<Awaited<ReturnType<typeof getCollectionsMonth>>>,
   slips: Map<string, string>,
   /** Demands before the record began, when the window runs back past its start: listed first on each branch's tab. */
   earlier: { start: string; rows: DemandBeforeRecordRow[] } | null = null,
@@ -287,10 +291,14 @@ function collectionsFromDemandRecord(
     money, money, money, { width: 15 },
   ];
   const STATUS = { owed: 'OUTSTANDING', settled: 'SETTLED', credit: 'CREDIT' } as const;
+  // The Opening Stock row leaves Closing blank (owner's call, 2026-10-29): the
+  // stock is already counted in its own Delivered and Co. Share, and the next
+  // demand's Previous carries the balance on.
   const line = (r: Row): (string | number)[] => [
-    r.businessDate, r.demandNumber ?? 'Opening', r.orderId ? slips.get(r.orderId) ?? '' : '', r.branchName,
+    r.businessDate, r.demandNumber ?? '', r.orderId ? slips.get(r.orderId) ?? '' : 'Opening Stock', r.branchName,
     r.delivered, r.returns, r.discount, r.gTotal, r.companyShare, r.received,
-    r.previousBalance, r.closingBalance, STATUS[balanceStanding(r.closingBalance)],
+    r.previousBalance,
+    ...(r.orderId ? [r.closingBalance, STATUS[balanceStanding(r.closingBalance)]] : ['', '']),
   ];
   const sumOf = (rows: Row[]) => {
     const t = { delivered: 0, returns: 0, discount: 0, gTotal: 0, share: 0, received: 0 };
@@ -305,7 +313,7 @@ function collectionsFromDemandRecord(
     const t = sumOf(rows);
     return ['TOTAL', '', '', '', t.delivered, t.returns, t.discount, t.gTotal, t.share, t.received, '', '', ''];
   };
-  // Date, then demand number; a branch's opening row (no number) before its demands.
+  // Date, then demand number; a branch's Opening Stock row (no number) before its demands.
   const byDate = (a: Row, b: Row) =>
     a.businessDate.localeCompare(b.businessDate)
     || (a.demandNumber ?? '').localeCompare(b.demandNumber ?? '')
@@ -775,13 +783,13 @@ async function buildReport(
       // On the Demand Record's rules once Finance has switched it on (see
       // collectionsFromDemandRecord). Until then, the delivery-slip figures
       // below, with a line saying so.
-      const record = await getDemandRecordPeriod({ branchId: branchId || null, from: fromStr, to: toStr });
+      const record = await getCollectionsMonth({ branchId: branchId || null, from: fromStr, to: toStr });
       if (record) {
-        // Days before the record began (cash was not recorded in the app then)
-        // are exported as demand figures only — see collectionsBeforeRecord.
-        const before = fromStr < record.start
-          ? await getDemandFiguresBeforeRecord({ branchId: branchId || null, from: fromStr, to: toStr })
-          : null;
+        // Demands submitted before the record began (cash was not recorded in
+        // the app then) are exported as demand figures only — see
+        // collectionsBeforeRecord. Placed by required date, so one can fall
+        // inside a window after the go-live day too.
+        const before = await getDemandFiguresBeforeRecord({ branchId: branchId || null, from: fromStr, to: toStr });
         const slips = await slipNumbers([...record.rows.map((r) => r.orderId), ...(before?.rows ?? []).map((r) => r.orderId)]);
         // A window wholly before the record is the Collections sheet itself.
         if (before && toStr < record.start) return { ...collectionsBeforeRecord(before.rows, before.start, slips), title: 'Collections' };
