@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticate, type AuthRequest } from '../middleware/auth';
-import { requireFinance } from '../middleware/requireFinance';
+import { requireFinance, requireFinanceReviewer } from '../middleware/requireFinance';
 import { validate } from '../middleware/validate';
 import {
   ApproveCashTransferSchema,
@@ -160,10 +160,10 @@ router.get('/:id/history', requireFinance('view'), async (req: AuthRequest, res,
 });
 
 // PUT /api/finance/cash-transfers/:id — Accounts corrects the figures or note
-// of a deposit still with it. The deposit stays with Accounts.
+// of a deposit still with it. The deposit stays with Accounts. Accountant only.
 router.put(
   '/:id',
-  requireFinance('create'),
+  requireFinanceReviewer(),
   validate(EditCashTransferSchema),
   async (req: AuthRequest, res, next) => {
     try {
@@ -190,8 +190,8 @@ router.put(
 );
 
 // PUT /api/finance/cash-transfers/:id/forward — Accounts submits the deposit
-// for approval; it moves to Finance Admin's queue.
-router.put('/:id/forward', requireFinance('create'), async (req: AuthRequest, res, next) => {
+// for approval; it moves to Finance Admin's queue. Accountant only.
+router.put('/:id/forward', requireFinanceReviewer(), async (req: AuthRequest, res, next) => {
   try {
     const transfer = await forwardCashTransfer(String(req.params['id']), actorOf(req));
     await logFinanceAudit(req, {

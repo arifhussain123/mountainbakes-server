@@ -340,6 +340,22 @@ describe('Accountant: create, list, submit', () => {
     assert.deepEqual(events[1].changes, { amount: { from: 1000, to: 1200 } });
   });
 
+  test('only the Accountant edits and submits: Finance Admin saves a draft and decides, nothing more', async () => {
+    const mine = await newEntry('admin', { ledgerHeadId: HEADS.fuel, description: 'Admin-raised fuel', amount: 700, businessDate: TODAY });
+    assert.equal(mine.status, 'draft', 'a Finance Admin entry is saved for the Accountant, not sent');
+
+    const edit = await call('admin', 'PUT', `${ENTRIES}/${mine.id}`, { amount: 800 });
+    assert.equal(edit.status, 403);
+    assert.match(edit.body.error, /only the Accountant/);
+    assert.equal((await call('admin', 'POST', `${ENTRIES}/${mine.id}/submit`)).status, 403);
+    assert.equal((await call('auditor', 'POST', `${ENTRIES}/${mine.id}/submit`)).status, 403);
+    assert.equal(Number((await entry(mine.id)).amount), 700);
+
+    const sent = ok(await call('accountant', 'POST', `${ENTRIES}/${mine.id}/submit`)).entry;
+    assert.equal(sent.status, 'pending_approval');
+    assert.equal(sent.submittedByName, 'accountant@mb.test');
+  });
+
   test('a pending entry cannot be edited or submitted again', async () => {
     const pending = await newEntry('accountant', { ledgerHeadId: HEADS.rent, description: 'Pending rent', amount: 500, businessDate: TODAY });
     const edit = await call('accountant', 'PUT', `${ENTRIES}/${pending.id}`, { amount: 1 });
@@ -619,6 +635,7 @@ describe('cash deposits: with Accounts first, then Finance Admin', () => {
 
   test('the Accountant edits it: figures and note change, the Total is recomputed, it stays with Accounts', async () => {
     assert.equal((await call('auditor', 'PUT', `${FIN_CT}/${ct.id}`, { cashAmount: 2500 })).status, 403);
+    assert.equal((await call('admin', 'PUT', `${FIN_CT}/${ct.id}`, { cashAmount: 2500 })).status, 403, 'Finance Admin does not edit');
     assert.equal((await call('branch', 'PUT', `${FIN_CT}/${ct.id}`, { cashAmount: 2500 })).status, 403);
     assert.equal((await call('accountant', 'PUT', `${FIN_CT}/${ct.id}`, { cashAmount: 0 })).status, 400, 'an empty deposit is refused');
     assert.equal((await call('accountant', 'PUT', `${FIN_CT}/${ct.id}`, { cashAmount: 2000, bankAmount: 500, totalAmount: 9 })).status, 400);
@@ -636,6 +653,7 @@ describe('cash deposits: with Accounts first, then Finance Admin', () => {
 
   test('the Accountant submits it for approval: it moves to Finance Admin, who is notified', async () => {
     assert.equal((await call('auditor', 'PUT', `${FIN_CT}/${ct.id}/forward`)).status, 403);
+    assert.equal((await call('admin', 'PUT', `${FIN_CT}/${ct.id}/forward`)).status, 403, 'Finance Admin does not submit');
     const sent = ok(await call('accountant', 'PUT', `${FIN_CT}/${ct.id}/forward`)).transfer;
     assert.ok(sent.forwardedAt);
     assert.equal(sent.forwardedByName, 'accountant@mb.test');

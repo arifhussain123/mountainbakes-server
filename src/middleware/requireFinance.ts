@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express';
 import type { AuthRequest } from './auth';
-import { financeCan, financeHelpDeskCan, isFinanceRole, type FinancePermission } from '../shared';
+import { financeCan, financeCanReview, financeHelpDeskCan, isFinanceRole, type FinancePermission } from '../shared';
 import { getFinanceSettings } from '../services/finance-settings.service';
 
 /**
@@ -49,6 +49,29 @@ export function requireFinance(permission: FinancePermission) {
     } catch (err) {
       next(err);
     }
+  };
+}
+
+/**
+ * Edit and Submit for Approval on an Income & Expense entry or a cash deposit.
+ *
+ * The Accountant's step alone (`financeCanReview`): Finance Admin and Finance
+ * Manager decide what the Accountant sends and do not prepare it themselves, so
+ * `requireFinance('create')` — which every one of them passes — is too wide.
+ */
+export function requireFinanceReviewer() {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    if (!financeCanReview(req.user.role)) {
+      res.status(403).json({
+        error: 'Forbidden: only the Accountant may edit or submit this for approval. Finance Admin approves or rejects it once it is submitted.',
+      });
+      return;
+    }
+    next();
   };
 }
 
