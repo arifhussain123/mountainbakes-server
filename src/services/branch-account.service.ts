@@ -473,6 +473,113 @@ export async function getDemandRecordPeriod(q: { branchId?: string | null; from?
   return { start, from, to, rows: inPeriod, totals: totalBranchAccount(inPeriod, balances), branches: balances };
 }
 
+/**
+ * The Collections export's month (the owner's rules, 2026-10-29), built from
+ * the Demand Record's rows but laid out differently from the page:
+ *
+ *  - A demand belongs to its REQUIRED date, not the day it was submitted: a
+ *    demand submitted on 31 Oct for 1 Nov is November's, and its Date is 1 Nov
+ *    (`businessDate` carries the required date here). A demand with no
+ *    required date keeps its business date. Each row's own figures (delivered,
+ *    the returns, deposits and discounts in its window) are the record's.
+ *  - Each branch starts the window with an "Opening Stock" row (`orderId` and
+ *    `demandNumber` null) on the first day: Delivered is the value of the stock
+ *    the branch held that morning (STOCK_SQL's opening, at today's prices), and
+ *    it is calculated like a demand — G. Total, Company Share at the branch's
+ *    % today, into the balance. When the window holds the record's own opening
+ *    row (the go-live month), its returns, deposits and Finance entries are
+ *    folded into this row.
+ *  - Previous / Closing run per branch down the rows in date order, starting
+ *    from the balance of every row dated before the window. Counting the opening
+ *    stock adds to that balance, so this sheet's Closing is NOT the Demand
+ *    Record page's — the owner chose this knowing it.
+ *
+ * Null while the Demand Record is not switched on.
+ */
+export async function getCollectionsMonth(q: { branchId?: string | null; from: string; to: string }): Promise<Omit<DemandRecordResult, 'pagination'> | null> {
+  const start = await getLedgerStart();
+  if (!start) return null;
+  const from = q.from > start ? q.from : start;
+  // Not cut at today: a demand already delivered can be required on a later
+  // day, and the window runs to whatever required date was asked for.
+  const to = q.to;
+  const branchId = q.branchId ?? null;
+  const prisma = getPrisma();
+
+  const all = await loadAccounts(branchId, start);
+  const orderIds = all.flatMap((r) => (r.orderId ? [r.orderId] : []));
+  const [required, stock, branchRows] = await Promise.all([
+    orderIds.length === 0
+      ? Promise.resolve([] as { id: string; day: string }[])
+      : prisma.$queryRawUnsafe<{ id: string; day: string }[]>(
+        `select id::text as id, to_char(coalesce(required_date, business_date), 'YYYY-MM-DD') as day
+           from public.production_orders where id = any($1::uuid[])`, orderIds),
+    // The window's first morning: STOCK_SQL's opening for a one-day window.
+    prisma.$queryRawUnsafe<(MonthStatementStock & { branchId: string })[]>(STOCK_SQL, branchId, from, from),
+    prisma.$queryRawUnsafe<{ id: string; name: string; pct: number }[]>(
+      `select id::text as id, name, app.resolve_company_share_pct(id)::float8 as pct
+         from public.branches where $1::uuid is null or id = $1::uuid order by name`, branchId),
+  ]);
+  const dayOf = new Map(required.map((r) => [r.id, r.day]));
+  const stockOf = new Map(stock.map((s) => [s.branchId, toPaisa(s.openingAmount)]));
+  const dateOf = (r: BranchAccountRow) => (r.orderId ? dayOf.get(r.orderId) ?? r.businessDate : r.businessDate);
+
+  const byBranch = new Map<string, (BranchAccountRow & { lo: string; hi: string | null })[]>();
+  for (const r of all) {
+    const list = byBranch.get(r.branchId);
+    if (list) list.push(r); else byBranch.set(r.branchId, [r]);
+  }
+
+  const rows: DemandRecordRow[] = [];
+  const balances: DemandRecordResult['branches'] = [];
+  for (const b of branchRows) {
+    const list = byBranch.get(b.id) ?? [];
+    // What every row dated before the window left owing — each row's own effect, by its date.
+    const carried = toPaisa(list.filter((r) => dateOf(r) < from).reduce((a, r) => a + r.closingBalance - r.previousBalance, 0));
+    const inWindow = list
+      .filter((r) => { const d = dateOf(r); return d >= from && d <= to; })
+      .sort((x, y) => dateOf(x).localeCompare(dateOf(y)) || Date.parse(x.at) - Date.parse(y.at));
+    const recordOpening = inWindow.find((r) => r.orderId === null);
+    const demands = inWindow.filter((r) => r.orderId !== null);
+    const stockValue = stockOf.get(b.id) ?? 0;
+    if (demands.length === 0 && !recordOpening && stockValue === 0 && carried === 0) continue;
+
+    const opening: BranchAccountFacts = {
+      branchId: b.id,
+      branchName: recordOpening?.branchName ?? list[0]?.branchName ?? b.name,
+      orderId: null,
+      demandNumber: null,
+      businessDate: from,
+      at: recordOpening?.at ?? new Date(Date.parse(`${from}T02:00:00+05:00`)).toISOString(),
+      status: null,
+      frozenPct: null,
+      livePct: b.pct,
+      delivered: stockValue,
+      returns: recordOpening?.returns ?? 0,
+      returnsQty: recordOpening?.returnsQty ?? 0,
+      discount: recordOpening?.discount ?? 0,
+      received: recordOpening?.received ?? 0,
+      sales: recordOpening?.sales ?? 0,
+      adjustments: recordOpening?.adjustments ?? 0,
+      unpricedLines: 0,
+    };
+    const facts: BranchAccountFacts[] = [
+      opening,
+      ...demands.map(({ lo: _lo, hi: _hi, ...r }) => ({ ...r, businessDate: dateOf(r) })),
+    ];
+    const computed = computeBranchAccount(facts, carried);
+    computed.forEach((r, i) => rows.push({ ...r, open: i === 0 ? false : demands[i - 1]!.hi === null }));
+    balances.push({
+      branchId: b.id,
+      branchName: opening.branchName,
+      openingBalance: carried,
+      closingBalance: computed[computed.length - 1]!.closingBalance,
+    });
+  }
+  rows.sort((a, b) => a.branchName.localeCompare(b.branchName) || a.businessDate.localeCompare(b.businessDate) || Date.parse(a.at) - Date.parse(b.at));
+  return { start, from, to, rows, totals: totalBranchAccount(rows, balances), branches: balances };
+}
+
 function stripBounds<T extends { lo: string; hi: string | null }>(r: T): Omit<T, 'lo' | 'hi'> {
   const { lo: _lo, hi: _hi, ...rest } = r;
   return rest;
@@ -815,6 +922,7 @@ export interface DemandBeforeRecordRow {
   demandNumber: string | null;
   branchId: string;
   branchName: string;
+  /** The demand's required date (its business date when it has none). */
   businessDate: string;
   delivered: number;
   returns: number;
@@ -842,13 +950,16 @@ export async function getDemandFiguresBeforeRecord(
   q: { branchId?: string | null; from: string; to: string },
 ): Promise<{ start: string; rows: DemandBeforeRecordRow[] } | null> {
   const start = await getLedgerStart();
-  if (!start || q.from >= start) return start ? { start, rows: [] } : null;
+  if (!start) return null;
+  // Placed by required date (owner's rule, 2026-10-29), so a demand submitted
+  // before the go-live day can still be required inside a window after it.
   const rows = await getPrisma().$queryRawUnsafe<(Omit<DemandBeforeRecordRow, 'gTotal' | 'sharePct' | 'companyShare'> & { frozenPct: number | null; livePct: number })[]>(`
     with br as (
       select b.id, b.name from public.branches b where ($1::uuid is null or b.id = $1::uuid)
     ),
     d as (
       select o.id, o.branch_id, o.demand_number, o.business_date as bd, o.submitted_at,
+             coalesce(o.required_date, o.business_date) as rd,
              coalesce(o.branch_name, br.name) as branch_name, sn.company_share_pct as frozen_pct
         from public.production_orders o
         join br on br.id = o.branch_id
@@ -904,7 +1015,7 @@ export async function getDemandFiguresBeforeRecord(
            d.demand_number                                     as "demandNumber",
            d.branch_id::text                                   as "branchId",
            d.branch_name                                       as "branchName",
-           to_char(d.bd, 'YYYY-MM-DD')                         as "businessDate",
+           to_char(d.rd, 'YYYY-MM-DD')                         as "businessDate",
            coalesce(dv.delivered, 0)::float8                   as "delivered",
            coalesce(ret.amount, 0)::float8                     as "returns",
            coalesce((select sum(amount) from disc where disc.order_id = d.id), 0)::float8 as "discount",
@@ -913,9 +1024,9 @@ export async function getDemandFiguresBeforeRecord(
       from d
       left join dv on dv.order_id = d.id
       left join ret on ret.order_id = d.id
-     where d.bd between $3::date and $4::date
-     order by d.bd, d.demand_number, d.branch_name`,
-    q.branchId ?? null, start, q.from, q.to < start ? q.to : dayBeforeStr(start));
+     where d.rd between $3::date and $4::date
+     order by d.rd, d.demand_number, d.branch_name`,
+    q.branchId ?? null, start, q.from, q.to);
 
   return {
     start,
@@ -927,7 +1038,3 @@ export async function getDemandFiguresBeforeRecord(
   };
 }
 
-/** '2026-10-01' → '2026-09-30'. */
-function dayBeforeStr(ymd: string): string {
-  return new Date(Date.parse(`${ymd}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10);
-}

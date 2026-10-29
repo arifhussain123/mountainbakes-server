@@ -26,6 +26,12 @@ import { signAccessToken } from '../auth/tokens';
  *           129 10-03  31,500 − 1,000 −   500 = 30,000 → 24,000, rec 18,000 → 4,000
  *   F-7     128 10-02  26,500 −   400 −   600 = 25,500 → 19,125 (75%), rec 11,405 → 7,720
  *   Totals  311,500 · 4,100 · 6,300 · 301,100 · 239,605 · received 211,605
+ *
+ * On top of the example (owner's rules, 2026-10-29): each branch opens the
+ * window with an Opening Stock row worth the stock it held that morning —
+ * Saddar 20 Bun on 1 Oct (Rs. 2,000 → 1,600 share), 30 after 10 more on
+ * 2 Oct — and a demand is placed by its required date: Blue Area's
+ * DMD-000130, submitted 3 Oct for 4 Oct, is 4 Oct's.
  */
 
 const PRISMA = join(__dirname, '../../../prisma/migrations');
@@ -46,10 +52,12 @@ const table = (name: string) => lift(`CREATE TABLE public.${name} (`, '\n);');
 const TYPES = [
   'price_change_source', 'price_change_status', 'branch_production_order_status', 'production_return_disposition',
   'production_return_status', 'branch_discount_status', 'cash_transfer_status', 'order_status', 'payment_method',
+  'stock_movement_type',
 ];
 const TABLES = [
   'branches', 'products', 'product_price_history', 'production_orders', 'production_order_items',
   'production_returns', 'branch_discounts', 'cash_transfers', 'orders', 'finance_settings', 'finance_audit_logs',
+  'stock', 'stock_history',
 ];
 
 const STUBS = `
@@ -146,6 +154,8 @@ const BLUE = '40000000-0000-4000-8000-000000000002';
 const GULBERG = '40000000-0000-4000-8000-000000000003';
 const F7 = '40000000-0000-4000-8000-000000000004';
 const BUN = '50000000-0000-4000-8000-000000000001';
+const D130 = '60000000-0000-4000-8000-000000000130';
+const D131 = '60000000-0000-4000-8000-000000000131';
 
 /** demand, branch, date, hour submitted, pieces delivered, pieces returned, discount, received. */
 const DEMANDS: [string, string, string, number, number, number, number, number][] = [
@@ -219,6 +229,24 @@ before(async () => {
   await transfer(SADDAR, 300, 'approved', '2026-09-12T10:00:00+05');
   await returnRow(SADDAR, 'accepted', '2026-09-30', '2026-10-01T01:00:00+05', 1);
 
+  // Submitted on 3 Oct, required on 4 Oct.
+  await order(D130, BLUE, '2026-10-03', '2026-10-03T20:00:00+05', 'DMD-000130', [{ qty: 10, approved: 10, unitPrice: 100 }]);
+  await db.query(`update production_orders set required_date = '2026-10-04' where id = $1`, [D130]);
+  await setStatus(D130, 'awaiting_verification');
+  await setStatus(D130, 'approved');
+  // Delivered already, required on a day long after today.
+  await order(D131, GULBERG, '2026-10-03', '2026-10-03T21:00:00+05', 'DMD-000131', [{ qty: 5, approved: 5, unitPrice: 100 }]);
+  await db.query(`update production_orders set required_date = '2099-01-02' where id = $1`, [D131]);
+  await setStatus(D131, 'awaiting_verification');
+  await setStatus(D131, 'approved');
+
+  // Saddar holds 30 Bun now, 10 of them made on 2 Oct: 20 on the morning of 1 Oct.
+  await db.exec(`
+    insert into stock (branch_id, product_id, product_name, balance) values ('${SADDAR}', '${BUN}', 'Bun', 30);
+    insert into stock_history (branch_id, product_id, product_name, type, delta, balance_after, ref_id, business_date)
+      values ('${SADDAR}', '${BUN}', 'Bun', 'production', 10, 30, 'test', '2026-10-02');
+  `);
+
   await usePglite(db);
   const prisma = new PrismaClient({ adapter: new PrismaPGlite(db) });
   setPrisma(prisma);
@@ -279,33 +307,45 @@ test('the Collections sheet is the Demand Record page, row for row, in the page\
   assert.deepEqual(main[0], HEADERS);
 
   const data = main.slice(1, -1);
-  assert.deepEqual(data.map((r) => r[1]),
-    ['DMD-000123', 'DMD-000126', 'DMD-000127', 'DMD-000124', 'DMD-000128', 'DMD-000125', 'DMD-000129']);
-  assert.equal(page.rows.length, data.length);
-  for (const p of page.rows as Json[]) {
+  // Each branch's Opening Stock row first (1 Oct, no demand number), then the demands.
+  assert.deepEqual(data.map((r) => r[1] || `${r[2]} ${r[3]}`), [
+    'Opening Stock Blue Area', 'Opening Stock F-7', 'Opening Stock Gulberg', 'Opening Stock Saddar',
+    'DMD-000123', 'DMD-000126', 'DMD-000127', 'DMD-000124', 'DMD-000128', 'DMD-000125', 'DMD-000129']);
+  // DMD-000130 and 131 were submitted on 3 Oct but are required later: not in this window.
+  const pageRows = (page.rows as Json[]).filter((p) => !['DMD-000130', 'DMD-000131'].includes(p.demandNumber));
+  assert.equal(pageRows.length, 7);
+  for (const p of pageRows) {
     const r = data.find((x) => x[1] === p.demandNumber)!;
     assert.equal((r[0] as Date).toISOString().slice(0, 10), p.businessDate);
     // The slip's number: PO-, the business date, the submitted time.
     assert.match(String(r[2]), new RegExp(`^PO-${String(p.businessDate).replace(/-/g, '')}-\\d{4}$`), p.demandNumber);
-    assert.deepEqual(r.slice(3), [p.branchName, p.delivered, p.returns, p.discount, p.gTotal, p.companyShare,
-      p.received, p.previousBalance, p.closingBalance, p.closingBalance > 0 ? 'OUTSTANDING' : p.closingBalance < 0 ? 'CREDIT' : 'SETTLED'],
-    p.demandNumber);
+    // The demand's own figures are the page's; the balance is the sheet's own (Saddar's opening stock adds 1,600).
+    assert.deepEqual(r.slice(3, 10), [p.branchName, p.delivered, p.returns, p.discount, p.gTotal, p.companyShare, p.received], p.demandNumber);
+    const lift = p.branchName === 'Saddar' ? 1600 : 0;
+    assert.deepEqual(r.slice(10, 12), [p.previousBalance + lift, p.closingBalance + lift], p.demandNumber);
   }
+
+  const opening = (b: string) => data.find((x) => x[2] === 'Opening Stock' && x[3] === b)!;
+  assert.equal((opening('Saddar')[0] as Date).toISOString().slice(0, 10), '2026-10-01');
+  // Closing is blank on the Opening Stock row: the stock is already in its Delivered and Co. Share.
+  //                                            Delivered Ret Disc G.Total Share Received Previous Closing
+  assert.deepEqual(opening('Saddar').slice(4), [2000, 0, 0, 2000, 1600, 0, 0, '', '']);
+  assert.deepEqual(opening('Gulberg').slice(4), [0, 0, 0, 0, 0, 0, 0, '', '']);
 
   const row = (d: string) => data.find((x) => x[1] === d)!;
   //                                            Co. Share Received  Previous Closing
-  assert.deepEqual(row('DMD-000123').slice(8), [34240, 28000, 0, 6240, 'OUTSTANDING']);
-  assert.deepEqual(row('DMD-000124').slice(8), [38400, 42200, 6240, 2440, 'OUTSTANDING']);
+  assert.deepEqual(row('DMD-000123').slice(8), [34240, 28000, 1600, 7840, 'OUTSTANDING']);
+  assert.deepEqual(row('DMD-000124').slice(8), [38400, 42200, 7840, 4040, 'OUTSTANDING']);
   assert.deepEqual(row('DMD-000127').slice(8), [10000, 12000, 0, -2000, 'CREDIT']);
   assert.deepEqual(row('DMD-000129').slice(8), [24000, 18000, -2000, 4000, 'OUTSTANDING']);
   assert.deepEqual(row('DMD-000128').slice(8), [19125, 11405, 0, 7720, 'OUTSTANDING']); // F-7 at 75%
 
-  assert.deepEqual(main.at(-1), ['TOTAL', '', '', '', 311500, 4100, 6300, 301100, 239605, 211605, '', '', '']);
+  assert.deepEqual(main.at(-1), ['TOTAL', '', '', '', 313500, 4100, 6300, 303100, 241205, 211605, '', '', '']);
 });
 
 test('cells stay numeric and carry the page\'s formats', async () => {
   const ws = (await workbook('&from=2026-10-01&to=2026-10-03')).getWorksheet('Collections')!;
-  const r124 = ws.getRow(5); // header, 123, 126, 127, then 124
+  const r124 = ws.getRow(9); // header, four Opening Stock rows, 123, 126, 127, then 124
   assert.equal(r124.getCell(2).value, 'DMD-000124');
   assert.ok(r124.getCell(1).value instanceof Date);
   assert.equal(r124.getCell(1).numFmt, 'dd mmm yyyy');
@@ -322,18 +362,47 @@ test('each branch keeps its own chain; By Branch adds up to the same totals', as
   const wb = await workbook('&from=2026-10-01&to=2026-10-03');
   const gulberg = valuesOf(wb.getWorksheet('Gulberg')!);
   assert.deepEqual(gulberg[0], HEADERS);
-  assert.deepEqual(gulberg.slice(1, -1).map((r) => [r[1], r[10], r[11]]), [['DMD-000127', 0, -2000], ['DMD-000129', -2000, 4000]]);
+  assert.deepEqual(gulberg.slice(1, -1).map((r) => [r[1] || r[2], r[10], r[11]]),
+    [['Opening Stock', 0, ''], ['DMD-000127', 0, -2000], ['DMD-000129', -2000, 4000]]);
   assert.deepEqual(gulberg.at(-1), ['TOTAL', '', '', '', 45000, 1400, 1100, 42500, 34000, 30000, '', '', '']);
 
   const byBranch = valuesOf(wb.getWorksheet('By Branch')!);
   assert.deepEqual(byBranch[0], ['Branch', 'Demands', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Received', 'Previous', 'Closing', 'Closing Status']);
-  assert.deepEqual(byBranch.find((r) => r[0] === 'Saddar'), ['Saddar', 3, 134000, 1700, 4000, 128300, 102640, 90200, 0, 12440, 'OUTSTANDING']);
-  assert.deepEqual(byBranch.at(-1), ['GRAND TOTAL', 7, 311500, 4100, 6300, 301100, 239605, 211605, 0, 28000, 'OUTSTANDING']);
+  // Saddar's Delivered and Co. Share include its opening stock (2,000 → 1,600).
+  assert.deepEqual(byBranch.find((r) => r[0] === 'Saddar'), ['Saddar', 3, 136000, 1700, 4000, 130300, 104240, 90200, 0, 14040, 'OUTSTANDING']);
+  assert.deepEqual(byBranch.at(-1), ['GRAND TOTAL', 7, 313500, 4100, 6300, 303100, 241205, 211605, 0, 29600, 'OUTSTANDING']);
 });
 
-test('a later period starts each branch from its own carried balance', async () => {
+test('a later period starts each branch from its own carried balance, with that morning\'s stock', async () => {
   const main = valuesOf((await workbook('&from=2026-10-03&to=2026-10-03')).getWorksheet('Collections')!);
-  assert.deepEqual(main.slice(1, -1).map((r) => [r[1], r[10], r[11]]), [['DMD-000125', 2440, 12440], ['DMD-000129', -2000, 4000]]);
+  // Blue Area and F-7 have no demand required on 3 Oct but carry a balance in.
+  assert.deepEqual(main.slice(1, -1).map((r) => [r[1] || r[2], r[3], r[10], r[11]]), [
+    ['Opening Stock', 'Blue Area', 3840, ''],
+    ['Opening Stock', 'F-7', 7720, ''],
+    ['Opening Stock', 'Gulberg', -2000, ''],
+    ['Opening Stock', 'Saddar', 2440, ''], // 30 Bun = 3,000 → 2,400, carried into 125's Previous
+    ['DMD-000125', 'Saddar', 4840, 14840],
+    ['DMD-000129', 'Gulberg', -2000, 4000],
+  ]);
+  assert.deepEqual(main.find((r) => r[3] === 'Saddar')!.slice(4, 9), [3000, 0, 0, 3000, 2400]);
+});
+
+test('a demand is placed and dated by its required date, not the day it was submitted', async () => {
+  const wb = await workbook('&from=2026-10-04&to=2026-10-04');
+  const main = valuesOf(wb.getWorksheet('Collections')!);
+  const r = main.find((x) => x[1] === 'DMD-000130')!;
+  assert.equal((r[0] as Date).toISOString().slice(0, 10), '2026-10-04');
+  assert.equal(r[2], 'PO-20261003-2000'); // the slip still prints the day it was submitted
+  //                            Delivered        Share Received Previous Closing
+  assert.deepEqual(r.slice(3), ['Blue Area', 1000, 0, 0, 1000, 800, 0, 3840, 4640, 'OUTSTANDING']);
+});
+
+test('To may run past today: a demand required later is shown on its required date', async () => {
+  const main = valuesOf((await workbook('&from=2099-01-01&to=2099-01-05')).getWorksheet('Collections')!);
+  const r = main.find((x) => x[1] === 'DMD-000131')!;
+  assert.ok(r, 'DMD-000131 is in the window');
+  assert.equal((r[0] as Date).toISOString().slice(0, 10), '2099-01-02');
+  assert.deepEqual(r.slice(3, 9), ['Gulberg', 500, 0, 0, 500, 400]);
 });
 
 test('July–September, before the Demand Record began: each demand\'s figures, no Received or balance', async () => {
@@ -381,7 +450,8 @@ test('a window running into October keeps October as the Demand Record and adds 
     [saddar[2]![0], 'DMD-000092', 'PO-20260925-0900', 'Saddar', 500, 100, 0, 400, 320, '', '', '', ''],
     ['TOTAL BEFORE 01 OCT 2026', '', '', '', 1500, 200, 50, 1250, 1000, '', '', '', ''],
   ]);
-  assert.equal(saddar[4]![1], 'DMD-000123');
+  assert.deepEqual(saddar[4]!.slice(1, 5), ['', 'Opening Stock', 'Saddar', 2000]);
+  assert.equal(saddar[5]![1], 'DMD-000123');
   assert.equal(saddar.at(-1)![0], 'TOTAL');
   const ws = wb.getWorksheet('Saddar')!;
   assert.equal(ws.getRow(4).getCell(5).font?.bold, true); // the September total

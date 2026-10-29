@@ -574,37 +574,55 @@ test('the Collections export carries the Demand Record figures, per branch', asy
   // share is at today's (which earlier tests in this file move).
   const pct = Number((await db.query<{ p: string }>(`select company_share_pct::text as p from finance_settings`)).rows[0]!.p);
   const before = wb.get('Before 01 Sep 2026')!;
-  assert.deepEqual(before[1]!.slice(1), ['DMD-000100', 'Alpha', 1000, 0, 0, 1000, (1000 * pct) / 100]);
+  assert.deepEqual(before[1]!.slice(1), ['DMD-000100', 'PO-20260831-', 'Alpha', 1000, 0, 0, 1000, (1000 * pct) / 100]);
 
   const main = wb.get('Collections')!;
   const h = main[0]!;
   assert.equal(h.includes('Actual Sales'), false); // production users never see sales
   const at = (name: string) => h.indexOf(name);
-  for (const r of record.rows as Json[]) {
-    const line = main.find((x) => x[at('Branch')] === r.branchName && x[at('Demand No.')] === (r.demandNumber ?? 'Opening'));
+  // Each branch opens on an Opening Stock row (owner's rule, 2026-10-29): the
+  // stock it held on the first morning, counted like a demand, with the
+  // record's own opening row (returns, deposits) folded in. Every later
+  // balance on the sheet sits that row's extra share above the page's.
+  const shift = new Map<string, number>();
+  for (const b of record.branches as Json[]) {
+    const open = main.find((x) => x[at('Branch')] === b.branchName && x[at('Slip No.')] === 'Opening Stock');
+    assert.ok(open, `no Opening Stock row for ${b.branchName}`);
+    const recOpen = (record.rows as Json[]).find((r) => r.branchName === b.branchName && r.orderId === null);
+    assert.equal(open[at('Return')], recOpen?.returns ?? 0);
+    assert.equal(open[at('Received')], recOpen?.received ?? 0);
+    assert.equal(open[at('Previous')], 0);
+    shift.set(b.branchName, open[at('Co. Share')] - (recOpen?.companyShare ?? 0));
+  }
+  for (const r of (record.rows as Json[]).filter((x) => x.orderId !== null)) {
+    const line = main.find((x) => x[at('Branch')] === r.branchName && x[at('Demand No.')] === r.demandNumber);
     assert.ok(line, `no line for ${r.branchName} ${r.demandNumber}`);
-    for (const [col, key] of [['Delivered', 'delivered'], ['G. Total', 'gTotal'], ['Co. Share', 'companyShare'],
-      ['Previous', 'previousBalance'], ['Received', 'received'], ['Closing', 'closingBalance']] as const) {
+    for (const [col, key] of [['Delivered', 'delivered'], ['G. Total', 'gTotal'], ['Co. Share', 'companyShare'], ['Received', 'received']] as const) {
       assert.equal(line[at(col)], r[key], `${r.demandNumber} ${col}`);
     }
+    const d = shift.get(r.branchName)!;
+    assert.equal(line[at('Previous')], r.previousBalance + d, `${r.demandNumber} Previous`);
+    assert.equal(line[at('Closing')], r.closingBalance + d, `${r.demandNumber} Closing`);
   }
+  const shifted = [...shift.values()].reduce((a, v) => a + v, 0);
   // The last line points at the pre-start tab; TOTAL is just above it.
   assert.match(String(main.at(-1)![0]), /^Demands before 01 Sep 2026 are on the "Before 01 Sep 2026" tab/);
   const total = main.at(-2)!;
   assert.equal(total[0], 'TOTAL');
   assert.equal(total[at('Received')], record.totals.received);
-  assert.equal(total[at('Co. Share')], record.totals.companyShare);
+  assert.equal(total[at('Co. Share')], record.totals.companyShare + shifted);
 
   // Each branch tab holds only that branch's rows and ends on its own balance.
   for (const b of record.branches as Json[]) {
     const tab = wb.get(b.branchName)!;
     const rows = tab.slice(1, -1);
-    assert.ok(rows.every((x) => x[at('Branch')] === b.branchName));
-    assert.equal(rows.at(-1)![at('Closing')], b.closingBalance);
+    // Its demands from before the start open the tab, under their own TOTAL line.
+    assert.ok(rows.filter((x) => !String(x[0]).startsWith('TOTAL')).every((x) => x[at('Branch')] === b.branchName));
+    assert.equal(rows.at(-1)![at('Closing')], b.closingBalance + shift.get(b.branchName)!);
   }
   const byBranch = wb.get('By Branch')!;
   assert.equal(byBranch.at(-1)![0], 'GRAND TOTAL');
-  assert.equal(byBranch.at(-1)![byBranch[0]!.indexOf('Closing')], record.totals.closingBalance);
+  assert.equal(byBranch.at(-1)![byBranch[0]!.indexOf('Closing')], record.totals.closingBalance + shifted);
 });
 
 test('an accepted return between the go-live day and the first demand counts in the opening row', async () => {
