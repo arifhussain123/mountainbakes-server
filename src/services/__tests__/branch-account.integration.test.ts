@@ -567,7 +567,9 @@ test('the Collections export carries the Demand Record figures, per branch', asy
   const record = await rowsOf('&from=2026-09-01&to=2026-09-30');
   // From is ignored: the export always starts on the 1st of the To date's month.
   const wb = await collectionsWorkbook('&from=2026-08-01&to=2026-09-30');
-  assert.deepEqual([...wb.keys()], ['Collections', 'By Branch', 'Alpha', 'Beta']);
+  // September runs to its last day: a finished month, so it has a Month-End tab.
+  assert.deepEqual([...wb.keys()], ['Collections', 'By Branch', 'Month-End', 'Alpha', 'Beta']);
+  assert.ok(wb.get('Month-End')!.filter((r) => r[0] === 'GRAND TOTAL' || (record.branches as Json[]).some((b) => b.branchName === r[0])).every((r) => r.at(-1) === 'OK'));
   // August, before the 1 Sep start, exports on its own (figures only). D0's 30
   // discount was approved after the start, so the record holds it (in D2) and
   // August does not count it again. Nothing froze D0's %, so its share is at

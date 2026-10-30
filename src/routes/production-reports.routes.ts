@@ -253,13 +253,13 @@ async function collectionsReconciliation(args: {
 }
 
 /**
- * Rupees and paisa with separators: 45,000.00; a negative balance reads
- * -2,000.00; a zero shows as 0.00 (the owner's statement spec, 2026-10-29,
- * replacing whole rupees with a blank zero).
+ * Whole rupees with separators: 45,000; a negative balance reads -2,000; a
+ * zero is a blank cell (the owner's call, 2026-10-24, kept on 2026-10-29 after
+ * two decimals were tried). The value itself stays to the paisa.
  */
-const AMOUNT = '#,##0.00;-#,##0.00;0.00';
-/** A TOTAL line's or the summary's money, the cells that carry the currency: Rs. 311,500.00. */
-const RS_TOTAL = '"Rs. "#,##0.00;-"Rs. "#,##0.00;"Rs. "0.00';
+const AMOUNT = '#,##0;-#,##0;';
+/** A TOTAL line's or the summary's money, the cells that carry the currency: Rs. 311,500; a zero is blank too. */
+const RS_TOTAL = '"Rs. "#,##0;-"Rs. "#,##0;';
 const money: ExcelColumn = { numFmt: AMOUNT, totalNumFmt: RS_TOTAL };
 const RS_SUMMARY = RS_TOTAL;
 /** The statement's notes (owner's wording, 2026-10-29), under each branch's table. */
@@ -442,7 +442,8 @@ function collectionsFromDemandRecord(
     ...(record.monthClosed && balance !== null ? [[
       { text: 'Note 3: ', bold: true },
       { text: 'Balance Amount ' },
-      { text: `Rs. ${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, bold: true },
+      // Whole rupees like the cells; paisa only when there are some.
+      { text: `Rs. ${balance.toLocaleString('en-US', { maximumFractionDigits: 2 })}`, bold: true },
       { text: ' (' },
       { text: rupeesInWords(balance), bold: true },
       { text: ') is deposited through the application of the cash deposit procedure followed. When the amount is deposited with a back date on the last month\'s date ' },
@@ -477,6 +478,56 @@ function collectionsFromDemandRecord(
     };
   });
 
+  // Month-End (owner's call, 2026-10-29): for a finished month, each branch's
+  // closing worked through on one line, so the bold red balance on its tab can
+  // be checked without reading every row:
+  //   Last-Day Net  = Last-Day Demand − Closing Stock (both Delivered values)
+  //   Final Balance = Previous + Co. Share + Adjustments − Received
+  // Co. Share covers every row, the two stock rows included; Adjustments are
+  // Finance's entries, which feed the balance but have no column on the tabs.
+  // Check reads OK when the second line holds to the paisa.
+  const monthEnd: ExcelSheet[] = [];
+  if (record.monthClosed) {
+    const lines = branches.map((b) => {
+      const list = rowsByBranch.get(b.branchId) ?? [];
+      const sum = (pick: (r: Row) => number, keep: (r: Row) => boolean = () => true) => toPaisa(list.filter(keep).reduce((a, r) => a + pick(r), 0));
+      const lastDay = sum((r) => r.delivered, (r) => r.stockRow === null && r.businessDate === record.to);
+      const closingStock = -sum((r) => r.delivered, (r) => r.stockRow === 'closing');
+      const share = sum((r) => r.companyShare);
+      const adjustments = sum((r) => r.adjustments);
+      const received = sum((r) => r.received);
+      const diff = toPaisa(b.closingBalance - (b.openingBalance + share + adjustments - received));
+      return {
+        cells: [b.branchName, lastDay, closingStock, toPaisa(lastDay - closingStock), b.openingBalance,
+          sum((r) => r.delivered, (r) => r.stockRow === 'opening'), share, adjustments, received, b.closingBalance] as (string | number)[],
+        diff,
+      };
+    });
+    const rows = lines.map((l) => [...l.cells, Math.abs(l.diff) < 0.01 ? 'OK' : l.diff]);
+    if (rows.length > 0) {
+      // Columns 1–9 are money; a balance summed over branches is each branch's once, so it adds up.
+      const total = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => toPaisa(lines.reduce((a, l) => a + (l.cells[i] as number), 0)));
+      const bad = lines.filter((l) => Math.abs(l.diff) >= 0.01).length;
+      rows.push(['GRAND TOTAL', ...total, bad === 0 ? 'OK' : `${bad} branch(es) differ`]);
+    }
+    monthEnd.push({
+      title: 'Month-End',
+      headers: ['Branch', 'Last-Day Demand', 'Closing Stock', 'Last-Day Net', 'Previous', 'Opening Stock', 'Co. Share', 'Adjustments', 'Received', 'Final Balance', 'Check'],
+      rows,
+      columns: [{}, money, money, money, money, money, money, money, money, money, {}],
+      totalRows: rows.length > 0 ? [rows.length - 1] : [],
+      borders: true,
+      preamble: [
+        { cells: [`Mountain Bakes - Month-End Closing, ${dmy(record.to)}`], bold: true, size: 14 },
+        { cells: [`Period: ${dmy(period.fromStr)} to ${dmy(period.toStr)}`] },
+      ],
+      notes: [
+        [{ text: 'Last-Day Net', bold: true }, { text: ` = Last-Day Demand − Closing Stock: the demands delivered for ${dmy(record.to)} less the stock still held at the end of that day, which next month's Opening Stock charges back.` }],
+        [{ text: 'Final Balance', bold: true }, { text: ' = Previous + Co. Share + Adjustments − Received. Co. Share includes the Opening and Closing Stock rows; Check reads OK when this holds to the paisa.' }],
+      ],
+    });
+  }
+
   const { rows, totalRows = [], specialRowCount, highlight } = sheetOf('Collections', record.rows);
   return {
     title: 'Collections',
@@ -489,6 +540,7 @@ function collectionsFromDemandRecord(
     borders: true,
     extraSheets: [
       { title: 'By Branch', headers: byBranchHeaders, rows: byBranchRows, columns: byBranchColumns, totalRows: byBranchRows.length > 0 ? [byBranchRows.length - 1] : [], borders: true },
+      ...monthEnd,
       ...branchSheets,
     ],
   };
