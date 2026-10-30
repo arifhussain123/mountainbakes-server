@@ -40,6 +40,7 @@ async function main() {
   const { startWhatsAppOutboxWorker } = await import('./src/services/whatsapp/outbox');
   const { startDailyClosingScheduler } = await import('./src/scheduler/daily-closing.job');
   const { startPriceActivationScheduler } = await import('./src/scheduler/price-activation.job');
+  const { startDailySaleVerifyScheduler } = await import('./src/scheduler/daily-sale-verify.job');
   const { activateDuePrices } = await import('./src/services/price.service');
   const PORT = parseInt(process.env.PORT || process.env.API_PORT || '3001', 10);
   app.listen(PORT, '0.0.0.0', () => {
@@ -48,6 +49,7 @@ async function main() {
     startWhatsAppOutboxWorker();
     startDailyClosingScheduler();
     startPriceActivationScheduler();
+    startDailySaleVerifyScheduler();
     activateDuePrices({ trigger: 'startup' }).catch((err) => console.error('[price-activation] startup catch-up threw:', err));
     if (process.env.NODE_ENV === 'production' && !process.env.CORS_ORIGINS) {
       console.warn(

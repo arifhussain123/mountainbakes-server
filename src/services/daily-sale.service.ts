@@ -668,7 +668,7 @@ export async function feedDailySaleRecord(input: {
 
 export async function decideDailySaleRecord(input: {
   id: string;
-  action: 'verify' | 'lock' | 'unlock';
+  action: 'lock' | 'unlock';
   reason?: string;
   branchScope: string | null;
   actor: DailySaleActor;
@@ -690,6 +690,76 @@ export async function decideDailySaleRecord(input: {
   if (error) throw asClientError(error);
 
   return getDailySaleRecordDetail(input.id, input.branchScope);
+}
+
+/** Who the audit trail names for a record the 12:30 AM job verified. */
+const AUTO_VERIFY_ACTOR = { uid: null, name: 'System (auto-verify)', role: 'system' } as const;
+
+export interface AutoVerifyResult {
+  businessDate: string;
+  verified: number;
+  failed: number;
+}
+
+/**
+ * Verify every fed record up to and including the business day now ending.
+ *
+ * Verification is no longer a button: the 12:30 AM job (daily-sale-verify.job.ts)
+ * is the only caller. "Fed" means a manual count exists (`fed_at`); a day nobody
+ * counted stays open, because a sign-off with nothing counted signs off nothing.
+ *
+ * Earlier days are swept too, not just today: a run missed during a restart, or a
+ * record an admin unlocked (which puts it back to pending_verification), would
+ * otherwise have no way to become verified again.
+ *
+ * Each record's auto figures are refreshed first (`ensure_daily_sale_record`) so
+ * the frozen snapshot is the till as of 12:30, not as of the last feed. Sales
+ * between 12:30 and the 2:00 AM rollover land after the snapshot — the trade-off
+ * of verifying the day before it formally ends.
+ *
+ * One record failing never stops the rest; each is its own transaction anyway.
+ */
+export async function autoVerifyDailySaleRecords(): Promise<AutoVerifyResult> {
+  const businessDate = businessDateStr();
+  const { data, error } = await db
+    .from('daily_sale_records')
+    .select('id, branch_id, business_date')
+    .lte('business_date', businessDate)
+    .in('status', ['open', 'pending_verification'])
+    .not('fed_at', 'is', null);
+  if (error) throw asClientError(error);
+
+  let verified = 0;
+  let failed = 0;
+  for (const row of (data ?? []) as { id: string; branch_id: string; business_date: string }[]) {
+    try {
+      const refreshed = await db.rpc('ensure_daily_sale_record', {
+        p_branch_id: row.branch_id,
+        p_business_date: row.business_date,
+        p_actor_id: AUTO_VERIFY_ACTOR.uid,
+        p_actor_name: AUTO_VERIFY_ACTOR.name,
+        p_actor_role: AUTO_VERIFY_ACTOR.role,
+      });
+      if (refreshed.error) throw asClientError(refreshed.error);
+
+      const { error: verifyError } = await db.rpc('decide_daily_sale_record', {
+        p_id: row.id,
+        p_action: 'verify',
+        p_reason: null,
+        p_actor_id: AUTO_VERIFY_ACTOR.uid,
+        p_actor_name: AUTO_VERIFY_ACTOR.name,
+        p_actor_role: AUTO_VERIFY_ACTOR.role,
+        p_is_admin: false,
+      });
+      if (verifyError) throw asClientError(verifyError);
+      verified += 1;
+    } catch (err) {
+      failed += 1;
+      console.error(`[daily-sale-verify] ${row.business_date} branch ${row.branch_id}:`, err);
+    }
+  }
+
+  return { businessDate, verified, failed };
 }
 
 export async function amendDailySaleRecord(input: {
