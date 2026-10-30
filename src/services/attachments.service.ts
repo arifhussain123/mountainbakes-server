@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { dbFor, type QueryBuilder } from '../db';
 import {
   ATTACHMENT_MAX_BYTES,
@@ -201,9 +201,30 @@ export async function uploadAttachment(input: {
     throw error;
   }
 
+  await recordFingerprint(data.id as string, input.buffer);
+
   const [signed] = await signRows([rowToApi<AttachmentRow>(data)]);
   if (!signed) throw new Error('Photo was stored but could not be read back');
   return signed;
+}
+
+/**
+ * The bytes' sha256 on the staged row, so AI Expense Capture can tell a
+ * receipt already attached to an entry when it is uploaded again (migration
+ * 20261030000001_ai_expense_capture).
+ *
+ * Best effort and separate from the insert on purpose: the fingerprint only
+ * feeds a warning, and a database the migration has not reached yet must not
+ * stop every photo upload in the app. The row is still staged here, so the
+ * immutability trigger allows it.
+ */
+async function recordFingerprint(id: string, buffer: Buffer): Promise<void> {
+  const { error } = await db
+    .from('attachments')
+    .update({ content_sha256: createHash('sha256').update(buffer).digest('hex') })
+    .eq('id', id)
+    .is('entity_id', null);
+  if (error) console.warn(`[attachments] could not record the fingerprint of ${id}:`, error.message);
 }
 
 /**

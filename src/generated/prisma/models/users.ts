@@ -280,6 +280,7 @@ export type usersWhereInput = {
   updated_at?: Prisma.DateTimeFilter<"users"> | Date | string
   user_code?: Prisma.StringFilter<"users"> | string
   attachments?: Prisma.AttachmentsListRelationFilter
+  finance_ai_captures?: Prisma.Finance_ai_capturesListRelationFilter
   audit_logs_audit_logs_admin_idTousers?: Prisma.Audit_logsListRelationFilter
   audit_logs_audit_logs_target_user_idTousers?: Prisma.Audit_logsListRelationFilter
   auth_sessions?: Prisma.Auth_sessionsListRelationFilter
@@ -426,6 +427,7 @@ export type usersOrderByWithRelationInput = {
   updated_at?: Prisma.SortOrder
   user_code?: Prisma.SortOrder
   attachments?: Prisma.attachmentsOrderByRelationAggregateInput
+  finance_ai_captures?: Prisma.finance_ai_capturesOrderByRelationAggregateInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsOrderByRelationAggregateInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsOrderByRelationAggregateInput
   auth_sessions?: Prisma.auth_sessionsOrderByRelationAggregateInput
@@ -575,6 +577,7 @@ export type usersWhereUniqueInput = Prisma.AtLeast<{
   created_at?: Prisma.DateTimeFilter<"users"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"users"> | Date | string
   attachments?: Prisma.AttachmentsListRelationFilter
+  finance_ai_captures?: Prisma.Finance_ai_capturesListRelationFilter
   audit_logs_audit_logs_admin_idTousers?: Prisma.Audit_logsListRelationFilter
   audit_logs_audit_logs_target_user_idTousers?: Prisma.Audit_logsListRelationFilter
   auth_sessions?: Prisma.Auth_sessionsListRelationFilter
@@ -765,6 +768,7 @@ export type usersCreateInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -911,6 +915,7 @@ export type usersUncheckedCreateInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -1053,6 +1058,7 @@ export type usersUpdateInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -1199,6 +1205,7 @@ export type usersUncheckedUpdateInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -2364,6 +2371,20 @@ export type usersUpdateOneWithoutFinance_transactions_finance_transactions_updat
   delete?: Prisma.usersWhereInput | boolean
   connect?: Prisma.usersWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.usersUpdateToOneWithWhereWithoutFinance_transactions_finance_transactions_updated_byTousersInput, Prisma.usersUpdateWithoutFinance_transactions_finance_transactions_updated_byTousersInput>, Prisma.usersUncheckedUpdateWithoutFinance_transactions_finance_transactions_updated_byTousersInput>
+}
+
+export type usersCreateNestedOneWithoutFinance_ai_capturesInput = {
+  create?: Prisma.XOR<Prisma.usersCreateWithoutFinance_ai_capturesInput, Prisma.usersUncheckedCreateWithoutFinance_ai_capturesInput>
+  connectOrCreate?: Prisma.usersCreateOrConnectWithoutFinance_ai_capturesInput
+  connect?: Prisma.usersWhereUniqueInput
+}
+
+export type usersUpdateOneRequiredWithoutFinance_ai_capturesNestedInput = {
+  create?: Prisma.XOR<Prisma.usersCreateWithoutFinance_ai_capturesInput, Prisma.usersUncheckedCreateWithoutFinance_ai_capturesInput>
+  connectOrCreate?: Prisma.usersCreateOrConnectWithoutFinance_ai_capturesInput
+  upsert?: Prisma.usersUpsertWithoutFinance_ai_capturesInput
+  connect?: Prisma.usersWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.usersUpdateToOneWithWhereWithoutFinance_ai_capturesInput, Prisma.usersUpdateWithoutFinance_ai_capturesInput>, Prisma.usersUncheckedUpdateWithoutFinance_ai_capturesInput>
 }
 
 export type usersCreateNestedOneWithoutGeofence_logsInput = {
@@ -3540,6 +3561,7 @@ export type usersCreateWithoutAttachmentsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   user_code?: string
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -3685,6 +3707,7 @@ export type usersUncheckedCreateWithoutAttachmentsInput = {
   created_at?: Date | string
   updated_at?: Date | string
   user_code?: string
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -3842,6 +3865,7 @@ export type usersUpdateWithoutAttachmentsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -3987,6 +4011,7 @@ export type usersUncheckedUpdateWithoutAttachmentsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -4129,6 +4154,7 @@ export type usersCreateWithoutAudit_logs_audit_logs_admin_idTousersInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
   backup_jobs?: Prisma.backup_jobsCreateNestedManyWithoutUsersInput
@@ -4274,6 +4300,7 @@ export type usersUncheckedCreateWithoutAudit_logs_audit_logs_admin_idTousersInpu
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
   backup_jobs?: Prisma.backup_jobsUncheckedCreateNestedManyWithoutUsersInput
@@ -4420,6 +4447,7 @@ export type usersCreateWithoutAudit_logs_audit_logs_target_user_idTousersInput =
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
   backup_jobs?: Prisma.backup_jobsCreateNestedManyWithoutUsersInput
@@ -4565,6 +4593,7 @@ export type usersUncheckedCreateWithoutAudit_logs_audit_logs_target_user_idTouse
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
   backup_jobs?: Prisma.backup_jobsUncheckedCreateNestedManyWithoutUsersInput
@@ -4722,6 +4751,7 @@ export type usersUpdateWithoutAudit_logs_audit_logs_admin_idTousersInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
   backup_jobs?: Prisma.backup_jobsUpdateManyWithoutUsersNestedInput
@@ -4867,6 +4897,7 @@ export type usersUncheckedUpdateWithoutAudit_logs_audit_logs_admin_idTousersInpu
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
   backup_jobs?: Prisma.backup_jobsUncheckedUpdateManyWithoutUsersNestedInput
@@ -5019,6 +5050,7 @@ export type usersUpdateWithoutAudit_logs_audit_logs_target_user_idTousersInput =
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
   backup_jobs?: Prisma.backup_jobsUpdateManyWithoutUsersNestedInput
@@ -5164,6 +5196,7 @@ export type usersUncheckedUpdateWithoutAudit_logs_audit_logs_target_user_idTouse
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
   backup_jobs?: Prisma.backup_jobsUncheckedUpdateManyWithoutUsersNestedInput
@@ -5305,6 +5338,7 @@ export type usersCreateWithoutAuth_sessionsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   backup_jobs?: Prisma.backup_jobsCreateNestedManyWithoutUsersInput
@@ -5450,6 +5484,7 @@ export type usersUncheckedCreateWithoutAuth_sessionsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   backup_jobs?: Prisma.backup_jobsUncheckedCreateNestedManyWithoutUsersInput
@@ -5607,6 +5642,7 @@ export type usersUpdateWithoutAuth_sessionsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   backup_jobs?: Prisma.backup_jobsUpdateManyWithoutUsersNestedInput
@@ -5752,6 +5788,7 @@ export type usersUncheckedUpdateWithoutAuth_sessionsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   backup_jobs?: Prisma.backup_jobsUncheckedUpdateManyWithoutUsersNestedInput
@@ -5893,6 +5930,7 @@ export type usersCreateWithoutBackup_jobsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -6038,6 +6076,7 @@ export type usersUncheckedCreateWithoutBackup_jobsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -6195,6 +6234,7 @@ export type usersUpdateWithoutBackup_jobsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -6340,6 +6380,7 @@ export type usersUncheckedUpdateWithoutBackup_jobsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -6481,6 +6522,7 @@ export type usersCreateWithoutBranch_discounts_branch_discounts_created_byTouser
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -6626,6 +6668,7 @@ export type usersUncheckedCreateWithoutBranch_discounts_branch_discounts_created
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -6772,6 +6815,7 @@ export type usersCreateWithoutBranch_discounts_branch_discounts_reviewed_byTouse
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -6917,6 +6961,7 @@ export type usersUncheckedCreateWithoutBranch_discounts_branch_discounts_reviewe
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -7074,6 +7119,7 @@ export type usersUpdateWithoutBranch_discounts_branch_discounts_created_byTouser
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -7219,6 +7265,7 @@ export type usersUncheckedUpdateWithoutBranch_discounts_branch_discounts_created
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -7371,6 +7418,7 @@ export type usersUpdateWithoutBranch_discounts_branch_discounts_reviewed_byTouse
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -7516,6 +7564,7 @@ export type usersUncheckedUpdateWithoutBranch_discounts_branch_discounts_reviewe
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -7657,6 +7706,7 @@ export type usersCreateWithoutBranch_locationsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -7802,6 +7852,7 @@ export type usersUncheckedCreateWithoutBranch_locationsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -7959,6 +8010,7 @@ export type usersUpdateWithoutBranch_locationsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -8104,6 +8156,7 @@ export type usersUncheckedUpdateWithoutBranch_locationsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -8245,6 +8298,7 @@ export type usersCreateWithoutBranch_share_payments_branch_share_payments_approv
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -8390,6 +8444,7 @@ export type usersUncheckedCreateWithoutBranch_share_payments_branch_share_paymen
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -8536,6 +8591,7 @@ export type usersCreateWithoutBranch_share_payments_branch_share_payments_delete
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -8681,6 +8737,7 @@ export type usersUncheckedCreateWithoutBranch_share_payments_branch_share_paymen
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -8827,6 +8884,7 @@ export type usersCreateWithoutBranch_share_payments_branch_share_payments_reques
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -8972,6 +9030,7 @@ export type usersUncheckedCreateWithoutBranch_share_payments_branch_share_paymen
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -9129,6 +9188,7 @@ export type usersUpdateWithoutBranch_share_payments_branch_share_payments_approv
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -9274,6 +9334,7 @@ export type usersUncheckedUpdateWithoutBranch_share_payments_branch_share_paymen
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -9426,6 +9487,7 @@ export type usersUpdateWithoutBranch_share_payments_branch_share_payments_delete
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -9571,6 +9633,7 @@ export type usersUncheckedUpdateWithoutBranch_share_payments_branch_share_paymen
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -9723,6 +9786,7 @@ export type usersUpdateWithoutBranch_share_payments_branch_share_payments_reques
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -9868,6 +9932,7 @@ export type usersUncheckedUpdateWithoutBranch_share_payments_branch_share_paymen
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -10009,6 +10074,7 @@ export type usersCreateWithoutBranches_branches_manager_idTousersInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -10154,6 +10220,7 @@ export type usersUncheckedCreateWithoutBranches_branches_manager_idTousersInput 
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -10300,6 +10367,7 @@ export type usersCreateWithoutBranches_users_branch_idTobranchesInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -10444,6 +10512,7 @@ export type usersUncheckedCreateWithoutBranches_users_branch_idTobranchesInput =
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -10607,6 +10676,7 @@ export type usersUpdateWithoutBranches_branches_manager_idTousersInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -10752,6 +10822,7 @@ export type usersUncheckedUpdateWithoutBranches_branches_manager_idTousersInput 
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -10932,6 +11003,7 @@ export type usersCreateWithoutCash_transfers_cash_transfers_approved_byTousersIn
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -11077,6 +11149,7 @@ export type usersUncheckedCreateWithoutCash_transfers_cash_transfers_approved_by
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -11223,6 +11296,7 @@ export type usersCreateWithoutCash_transfers_cash_transfers_created_byTousersInp
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -11368,6 +11442,7 @@ export type usersUncheckedCreateWithoutCash_transfers_cash_transfers_created_byT
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -11514,6 +11589,7 @@ export type usersCreateWithoutCash_transfers_cash_transfers_deleted_byTousersInp
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -11659,6 +11735,7 @@ export type usersUncheckedCreateWithoutCash_transfers_cash_transfers_deleted_byT
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -11805,6 +11882,7 @@ export type usersCreateWithoutCash_transfers_cash_transfers_forwarded_byTousersI
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -11950,6 +12028,7 @@ export type usersUncheckedCreateWithoutCash_transfers_cash_transfers_forwarded_b
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -12096,6 +12175,7 @@ export type usersCreateWithoutCash_transfers_cash_transfers_resubmitted_byTouser
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -12241,6 +12321,7 @@ export type usersUncheckedCreateWithoutCash_transfers_cash_transfers_resubmitted
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -12387,6 +12468,7 @@ export type usersCreateWithoutCash_transfers_cash_transfers_updated_byTousersInp
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -12532,6 +12614,7 @@ export type usersUncheckedCreateWithoutCash_transfers_cash_transfers_updated_byT
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -12689,6 +12772,7 @@ export type usersUpdateWithoutCash_transfers_cash_transfers_approved_byTousersIn
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -12834,6 +12918,7 @@ export type usersUncheckedUpdateWithoutCash_transfers_cash_transfers_approved_by
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -12986,6 +13071,7 @@ export type usersUpdateWithoutCash_transfers_cash_transfers_created_byTousersInp
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -13131,6 +13217,7 @@ export type usersUncheckedUpdateWithoutCash_transfers_cash_transfers_created_byT
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -13283,6 +13370,7 @@ export type usersUpdateWithoutCash_transfers_cash_transfers_deleted_byTousersInp
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -13428,6 +13516,7 @@ export type usersUncheckedUpdateWithoutCash_transfers_cash_transfers_deleted_byT
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -13580,6 +13669,7 @@ export type usersUpdateWithoutCash_transfers_cash_transfers_forwarded_byTousersI
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -13725,6 +13815,7 @@ export type usersUncheckedUpdateWithoutCash_transfers_cash_transfers_forwarded_b
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -13877,6 +13968,7 @@ export type usersUpdateWithoutCash_transfers_cash_transfers_resubmitted_byTouser
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -14022,6 +14114,7 @@ export type usersUncheckedUpdateWithoutCash_transfers_cash_transfers_resubmitted
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -14174,6 +14267,7 @@ export type usersUpdateWithoutCash_transfers_cash_transfers_updated_byTousersInp
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -14319,6 +14413,7 @@ export type usersUncheckedUpdateWithoutCash_transfers_cash_transfers_updated_byT
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -14460,6 +14555,7 @@ export type usersCreateWithoutDaily_sale_record_auditsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -14605,6 +14701,7 @@ export type usersUncheckedCreateWithoutDaily_sale_record_auditsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -14762,6 +14859,7 @@ export type usersUpdateWithoutDaily_sale_record_auditsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -14907,6 +15005,7 @@ export type usersUncheckedUpdateWithoutDaily_sale_record_auditsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -15048,6 +15147,7 @@ export type usersCreateWithoutDaily_sale_records_daily_sale_records_created_byTo
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -15193,6 +15293,7 @@ export type usersUncheckedCreateWithoutDaily_sale_records_daily_sale_records_cre
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -15339,6 +15440,7 @@ export type usersCreateWithoutDaily_sale_records_daily_sale_records_fed_byTouser
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -15484,6 +15586,7 @@ export type usersUncheckedCreateWithoutDaily_sale_records_daily_sale_records_fed
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -15630,6 +15733,7 @@ export type usersCreateWithoutDaily_sale_records_daily_sale_records_locked_byTou
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -15775,6 +15879,7 @@ export type usersUncheckedCreateWithoutDaily_sale_records_daily_sale_records_loc
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -15921,6 +16026,7 @@ export type usersCreateWithoutDaily_sale_records_daily_sale_records_verified_byT
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -16066,6 +16172,7 @@ export type usersUncheckedCreateWithoutDaily_sale_records_daily_sale_records_ver
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -16223,6 +16330,7 @@ export type usersUpdateWithoutDaily_sale_records_daily_sale_records_created_byTo
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -16368,6 +16476,7 @@ export type usersUncheckedUpdateWithoutDaily_sale_records_daily_sale_records_cre
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -16520,6 +16629,7 @@ export type usersUpdateWithoutDaily_sale_records_daily_sale_records_fed_byTouser
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -16665,6 +16775,7 @@ export type usersUncheckedUpdateWithoutDaily_sale_records_daily_sale_records_fed
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -16817,6 +16928,7 @@ export type usersUpdateWithoutDaily_sale_records_daily_sale_records_locked_byTou
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -16962,6 +17074,7 @@ export type usersUncheckedUpdateWithoutDaily_sale_records_daily_sale_records_loc
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -17114,6 +17227,7 @@ export type usersUpdateWithoutDaily_sale_records_daily_sale_records_verified_byT
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -17259,6 +17373,7 @@ export type usersUncheckedUpdateWithoutDaily_sale_records_daily_sale_records_ver
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -17400,6 +17515,7 @@ export type usersCreateWithoutEmployee_advances_employee_advances_approved_byTou
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -17545,6 +17661,7 @@ export type usersUncheckedCreateWithoutEmployee_advances_employee_advances_appro
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -17691,6 +17808,7 @@ export type usersCreateWithoutEmployee_advances_employee_advances_created_byTous
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -17836,6 +17954,7 @@ export type usersUncheckedCreateWithoutEmployee_advances_employee_advances_creat
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -17982,6 +18101,7 @@ export type usersCreateWithoutEmployee_advances_employee_advances_deleted_byTous
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -18127,6 +18247,7 @@ export type usersUncheckedCreateWithoutEmployee_advances_employee_advances_delet
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -18284,6 +18405,7 @@ export type usersUpdateWithoutEmployee_advances_employee_advances_approved_byTou
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -18429,6 +18551,7 @@ export type usersUncheckedUpdateWithoutEmployee_advances_employee_advances_appro
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -18581,6 +18704,7 @@ export type usersUpdateWithoutEmployee_advances_employee_advances_created_byTous
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -18726,6 +18850,7 @@ export type usersUncheckedUpdateWithoutEmployee_advances_employee_advances_creat
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -18878,6 +19003,7 @@ export type usersUpdateWithoutEmployee_advances_employee_advances_deleted_byTous
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -19023,6 +19149,7 @@ export type usersUncheckedUpdateWithoutEmployee_advances_employee_advances_delet
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -19164,6 +19291,7 @@ export type usersCreateWithoutEvent_branch_demands_event_branch_demands_reviewed
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -19309,6 +19437,7 @@ export type usersUncheckedCreateWithoutEvent_branch_demands_event_branch_demands
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -19455,6 +19584,7 @@ export type usersCreateWithoutEvent_branch_demands_event_branch_demands_submitte
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -19600,6 +19730,7 @@ export type usersUncheckedCreateWithoutEvent_branch_demands_event_branch_demands
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -19757,6 +19888,7 @@ export type usersUpdateWithoutEvent_branch_demands_event_branch_demands_reviewed
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -19902,6 +20034,7 @@ export type usersUncheckedUpdateWithoutEvent_branch_demands_event_branch_demands
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -20054,6 +20187,7 @@ export type usersUpdateWithoutEvent_branch_demands_event_branch_demands_submitte
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -20199,6 +20333,7 @@ export type usersUncheckedUpdateWithoutEvent_branch_demands_event_branch_demands
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -20340,6 +20475,7 @@ export type usersCreateWithoutEvent_production_statusInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -20485,6 +20621,7 @@ export type usersUncheckedCreateWithoutEvent_production_statusInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -20642,6 +20779,7 @@ export type usersUpdateWithoutEvent_production_statusInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -20787,6 +20925,7 @@ export type usersUncheckedUpdateWithoutEvent_production_statusInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -20928,6 +21067,7 @@ export type usersCreateWithoutExpensesInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -21073,6 +21213,7 @@ export type usersUncheckedCreateWithoutExpensesInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -21230,6 +21371,7 @@ export type usersUpdateWithoutExpensesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -21375,6 +21517,7 @@ export type usersUncheckedUpdateWithoutExpensesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -21516,6 +21659,7 @@ export type usersCreateWithoutFinance_amendmentsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -21661,6 +21805,7 @@ export type usersUncheckedCreateWithoutFinance_amendmentsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -21818,6 +21963,7 @@ export type usersUpdateWithoutFinance_amendmentsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -21963,6 +22109,7 @@ export type usersUncheckedUpdateWithoutFinance_amendmentsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -22104,6 +22251,7 @@ export type usersCreateWithoutFinance_audit_logsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -22249,6 +22397,7 @@ export type usersUncheckedCreateWithoutFinance_audit_logsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -22406,6 +22555,7 @@ export type usersUpdateWithoutFinance_audit_logsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -22551,6 +22701,7 @@ export type usersUncheckedUpdateWithoutFinance_audit_logsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -22692,6 +22843,7 @@ export type usersCreateWithoutFinance_day_closingsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -22837,6 +22989,7 @@ export type usersUncheckedCreateWithoutFinance_day_closingsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -22994,6 +23147,7 @@ export type usersUpdateWithoutFinance_day_closingsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -23139,6 +23293,7 @@ export type usersUncheckedUpdateWithoutFinance_day_closingsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -23280,6 +23435,7 @@ export type usersCreateWithoutFinance_income_approvals_finance_income_approvals_
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -23425,6 +23581,7 @@ export type usersUncheckedCreateWithoutFinance_income_approvals_finance_income_a
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -23571,6 +23728,7 @@ export type usersCreateWithoutFinance_income_approvals_finance_income_approvals_
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -23716,6 +23874,7 @@ export type usersUncheckedCreateWithoutFinance_income_approvals_finance_income_a
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -23862,6 +24021,7 @@ export type usersCreateWithoutFinance_income_approvals_finance_income_approvals_
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -24007,6 +24167,7 @@ export type usersUncheckedCreateWithoutFinance_income_approvals_finance_income_a
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -24164,6 +24325,7 @@ export type usersUpdateWithoutFinance_income_approvals_finance_income_approvals_
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -24309,6 +24471,7 @@ export type usersUncheckedUpdateWithoutFinance_income_approvals_finance_income_a
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -24461,6 +24624,7 @@ export type usersUpdateWithoutFinance_income_approvals_finance_income_approvals_
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -24606,6 +24770,7 @@ export type usersUncheckedUpdateWithoutFinance_income_approvals_finance_income_a
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -24758,6 +24923,7 @@ export type usersUpdateWithoutFinance_income_approvals_finance_income_approvals_
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -24903,6 +25069,7 @@ export type usersUncheckedUpdateWithoutFinance_income_approvals_finance_income_a
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -25044,6 +25211,7 @@ export type usersCreateWithoutFinance_queries_finance_queries_created_byTousersI
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -25189,6 +25357,7 @@ export type usersUncheckedCreateWithoutFinance_queries_finance_queries_created_b
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -25335,6 +25504,7 @@ export type usersCreateWithoutFinance_queries_finance_queries_updated_byTousersI
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -25480,6 +25650,7 @@ export type usersUncheckedCreateWithoutFinance_queries_finance_queries_updated_b
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -25637,6 +25808,7 @@ export type usersUpdateWithoutFinance_queries_finance_queries_created_byTousersI
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -25782,6 +25954,7 @@ export type usersUncheckedUpdateWithoutFinance_queries_finance_queries_created_b
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -25934,6 +26107,7 @@ export type usersUpdateWithoutFinance_queries_finance_queries_updated_byTousersI
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -26079,6 +26253,7 @@ export type usersUncheckedUpdateWithoutFinance_queries_finance_queries_updated_b
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -26220,6 +26395,7 @@ export type usersCreateWithoutFinance_ticket_messagesInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -26365,6 +26541,7 @@ export type usersUncheckedCreateWithoutFinance_ticket_messagesInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -26522,6 +26699,7 @@ export type usersUpdateWithoutFinance_ticket_messagesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -26667,6 +26845,7 @@ export type usersUncheckedUpdateWithoutFinance_ticket_messagesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -26808,6 +26987,7 @@ export type usersCreateWithoutFinance_ticket_versionsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -26953,6 +27133,7 @@ export type usersUncheckedCreateWithoutFinance_ticket_versionsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -27110,6 +27291,7 @@ export type usersUpdateWithoutFinance_ticket_versionsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -27255,6 +27437,7 @@ export type usersUncheckedUpdateWithoutFinance_ticket_versionsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -27396,6 +27579,7 @@ export type usersCreateWithoutFinance_tickets_finance_tickets_amended_byTousersI
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -27541,6 +27725,7 @@ export type usersUncheckedCreateWithoutFinance_tickets_finance_tickets_amended_b
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -27687,6 +27872,7 @@ export type usersCreateWithoutFinance_tickets_finance_tickets_assigned_toTousers
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -27832,6 +28018,7 @@ export type usersUncheckedCreateWithoutFinance_tickets_finance_tickets_assigned_
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -27978,6 +28165,7 @@ export type usersCreateWithoutFinance_tickets_finance_tickets_deleted_byTousersI
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -28123,6 +28311,7 @@ export type usersUncheckedCreateWithoutFinance_tickets_finance_tickets_deleted_b
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -28269,6 +28458,7 @@ export type usersCreateWithoutFinance_tickets_finance_tickets_raised_byTousersIn
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -28414,6 +28604,7 @@ export type usersUncheckedCreateWithoutFinance_tickets_finance_tickets_raised_by
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -28560,6 +28751,7 @@ export type usersCreateWithoutFinance_tickets_finance_tickets_reopened_byTousers
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -28705,6 +28897,7 @@ export type usersUncheckedCreateWithoutFinance_tickets_finance_tickets_reopened_
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -28851,6 +29044,7 @@ export type usersCreateWithoutFinance_tickets_finance_tickets_resolved_byTousers
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -28996,6 +29190,7 @@ export type usersUncheckedCreateWithoutFinance_tickets_finance_tickets_resolved_
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -29142,6 +29337,7 @@ export type usersCreateWithoutFinance_tickets_finance_tickets_responded_byTouser
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -29287,6 +29483,7 @@ export type usersUncheckedCreateWithoutFinance_tickets_finance_tickets_responded
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -29433,6 +29630,7 @@ export type usersCreateWithoutFinance_tickets_finance_tickets_restored_byTousers
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -29578,6 +29776,7 @@ export type usersUncheckedCreateWithoutFinance_tickets_finance_tickets_restored_
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -29735,6 +29934,7 @@ export type usersUpdateWithoutFinance_tickets_finance_tickets_amended_byTousersI
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -29880,6 +30080,7 @@ export type usersUncheckedUpdateWithoutFinance_tickets_finance_tickets_amended_b
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -30032,6 +30233,7 @@ export type usersUpdateWithoutFinance_tickets_finance_tickets_assigned_toTousers
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -30177,6 +30379,7 @@ export type usersUncheckedUpdateWithoutFinance_tickets_finance_tickets_assigned_
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -30329,6 +30532,7 @@ export type usersUpdateWithoutFinance_tickets_finance_tickets_deleted_byTousersI
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -30474,6 +30678,7 @@ export type usersUncheckedUpdateWithoutFinance_tickets_finance_tickets_deleted_b
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -30626,6 +30831,7 @@ export type usersUpdateWithoutFinance_tickets_finance_tickets_raised_byTousersIn
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -30771,6 +30977,7 @@ export type usersUncheckedUpdateWithoutFinance_tickets_finance_tickets_raised_by
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -30923,6 +31130,7 @@ export type usersUpdateWithoutFinance_tickets_finance_tickets_reopened_byTousers
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -31068,6 +31276,7 @@ export type usersUncheckedUpdateWithoutFinance_tickets_finance_tickets_reopened_
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -31220,6 +31429,7 @@ export type usersUpdateWithoutFinance_tickets_finance_tickets_resolved_byTousers
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -31365,6 +31575,7 @@ export type usersUncheckedUpdateWithoutFinance_tickets_finance_tickets_resolved_
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -31517,6 +31728,7 @@ export type usersUpdateWithoutFinance_tickets_finance_tickets_responded_byTouser
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -31662,6 +31874,7 @@ export type usersUncheckedUpdateWithoutFinance_tickets_finance_tickets_responded
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -31814,6 +32027,7 @@ export type usersUpdateWithoutFinance_tickets_finance_tickets_restored_byTousers
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -31959,6 +32173,7 @@ export type usersUncheckedUpdateWithoutFinance_tickets_finance_tickets_restored_
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -32100,6 +32315,7 @@ export type usersCreateWithoutFinance_transactions_finance_transactions_approved
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -32245,6 +32461,7 @@ export type usersUncheckedCreateWithoutFinance_transactions_finance_transactions
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -32391,6 +32608,7 @@ export type usersCreateWithoutFinance_transactions_finance_transactions_created_
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -32536,6 +32754,7 @@ export type usersUncheckedCreateWithoutFinance_transactions_finance_transactions
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -32682,6 +32901,7 @@ export type usersCreateWithoutFinance_transactions_finance_transactions_deleted_
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -32827,6 +33047,7 @@ export type usersUncheckedCreateWithoutFinance_transactions_finance_transactions
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -32973,6 +33194,7 @@ export type usersCreateWithoutFinance_transactions_finance_transactions_rejected
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -33118,6 +33340,7 @@ export type usersUncheckedCreateWithoutFinance_transactions_finance_transactions
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -33264,6 +33487,7 @@ export type usersCreateWithoutFinance_transactions_finance_transactions_submitte
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -33409,6 +33633,7 @@ export type usersUncheckedCreateWithoutFinance_transactions_finance_transactions
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -33555,6 +33780,7 @@ export type usersCreateWithoutFinance_transactions_finance_transactions_updated_
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -33700,6 +33926,7 @@ export type usersUncheckedCreateWithoutFinance_transactions_finance_transactions
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -33857,6 +34084,7 @@ export type usersUpdateWithoutFinance_transactions_finance_transactions_approved
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -34002,6 +34230,7 @@ export type usersUncheckedUpdateWithoutFinance_transactions_finance_transactions
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -34154,6 +34383,7 @@ export type usersUpdateWithoutFinance_transactions_finance_transactions_created_
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -34299,6 +34529,7 @@ export type usersUncheckedUpdateWithoutFinance_transactions_finance_transactions
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -34451,6 +34682,7 @@ export type usersUpdateWithoutFinance_transactions_finance_transactions_deleted_
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -34596,6 +34828,7 @@ export type usersUncheckedUpdateWithoutFinance_transactions_finance_transactions
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -34748,6 +34981,7 @@ export type usersUpdateWithoutFinance_transactions_finance_transactions_rejected
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -34893,6 +35127,7 @@ export type usersUncheckedUpdateWithoutFinance_transactions_finance_transactions
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -35045,6 +35280,7 @@ export type usersUpdateWithoutFinance_transactions_finance_transactions_submitte
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -35190,6 +35426,7 @@ export type usersUncheckedUpdateWithoutFinance_transactions_finance_transactions
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -35342,6 +35579,7 @@ export type usersUpdateWithoutFinance_transactions_finance_transactions_updated_
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -35487,6 +35725,7 @@ export type usersUncheckedUpdateWithoutFinance_transactions_finance_transactions
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -35611,6 +35850,598 @@ export type usersUncheckedUpdateWithoutFinance_transactions_finance_transactions
   whatsapp_messages_whatsapp_messages_reviewed_byTousers?: Prisma.whatsapp_messagesUncheckedUpdateManyWithoutUsers_whatsapp_messages_reviewed_byTousersNestedInput
 }
 
+export type usersCreateWithoutFinance_ai_capturesInput = {
+  id?: string
+  email: string
+  display_name?: string | null
+  phone?: string | null
+  username?: string | null
+  role: $Enums.user_role
+  branch_name?: string | null
+  status?: $Enums.user_status
+  last_login_at?: Date | string | null
+  must_change_password?: boolean
+  last_password_reset?: Date | string | null
+  password_reset_by_name?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  user_code?: string
+  attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
+  audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
+  auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
+  backup_jobs?: Prisma.backup_jobsCreateNestedManyWithoutUsersInput
+  branch_discounts_branch_discounts_created_byTousers?: Prisma.branch_discountsCreateNestedManyWithoutUsers_branch_discounts_created_byTousersInput
+  branch_discounts_branch_discounts_reviewed_byTousers?: Prisma.branch_discountsCreateNestedManyWithoutUsers_branch_discounts_reviewed_byTousersInput
+  branch_locations?: Prisma.branch_locationsCreateNestedManyWithoutUsersInput
+  branch_share_payments_branch_share_payments_approved_byTousers?: Prisma.branch_share_paymentsCreateNestedManyWithoutUsers_branch_share_payments_approved_byTousersInput
+  branch_share_payments_branch_share_payments_deleted_byTousers?: Prisma.branch_share_paymentsCreateNestedManyWithoutUsers_branch_share_payments_deleted_byTousersInput
+  branch_share_payments_branch_share_payments_requested_byTousers?: Prisma.branch_share_paymentsCreateNestedManyWithoutUsers_branch_share_payments_requested_byTousersInput
+  branches_branches_manager_idTousers?: Prisma.branchesCreateNestedManyWithoutUsers_branches_manager_idTousersInput
+  cash_transfers_cash_transfers_approved_byTousers?: Prisma.cash_transfersCreateNestedManyWithoutUsers_cash_transfers_approved_byTousersInput
+  cash_transfers_cash_transfers_created_byTousers?: Prisma.cash_transfersCreateNestedManyWithoutUsers_cash_transfers_created_byTousersInput
+  cash_transfers_cash_transfers_deleted_byTousers?: Prisma.cash_transfersCreateNestedManyWithoutUsers_cash_transfers_deleted_byTousersInput
+  cash_transfers_cash_transfers_resubmitted_byTousers?: Prisma.cash_transfersCreateNestedManyWithoutUsers_cash_transfers_resubmitted_byTousersInput
+  cash_transfers_cash_transfers_forwarded_byTousers?: Prisma.cash_transfersCreateNestedManyWithoutUsers_cash_transfers_forwarded_byTousersInput
+  cash_transfers_cash_transfers_updated_byTousers?: Prisma.cash_transfersCreateNestedManyWithoutUsers_cash_transfers_updated_byTousersInput
+  daily_sale_record_audits?: Prisma.daily_sale_record_auditsCreateNestedManyWithoutUsersInput
+  daily_sale_records_daily_sale_records_created_byTousers?: Prisma.daily_sale_recordsCreateNestedManyWithoutUsers_daily_sale_records_created_byTousersInput
+  daily_sale_records_daily_sale_records_fed_byTousers?: Prisma.daily_sale_recordsCreateNestedManyWithoutUsers_daily_sale_records_fed_byTousersInput
+  daily_sale_records_daily_sale_records_locked_byTousers?: Prisma.daily_sale_recordsCreateNestedManyWithoutUsers_daily_sale_records_locked_byTousersInput
+  daily_sale_records_daily_sale_records_verified_byTousers?: Prisma.daily_sale_recordsCreateNestedManyWithoutUsers_daily_sale_records_verified_byTousersInput
+  employee_advances_employee_advances_approved_byTousers?: Prisma.employee_advancesCreateNestedManyWithoutUsers_employee_advances_approved_byTousersInput
+  employee_advances_employee_advances_created_byTousers?: Prisma.employee_advancesCreateNestedManyWithoutUsers_employee_advances_created_byTousersInput
+  employee_advances_employee_advances_deleted_byTousers?: Prisma.employee_advancesCreateNestedManyWithoutUsers_employee_advances_deleted_byTousersInput
+  employee_resignations_employee_resignations_cancelled_byTousers?: Prisma.employee_resignationsCreateNestedManyWithoutUsers_employee_resignations_cancelled_byTousersInput
+  employee_resignations_employee_resignations_submitted_byTousers?: Prisma.employee_resignationsCreateNestedManyWithoutUsers_employee_resignations_submitted_byTousersInput
+  event_branch_demands_event_branch_demands_reviewed_byTousers?: Prisma.event_branch_demandsCreateNestedManyWithoutUsers_event_branch_demands_reviewed_byTousersInput
+  event_branch_demands_event_branch_demands_submitted_byTousers?: Prisma.event_branch_demandsCreateNestedManyWithoutUsers_event_branch_demands_submitted_byTousersInput
+  event_production_status?: Prisma.event_production_statusCreateNestedManyWithoutUsersInput
+  expenses?: Prisma.expensesCreateNestedManyWithoutUsersInput
+  finance_amendments?: Prisma.finance_amendmentsCreateNestedManyWithoutUsersInput
+  finance_audit_logs?: Prisma.finance_audit_logsCreateNestedManyWithoutUsersInput
+  finance_day_closings?: Prisma.finance_day_closingsCreateNestedManyWithoutUsersInput
+  finance_income_approvals_finance_income_approvals_approved_byTousers?: Prisma.finance_income_approvalsCreateNestedManyWithoutUsers_finance_income_approvals_approved_byTousersInput
+  finance_income_approvals_finance_income_approvals_deleted_byTousers?: Prisma.finance_income_approvalsCreateNestedManyWithoutUsers_finance_income_approvals_deleted_byTousersInput
+  finance_income_approvals_finance_income_approvals_verified_byTousers?: Prisma.finance_income_approvalsCreateNestedManyWithoutUsers_finance_income_approvals_verified_byTousersInput
+  finance_queries_finance_queries_created_byTousers?: Prisma.finance_queriesCreateNestedManyWithoutUsers_finance_queries_created_byTousersInput
+  finance_queries_finance_queries_updated_byTousers?: Prisma.finance_queriesCreateNestedManyWithoutUsers_finance_queries_updated_byTousersInput
+  finance_ticket_messages?: Prisma.finance_ticket_messagesCreateNestedManyWithoutUsersInput
+  finance_ticket_versions?: Prisma.finance_ticket_versionsCreateNestedManyWithoutUsersInput
+  finance_tickets_finance_tickets_amended_byTousers?: Prisma.finance_ticketsCreateNestedManyWithoutUsers_finance_tickets_amended_byTousersInput
+  finance_tickets_finance_tickets_assigned_toTousers?: Prisma.finance_ticketsCreateNestedManyWithoutUsers_finance_tickets_assigned_toTousersInput
+  finance_tickets_finance_tickets_deleted_byTousers?: Prisma.finance_ticketsCreateNestedManyWithoutUsers_finance_tickets_deleted_byTousersInput
+  finance_tickets_finance_tickets_raised_byTousers?: Prisma.finance_ticketsCreateNestedManyWithoutUsers_finance_tickets_raised_byTousersInput
+  finance_tickets_finance_tickets_reopened_byTousers?: Prisma.finance_ticketsCreateNestedManyWithoutUsers_finance_tickets_reopened_byTousersInput
+  finance_tickets_finance_tickets_resolved_byTousers?: Prisma.finance_ticketsCreateNestedManyWithoutUsers_finance_tickets_resolved_byTousersInput
+  finance_tickets_finance_tickets_responded_byTousers?: Prisma.finance_ticketsCreateNestedManyWithoutUsers_finance_tickets_responded_byTousersInput
+  finance_tickets_finance_tickets_restored_byTousers?: Prisma.finance_ticketsCreateNestedManyWithoutUsers_finance_tickets_restored_byTousersInput
+  finance_transactions_finance_transactions_approved_byTousers?: Prisma.finance_transactionsCreateNestedManyWithoutUsers_finance_transactions_approved_byTousersInput
+  finance_transactions_finance_transactions_created_byTousers?: Prisma.finance_transactionsCreateNestedManyWithoutUsers_finance_transactions_created_byTousersInput
+  finance_transactions_finance_transactions_deleted_byTousers?: Prisma.finance_transactionsCreateNestedManyWithoutUsers_finance_transactions_deleted_byTousersInput
+  finance_transactions_finance_transactions_rejected_byTousers?: Prisma.finance_transactionsCreateNestedManyWithoutUsers_finance_transactions_rejected_byTousersInput
+  finance_transactions_finance_transactions_submitted_byTousers?: Prisma.finance_transactionsCreateNestedManyWithoutUsers_finance_transactions_submitted_byTousersInput
+  finance_transactions_finance_transactions_updated_byTousers?: Prisma.finance_transactionsCreateNestedManyWithoutUsers_finance_transactions_updated_byTousersInput
+  geofence_logs?: Prisma.geofence_logsCreateNestedManyWithoutUsersInput
+  ingredient_stock_movements?: Prisma.ingredient_stock_movementsCreateNestedManyWithoutUsersInput
+  ledger_entries_ledger_entries_approved_byTousers?: Prisma.ledger_entriesCreateNestedManyWithoutUsers_ledger_entries_approved_byTousersInput
+  ledger_entries_ledger_entries_created_byTousers?: Prisma.ledger_entriesCreateNestedManyWithoutUsers_ledger_entries_created_byTousersInput
+  ledger_entries_ledger_entries_deleted_byTousers?: Prisma.ledger_entriesCreateNestedManyWithoutUsers_ledger_entries_deleted_byTousersInput
+  ledger_entries_ledger_entries_updated_byTousers?: Prisma.ledger_entriesCreateNestedManyWithoutUsers_ledger_entries_updated_byTousersInput
+  ledger_heads?: Prisma.ledger_headsCreateNestedManyWithoutUsersInput
+  login_sessions_login_sessions_revoked_byTousers?: Prisma.login_sessionsCreateNestedManyWithoutUsers_login_sessions_revoked_byTousersInput
+  login_sessions_login_sessions_user_idTousers?: Prisma.login_sessionsCreateNestedManyWithoutUsers_login_sessions_user_idTousersInput
+  notification_reads?: Prisma.notification_readsCreateNestedManyWithoutUsersInput
+  notifications?: Prisma.notificationsCreateNestedManyWithoutUsersInput
+  orders?: Prisma.ordersCreateNestedManyWithoutUsersInput
+  packing_materials?: Prisma.packing_materialsCreateNestedManyWithoutUsersInput
+  partner_expenses_partner_expenses_approved_byTousers?: Prisma.partner_expensesCreateNestedManyWithoutUsers_partner_expenses_approved_byTousersInput
+  partner_expenses_partner_expenses_deleted_byTousers?: Prisma.partner_expensesCreateNestedManyWithoutUsers_partner_expenses_deleted_byTousersInput
+  partner_expenses_partner_expenses_requested_byTousers?: Prisma.partner_expensesCreateNestedManyWithoutUsers_partner_expenses_requested_byTousersInput
+  password_reset_tokens?: Prisma.password_reset_tokensCreateNestedManyWithoutUsersInput
+  payment_method_settings?: Prisma.payment_method_settingsCreateNestedManyWithoutUsersInput
+  product_price_history?: Prisma.product_price_historyCreateNestedManyWithoutUsersInput
+  production_orders_production_orders_approved_byTousers?: Prisma.production_ordersCreateNestedManyWithoutUsers_production_orders_approved_byTousersInput
+  production_orders_production_orders_cancelled_byTousers?: Prisma.production_ordersCreateNestedManyWithoutUsers_production_orders_cancelled_byTousersInput
+  production_orders_production_orders_created_byTousers?: Prisma.production_ordersCreateNestedManyWithoutUsers_production_orders_created_byTousersInput
+  production_orders_production_orders_verified_byTousers?: Prisma.production_ordersCreateNestedManyWithoutUsers_production_orders_verified_byTousersInput
+  production_returns_production_returns_created_byTousers?: Prisma.production_returnsCreateNestedManyWithoutUsers_production_returns_created_byTousersInput
+  production_returns_production_returns_reviewed_byTousers?: Prisma.production_returnsCreateNestedManyWithoutUsers_production_returns_reviewed_byTousersInput
+  production_stock_history?: Prisma.production_stock_historyCreateNestedManyWithoutUsersInput
+  purchase_bills_purchase_bills_decided_byTousers?: Prisma.purchase_billsCreateNestedManyWithoutUsers_purchase_bills_decided_byTousersInput
+  purchase_bills_purchase_bills_entered_byTousers?: Prisma.purchase_billsCreateNestedManyWithoutUsers_purchase_bills_entered_byTousersInput
+  purchase_deliveries?: Prisma.purchase_deliveriesCreateNestedManyWithoutUsersInput
+  purchase_demands_purchase_demands_closed_byTousers?: Prisma.purchase_demandsCreateNestedManyWithoutUsers_purchase_demands_closed_byTousersInput
+  purchase_demands_purchase_demands_created_byTousers?: Prisma.purchase_demandsCreateNestedManyWithoutUsers_purchase_demands_created_byTousersInput
+  purchase_demands_purchase_demands_sent_byTousers?: Prisma.purchase_demandsCreateNestedManyWithoutUsers_purchase_demands_sent_byTousersInput
+  purchase_demands_purchase_demands_verified_byTousers?: Prisma.purchase_demandsCreateNestedManyWithoutUsers_purchase_demands_verified_byTousersInput
+  purchase_items?: Prisma.purchase_itemsCreateNestedManyWithoutUsersInput
+  purchase_quotations_purchase_quotations_decided_byTousers?: Prisma.purchase_quotationsCreateNestedManyWithoutUsers_purchase_quotations_decided_byTousersInput
+  purchase_quotations_purchase_quotations_entered_byTousers?: Prisma.purchase_quotationsCreateNestedManyWithoutUsers_purchase_quotations_entered_byTousersInput
+  purchase_receipts?: Prisma.purchase_receiptsCreateNestedManyWithoutUsersInput
+  push_subscriptions?: Prisma.push_subscriptionsCreateNestedManyWithoutUsersInput
+  restriction_events?: Prisma.restriction_eventsCreateNestedManyWithoutUsersInput
+  restriction_requests_restriction_requests_decided_byTousers?: Prisma.restriction_requestsCreateNestedManyWithoutUsers_restriction_requests_decided_byTousersInput
+  restriction_requests_restriction_requests_requested_byTousers?: Prisma.restriction_requestsCreateNestedManyWithoutUsers_restriction_requests_requested_byTousersInput
+  restriction_rules?: Prisma.restriction_rulesCreateNestedManyWithoutUsersInput
+  return_stock_history?: Prisma.return_stock_historyCreateNestedManyWithoutUsersInput
+  salary_payments_salary_payments_approved_byTousers?: Prisma.salary_paymentsCreateNestedManyWithoutUsers_salary_payments_approved_byTousersInput
+  salary_payments_salary_payments_created_byTousers?: Prisma.salary_paymentsCreateNestedManyWithoutUsers_salary_payments_created_byTousersInput
+  salary_payments_salary_payments_deleted_byTousers?: Prisma.salary_paymentsCreateNestedManyWithoutUsers_salary_payments_deleted_byTousersInput
+  salary_revisions?: Prisma.salary_revisionsCreateNestedManyWithoutUsersInput
+  settings?: Prisma.settingsCreateNestedManyWithoutUsersInput
+  special_events?: Prisma.special_eventsCreateNestedManyWithoutUsersInput
+  special_orders_special_orders_approved_byTousers?: Prisma.special_ordersCreateNestedManyWithoutUsers_special_orders_approved_byTousersInput
+  special_orders_special_orders_created_byTousers?: Prisma.special_ordersCreateNestedManyWithoutUsers_special_orders_created_byTousersInput
+  special_orders_special_orders_prepared_byTousers?: Prisma.special_ordersCreateNestedManyWithoutUsers_special_orders_prepared_byTousersInput
+  special_orders_special_orders_verified_byTousers?: Prisma.special_ordersCreateNestedManyWithoutUsers_special_orders_verified_byTousersInput
+  stock_audit_log?: Prisma.stock_audit_logCreateNestedManyWithoutUsersInput
+  supplier_access_tokens?: Prisma.supplier_access_tokensCreateNestedManyWithoutUsersInput
+  supplier_credits_supplier_credits_decided_byTousers?: Prisma.supplier_creditsCreateNestedManyWithoutUsers_supplier_credits_decided_byTousersInput
+  supplier_credits_supplier_credits_requested_byTousers?: Prisma.supplier_creditsCreateNestedManyWithoutUsers_supplier_credits_requested_byTousersInput
+  supplier_payments_supplier_payments_approved_byTousers?: Prisma.supplier_paymentsCreateNestedManyWithoutUsers_supplier_payments_approved_byTousersInput
+  supplier_payments_supplier_payments_recorded_byTousers?: Prisma.supplier_paymentsCreateNestedManyWithoutUsers_supplier_payments_recorded_byTousersInput
+  supplier_payments_supplier_payments_reversed_byTousers?: Prisma.supplier_paymentsCreateNestedManyWithoutUsers_supplier_payments_reversed_byTousersInput
+  suppliers_suppliers_created_byTousers?: Prisma.suppliersCreateNestedManyWithoutUsers_suppliers_created_byTousersInput
+  suppliers_suppliers_deleted_byTousers?: Prisma.suppliersCreateNestedManyWithoutUsers_suppliers_deleted_byTousersInput
+  support_tickets_support_tickets_raised_byTousers?: Prisma.support_ticketsCreateNestedManyWithoutUsers_support_tickets_raised_byTousersInput
+  support_tickets_support_tickets_resolved_byTousers?: Prisma.support_ticketsCreateNestedManyWithoutUsers_support_tickets_resolved_byTousersInput
+  user_credentials?: Prisma.user_credentialsCreateNestedOneWithoutUsersInput
+  branches_users_branch_idTobranches?: Prisma.branchesCreateNestedOneWithoutUsers_users_branch_idTobranchesInput
+  users?: Prisma.usersCreateNestedOneWithoutOther_usersInput
+  other_users?: Prisma.usersCreateNestedManyWithoutUsersInput
+  whatsapp_messages_whatsapp_messages_created_byTousers?: Prisma.whatsapp_messagesCreateNestedManyWithoutUsers_whatsapp_messages_created_byTousersInput
+  whatsapp_messages_whatsapp_messages_reviewed_byTousers?: Prisma.whatsapp_messagesCreateNestedManyWithoutUsers_whatsapp_messages_reviewed_byTousersInput
+}
+
+export type usersUncheckedCreateWithoutFinance_ai_capturesInput = {
+  id?: string
+  email: string
+  display_name?: string | null
+  phone?: string | null
+  username?: string | null
+  role: $Enums.user_role
+  branch_id?: string | null
+  branch_name?: string | null
+  status?: $Enums.user_status
+  last_login_at?: Date | string | null
+  must_change_password?: boolean
+  last_password_reset?: Date | string | null
+  password_reset_by?: string | null
+  password_reset_by_name?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  user_code?: string
+  attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
+  audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
+  auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
+  backup_jobs?: Prisma.backup_jobsUncheckedCreateNestedManyWithoutUsersInput
+  branch_discounts_branch_discounts_created_byTousers?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutUsers_branch_discounts_created_byTousersInput
+  branch_discounts_branch_discounts_reviewed_byTousers?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutUsers_branch_discounts_reviewed_byTousersInput
+  branch_locations?: Prisma.branch_locationsUncheckedCreateNestedManyWithoutUsersInput
+  branch_share_payments_branch_share_payments_approved_byTousers?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutUsers_branch_share_payments_approved_byTousersInput
+  branch_share_payments_branch_share_payments_deleted_byTousers?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutUsers_branch_share_payments_deleted_byTousersInput
+  branch_share_payments_branch_share_payments_requested_byTousers?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutUsers_branch_share_payments_requested_byTousersInput
+  branches_branches_manager_idTousers?: Prisma.branchesUncheckedCreateNestedManyWithoutUsers_branches_manager_idTousersInput
+  cash_transfers_cash_transfers_approved_byTousers?: Prisma.cash_transfersUncheckedCreateNestedManyWithoutUsers_cash_transfers_approved_byTousersInput
+  cash_transfers_cash_transfers_created_byTousers?: Prisma.cash_transfersUncheckedCreateNestedManyWithoutUsers_cash_transfers_created_byTousersInput
+  cash_transfers_cash_transfers_deleted_byTousers?: Prisma.cash_transfersUncheckedCreateNestedManyWithoutUsers_cash_transfers_deleted_byTousersInput
+  cash_transfers_cash_transfers_resubmitted_byTousers?: Prisma.cash_transfersUncheckedCreateNestedManyWithoutUsers_cash_transfers_resubmitted_byTousersInput
+  cash_transfers_cash_transfers_forwarded_byTousers?: Prisma.cash_transfersUncheckedCreateNestedManyWithoutUsers_cash_transfers_forwarded_byTousersInput
+  cash_transfers_cash_transfers_updated_byTousers?: Prisma.cash_transfersUncheckedCreateNestedManyWithoutUsers_cash_transfers_updated_byTousersInput
+  daily_sale_record_audits?: Prisma.daily_sale_record_auditsUncheckedCreateNestedManyWithoutUsersInput
+  daily_sale_records_daily_sale_records_created_byTousers?: Prisma.daily_sale_recordsUncheckedCreateNestedManyWithoutUsers_daily_sale_records_created_byTousersInput
+  daily_sale_records_daily_sale_records_fed_byTousers?: Prisma.daily_sale_recordsUncheckedCreateNestedManyWithoutUsers_daily_sale_records_fed_byTousersInput
+  daily_sale_records_daily_sale_records_locked_byTousers?: Prisma.daily_sale_recordsUncheckedCreateNestedManyWithoutUsers_daily_sale_records_locked_byTousersInput
+  daily_sale_records_daily_sale_records_verified_byTousers?: Prisma.daily_sale_recordsUncheckedCreateNestedManyWithoutUsers_daily_sale_records_verified_byTousersInput
+  employee_advances_employee_advances_approved_byTousers?: Prisma.employee_advancesUncheckedCreateNestedManyWithoutUsers_employee_advances_approved_byTousersInput
+  employee_advances_employee_advances_created_byTousers?: Prisma.employee_advancesUncheckedCreateNestedManyWithoutUsers_employee_advances_created_byTousersInput
+  employee_advances_employee_advances_deleted_byTousers?: Prisma.employee_advancesUncheckedCreateNestedManyWithoutUsers_employee_advances_deleted_byTousersInput
+  employee_resignations_employee_resignations_cancelled_byTousers?: Prisma.employee_resignationsUncheckedCreateNestedManyWithoutUsers_employee_resignations_cancelled_byTousersInput
+  employee_resignations_employee_resignations_submitted_byTousers?: Prisma.employee_resignationsUncheckedCreateNestedManyWithoutUsers_employee_resignations_submitted_byTousersInput
+  event_branch_demands_event_branch_demands_reviewed_byTousers?: Prisma.event_branch_demandsUncheckedCreateNestedManyWithoutUsers_event_branch_demands_reviewed_byTousersInput
+  event_branch_demands_event_branch_demands_submitted_byTousers?: Prisma.event_branch_demandsUncheckedCreateNestedManyWithoutUsers_event_branch_demands_submitted_byTousersInput
+  event_production_status?: Prisma.event_production_statusUncheckedCreateNestedManyWithoutUsersInput
+  expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutUsersInput
+  finance_amendments?: Prisma.finance_amendmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_audit_logs?: Prisma.finance_audit_logsUncheckedCreateNestedManyWithoutUsersInput
+  finance_day_closings?: Prisma.finance_day_closingsUncheckedCreateNestedManyWithoutUsersInput
+  finance_income_approvals_finance_income_approvals_approved_byTousers?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutUsers_finance_income_approvals_approved_byTousersInput
+  finance_income_approvals_finance_income_approvals_deleted_byTousers?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutUsers_finance_income_approvals_deleted_byTousersInput
+  finance_income_approvals_finance_income_approvals_verified_byTousers?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutUsers_finance_income_approvals_verified_byTousersInput
+  finance_queries_finance_queries_created_byTousers?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutUsers_finance_queries_created_byTousersInput
+  finance_queries_finance_queries_updated_byTousers?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutUsers_finance_queries_updated_byTousersInput
+  finance_ticket_messages?: Prisma.finance_ticket_messagesUncheckedCreateNestedManyWithoutUsersInput
+  finance_ticket_versions?: Prisma.finance_ticket_versionsUncheckedCreateNestedManyWithoutUsersInput
+  finance_tickets_finance_tickets_amended_byTousers?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutUsers_finance_tickets_amended_byTousersInput
+  finance_tickets_finance_tickets_assigned_toTousers?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutUsers_finance_tickets_assigned_toTousersInput
+  finance_tickets_finance_tickets_deleted_byTousers?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutUsers_finance_tickets_deleted_byTousersInput
+  finance_tickets_finance_tickets_raised_byTousers?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutUsers_finance_tickets_raised_byTousersInput
+  finance_tickets_finance_tickets_reopened_byTousers?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutUsers_finance_tickets_reopened_byTousersInput
+  finance_tickets_finance_tickets_resolved_byTousers?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutUsers_finance_tickets_resolved_byTousersInput
+  finance_tickets_finance_tickets_responded_byTousers?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutUsers_finance_tickets_responded_byTousersInput
+  finance_tickets_finance_tickets_restored_byTousers?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutUsers_finance_tickets_restored_byTousersInput
+  finance_transactions_finance_transactions_approved_byTousers?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutUsers_finance_transactions_approved_byTousersInput
+  finance_transactions_finance_transactions_created_byTousers?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutUsers_finance_transactions_created_byTousersInput
+  finance_transactions_finance_transactions_deleted_byTousers?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutUsers_finance_transactions_deleted_byTousersInput
+  finance_transactions_finance_transactions_rejected_byTousers?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutUsers_finance_transactions_rejected_byTousersInput
+  finance_transactions_finance_transactions_submitted_byTousers?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutUsers_finance_transactions_submitted_byTousersInput
+  finance_transactions_finance_transactions_updated_byTousers?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutUsers_finance_transactions_updated_byTousersInput
+  geofence_logs?: Prisma.geofence_logsUncheckedCreateNestedManyWithoutUsersInput
+  ingredient_stock_movements?: Prisma.ingredient_stock_movementsUncheckedCreateNestedManyWithoutUsersInput
+  ledger_entries_ledger_entries_approved_byTousers?: Prisma.ledger_entriesUncheckedCreateNestedManyWithoutUsers_ledger_entries_approved_byTousersInput
+  ledger_entries_ledger_entries_created_byTousers?: Prisma.ledger_entriesUncheckedCreateNestedManyWithoutUsers_ledger_entries_created_byTousersInput
+  ledger_entries_ledger_entries_deleted_byTousers?: Prisma.ledger_entriesUncheckedCreateNestedManyWithoutUsers_ledger_entries_deleted_byTousersInput
+  ledger_entries_ledger_entries_updated_byTousers?: Prisma.ledger_entriesUncheckedCreateNestedManyWithoutUsers_ledger_entries_updated_byTousersInput
+  ledger_heads?: Prisma.ledger_headsUncheckedCreateNestedManyWithoutUsersInput
+  login_sessions_login_sessions_revoked_byTousers?: Prisma.login_sessionsUncheckedCreateNestedManyWithoutUsers_login_sessions_revoked_byTousersInput
+  login_sessions_login_sessions_user_idTousers?: Prisma.login_sessionsUncheckedCreateNestedManyWithoutUsers_login_sessions_user_idTousersInput
+  notification_reads?: Prisma.notification_readsUncheckedCreateNestedManyWithoutUsersInput
+  notifications?: Prisma.notificationsUncheckedCreateNestedManyWithoutUsersInput
+  orders?: Prisma.ordersUncheckedCreateNestedManyWithoutUsersInput
+  packing_materials?: Prisma.packing_materialsUncheckedCreateNestedManyWithoutUsersInput
+  partner_expenses_partner_expenses_approved_byTousers?: Prisma.partner_expensesUncheckedCreateNestedManyWithoutUsers_partner_expenses_approved_byTousersInput
+  partner_expenses_partner_expenses_deleted_byTousers?: Prisma.partner_expensesUncheckedCreateNestedManyWithoutUsers_partner_expenses_deleted_byTousersInput
+  partner_expenses_partner_expenses_requested_byTousers?: Prisma.partner_expensesUncheckedCreateNestedManyWithoutUsers_partner_expenses_requested_byTousersInput
+  password_reset_tokens?: Prisma.password_reset_tokensUncheckedCreateNestedManyWithoutUsersInput
+  payment_method_settings?: Prisma.payment_method_settingsUncheckedCreateNestedManyWithoutUsersInput
+  product_price_history?: Prisma.product_price_historyUncheckedCreateNestedManyWithoutUsersInput
+  production_orders_production_orders_approved_byTousers?: Prisma.production_ordersUncheckedCreateNestedManyWithoutUsers_production_orders_approved_byTousersInput
+  production_orders_production_orders_cancelled_byTousers?: Prisma.production_ordersUncheckedCreateNestedManyWithoutUsers_production_orders_cancelled_byTousersInput
+  production_orders_production_orders_created_byTousers?: Prisma.production_ordersUncheckedCreateNestedManyWithoutUsers_production_orders_created_byTousersInput
+  production_orders_production_orders_verified_byTousers?: Prisma.production_ordersUncheckedCreateNestedManyWithoutUsers_production_orders_verified_byTousersInput
+  production_returns_production_returns_created_byTousers?: Prisma.production_returnsUncheckedCreateNestedManyWithoutUsers_production_returns_created_byTousersInput
+  production_returns_production_returns_reviewed_byTousers?: Prisma.production_returnsUncheckedCreateNestedManyWithoutUsers_production_returns_reviewed_byTousersInput
+  production_stock_history?: Prisma.production_stock_historyUncheckedCreateNestedManyWithoutUsersInput
+  purchase_bills_purchase_bills_decided_byTousers?: Prisma.purchase_billsUncheckedCreateNestedManyWithoutUsers_purchase_bills_decided_byTousersInput
+  purchase_bills_purchase_bills_entered_byTousers?: Prisma.purchase_billsUncheckedCreateNestedManyWithoutUsers_purchase_bills_entered_byTousersInput
+  purchase_deliveries?: Prisma.purchase_deliveriesUncheckedCreateNestedManyWithoutUsersInput
+  purchase_demands_purchase_demands_closed_byTousers?: Prisma.purchase_demandsUncheckedCreateNestedManyWithoutUsers_purchase_demands_closed_byTousersInput
+  purchase_demands_purchase_demands_created_byTousers?: Prisma.purchase_demandsUncheckedCreateNestedManyWithoutUsers_purchase_demands_created_byTousersInput
+  purchase_demands_purchase_demands_sent_byTousers?: Prisma.purchase_demandsUncheckedCreateNestedManyWithoutUsers_purchase_demands_sent_byTousersInput
+  purchase_demands_purchase_demands_verified_byTousers?: Prisma.purchase_demandsUncheckedCreateNestedManyWithoutUsers_purchase_demands_verified_byTousersInput
+  purchase_items?: Prisma.purchase_itemsUncheckedCreateNestedManyWithoutUsersInput
+  purchase_quotations_purchase_quotations_decided_byTousers?: Prisma.purchase_quotationsUncheckedCreateNestedManyWithoutUsers_purchase_quotations_decided_byTousersInput
+  purchase_quotations_purchase_quotations_entered_byTousers?: Prisma.purchase_quotationsUncheckedCreateNestedManyWithoutUsers_purchase_quotations_entered_byTousersInput
+  purchase_receipts?: Prisma.purchase_receiptsUncheckedCreateNestedManyWithoutUsersInput
+  push_subscriptions?: Prisma.push_subscriptionsUncheckedCreateNestedManyWithoutUsersInput
+  restriction_events?: Prisma.restriction_eventsUncheckedCreateNestedManyWithoutUsersInput
+  restriction_requests_restriction_requests_decided_byTousers?: Prisma.restriction_requestsUncheckedCreateNestedManyWithoutUsers_restriction_requests_decided_byTousersInput
+  restriction_requests_restriction_requests_requested_byTousers?: Prisma.restriction_requestsUncheckedCreateNestedManyWithoutUsers_restriction_requests_requested_byTousersInput
+  restriction_rules?: Prisma.restriction_rulesUncheckedCreateNestedManyWithoutUsersInput
+  return_stock_history?: Prisma.return_stock_historyUncheckedCreateNestedManyWithoutUsersInput
+  salary_payments_salary_payments_approved_byTousers?: Prisma.salary_paymentsUncheckedCreateNestedManyWithoutUsers_salary_payments_approved_byTousersInput
+  salary_payments_salary_payments_created_byTousers?: Prisma.salary_paymentsUncheckedCreateNestedManyWithoutUsers_salary_payments_created_byTousersInput
+  salary_payments_salary_payments_deleted_byTousers?: Prisma.salary_paymentsUncheckedCreateNestedManyWithoutUsers_salary_payments_deleted_byTousersInput
+  salary_revisions?: Prisma.salary_revisionsUncheckedCreateNestedManyWithoutUsersInput
+  settings?: Prisma.settingsUncheckedCreateNestedManyWithoutUsersInput
+  special_events?: Prisma.special_eventsUncheckedCreateNestedManyWithoutUsersInput
+  special_orders_special_orders_approved_byTousers?: Prisma.special_ordersUncheckedCreateNestedManyWithoutUsers_special_orders_approved_byTousersInput
+  special_orders_special_orders_created_byTousers?: Prisma.special_ordersUncheckedCreateNestedManyWithoutUsers_special_orders_created_byTousersInput
+  special_orders_special_orders_prepared_byTousers?: Prisma.special_ordersUncheckedCreateNestedManyWithoutUsers_special_orders_prepared_byTousersInput
+  special_orders_special_orders_verified_byTousers?: Prisma.special_ordersUncheckedCreateNestedManyWithoutUsers_special_orders_verified_byTousersInput
+  stock_audit_log?: Prisma.stock_audit_logUncheckedCreateNestedManyWithoutUsersInput
+  supplier_access_tokens?: Prisma.supplier_access_tokensUncheckedCreateNestedManyWithoutUsersInput
+  supplier_credits_supplier_credits_decided_byTousers?: Prisma.supplier_creditsUncheckedCreateNestedManyWithoutUsers_supplier_credits_decided_byTousersInput
+  supplier_credits_supplier_credits_requested_byTousers?: Prisma.supplier_creditsUncheckedCreateNestedManyWithoutUsers_supplier_credits_requested_byTousersInput
+  supplier_payments_supplier_payments_approved_byTousers?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutUsers_supplier_payments_approved_byTousersInput
+  supplier_payments_supplier_payments_recorded_byTousers?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutUsers_supplier_payments_recorded_byTousersInput
+  supplier_payments_supplier_payments_reversed_byTousers?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutUsers_supplier_payments_reversed_byTousersInput
+  suppliers_suppliers_created_byTousers?: Prisma.suppliersUncheckedCreateNestedManyWithoutUsers_suppliers_created_byTousersInput
+  suppliers_suppliers_deleted_byTousers?: Prisma.suppliersUncheckedCreateNestedManyWithoutUsers_suppliers_deleted_byTousersInput
+  support_tickets_support_tickets_raised_byTousers?: Prisma.support_ticketsUncheckedCreateNestedManyWithoutUsers_support_tickets_raised_byTousersInput
+  support_tickets_support_tickets_resolved_byTousers?: Prisma.support_ticketsUncheckedCreateNestedManyWithoutUsers_support_tickets_resolved_byTousersInput
+  user_credentials?: Prisma.user_credentialsUncheckedCreateNestedOneWithoutUsersInput
+  other_users?: Prisma.usersUncheckedCreateNestedManyWithoutUsersInput
+  whatsapp_messages_whatsapp_messages_created_byTousers?: Prisma.whatsapp_messagesUncheckedCreateNestedManyWithoutUsers_whatsapp_messages_created_byTousersInput
+  whatsapp_messages_whatsapp_messages_reviewed_byTousers?: Prisma.whatsapp_messagesUncheckedCreateNestedManyWithoutUsers_whatsapp_messages_reviewed_byTousersInput
+}
+
+export type usersCreateOrConnectWithoutFinance_ai_capturesInput = {
+  where: Prisma.usersWhereUniqueInput
+  create: Prisma.XOR<Prisma.usersCreateWithoutFinance_ai_capturesInput, Prisma.usersUncheckedCreateWithoutFinance_ai_capturesInput>
+}
+
+export type usersUpsertWithoutFinance_ai_capturesInput = {
+  update: Prisma.XOR<Prisma.usersUpdateWithoutFinance_ai_capturesInput, Prisma.usersUncheckedUpdateWithoutFinance_ai_capturesInput>
+  create: Prisma.XOR<Prisma.usersCreateWithoutFinance_ai_capturesInput, Prisma.usersUncheckedCreateWithoutFinance_ai_capturesInput>
+  where?: Prisma.usersWhereInput
+}
+
+export type usersUpdateToOneWithWhereWithoutFinance_ai_capturesInput = {
+  where?: Prisma.usersWhereInput
+  data: Prisma.XOR<Prisma.usersUpdateWithoutFinance_ai_capturesInput, Prisma.usersUncheckedUpdateWithoutFinance_ai_capturesInput>
+}
+
+export type usersUpdateWithoutFinance_ai_capturesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.Enumuser_roleFieldUpdateOperationsInput | $Enums.user_role
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.Enumuser_statusFieldUpdateOperationsInput | $Enums.user_status
+  last_login_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  must_change_password?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  last_password_reset?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  password_reset_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user_code?: Prisma.StringFieldUpdateOperationsInput | string
+  attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
+  audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
+  auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
+  backup_jobs?: Prisma.backup_jobsUpdateManyWithoutUsersNestedInput
+  branch_discounts_branch_discounts_created_byTousers?: Prisma.branch_discountsUpdateManyWithoutUsers_branch_discounts_created_byTousersNestedInput
+  branch_discounts_branch_discounts_reviewed_byTousers?: Prisma.branch_discountsUpdateManyWithoutUsers_branch_discounts_reviewed_byTousersNestedInput
+  branch_locations?: Prisma.branch_locationsUpdateManyWithoutUsersNestedInput
+  branch_share_payments_branch_share_payments_approved_byTousers?: Prisma.branch_share_paymentsUpdateManyWithoutUsers_branch_share_payments_approved_byTousersNestedInput
+  branch_share_payments_branch_share_payments_deleted_byTousers?: Prisma.branch_share_paymentsUpdateManyWithoutUsers_branch_share_payments_deleted_byTousersNestedInput
+  branch_share_payments_branch_share_payments_requested_byTousers?: Prisma.branch_share_paymentsUpdateManyWithoutUsers_branch_share_payments_requested_byTousersNestedInput
+  branches_branches_manager_idTousers?: Prisma.branchesUpdateManyWithoutUsers_branches_manager_idTousersNestedInput
+  cash_transfers_cash_transfers_approved_byTousers?: Prisma.cash_transfersUpdateManyWithoutUsers_cash_transfers_approved_byTousersNestedInput
+  cash_transfers_cash_transfers_created_byTousers?: Prisma.cash_transfersUpdateManyWithoutUsers_cash_transfers_created_byTousersNestedInput
+  cash_transfers_cash_transfers_deleted_byTousers?: Prisma.cash_transfersUpdateManyWithoutUsers_cash_transfers_deleted_byTousersNestedInput
+  cash_transfers_cash_transfers_resubmitted_byTousers?: Prisma.cash_transfersUpdateManyWithoutUsers_cash_transfers_resubmitted_byTousersNestedInput
+  cash_transfers_cash_transfers_forwarded_byTousers?: Prisma.cash_transfersUpdateManyWithoutUsers_cash_transfers_forwarded_byTousersNestedInput
+  cash_transfers_cash_transfers_updated_byTousers?: Prisma.cash_transfersUpdateManyWithoutUsers_cash_transfers_updated_byTousersNestedInput
+  daily_sale_record_audits?: Prisma.daily_sale_record_auditsUpdateManyWithoutUsersNestedInput
+  daily_sale_records_daily_sale_records_created_byTousers?: Prisma.daily_sale_recordsUpdateManyWithoutUsers_daily_sale_records_created_byTousersNestedInput
+  daily_sale_records_daily_sale_records_fed_byTousers?: Prisma.daily_sale_recordsUpdateManyWithoutUsers_daily_sale_records_fed_byTousersNestedInput
+  daily_sale_records_daily_sale_records_locked_byTousers?: Prisma.daily_sale_recordsUpdateManyWithoutUsers_daily_sale_records_locked_byTousersNestedInput
+  daily_sale_records_daily_sale_records_verified_byTousers?: Prisma.daily_sale_recordsUpdateManyWithoutUsers_daily_sale_records_verified_byTousersNestedInput
+  employee_advances_employee_advances_approved_byTousers?: Prisma.employee_advancesUpdateManyWithoutUsers_employee_advances_approved_byTousersNestedInput
+  employee_advances_employee_advances_created_byTousers?: Prisma.employee_advancesUpdateManyWithoutUsers_employee_advances_created_byTousersNestedInput
+  employee_advances_employee_advances_deleted_byTousers?: Prisma.employee_advancesUpdateManyWithoutUsers_employee_advances_deleted_byTousersNestedInput
+  employee_resignations_employee_resignations_cancelled_byTousers?: Prisma.employee_resignationsUpdateManyWithoutUsers_employee_resignations_cancelled_byTousersNestedInput
+  employee_resignations_employee_resignations_submitted_byTousers?: Prisma.employee_resignationsUpdateManyWithoutUsers_employee_resignations_submitted_byTousersNestedInput
+  event_branch_demands_event_branch_demands_reviewed_byTousers?: Prisma.event_branch_demandsUpdateManyWithoutUsers_event_branch_demands_reviewed_byTousersNestedInput
+  event_branch_demands_event_branch_demands_submitted_byTousers?: Prisma.event_branch_demandsUpdateManyWithoutUsers_event_branch_demands_submitted_byTousersNestedInput
+  event_production_status?: Prisma.event_production_statusUpdateManyWithoutUsersNestedInput
+  expenses?: Prisma.expensesUpdateManyWithoutUsersNestedInput
+  finance_amendments?: Prisma.finance_amendmentsUpdateManyWithoutUsersNestedInput
+  finance_audit_logs?: Prisma.finance_audit_logsUpdateManyWithoutUsersNestedInput
+  finance_day_closings?: Prisma.finance_day_closingsUpdateManyWithoutUsersNestedInput
+  finance_income_approvals_finance_income_approvals_approved_byTousers?: Prisma.finance_income_approvalsUpdateManyWithoutUsers_finance_income_approvals_approved_byTousersNestedInput
+  finance_income_approvals_finance_income_approvals_deleted_byTousers?: Prisma.finance_income_approvalsUpdateManyWithoutUsers_finance_income_approvals_deleted_byTousersNestedInput
+  finance_income_approvals_finance_income_approvals_verified_byTousers?: Prisma.finance_income_approvalsUpdateManyWithoutUsers_finance_income_approvals_verified_byTousersNestedInput
+  finance_queries_finance_queries_created_byTousers?: Prisma.finance_queriesUpdateManyWithoutUsers_finance_queries_created_byTousersNestedInput
+  finance_queries_finance_queries_updated_byTousers?: Prisma.finance_queriesUpdateManyWithoutUsers_finance_queries_updated_byTousersNestedInput
+  finance_ticket_messages?: Prisma.finance_ticket_messagesUpdateManyWithoutUsersNestedInput
+  finance_ticket_versions?: Prisma.finance_ticket_versionsUpdateManyWithoutUsersNestedInput
+  finance_tickets_finance_tickets_amended_byTousers?: Prisma.finance_ticketsUpdateManyWithoutUsers_finance_tickets_amended_byTousersNestedInput
+  finance_tickets_finance_tickets_assigned_toTousers?: Prisma.finance_ticketsUpdateManyWithoutUsers_finance_tickets_assigned_toTousersNestedInput
+  finance_tickets_finance_tickets_deleted_byTousers?: Prisma.finance_ticketsUpdateManyWithoutUsers_finance_tickets_deleted_byTousersNestedInput
+  finance_tickets_finance_tickets_raised_byTousers?: Prisma.finance_ticketsUpdateManyWithoutUsers_finance_tickets_raised_byTousersNestedInput
+  finance_tickets_finance_tickets_reopened_byTousers?: Prisma.finance_ticketsUpdateManyWithoutUsers_finance_tickets_reopened_byTousersNestedInput
+  finance_tickets_finance_tickets_resolved_byTousers?: Prisma.finance_ticketsUpdateManyWithoutUsers_finance_tickets_resolved_byTousersNestedInput
+  finance_tickets_finance_tickets_responded_byTousers?: Prisma.finance_ticketsUpdateManyWithoutUsers_finance_tickets_responded_byTousersNestedInput
+  finance_tickets_finance_tickets_restored_byTousers?: Prisma.finance_ticketsUpdateManyWithoutUsers_finance_tickets_restored_byTousersNestedInput
+  finance_transactions_finance_transactions_approved_byTousers?: Prisma.finance_transactionsUpdateManyWithoutUsers_finance_transactions_approved_byTousersNestedInput
+  finance_transactions_finance_transactions_created_byTousers?: Prisma.finance_transactionsUpdateManyWithoutUsers_finance_transactions_created_byTousersNestedInput
+  finance_transactions_finance_transactions_deleted_byTousers?: Prisma.finance_transactionsUpdateManyWithoutUsers_finance_transactions_deleted_byTousersNestedInput
+  finance_transactions_finance_transactions_rejected_byTousers?: Prisma.finance_transactionsUpdateManyWithoutUsers_finance_transactions_rejected_byTousersNestedInput
+  finance_transactions_finance_transactions_submitted_byTousers?: Prisma.finance_transactionsUpdateManyWithoutUsers_finance_transactions_submitted_byTousersNestedInput
+  finance_transactions_finance_transactions_updated_byTousers?: Prisma.finance_transactionsUpdateManyWithoutUsers_finance_transactions_updated_byTousersNestedInput
+  geofence_logs?: Prisma.geofence_logsUpdateManyWithoutUsersNestedInput
+  ingredient_stock_movements?: Prisma.ingredient_stock_movementsUpdateManyWithoutUsersNestedInput
+  ledger_entries_ledger_entries_approved_byTousers?: Prisma.ledger_entriesUpdateManyWithoutUsers_ledger_entries_approved_byTousersNestedInput
+  ledger_entries_ledger_entries_created_byTousers?: Prisma.ledger_entriesUpdateManyWithoutUsers_ledger_entries_created_byTousersNestedInput
+  ledger_entries_ledger_entries_deleted_byTousers?: Prisma.ledger_entriesUpdateManyWithoutUsers_ledger_entries_deleted_byTousersNestedInput
+  ledger_entries_ledger_entries_updated_byTousers?: Prisma.ledger_entriesUpdateManyWithoutUsers_ledger_entries_updated_byTousersNestedInput
+  ledger_heads?: Prisma.ledger_headsUpdateManyWithoutUsersNestedInput
+  login_sessions_login_sessions_revoked_byTousers?: Prisma.login_sessionsUpdateManyWithoutUsers_login_sessions_revoked_byTousersNestedInput
+  login_sessions_login_sessions_user_idTousers?: Prisma.login_sessionsUpdateManyWithoutUsers_login_sessions_user_idTousersNestedInput
+  notification_reads?: Prisma.notification_readsUpdateManyWithoutUsersNestedInput
+  notifications?: Prisma.notificationsUpdateManyWithoutUsersNestedInput
+  orders?: Prisma.ordersUpdateManyWithoutUsersNestedInput
+  packing_materials?: Prisma.packing_materialsUpdateManyWithoutUsersNestedInput
+  partner_expenses_partner_expenses_approved_byTousers?: Prisma.partner_expensesUpdateManyWithoutUsers_partner_expenses_approved_byTousersNestedInput
+  partner_expenses_partner_expenses_deleted_byTousers?: Prisma.partner_expensesUpdateManyWithoutUsers_partner_expenses_deleted_byTousersNestedInput
+  partner_expenses_partner_expenses_requested_byTousers?: Prisma.partner_expensesUpdateManyWithoutUsers_partner_expenses_requested_byTousersNestedInput
+  password_reset_tokens?: Prisma.password_reset_tokensUpdateManyWithoutUsersNestedInput
+  payment_method_settings?: Prisma.payment_method_settingsUpdateManyWithoutUsersNestedInput
+  product_price_history?: Prisma.product_price_historyUpdateManyWithoutUsersNestedInput
+  production_orders_production_orders_approved_byTousers?: Prisma.production_ordersUpdateManyWithoutUsers_production_orders_approved_byTousersNestedInput
+  production_orders_production_orders_cancelled_byTousers?: Prisma.production_ordersUpdateManyWithoutUsers_production_orders_cancelled_byTousersNestedInput
+  production_orders_production_orders_created_byTousers?: Prisma.production_ordersUpdateManyWithoutUsers_production_orders_created_byTousersNestedInput
+  production_orders_production_orders_verified_byTousers?: Prisma.production_ordersUpdateManyWithoutUsers_production_orders_verified_byTousersNestedInput
+  production_returns_production_returns_created_byTousers?: Prisma.production_returnsUpdateManyWithoutUsers_production_returns_created_byTousersNestedInput
+  production_returns_production_returns_reviewed_byTousers?: Prisma.production_returnsUpdateManyWithoutUsers_production_returns_reviewed_byTousersNestedInput
+  production_stock_history?: Prisma.production_stock_historyUpdateManyWithoutUsersNestedInput
+  purchase_bills_purchase_bills_decided_byTousers?: Prisma.purchase_billsUpdateManyWithoutUsers_purchase_bills_decided_byTousersNestedInput
+  purchase_bills_purchase_bills_entered_byTousers?: Prisma.purchase_billsUpdateManyWithoutUsers_purchase_bills_entered_byTousersNestedInput
+  purchase_deliveries?: Prisma.purchase_deliveriesUpdateManyWithoutUsersNestedInput
+  purchase_demands_purchase_demands_closed_byTousers?: Prisma.purchase_demandsUpdateManyWithoutUsers_purchase_demands_closed_byTousersNestedInput
+  purchase_demands_purchase_demands_created_byTousers?: Prisma.purchase_demandsUpdateManyWithoutUsers_purchase_demands_created_byTousersNestedInput
+  purchase_demands_purchase_demands_sent_byTousers?: Prisma.purchase_demandsUpdateManyWithoutUsers_purchase_demands_sent_byTousersNestedInput
+  purchase_demands_purchase_demands_verified_byTousers?: Prisma.purchase_demandsUpdateManyWithoutUsers_purchase_demands_verified_byTousersNestedInput
+  purchase_items?: Prisma.purchase_itemsUpdateManyWithoutUsersNestedInput
+  purchase_quotations_purchase_quotations_decided_byTousers?: Prisma.purchase_quotationsUpdateManyWithoutUsers_purchase_quotations_decided_byTousersNestedInput
+  purchase_quotations_purchase_quotations_entered_byTousers?: Prisma.purchase_quotationsUpdateManyWithoutUsers_purchase_quotations_entered_byTousersNestedInput
+  purchase_receipts?: Prisma.purchase_receiptsUpdateManyWithoutUsersNestedInput
+  push_subscriptions?: Prisma.push_subscriptionsUpdateManyWithoutUsersNestedInput
+  restriction_events?: Prisma.restriction_eventsUpdateManyWithoutUsersNestedInput
+  restriction_requests_restriction_requests_decided_byTousers?: Prisma.restriction_requestsUpdateManyWithoutUsers_restriction_requests_decided_byTousersNestedInput
+  restriction_requests_restriction_requests_requested_byTousers?: Prisma.restriction_requestsUpdateManyWithoutUsers_restriction_requests_requested_byTousersNestedInput
+  restriction_rules?: Prisma.restriction_rulesUpdateManyWithoutUsersNestedInput
+  return_stock_history?: Prisma.return_stock_historyUpdateManyWithoutUsersNestedInput
+  salary_payments_salary_payments_approved_byTousers?: Prisma.salary_paymentsUpdateManyWithoutUsers_salary_payments_approved_byTousersNestedInput
+  salary_payments_salary_payments_created_byTousers?: Prisma.salary_paymentsUpdateManyWithoutUsers_salary_payments_created_byTousersNestedInput
+  salary_payments_salary_payments_deleted_byTousers?: Prisma.salary_paymentsUpdateManyWithoutUsers_salary_payments_deleted_byTousersNestedInput
+  salary_revisions?: Prisma.salary_revisionsUpdateManyWithoutUsersNestedInput
+  settings?: Prisma.settingsUpdateManyWithoutUsersNestedInput
+  special_events?: Prisma.special_eventsUpdateManyWithoutUsersNestedInput
+  special_orders_special_orders_approved_byTousers?: Prisma.special_ordersUpdateManyWithoutUsers_special_orders_approved_byTousersNestedInput
+  special_orders_special_orders_created_byTousers?: Prisma.special_ordersUpdateManyWithoutUsers_special_orders_created_byTousersNestedInput
+  special_orders_special_orders_prepared_byTousers?: Prisma.special_ordersUpdateManyWithoutUsers_special_orders_prepared_byTousersNestedInput
+  special_orders_special_orders_verified_byTousers?: Prisma.special_ordersUpdateManyWithoutUsers_special_orders_verified_byTousersNestedInput
+  stock_audit_log?: Prisma.stock_audit_logUpdateManyWithoutUsersNestedInput
+  supplier_access_tokens?: Prisma.supplier_access_tokensUpdateManyWithoutUsersNestedInput
+  supplier_credits_supplier_credits_decided_byTousers?: Prisma.supplier_creditsUpdateManyWithoutUsers_supplier_credits_decided_byTousersNestedInput
+  supplier_credits_supplier_credits_requested_byTousers?: Prisma.supplier_creditsUpdateManyWithoutUsers_supplier_credits_requested_byTousersNestedInput
+  supplier_payments_supplier_payments_approved_byTousers?: Prisma.supplier_paymentsUpdateManyWithoutUsers_supplier_payments_approved_byTousersNestedInput
+  supplier_payments_supplier_payments_recorded_byTousers?: Prisma.supplier_paymentsUpdateManyWithoutUsers_supplier_payments_recorded_byTousersNestedInput
+  supplier_payments_supplier_payments_reversed_byTousers?: Prisma.supplier_paymentsUpdateManyWithoutUsers_supplier_payments_reversed_byTousersNestedInput
+  suppliers_suppliers_created_byTousers?: Prisma.suppliersUpdateManyWithoutUsers_suppliers_created_byTousersNestedInput
+  suppliers_suppliers_deleted_byTousers?: Prisma.suppliersUpdateManyWithoutUsers_suppliers_deleted_byTousersNestedInput
+  support_tickets_support_tickets_raised_byTousers?: Prisma.support_ticketsUpdateManyWithoutUsers_support_tickets_raised_byTousersNestedInput
+  support_tickets_support_tickets_resolved_byTousers?: Prisma.support_ticketsUpdateManyWithoutUsers_support_tickets_resolved_byTousersNestedInput
+  user_credentials?: Prisma.user_credentialsUpdateOneWithoutUsersNestedInput
+  branches_users_branch_idTobranches?: Prisma.branchesUpdateOneWithoutUsers_users_branch_idTobranchesNestedInput
+  users?: Prisma.usersUpdateOneWithoutOther_usersNestedInput
+  other_users?: Prisma.usersUpdateManyWithoutUsersNestedInput
+  whatsapp_messages_whatsapp_messages_created_byTousers?: Prisma.whatsapp_messagesUpdateManyWithoutUsers_whatsapp_messages_created_byTousersNestedInput
+  whatsapp_messages_whatsapp_messages_reviewed_byTousers?: Prisma.whatsapp_messagesUpdateManyWithoutUsers_whatsapp_messages_reviewed_byTousersNestedInput
+}
+
+export type usersUncheckedUpdateWithoutFinance_ai_capturesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  display_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.Enumuser_roleFieldUpdateOperationsInput | $Enums.user_role
+  branch_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  branch_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.Enumuser_statusFieldUpdateOperationsInput | $Enums.user_status
+  last_login_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  must_change_password?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  last_password_reset?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  password_reset_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password_reset_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user_code?: Prisma.StringFieldUpdateOperationsInput | string
+  attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
+  audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
+  auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
+  backup_jobs?: Prisma.backup_jobsUncheckedUpdateManyWithoutUsersNestedInput
+  branch_discounts_branch_discounts_created_byTousers?: Prisma.branch_discountsUncheckedUpdateManyWithoutUsers_branch_discounts_created_byTousersNestedInput
+  branch_discounts_branch_discounts_reviewed_byTousers?: Prisma.branch_discountsUncheckedUpdateManyWithoutUsers_branch_discounts_reviewed_byTousersNestedInput
+  branch_locations?: Prisma.branch_locationsUncheckedUpdateManyWithoutUsersNestedInput
+  branch_share_payments_branch_share_payments_approved_byTousers?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutUsers_branch_share_payments_approved_byTousersNestedInput
+  branch_share_payments_branch_share_payments_deleted_byTousers?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutUsers_branch_share_payments_deleted_byTousersNestedInput
+  branch_share_payments_branch_share_payments_requested_byTousers?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutUsers_branch_share_payments_requested_byTousersNestedInput
+  branches_branches_manager_idTousers?: Prisma.branchesUncheckedUpdateManyWithoutUsers_branches_manager_idTousersNestedInput
+  cash_transfers_cash_transfers_approved_byTousers?: Prisma.cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_approved_byTousersNestedInput
+  cash_transfers_cash_transfers_created_byTousers?: Prisma.cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_created_byTousersNestedInput
+  cash_transfers_cash_transfers_deleted_byTousers?: Prisma.cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_deleted_byTousersNestedInput
+  cash_transfers_cash_transfers_resubmitted_byTousers?: Prisma.cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_resubmitted_byTousersNestedInput
+  cash_transfers_cash_transfers_forwarded_byTousers?: Prisma.cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_forwarded_byTousersNestedInput
+  cash_transfers_cash_transfers_updated_byTousers?: Prisma.cash_transfersUncheckedUpdateManyWithoutUsers_cash_transfers_updated_byTousersNestedInput
+  daily_sale_record_audits?: Prisma.daily_sale_record_auditsUncheckedUpdateManyWithoutUsersNestedInput
+  daily_sale_records_daily_sale_records_created_byTousers?: Prisma.daily_sale_recordsUncheckedUpdateManyWithoutUsers_daily_sale_records_created_byTousersNestedInput
+  daily_sale_records_daily_sale_records_fed_byTousers?: Prisma.daily_sale_recordsUncheckedUpdateManyWithoutUsers_daily_sale_records_fed_byTousersNestedInput
+  daily_sale_records_daily_sale_records_locked_byTousers?: Prisma.daily_sale_recordsUncheckedUpdateManyWithoutUsers_daily_sale_records_locked_byTousersNestedInput
+  daily_sale_records_daily_sale_records_verified_byTousers?: Prisma.daily_sale_recordsUncheckedUpdateManyWithoutUsers_daily_sale_records_verified_byTousersNestedInput
+  employee_advances_employee_advances_approved_byTousers?: Prisma.employee_advancesUncheckedUpdateManyWithoutUsers_employee_advances_approved_byTousersNestedInput
+  employee_advances_employee_advances_created_byTousers?: Prisma.employee_advancesUncheckedUpdateManyWithoutUsers_employee_advances_created_byTousersNestedInput
+  employee_advances_employee_advances_deleted_byTousers?: Prisma.employee_advancesUncheckedUpdateManyWithoutUsers_employee_advances_deleted_byTousersNestedInput
+  employee_resignations_employee_resignations_cancelled_byTousers?: Prisma.employee_resignationsUncheckedUpdateManyWithoutUsers_employee_resignations_cancelled_byTousersNestedInput
+  employee_resignations_employee_resignations_submitted_byTousers?: Prisma.employee_resignationsUncheckedUpdateManyWithoutUsers_employee_resignations_submitted_byTousersNestedInput
+  event_branch_demands_event_branch_demands_reviewed_byTousers?: Prisma.event_branch_demandsUncheckedUpdateManyWithoutUsers_event_branch_demands_reviewed_byTousersNestedInput
+  event_branch_demands_event_branch_demands_submitted_byTousers?: Prisma.event_branch_demandsUncheckedUpdateManyWithoutUsers_event_branch_demands_submitted_byTousersNestedInput
+  event_production_status?: Prisma.event_production_statusUncheckedUpdateManyWithoutUsersNestedInput
+  expenses?: Prisma.expensesUncheckedUpdateManyWithoutUsersNestedInput
+  finance_amendments?: Prisma.finance_amendmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_audit_logs?: Prisma.finance_audit_logsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_day_closings?: Prisma.finance_day_closingsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_income_approvals_finance_income_approvals_approved_byTousers?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutUsers_finance_income_approvals_approved_byTousersNestedInput
+  finance_income_approvals_finance_income_approvals_deleted_byTousers?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutUsers_finance_income_approvals_deleted_byTousersNestedInput
+  finance_income_approvals_finance_income_approvals_verified_byTousers?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutUsers_finance_income_approvals_verified_byTousersNestedInput
+  finance_queries_finance_queries_created_byTousers?: Prisma.finance_queriesUncheckedUpdateManyWithoutUsers_finance_queries_created_byTousersNestedInput
+  finance_queries_finance_queries_updated_byTousers?: Prisma.finance_queriesUncheckedUpdateManyWithoutUsers_finance_queries_updated_byTousersNestedInput
+  finance_ticket_messages?: Prisma.finance_ticket_messagesUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ticket_versions?: Prisma.finance_ticket_versionsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_tickets_finance_tickets_amended_byTousers?: Prisma.finance_ticketsUncheckedUpdateManyWithoutUsers_finance_tickets_amended_byTousersNestedInput
+  finance_tickets_finance_tickets_assigned_toTousers?: Prisma.finance_ticketsUncheckedUpdateManyWithoutUsers_finance_tickets_assigned_toTousersNestedInput
+  finance_tickets_finance_tickets_deleted_byTousers?: Prisma.finance_ticketsUncheckedUpdateManyWithoutUsers_finance_tickets_deleted_byTousersNestedInput
+  finance_tickets_finance_tickets_raised_byTousers?: Prisma.finance_ticketsUncheckedUpdateManyWithoutUsers_finance_tickets_raised_byTousersNestedInput
+  finance_tickets_finance_tickets_reopened_byTousers?: Prisma.finance_ticketsUncheckedUpdateManyWithoutUsers_finance_tickets_reopened_byTousersNestedInput
+  finance_tickets_finance_tickets_resolved_byTousers?: Prisma.finance_ticketsUncheckedUpdateManyWithoutUsers_finance_tickets_resolved_byTousersNestedInput
+  finance_tickets_finance_tickets_responded_byTousers?: Prisma.finance_ticketsUncheckedUpdateManyWithoutUsers_finance_tickets_responded_byTousersNestedInput
+  finance_tickets_finance_tickets_restored_byTousers?: Prisma.finance_ticketsUncheckedUpdateManyWithoutUsers_finance_tickets_restored_byTousersNestedInput
+  finance_transactions_finance_transactions_approved_byTousers?: Prisma.finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_approved_byTousersNestedInput
+  finance_transactions_finance_transactions_created_byTousers?: Prisma.finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_created_byTousersNestedInput
+  finance_transactions_finance_transactions_deleted_byTousers?: Prisma.finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_deleted_byTousersNestedInput
+  finance_transactions_finance_transactions_rejected_byTousers?: Prisma.finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_rejected_byTousersNestedInput
+  finance_transactions_finance_transactions_submitted_byTousers?: Prisma.finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_submitted_byTousersNestedInput
+  finance_transactions_finance_transactions_updated_byTousers?: Prisma.finance_transactionsUncheckedUpdateManyWithoutUsers_finance_transactions_updated_byTousersNestedInput
+  geofence_logs?: Prisma.geofence_logsUncheckedUpdateManyWithoutUsersNestedInput
+  ingredient_stock_movements?: Prisma.ingredient_stock_movementsUncheckedUpdateManyWithoutUsersNestedInput
+  ledger_entries_ledger_entries_approved_byTousers?: Prisma.ledger_entriesUncheckedUpdateManyWithoutUsers_ledger_entries_approved_byTousersNestedInput
+  ledger_entries_ledger_entries_created_byTousers?: Prisma.ledger_entriesUncheckedUpdateManyWithoutUsers_ledger_entries_created_byTousersNestedInput
+  ledger_entries_ledger_entries_deleted_byTousers?: Prisma.ledger_entriesUncheckedUpdateManyWithoutUsers_ledger_entries_deleted_byTousersNestedInput
+  ledger_entries_ledger_entries_updated_byTousers?: Prisma.ledger_entriesUncheckedUpdateManyWithoutUsers_ledger_entries_updated_byTousersNestedInput
+  ledger_heads?: Prisma.ledger_headsUncheckedUpdateManyWithoutUsersNestedInput
+  login_sessions_login_sessions_revoked_byTousers?: Prisma.login_sessionsUncheckedUpdateManyWithoutUsers_login_sessions_revoked_byTousersNestedInput
+  login_sessions_login_sessions_user_idTousers?: Prisma.login_sessionsUncheckedUpdateManyWithoutUsers_login_sessions_user_idTousersNestedInput
+  notification_reads?: Prisma.notification_readsUncheckedUpdateManyWithoutUsersNestedInput
+  notifications?: Prisma.notificationsUncheckedUpdateManyWithoutUsersNestedInput
+  orders?: Prisma.ordersUncheckedUpdateManyWithoutUsersNestedInput
+  packing_materials?: Prisma.packing_materialsUncheckedUpdateManyWithoutUsersNestedInput
+  partner_expenses_partner_expenses_approved_byTousers?: Prisma.partner_expensesUncheckedUpdateManyWithoutUsers_partner_expenses_approved_byTousersNestedInput
+  partner_expenses_partner_expenses_deleted_byTousers?: Prisma.partner_expensesUncheckedUpdateManyWithoutUsers_partner_expenses_deleted_byTousersNestedInput
+  partner_expenses_partner_expenses_requested_byTousers?: Prisma.partner_expensesUncheckedUpdateManyWithoutUsers_partner_expenses_requested_byTousersNestedInput
+  password_reset_tokens?: Prisma.password_reset_tokensUncheckedUpdateManyWithoutUsersNestedInput
+  payment_method_settings?: Prisma.payment_method_settingsUncheckedUpdateManyWithoutUsersNestedInput
+  product_price_history?: Prisma.product_price_historyUncheckedUpdateManyWithoutUsersNestedInput
+  production_orders_production_orders_approved_byTousers?: Prisma.production_ordersUncheckedUpdateManyWithoutUsers_production_orders_approved_byTousersNestedInput
+  production_orders_production_orders_cancelled_byTousers?: Prisma.production_ordersUncheckedUpdateManyWithoutUsers_production_orders_cancelled_byTousersNestedInput
+  production_orders_production_orders_created_byTousers?: Prisma.production_ordersUncheckedUpdateManyWithoutUsers_production_orders_created_byTousersNestedInput
+  production_orders_production_orders_verified_byTousers?: Prisma.production_ordersUncheckedUpdateManyWithoutUsers_production_orders_verified_byTousersNestedInput
+  production_returns_production_returns_created_byTousers?: Prisma.production_returnsUncheckedUpdateManyWithoutUsers_production_returns_created_byTousersNestedInput
+  production_returns_production_returns_reviewed_byTousers?: Prisma.production_returnsUncheckedUpdateManyWithoutUsers_production_returns_reviewed_byTousersNestedInput
+  production_stock_history?: Prisma.production_stock_historyUncheckedUpdateManyWithoutUsersNestedInput
+  purchase_bills_purchase_bills_decided_byTousers?: Prisma.purchase_billsUncheckedUpdateManyWithoutUsers_purchase_bills_decided_byTousersNestedInput
+  purchase_bills_purchase_bills_entered_byTousers?: Prisma.purchase_billsUncheckedUpdateManyWithoutUsers_purchase_bills_entered_byTousersNestedInput
+  purchase_deliveries?: Prisma.purchase_deliveriesUncheckedUpdateManyWithoutUsersNestedInput
+  purchase_demands_purchase_demands_closed_byTousers?: Prisma.purchase_demandsUncheckedUpdateManyWithoutUsers_purchase_demands_closed_byTousersNestedInput
+  purchase_demands_purchase_demands_created_byTousers?: Prisma.purchase_demandsUncheckedUpdateManyWithoutUsers_purchase_demands_created_byTousersNestedInput
+  purchase_demands_purchase_demands_sent_byTousers?: Prisma.purchase_demandsUncheckedUpdateManyWithoutUsers_purchase_demands_sent_byTousersNestedInput
+  purchase_demands_purchase_demands_verified_byTousers?: Prisma.purchase_demandsUncheckedUpdateManyWithoutUsers_purchase_demands_verified_byTousersNestedInput
+  purchase_items?: Prisma.purchase_itemsUncheckedUpdateManyWithoutUsersNestedInput
+  purchase_quotations_purchase_quotations_decided_byTousers?: Prisma.purchase_quotationsUncheckedUpdateManyWithoutUsers_purchase_quotations_decided_byTousersNestedInput
+  purchase_quotations_purchase_quotations_entered_byTousers?: Prisma.purchase_quotationsUncheckedUpdateManyWithoutUsers_purchase_quotations_entered_byTousersNestedInput
+  purchase_receipts?: Prisma.purchase_receiptsUncheckedUpdateManyWithoutUsersNestedInput
+  push_subscriptions?: Prisma.push_subscriptionsUncheckedUpdateManyWithoutUsersNestedInput
+  restriction_events?: Prisma.restriction_eventsUncheckedUpdateManyWithoutUsersNestedInput
+  restriction_requests_restriction_requests_decided_byTousers?: Prisma.restriction_requestsUncheckedUpdateManyWithoutUsers_restriction_requests_decided_byTousersNestedInput
+  restriction_requests_restriction_requests_requested_byTousers?: Prisma.restriction_requestsUncheckedUpdateManyWithoutUsers_restriction_requests_requested_byTousersNestedInput
+  restriction_rules?: Prisma.restriction_rulesUncheckedUpdateManyWithoutUsersNestedInput
+  return_stock_history?: Prisma.return_stock_historyUncheckedUpdateManyWithoutUsersNestedInput
+  salary_payments_salary_payments_approved_byTousers?: Prisma.salary_paymentsUncheckedUpdateManyWithoutUsers_salary_payments_approved_byTousersNestedInput
+  salary_payments_salary_payments_created_byTousers?: Prisma.salary_paymentsUncheckedUpdateManyWithoutUsers_salary_payments_created_byTousersNestedInput
+  salary_payments_salary_payments_deleted_byTousers?: Prisma.salary_paymentsUncheckedUpdateManyWithoutUsers_salary_payments_deleted_byTousersNestedInput
+  salary_revisions?: Prisma.salary_revisionsUncheckedUpdateManyWithoutUsersNestedInput
+  settings?: Prisma.settingsUncheckedUpdateManyWithoutUsersNestedInput
+  special_events?: Prisma.special_eventsUncheckedUpdateManyWithoutUsersNestedInput
+  special_orders_special_orders_approved_byTousers?: Prisma.special_ordersUncheckedUpdateManyWithoutUsers_special_orders_approved_byTousersNestedInput
+  special_orders_special_orders_created_byTousers?: Prisma.special_ordersUncheckedUpdateManyWithoutUsers_special_orders_created_byTousersNestedInput
+  special_orders_special_orders_prepared_byTousers?: Prisma.special_ordersUncheckedUpdateManyWithoutUsers_special_orders_prepared_byTousersNestedInput
+  special_orders_special_orders_verified_byTousers?: Prisma.special_ordersUncheckedUpdateManyWithoutUsers_special_orders_verified_byTousersNestedInput
+  stock_audit_log?: Prisma.stock_audit_logUncheckedUpdateManyWithoutUsersNestedInput
+  supplier_access_tokens?: Prisma.supplier_access_tokensUncheckedUpdateManyWithoutUsersNestedInput
+  supplier_credits_supplier_credits_decided_byTousers?: Prisma.supplier_creditsUncheckedUpdateManyWithoutUsers_supplier_credits_decided_byTousersNestedInput
+  supplier_credits_supplier_credits_requested_byTousers?: Prisma.supplier_creditsUncheckedUpdateManyWithoutUsers_supplier_credits_requested_byTousersNestedInput
+  supplier_payments_supplier_payments_approved_byTousers?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutUsers_supplier_payments_approved_byTousersNestedInput
+  supplier_payments_supplier_payments_recorded_byTousers?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutUsers_supplier_payments_recorded_byTousersNestedInput
+  supplier_payments_supplier_payments_reversed_byTousers?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutUsers_supplier_payments_reversed_byTousersNestedInput
+  suppliers_suppliers_created_byTousers?: Prisma.suppliersUncheckedUpdateManyWithoutUsers_suppliers_created_byTousersNestedInput
+  suppliers_suppliers_deleted_byTousers?: Prisma.suppliersUncheckedUpdateManyWithoutUsers_suppliers_deleted_byTousersNestedInput
+  support_tickets_support_tickets_raised_byTousers?: Prisma.support_ticketsUncheckedUpdateManyWithoutUsers_support_tickets_raised_byTousersNestedInput
+  support_tickets_support_tickets_resolved_byTousers?: Prisma.support_ticketsUncheckedUpdateManyWithoutUsers_support_tickets_resolved_byTousersNestedInput
+  user_credentials?: Prisma.user_credentialsUncheckedUpdateOneWithoutUsersNestedInput
+  other_users?: Prisma.usersUncheckedUpdateManyWithoutUsersNestedInput
+  whatsapp_messages_whatsapp_messages_created_byTousers?: Prisma.whatsapp_messagesUncheckedUpdateManyWithoutUsers_whatsapp_messages_created_byTousersNestedInput
+  whatsapp_messages_whatsapp_messages_reviewed_byTousers?: Prisma.whatsapp_messagesUncheckedUpdateManyWithoutUsers_whatsapp_messages_reviewed_byTousersNestedInput
+}
+
 export type usersCreateWithoutGeofence_logsInput = {
   id?: string
   email: string
@@ -35628,6 +36459,7 @@ export type usersCreateWithoutGeofence_logsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -35773,6 +36605,7 @@ export type usersUncheckedCreateWithoutGeofence_logsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -35930,6 +36763,7 @@ export type usersUpdateWithoutGeofence_logsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -36075,6 +36909,7 @@ export type usersUncheckedUpdateWithoutGeofence_logsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -36216,6 +37051,7 @@ export type usersCreateWithoutLedger_entries_ledger_entries_approved_byTousersIn
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -36361,6 +37197,7 @@ export type usersUncheckedCreateWithoutLedger_entries_ledger_entries_approved_by
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -36507,6 +37344,7 @@ export type usersCreateWithoutLedger_entries_ledger_entries_created_byTousersInp
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -36652,6 +37490,7 @@ export type usersUncheckedCreateWithoutLedger_entries_ledger_entries_created_byT
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -36798,6 +37637,7 @@ export type usersCreateWithoutLedger_entries_ledger_entries_deleted_byTousersInp
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -36943,6 +37783,7 @@ export type usersUncheckedCreateWithoutLedger_entries_ledger_entries_deleted_byT
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -37089,6 +37930,7 @@ export type usersCreateWithoutLedger_entries_ledger_entries_updated_byTousersInp
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -37234,6 +38076,7 @@ export type usersUncheckedCreateWithoutLedger_entries_ledger_entries_updated_byT
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -37391,6 +38234,7 @@ export type usersUpdateWithoutLedger_entries_ledger_entries_approved_byTousersIn
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -37536,6 +38380,7 @@ export type usersUncheckedUpdateWithoutLedger_entries_ledger_entries_approved_by
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -37688,6 +38533,7 @@ export type usersUpdateWithoutLedger_entries_ledger_entries_created_byTousersInp
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -37833,6 +38679,7 @@ export type usersUncheckedUpdateWithoutLedger_entries_ledger_entries_created_byT
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -37985,6 +38832,7 @@ export type usersUpdateWithoutLedger_entries_ledger_entries_deleted_byTousersInp
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -38130,6 +38978,7 @@ export type usersUncheckedUpdateWithoutLedger_entries_ledger_entries_deleted_byT
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -38282,6 +39131,7 @@ export type usersUpdateWithoutLedger_entries_ledger_entries_updated_byTousersInp
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -38427,6 +39277,7 @@ export type usersUncheckedUpdateWithoutLedger_entries_ledger_entries_updated_byT
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -38568,6 +39419,7 @@ export type usersCreateWithoutLedger_headsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -38713,6 +39565,7 @@ export type usersUncheckedCreateWithoutLedger_headsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -38870,6 +39723,7 @@ export type usersUpdateWithoutLedger_headsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -39015,6 +39869,7 @@ export type usersUncheckedUpdateWithoutLedger_headsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -39156,6 +40011,7 @@ export type usersCreateWithoutLogin_sessions_login_sessions_revoked_byTousersInp
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -39301,6 +40157,7 @@ export type usersUncheckedCreateWithoutLogin_sessions_login_sessions_revoked_byT
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -39447,6 +40304,7 @@ export type usersCreateWithoutLogin_sessions_login_sessions_user_idTousersInput 
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -39592,6 +40450,7 @@ export type usersUncheckedCreateWithoutLogin_sessions_login_sessions_user_idTous
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -39749,6 +40608,7 @@ export type usersUpdateWithoutLogin_sessions_login_sessions_revoked_byTousersInp
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -39894,6 +40754,7 @@ export type usersUncheckedUpdateWithoutLogin_sessions_login_sessions_revoked_byT
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -40046,6 +40907,7 @@ export type usersUpdateWithoutLogin_sessions_login_sessions_user_idTousersInput 
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -40191,6 +41053,7 @@ export type usersUncheckedUpdateWithoutLogin_sessions_login_sessions_user_idTous
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -40332,6 +41195,7 @@ export type usersCreateWithoutNotification_readsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -40477,6 +41341,7 @@ export type usersUncheckedCreateWithoutNotification_readsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -40634,6 +41499,7 @@ export type usersUpdateWithoutNotification_readsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -40779,6 +41645,7 @@ export type usersUncheckedUpdateWithoutNotification_readsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -40920,6 +41787,7 @@ export type usersCreateWithoutNotificationsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -41065,6 +41933,7 @@ export type usersUncheckedCreateWithoutNotificationsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -41222,6 +42091,7 @@ export type usersUpdateWithoutNotificationsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -41367,6 +42237,7 @@ export type usersUncheckedUpdateWithoutNotificationsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -41508,6 +42379,7 @@ export type usersCreateWithoutOrdersInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -41653,6 +42525,7 @@ export type usersUncheckedCreateWithoutOrdersInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -41810,6 +42683,7 @@ export type usersUpdateWithoutOrdersInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -41955,6 +42829,7 @@ export type usersUncheckedUpdateWithoutOrdersInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -42096,6 +42971,7 @@ export type usersCreateWithoutPacking_materialsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -42241,6 +43117,7 @@ export type usersUncheckedCreateWithoutPacking_materialsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -42398,6 +43275,7 @@ export type usersUpdateWithoutPacking_materialsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -42543,6 +43421,7 @@ export type usersUncheckedUpdateWithoutPacking_materialsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -42684,6 +43563,7 @@ export type usersCreateWithoutPartner_expenses_partner_expenses_approved_byTouse
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -42829,6 +43709,7 @@ export type usersUncheckedCreateWithoutPartner_expenses_partner_expenses_approve
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -42975,6 +43856,7 @@ export type usersCreateWithoutPartner_expenses_partner_expenses_deleted_byTouser
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -43120,6 +44002,7 @@ export type usersUncheckedCreateWithoutPartner_expenses_partner_expenses_deleted
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -43266,6 +44149,7 @@ export type usersCreateWithoutPartner_expenses_partner_expenses_requested_byTous
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -43411,6 +44295,7 @@ export type usersUncheckedCreateWithoutPartner_expenses_partner_expenses_request
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -43568,6 +44453,7 @@ export type usersUpdateWithoutPartner_expenses_partner_expenses_approved_byTouse
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -43713,6 +44599,7 @@ export type usersUncheckedUpdateWithoutPartner_expenses_partner_expenses_approve
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -43865,6 +44752,7 @@ export type usersUpdateWithoutPartner_expenses_partner_expenses_deleted_byTouser
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -44010,6 +44898,7 @@ export type usersUncheckedUpdateWithoutPartner_expenses_partner_expenses_deleted
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -44162,6 +45051,7 @@ export type usersUpdateWithoutPartner_expenses_partner_expenses_requested_byTous
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -44307,6 +45197,7 @@ export type usersUncheckedUpdateWithoutPartner_expenses_partner_expenses_request
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -44448,6 +45339,7 @@ export type usersCreateWithoutPassword_reset_tokensInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -44593,6 +45485,7 @@ export type usersUncheckedCreateWithoutPassword_reset_tokensInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -44750,6 +45643,7 @@ export type usersUpdateWithoutPassword_reset_tokensInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -44895,6 +45789,7 @@ export type usersUncheckedUpdateWithoutPassword_reset_tokensInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -45036,6 +45931,7 @@ export type usersCreateWithoutPayment_method_settingsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -45181,6 +46077,7 @@ export type usersUncheckedCreateWithoutPayment_method_settingsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -45338,6 +46235,7 @@ export type usersUpdateWithoutPayment_method_settingsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -45483,6 +46381,7 @@ export type usersUncheckedUpdateWithoutPayment_method_settingsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -45624,6 +46523,7 @@ export type usersCreateWithoutProduct_price_historyInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -45769,6 +46669,7 @@ export type usersUncheckedCreateWithoutProduct_price_historyInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -45926,6 +46827,7 @@ export type usersUpdateWithoutProduct_price_historyInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -46071,6 +46973,7 @@ export type usersUncheckedUpdateWithoutProduct_price_historyInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -46212,6 +47115,7 @@ export type usersCreateWithoutProduction_orders_production_orders_approved_byTou
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -46357,6 +47261,7 @@ export type usersUncheckedCreateWithoutProduction_orders_production_orders_appro
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -46503,6 +47408,7 @@ export type usersCreateWithoutProduction_orders_production_orders_cancelled_byTo
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -46648,6 +47554,7 @@ export type usersUncheckedCreateWithoutProduction_orders_production_orders_cance
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -46794,6 +47701,7 @@ export type usersCreateWithoutProduction_orders_production_orders_created_byTous
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -46939,6 +47847,7 @@ export type usersUncheckedCreateWithoutProduction_orders_production_orders_creat
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -47085,6 +47994,7 @@ export type usersCreateWithoutProduction_orders_production_orders_verified_byTou
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -47230,6 +48140,7 @@ export type usersUncheckedCreateWithoutProduction_orders_production_orders_verif
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -47387,6 +48298,7 @@ export type usersUpdateWithoutProduction_orders_production_orders_approved_byTou
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -47532,6 +48444,7 @@ export type usersUncheckedUpdateWithoutProduction_orders_production_orders_appro
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -47684,6 +48597,7 @@ export type usersUpdateWithoutProduction_orders_production_orders_cancelled_byTo
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -47829,6 +48743,7 @@ export type usersUncheckedUpdateWithoutProduction_orders_production_orders_cance
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -47981,6 +48896,7 @@ export type usersUpdateWithoutProduction_orders_production_orders_created_byTous
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -48126,6 +49042,7 @@ export type usersUncheckedUpdateWithoutProduction_orders_production_orders_creat
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -48278,6 +49195,7 @@ export type usersUpdateWithoutProduction_orders_production_orders_verified_byTou
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -48423,6 +49341,7 @@ export type usersUncheckedUpdateWithoutProduction_orders_production_orders_verif
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -48564,6 +49483,7 @@ export type usersCreateWithoutProduction_returns_production_returns_created_byTo
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -48709,6 +49629,7 @@ export type usersUncheckedCreateWithoutProduction_returns_production_returns_cre
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -48855,6 +49776,7 @@ export type usersCreateWithoutProduction_returns_production_returns_reviewed_byT
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -49000,6 +49922,7 @@ export type usersUncheckedCreateWithoutProduction_returns_production_returns_rev
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -49157,6 +50080,7 @@ export type usersUpdateWithoutProduction_returns_production_returns_created_byTo
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -49302,6 +50226,7 @@ export type usersUncheckedUpdateWithoutProduction_returns_production_returns_cre
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -49454,6 +50379,7 @@ export type usersUpdateWithoutProduction_returns_production_returns_reviewed_byT
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -49599,6 +50525,7 @@ export type usersUncheckedUpdateWithoutProduction_returns_production_returns_rev
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -49740,6 +50667,7 @@ export type usersCreateWithoutProduction_stock_historyInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -49885,6 +50813,7 @@ export type usersUncheckedCreateWithoutProduction_stock_historyInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -50042,6 +50971,7 @@ export type usersUpdateWithoutProduction_stock_historyInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -50187,6 +51117,7 @@ export type usersUncheckedUpdateWithoutProduction_stock_historyInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -50328,6 +51259,7 @@ export type usersCreateWithoutPush_subscriptionsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -50473,6 +51405,7 @@ export type usersUncheckedCreateWithoutPush_subscriptionsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -50630,6 +51563,7 @@ export type usersUpdateWithoutPush_subscriptionsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -50775,6 +51709,7 @@ export type usersUncheckedUpdateWithoutPush_subscriptionsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -50916,6 +51851,7 @@ export type usersCreateWithoutRestriction_eventsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -51061,6 +51997,7 @@ export type usersUncheckedCreateWithoutRestriction_eventsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -51218,6 +52155,7 @@ export type usersUpdateWithoutRestriction_eventsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -51363,6 +52301,7 @@ export type usersUncheckedUpdateWithoutRestriction_eventsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -51504,6 +52443,7 @@ export type usersCreateWithoutRestriction_requests_restriction_requests_decided_
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -51649,6 +52589,7 @@ export type usersUncheckedCreateWithoutRestriction_requests_restriction_requests
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -51795,6 +52736,7 @@ export type usersCreateWithoutRestriction_requests_restriction_requests_requeste
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -51940,6 +52882,7 @@ export type usersUncheckedCreateWithoutRestriction_requests_restriction_requests
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -52097,6 +53040,7 @@ export type usersUpdateWithoutRestriction_requests_restriction_requests_decided_
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -52242,6 +53186,7 @@ export type usersUncheckedUpdateWithoutRestriction_requests_restriction_requests
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -52394,6 +53339,7 @@ export type usersUpdateWithoutRestriction_requests_restriction_requests_requeste
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -52539,6 +53485,7 @@ export type usersUncheckedUpdateWithoutRestriction_requests_restriction_requests
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -52680,6 +53627,7 @@ export type usersCreateWithoutRestriction_rulesInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -52825,6 +53773,7 @@ export type usersUncheckedCreateWithoutRestriction_rulesInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -52982,6 +53931,7 @@ export type usersUpdateWithoutRestriction_rulesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -53127,6 +54077,7 @@ export type usersUncheckedUpdateWithoutRestriction_rulesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -53268,6 +54219,7 @@ export type usersCreateWithoutReturn_stock_historyInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -53413,6 +54365,7 @@ export type usersUncheckedCreateWithoutReturn_stock_historyInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -53570,6 +54523,7 @@ export type usersUpdateWithoutReturn_stock_historyInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -53715,6 +54669,7 @@ export type usersUncheckedUpdateWithoutReturn_stock_historyInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -53856,6 +54811,7 @@ export type usersCreateWithoutSalary_payments_salary_payments_approved_byTousers
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -54001,6 +54957,7 @@ export type usersUncheckedCreateWithoutSalary_payments_salary_payments_approved_
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -54147,6 +55104,7 @@ export type usersCreateWithoutSalary_payments_salary_payments_created_byTousersI
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -54292,6 +55250,7 @@ export type usersUncheckedCreateWithoutSalary_payments_salary_payments_created_b
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -54438,6 +55397,7 @@ export type usersCreateWithoutSalary_payments_salary_payments_deleted_byTousersI
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -54583,6 +55543,7 @@ export type usersUncheckedCreateWithoutSalary_payments_salary_payments_deleted_b
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -54740,6 +55701,7 @@ export type usersUpdateWithoutSalary_payments_salary_payments_approved_byTousers
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -54885,6 +55847,7 @@ export type usersUncheckedUpdateWithoutSalary_payments_salary_payments_approved_
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -55037,6 +56000,7 @@ export type usersUpdateWithoutSalary_payments_salary_payments_created_byTousersI
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -55182,6 +56146,7 @@ export type usersUncheckedUpdateWithoutSalary_payments_salary_payments_created_b
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -55334,6 +56299,7 @@ export type usersUpdateWithoutSalary_payments_salary_payments_deleted_byTousersI
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -55479,6 +56445,7 @@ export type usersUncheckedUpdateWithoutSalary_payments_salary_payments_deleted_b
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -55620,6 +56587,7 @@ export type usersCreateWithoutSalary_revisionsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -55765,6 +56733,7 @@ export type usersUncheckedCreateWithoutSalary_revisionsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -55922,6 +56891,7 @@ export type usersUpdateWithoutSalary_revisionsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -56067,6 +57037,7 @@ export type usersUncheckedUpdateWithoutSalary_revisionsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -56208,6 +57179,7 @@ export type usersCreateWithoutSettingsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -56353,6 +57325,7 @@ export type usersUncheckedCreateWithoutSettingsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -56510,6 +57483,7 @@ export type usersUpdateWithoutSettingsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -56655,6 +57629,7 @@ export type usersUncheckedUpdateWithoutSettingsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -56796,6 +57771,7 @@ export type usersCreateWithoutSpecial_eventsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -56941,6 +57917,7 @@ export type usersUncheckedCreateWithoutSpecial_eventsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -57098,6 +58075,7 @@ export type usersUpdateWithoutSpecial_eventsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -57243,6 +58221,7 @@ export type usersUncheckedUpdateWithoutSpecial_eventsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -57384,6 +58363,7 @@ export type usersCreateWithoutSpecial_orders_special_orders_approved_byTousersIn
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -57529,6 +58509,7 @@ export type usersUncheckedCreateWithoutSpecial_orders_special_orders_approved_by
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -57675,6 +58656,7 @@ export type usersCreateWithoutSpecial_orders_special_orders_created_byTousersInp
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -57820,6 +58802,7 @@ export type usersUncheckedCreateWithoutSpecial_orders_special_orders_created_byT
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -57966,6 +58949,7 @@ export type usersCreateWithoutSpecial_orders_special_orders_prepared_byTousersIn
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -58111,6 +59095,7 @@ export type usersUncheckedCreateWithoutSpecial_orders_special_orders_prepared_by
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -58257,6 +59242,7 @@ export type usersCreateWithoutSpecial_orders_special_orders_verified_byTousersIn
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -58402,6 +59388,7 @@ export type usersUncheckedCreateWithoutSpecial_orders_special_orders_verified_by
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -58559,6 +59546,7 @@ export type usersUpdateWithoutSpecial_orders_special_orders_approved_byTousersIn
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -58704,6 +59692,7 @@ export type usersUncheckedUpdateWithoutSpecial_orders_special_orders_approved_by
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -58856,6 +59845,7 @@ export type usersUpdateWithoutSpecial_orders_special_orders_created_byTousersInp
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -59001,6 +59991,7 @@ export type usersUncheckedUpdateWithoutSpecial_orders_special_orders_created_byT
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -59153,6 +60144,7 @@ export type usersUpdateWithoutSpecial_orders_special_orders_prepared_byTousersIn
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -59298,6 +60290,7 @@ export type usersUncheckedUpdateWithoutSpecial_orders_special_orders_prepared_by
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -59450,6 +60443,7 @@ export type usersUpdateWithoutSpecial_orders_special_orders_verified_byTousersIn
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -59595,6 +60589,7 @@ export type usersUncheckedUpdateWithoutSpecial_orders_special_orders_verified_by
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -59736,6 +60731,7 @@ export type usersCreateWithoutStock_audit_logInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -59881,6 +60877,7 @@ export type usersUncheckedCreateWithoutStock_audit_logInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -60038,6 +61035,7 @@ export type usersUpdateWithoutStock_audit_logInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -60183,6 +61181,7 @@ export type usersUncheckedUpdateWithoutStock_audit_logInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -60324,6 +61323,7 @@ export type usersCreateWithoutSupport_tickets_support_tickets_raised_byTousersIn
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -60469,6 +61469,7 @@ export type usersUncheckedCreateWithoutSupport_tickets_support_tickets_raised_by
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -60615,6 +61616,7 @@ export type usersCreateWithoutSupport_tickets_support_tickets_resolved_byTousers
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -60760,6 +61762,7 @@ export type usersUncheckedCreateWithoutSupport_tickets_support_tickets_resolved_
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -60917,6 +61920,7 @@ export type usersUpdateWithoutSupport_tickets_support_tickets_raised_byTousersIn
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -61062,6 +62066,7 @@ export type usersUncheckedUpdateWithoutSupport_tickets_support_tickets_raised_by
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -61214,6 +62219,7 @@ export type usersUpdateWithoutSupport_tickets_support_tickets_resolved_byTousers
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -61359,6 +62365,7 @@ export type usersUncheckedUpdateWithoutSupport_tickets_support_tickets_resolved_
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -61500,6 +62507,7 @@ export type usersCreateWithoutUser_credentialsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -61645,6 +62653,7 @@ export type usersUncheckedCreateWithoutUser_credentialsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -61802,6 +62811,7 @@ export type usersUpdateWithoutUser_credentialsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -61947,6 +62957,7 @@ export type usersUncheckedUpdateWithoutUser_credentialsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -62088,6 +63099,7 @@ export type usersCreateWithoutOther_usersInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -62233,6 +63245,7 @@ export type usersUncheckedCreateWithoutOther_usersInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -62379,6 +63392,7 @@ export type usersCreateWithoutUsersInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -62523,6 +63537,7 @@ export type usersUncheckedCreateWithoutUsersInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -62686,6 +63701,7 @@ export type usersUpdateWithoutOther_usersInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -62831,6 +63847,7 @@ export type usersUncheckedUpdateWithoutOther_usersInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -62988,6 +64005,7 @@ export type usersCreateWithoutEmployee_resignations_employee_resignations_cancel
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -63133,6 +64151,7 @@ export type usersUncheckedCreateWithoutEmployee_resignations_employee_resignatio
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -63279,6 +64298,7 @@ export type usersCreateWithoutEmployee_resignations_employee_resignations_submit
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -63424,6 +64444,7 @@ export type usersUncheckedCreateWithoutEmployee_resignations_employee_resignatio
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -63581,6 +64602,7 @@ export type usersUpdateWithoutEmployee_resignations_employee_resignations_cancel
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -63726,6 +64748,7 @@ export type usersUncheckedUpdateWithoutEmployee_resignations_employee_resignatio
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -63878,6 +64901,7 @@ export type usersUpdateWithoutEmployee_resignations_employee_resignations_submit
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -64023,6 +65047,7 @@ export type usersUncheckedUpdateWithoutEmployee_resignations_employee_resignatio
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -64164,6 +65189,7 @@ export type usersCreateWithoutIngredient_stock_movementsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -64309,6 +65335,7 @@ export type usersUncheckedCreateWithoutIngredient_stock_movementsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -64466,6 +65493,7 @@ export type usersUpdateWithoutIngredient_stock_movementsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -64611,6 +65639,7 @@ export type usersUncheckedUpdateWithoutIngredient_stock_movementsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -64752,6 +65781,7 @@ export type usersCreateWithoutPurchase_bills_purchase_bills_decided_byTousersInp
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -64897,6 +65927,7 @@ export type usersUncheckedCreateWithoutPurchase_bills_purchase_bills_decided_byT
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -65043,6 +66074,7 @@ export type usersCreateWithoutPurchase_bills_purchase_bills_entered_byTousersInp
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -65188,6 +66220,7 @@ export type usersUncheckedCreateWithoutPurchase_bills_purchase_bills_entered_byT
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -65345,6 +66378,7 @@ export type usersUpdateWithoutPurchase_bills_purchase_bills_decided_byTousersInp
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -65490,6 +66524,7 @@ export type usersUncheckedUpdateWithoutPurchase_bills_purchase_bills_decided_byT
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -65642,6 +66677,7 @@ export type usersUpdateWithoutPurchase_bills_purchase_bills_entered_byTousersInp
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -65787,6 +66823,7 @@ export type usersUncheckedUpdateWithoutPurchase_bills_purchase_bills_entered_byT
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -65928,6 +66965,7 @@ export type usersCreateWithoutPurchase_deliveriesInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -66073,6 +67111,7 @@ export type usersUncheckedCreateWithoutPurchase_deliveriesInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -66230,6 +67269,7 @@ export type usersUpdateWithoutPurchase_deliveriesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -66375,6 +67415,7 @@ export type usersUncheckedUpdateWithoutPurchase_deliveriesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -66516,6 +67557,7 @@ export type usersCreateWithoutPurchase_demands_purchase_demands_closed_byTousers
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -66661,6 +67703,7 @@ export type usersUncheckedCreateWithoutPurchase_demands_purchase_demands_closed_
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -66807,6 +67850,7 @@ export type usersCreateWithoutPurchase_demands_purchase_demands_created_byTouser
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -66952,6 +67996,7 @@ export type usersUncheckedCreateWithoutPurchase_demands_purchase_demands_created
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -67098,6 +68143,7 @@ export type usersCreateWithoutPurchase_demands_purchase_demands_sent_byTousersIn
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -67243,6 +68289,7 @@ export type usersUncheckedCreateWithoutPurchase_demands_purchase_demands_sent_by
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -67389,6 +68436,7 @@ export type usersCreateWithoutPurchase_demands_purchase_demands_verified_byTouse
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -67534,6 +68582,7 @@ export type usersUncheckedCreateWithoutPurchase_demands_purchase_demands_verifie
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -67691,6 +68740,7 @@ export type usersUpdateWithoutPurchase_demands_purchase_demands_closed_byTousers
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -67836,6 +68886,7 @@ export type usersUncheckedUpdateWithoutPurchase_demands_purchase_demands_closed_
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -67988,6 +69039,7 @@ export type usersUpdateWithoutPurchase_demands_purchase_demands_created_byTouser
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -68133,6 +69185,7 @@ export type usersUncheckedUpdateWithoutPurchase_demands_purchase_demands_created
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -68285,6 +69338,7 @@ export type usersUpdateWithoutPurchase_demands_purchase_demands_sent_byTousersIn
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -68430,6 +69484,7 @@ export type usersUncheckedUpdateWithoutPurchase_demands_purchase_demands_sent_by
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -68582,6 +69637,7 @@ export type usersUpdateWithoutPurchase_demands_purchase_demands_verified_byTouse
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -68727,6 +69783,7 @@ export type usersUncheckedUpdateWithoutPurchase_demands_purchase_demands_verifie
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -68868,6 +69925,7 @@ export type usersCreateWithoutPurchase_itemsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -69013,6 +70071,7 @@ export type usersUncheckedCreateWithoutPurchase_itemsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -69170,6 +70229,7 @@ export type usersUpdateWithoutPurchase_itemsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -69315,6 +70375,7 @@ export type usersUncheckedUpdateWithoutPurchase_itemsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -69456,6 +70517,7 @@ export type usersCreateWithoutPurchase_quotations_purchase_quotations_decided_by
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -69601,6 +70663,7 @@ export type usersUncheckedCreateWithoutPurchase_quotations_purchase_quotations_d
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -69747,6 +70810,7 @@ export type usersCreateWithoutPurchase_quotations_purchase_quotations_entered_by
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -69892,6 +70956,7 @@ export type usersUncheckedCreateWithoutPurchase_quotations_purchase_quotations_e
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -70049,6 +71114,7 @@ export type usersUpdateWithoutPurchase_quotations_purchase_quotations_decided_by
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -70194,6 +71260,7 @@ export type usersUncheckedUpdateWithoutPurchase_quotations_purchase_quotations_d
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -70346,6 +71413,7 @@ export type usersUpdateWithoutPurchase_quotations_purchase_quotations_entered_by
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -70491,6 +71559,7 @@ export type usersUncheckedUpdateWithoutPurchase_quotations_purchase_quotations_e
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -70632,6 +71701,7 @@ export type usersCreateWithoutPurchase_receiptsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -70777,6 +71847,7 @@ export type usersUncheckedCreateWithoutPurchase_receiptsInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -70934,6 +72005,7 @@ export type usersUpdateWithoutPurchase_receiptsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -71079,6 +72151,7 @@ export type usersUncheckedUpdateWithoutPurchase_receiptsInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -71220,6 +72293,7 @@ export type usersCreateWithoutSupplier_access_tokensInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -71365,6 +72439,7 @@ export type usersUncheckedCreateWithoutSupplier_access_tokensInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -71522,6 +72597,7 @@ export type usersUpdateWithoutSupplier_access_tokensInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -71667,6 +72743,7 @@ export type usersUncheckedUpdateWithoutSupplier_access_tokensInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -71808,6 +72885,7 @@ export type usersCreateWithoutSupplier_credits_supplier_credits_decided_byTouser
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -71953,6 +73031,7 @@ export type usersUncheckedCreateWithoutSupplier_credits_supplier_credits_decided
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -72099,6 +73178,7 @@ export type usersCreateWithoutSupplier_credits_supplier_credits_requested_byTous
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -72244,6 +73324,7 @@ export type usersUncheckedCreateWithoutSupplier_credits_supplier_credits_request
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -72401,6 +73482,7 @@ export type usersUpdateWithoutSupplier_credits_supplier_credits_decided_byTouser
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -72546,6 +73628,7 @@ export type usersUncheckedUpdateWithoutSupplier_credits_supplier_credits_decided
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -72698,6 +73781,7 @@ export type usersUpdateWithoutSupplier_credits_supplier_credits_requested_byTous
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -72843,6 +73927,7 @@ export type usersUncheckedUpdateWithoutSupplier_credits_supplier_credits_request
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -72984,6 +74069,7 @@ export type usersCreateWithoutSupplier_payments_supplier_payments_approved_byTou
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -73129,6 +74215,7 @@ export type usersUncheckedCreateWithoutSupplier_payments_supplier_payments_appro
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -73275,6 +74362,7 @@ export type usersCreateWithoutSupplier_payments_supplier_payments_recorded_byTou
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -73420,6 +74508,7 @@ export type usersUncheckedCreateWithoutSupplier_payments_supplier_payments_recor
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -73566,6 +74655,7 @@ export type usersCreateWithoutSupplier_payments_supplier_payments_reversed_byTou
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -73711,6 +74801,7 @@ export type usersUncheckedCreateWithoutSupplier_payments_supplier_payments_rever
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -73868,6 +74959,7 @@ export type usersUpdateWithoutSupplier_payments_supplier_payments_approved_byTou
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -74013,6 +75105,7 @@ export type usersUncheckedUpdateWithoutSupplier_payments_supplier_payments_appro
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -74165,6 +75258,7 @@ export type usersUpdateWithoutSupplier_payments_supplier_payments_recorded_byTou
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -74310,6 +75404,7 @@ export type usersUncheckedUpdateWithoutSupplier_payments_supplier_payments_recor
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -74462,6 +75557,7 @@ export type usersUpdateWithoutSupplier_payments_supplier_payments_reversed_byTou
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -74607,6 +75703,7 @@ export type usersUncheckedUpdateWithoutSupplier_payments_supplier_payments_rever
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -74748,6 +75845,7 @@ export type usersCreateWithoutSuppliers_suppliers_created_byTousersInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -74893,6 +75991,7 @@ export type usersUncheckedCreateWithoutSuppliers_suppliers_created_byTousersInpu
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -75039,6 +76138,7 @@ export type usersCreateWithoutSuppliers_suppliers_deleted_byTousersInput = {
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -75184,6 +76284,7 @@ export type usersUncheckedCreateWithoutSuppliers_suppliers_deleted_byTousersInpu
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -75341,6 +76442,7 @@ export type usersUpdateWithoutSuppliers_suppliers_created_byTousersInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -75486,6 +76588,7 @@ export type usersUncheckedUpdateWithoutSuppliers_suppliers_created_byTousersInpu
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -75638,6 +76741,7 @@ export type usersUpdateWithoutSuppliers_suppliers_deleted_byTousersInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -75783,6 +76887,7 @@ export type usersUncheckedUpdateWithoutSuppliers_suppliers_deleted_byTousersInpu
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -75924,6 +77029,7 @@ export type usersCreateWithoutWhatsapp_messages_whatsapp_messages_created_byTous
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -76069,6 +77175,7 @@ export type usersUncheckedCreateWithoutWhatsapp_messages_whatsapp_messages_creat
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -76215,6 +77322,7 @@ export type usersCreateWithoutWhatsapp_messages_whatsapp_messages_reviewed_byTou
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsCreateNestedManyWithoutUsersInput
@@ -76360,6 +77468,7 @@ export type usersUncheckedCreateWithoutWhatsapp_messages_whatsapp_messages_revie
   updated_at?: Date | string
   user_code?: string
   attachments?: Prisma.attachmentsUncheckedCreateNestedManyWithoutUsersInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedCreateNestedManyWithoutUsersInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_admin_idTousersInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedCreateNestedManyWithoutUsers_audit_logs_target_user_idTousersInput
   auth_sessions?: Prisma.auth_sessionsUncheckedCreateNestedManyWithoutUsersInput
@@ -76517,6 +77626,7 @@ export type usersUpdateWithoutWhatsapp_messages_whatsapp_messages_created_byTous
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -76662,6 +77772,7 @@ export type usersUncheckedUpdateWithoutWhatsapp_messages_whatsapp_messages_creat
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -76814,6 +77925,7 @@ export type usersUpdateWithoutWhatsapp_messages_whatsapp_messages_reviewed_byTou
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -76959,6 +78071,7 @@ export type usersUncheckedUpdateWithoutWhatsapp_messages_whatsapp_messages_revie
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -77119,6 +78232,7 @@ export type usersUpdateWithoutBranches_users_branch_idTobranchesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -77263,6 +78377,7 @@ export type usersUncheckedUpdateWithoutBranches_users_branch_idTobranchesInput =
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -77443,6 +78558,7 @@ export type usersUpdateWithoutUsersInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUpdateManyWithoutUsersNestedInput
@@ -77587,6 +78703,7 @@ export type usersUncheckedUpdateWithoutUsersInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user_code?: Prisma.StringFieldUpdateOperationsInput | string
   attachments?: Prisma.attachmentsUncheckedUpdateManyWithoutUsersNestedInput
+  finance_ai_captures?: Prisma.finance_ai_capturesUncheckedUpdateManyWithoutUsersNestedInput
   audit_logs_audit_logs_admin_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_admin_idTousersNestedInput
   audit_logs_audit_logs_target_user_idTousers?: Prisma.audit_logsUncheckedUpdateManyWithoutUsers_audit_logs_target_user_idTousersNestedInput
   auth_sessions?: Prisma.auth_sessionsUncheckedUpdateManyWithoutUsersNestedInput
@@ -77738,6 +78855,7 @@ export type usersUncheckedUpdateManyWithoutUsersInput = {
 
 export type UsersCountOutputType = {
   attachments: number
+  finance_ai_captures: number
   audit_logs_audit_logs_admin_idTousers: number
   audit_logs_audit_logs_target_user_idTousers: number
   auth_sessions: number
@@ -77864,6 +78982,7 @@ export type UsersCountOutputType = {
 
 export type UsersCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   attachments?: boolean | UsersCountOutputTypeCountAttachmentsArgs
+  finance_ai_captures?: boolean | UsersCountOutputTypeCountFinance_ai_capturesArgs
   audit_logs_audit_logs_admin_idTousers?: boolean | UsersCountOutputTypeCountAudit_logs_audit_logs_admin_idTousersArgs
   audit_logs_audit_logs_target_user_idTousers?: boolean | UsersCountOutputTypeCountAudit_logs_audit_logs_target_user_idTousersArgs
   auth_sessions?: boolean | UsersCountOutputTypeCountAuth_sessionsArgs
@@ -78003,6 +79122,13 @@ export type UsersCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extens
  */
 export type UsersCountOutputTypeCountAttachmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.attachmentsWhereInput
+}
+
+/**
+ * UsersCountOutputType without action
+ */
+export type UsersCountOutputTypeCountFinance_ai_capturesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.finance_ai_capturesWhereInput
 }
 
 /**
@@ -78879,6 +80005,7 @@ export type usersSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   updated_at?: boolean
   user_code?: boolean
   attachments?: boolean | Prisma.users$attachmentsArgs<ExtArgs>
+  finance_ai_captures?: boolean | Prisma.users$finance_ai_capturesArgs<ExtArgs>
   audit_logs_audit_logs_admin_idTousers?: boolean | Prisma.users$audit_logs_audit_logs_admin_idTousersArgs<ExtArgs>
   audit_logs_audit_logs_target_user_idTousers?: boolean | Prisma.users$audit_logs_audit_logs_target_user_idTousersArgs<ExtArgs>
   auth_sessions?: boolean | Prisma.users$auth_sessionsArgs<ExtArgs>
@@ -79074,6 +80201,7 @@ export type usersSelectScalar = {
 export type usersOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "display_name" | "phone" | "username" | "role" | "branch_id" | "branch_name" | "status" | "last_login_at" | "must_change_password" | "last_password_reset" | "password_reset_by" | "password_reset_by_name" | "created_at" | "updated_at" | "user_code", ExtArgs["result"]["users"]>
 export type usersInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   attachments?: boolean | Prisma.users$attachmentsArgs<ExtArgs>
+  finance_ai_captures?: boolean | Prisma.users$finance_ai_capturesArgs<ExtArgs>
   audit_logs_audit_logs_admin_idTousers?: boolean | Prisma.users$audit_logs_audit_logs_admin_idTousersArgs<ExtArgs>
   audit_logs_audit_logs_target_user_idTousers?: boolean | Prisma.users$audit_logs_audit_logs_target_user_idTousersArgs<ExtArgs>
   auth_sessions?: boolean | Prisma.users$auth_sessionsArgs<ExtArgs>
@@ -79214,6 +80342,7 @@ export type $usersPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   name: "users"
   objects: {
     attachments: Prisma.$attachmentsPayload<ExtArgs>[]
+    finance_ai_captures: Prisma.$finance_ai_capturesPayload<ExtArgs>[]
     audit_logs_audit_logs_admin_idTousers: Prisma.$audit_logsPayload<ExtArgs>[]
     audit_logs_audit_logs_target_user_idTousers: Prisma.$audit_logsPayload<ExtArgs>[]
     auth_sessions: Prisma.$auth_sessionsPayload<ExtArgs>[]
@@ -79753,6 +80882,7 @@ readonly fields: usersFieldRefs;
 export interface Prisma__usersClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   attachments<T extends Prisma.users$attachmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.users$attachmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$attachmentsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  finance_ai_captures<T extends Prisma.users$finance_ai_capturesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.users$finance_ai_capturesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$finance_ai_capturesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   audit_logs_audit_logs_admin_idTousers<T extends Prisma.users$audit_logs_audit_logs_admin_idTousersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.users$audit_logs_audit_logs_admin_idTousersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$audit_logsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   audit_logs_audit_logs_target_user_idTousers<T extends Prisma.users$audit_logs_audit_logs_target_user_idTousersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.users$audit_logs_audit_logs_target_user_idTousersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$audit_logsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auth_sessions<T extends Prisma.users$auth_sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.users$auth_sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$auth_sessionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -80346,6 +81476,30 @@ export type users$attachmentsArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.AttachmentsScalarFieldEnum | Prisma.AttachmentsScalarFieldEnum[]
+}
+
+/**
+ * users.finance_ai_captures
+ */
+export type users$finance_ai_capturesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the finance_ai_captures
+   */
+  select?: Prisma.finance_ai_capturesSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the finance_ai_captures
+   */
+  omit?: Prisma.finance_ai_capturesOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.finance_ai_capturesInclude<ExtArgs> | null
+  where?: Prisma.finance_ai_capturesWhereInput
+  orderBy?: Prisma.finance_ai_capturesOrderByWithRelationInput | Prisma.finance_ai_capturesOrderByWithRelationInput[]
+  cursor?: Prisma.finance_ai_capturesWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Finance_ai_capturesScalarFieldEnum | Prisma.Finance_ai_capturesScalarFieldEnum[]
 }
 
 /**

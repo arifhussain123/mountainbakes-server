@@ -662,6 +662,17 @@
   },
   {
    "columns": [
+    "created_by"
+   ],
+   "name": "finance_ai_captures_created_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "finance_ai_captures"
+  },
+  {
+   "columns": [
     "admin_id"
    ],
    "name": "finance_amendments_admin_id_fkey",
@@ -956,6 +967,17 @@
    ],
    "refTable": "users",
    "table": "finance_tickets"
+  },
+  {
+   "columns": [
+    "ai_capture_id"
+   ],
+   "name": "finance_transactions_ai_capture_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "finance_ai_captures",
+   "table": "finance_transactions"
   },
   {
    "columns": [
@@ -6688,7 +6710,8 @@
     "uploaded_by": "uuid",
     "uploaded_by_name": "text",
     "bound_at": "timestamp with time zone",
-    "created_at": "timestamp with time zone"
+    "created_at": "timestamp with time zone",
+    "content_sha256": "text"
    },
    "pk": [
     "id"
@@ -7446,6 +7469,28 @@
     ]
    ]
   },
+  "finance_ai_captures": {
+   "columns": {
+    "id": "uuid",
+    "created_by": "uuid",
+    "created_by_name": "text",
+    "attachment_ids": "uuid[]",
+    "model": "text",
+    "status": "text",
+    "result": "jsonb",
+    "error": "text",
+    "duration_ms": "integer",
+    "created_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ]
+   ]
+  },
   "finance_amendments": {
    "columns": {
     "id": "uuid",
@@ -7919,7 +7964,8 @@
     "updated_by": "uuid",
     "updated_by_name": "text",
     "approval_note": "text",
-    "revision": "integer"
+    "revision": "integer",
+    "ai_capture_id": "uuid"
    },
    "pk": [
     "id"

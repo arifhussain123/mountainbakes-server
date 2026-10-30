@@ -473,6 +473,8 @@ export interface FinanceTransaction {
   /** 1, then one more for each correction resubmitted after a rejection. */
   revision: number;
   ledgerEntryId: string | null;
+  /** The AI Expense Capture run it was generated from; null when keyed by hand. Absent before that column existed. */
+  aiCaptureId?: string | null;
   createdAt: string;
   updatedAt: string;
   /** Photo of the receipt or voucher, captured when the entry was raised. */

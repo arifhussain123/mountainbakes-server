@@ -96,6 +96,8 @@ export const CreateFinanceTransactionSchema = z.object({
    * exists to close.
    */
   attachmentIds: requiredAttachmentIds,
+  /** The AI Expense Capture run the entry was generated from; omitted for an entry keyed by hand. */
+  aiCaptureId: z.string().uuid().nullish(),
 });
 
 // attachmentIds is omitted: an edit revises the figures on a draft or rejected
@@ -107,6 +109,7 @@ export const UpdateFinanceTransactionSchema = CreateFinanceTransactionSchema.par
     asDraft: true,
     confirmDuplicate: true,
     attachmentIds: true,
+    aiCaptureId: true,
   })
   .extend({
     /**

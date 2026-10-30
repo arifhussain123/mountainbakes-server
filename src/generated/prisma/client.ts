@@ -242,6 +242,12 @@ export type finance_tickets = Prisma.finance_ticketsModel
  */
 export type finance_transactions = Prisma.finance_transactionsModel
 /**
+ * Model finance_ai_captures
+ * AI Expense Capture runs (migration 20261030000001_ai_expense_capture).
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type finance_ai_captures = Prisma.finance_ai_capturesModel
+/**
  * Model geofence_logs
  * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
  */

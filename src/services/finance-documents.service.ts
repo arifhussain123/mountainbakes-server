@@ -267,6 +267,23 @@ async function guardFinanceEntry(
   );
 }
 
+/**
+ * An entry may cite only an AI Expense Capture run its own creator made: the
+ * link is the audit trail of where the figures came from, so it must not be
+ * pointed at someone else's run.
+ */
+async function assertOwnCapture(captureId: string, actor: { uid: string }): Promise<void> {
+  const { data, error } = await db
+    .from('finance_ai_captures')
+    .select('id')
+    .eq('id', captureId)
+    .eq('created_by', actor.uid)
+    .eq('status', 'ok')
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) throw Object.assign(new Error('That AI capture run was not found.'), { status: 400 });
+}
+
 export async function createTransaction(
   input: CreateFinanceTransactionInput,
   actor: { uid: string; name: string; role?: UserRole },
@@ -276,6 +293,7 @@ export async function createTransaction(
   const head = await requireActiveHead(input.ledgerHeadId);
   const branch = await resolveBranch(input.branchId);
   const businessDate = input.businessDate ?? businessDateStr();
+  if (input.aiCaptureId) await assertOwnCapture(input.aiCaptureId, actor);
 
   if (head.type === 'income' && !input.confirmDuplicate) {
     await assertNotDuplicateIncome(head.id, input.amount, businessDate);
@@ -302,6 +320,8 @@ export async function createTransaction(
       status,
       reference_no: input.referenceNo?.trim() || null,
       notes: input.notes?.trim() || null,
+      // Only when set, so a database without the column still takes hand-keyed entries.
+      ...(input.aiCaptureId ? { ai_capture_id: input.aiCaptureId } : {}),
       created_by: actor.uid,
       created_by_name: actor.name,
       ...(status === 'pending_approval' ? submittedStamp(actor) : {}),

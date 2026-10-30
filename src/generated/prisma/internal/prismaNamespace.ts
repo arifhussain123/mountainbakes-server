@@ -436,6 +436,7 @@ export const ModelName = {
   finance_ticket_versions: 'finance_ticket_versions',
   finance_tickets: 'finance_tickets',
   finance_transactions: 'finance_transactions',
+  finance_ai_captures: 'finance_ai_captures',
   geofence_logs: 'geofence_logs',
   idempotency_keys: 'idempotency_keys',
   ledger_entries: 'ledger_entries',
@@ -521,7 +522,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "attachments" | "audit_logs" | "auth_refresh_tokens" | "auth_sessions" | "backup_jobs" | "backup_restore_tests" | "branch_discounts" | "branch_locations" | "branch_share_payments" | "branches" | "business_day_closures" | "cash_transfers" | "categories" | "counters" | "customers" | "daily_closing_reports" | "daily_sale_record_audits" | "daily_sale_records" | "employee_advances" | "event_branch_demand_items" | "event_branch_demands" | "event_branches" | "event_notifications" | "event_production_status" | "expenses" | "finance_amendments" | "finance_audit_logs" | "finance_day_closings" | "finance_employees" | "finance_income_approvals" | "finance_partners" | "finance_queries" | "finance_query_counters" | "finance_query_year_counters" | "finance_settings" | "finance_ticket_messages" | "finance_ticket_versions" | "finance_tickets" | "finance_transactions" | "geofence_logs" | "idempotency_keys" | "ledger_entries" | "ledger_heads" | "login_attempts" | "login_sessions" | "notification_logs" | "notification_reads" | "notification_recipients" | "notifications" | "order_items" | "orders" | "packing_materials" | "partner_expenses" | "password_reset_tokens" | "payment_method_settings" | "price_activation_locks" | "product_price_history" | "production_balances" | "production_order_items" | "production_order_packing_items" | "production_orders" | "production_returns" | "production_stock" | "production_stock_history" | "products" | "push_subscriptions" | "restriction_events" | "restriction_requests" | "restriction_rules" | "return_stock" | "return_stock_history" | "salary_payments" | "salary_revisions" | "settings" | "special_events" | "special_order_items" | "special_orders" | "stock" | "stock_audit_log" | "stock_history" | "support_tickets" | "user_credentials" | "users" | "employee_resignations" | "ingredient_stock" | "ingredient_stock_movements" | "purchase_bill_items" | "purchase_bills" | "purchase_deliveries" | "purchase_demand_events" | "purchase_demand_items" | "purchase_demands" | "purchase_items" | "purchase_quotation_items" | "purchase_quotations" | "purchase_receipt_items" | "purchase_receipts" | "supplier_access_tokens" | "supplier_credits" | "supplier_payments" | "suppliers" | "whatsapp_business_numbers" | "whatsapp_conversations" | "whatsapp_messages" | "whatsapp_outbox" | "whatsapp_webhook_events" | "branch_account_adjustments" | "production_order_share_snapshots" | "finance_document_events"
+    modelProps: "attachments" | "audit_logs" | "auth_refresh_tokens" | "auth_sessions" | "backup_jobs" | "backup_restore_tests" | "branch_discounts" | "branch_locations" | "branch_share_payments" | "branches" | "business_day_closures" | "cash_transfers" | "categories" | "counters" | "customers" | "daily_closing_reports" | "daily_sale_record_audits" | "daily_sale_records" | "employee_advances" | "event_branch_demand_items" | "event_branch_demands" | "event_branches" | "event_notifications" | "event_production_status" | "expenses" | "finance_amendments" | "finance_audit_logs" | "finance_day_closings" | "finance_employees" | "finance_income_approvals" | "finance_partners" | "finance_queries" | "finance_query_counters" | "finance_query_year_counters" | "finance_settings" | "finance_ticket_messages" | "finance_ticket_versions" | "finance_tickets" | "finance_transactions" | "finance_ai_captures" | "geofence_logs" | "idempotency_keys" | "ledger_entries" | "ledger_heads" | "login_attempts" | "login_sessions" | "notification_logs" | "notification_reads" | "notification_recipients" | "notifications" | "order_items" | "orders" | "packing_materials" | "partner_expenses" | "password_reset_tokens" | "payment_method_settings" | "price_activation_locks" | "product_price_history" | "production_balances" | "production_order_items" | "production_order_packing_items" | "production_orders" | "production_returns" | "production_stock" | "production_stock_history" | "products" | "push_subscriptions" | "restriction_events" | "restriction_requests" | "restriction_rules" | "return_stock" | "return_stock_history" | "salary_payments" | "salary_revisions" | "settings" | "special_events" | "special_order_items" | "special_orders" | "stock" | "stock_audit_log" | "stock_history" | "support_tickets" | "user_credentials" | "users" | "employee_resignations" | "ingredient_stock" | "ingredient_stock_movements" | "purchase_bill_items" | "purchase_bills" | "purchase_deliveries" | "purchase_demand_events" | "purchase_demand_items" | "purchase_demands" | "purchase_items" | "purchase_quotation_items" | "purchase_quotations" | "purchase_receipt_items" | "purchase_receipts" | "supplier_access_tokens" | "supplier_credits" | "supplier_payments" | "suppliers" | "whatsapp_business_numbers" | "whatsapp_conversations" | "whatsapp_messages" | "whatsapp_outbox" | "whatsapp_webhook_events" | "branch_account_adjustments" | "production_order_share_snapshots" | "finance_document_events"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3408,6 +3409,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.finance_transactionsCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.Finance_transactionsCountAggregateOutputType> | number
+        }
+      }
+    }
+    finance_ai_captures: {
+      payload: Prisma.$finance_ai_capturesPayload<ExtArgs>
+      fields: Prisma.finance_ai_capturesFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.finance_ai_capturesFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$finance_ai_capturesPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.finance_ai_capturesFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$finance_ai_capturesPayload>
+        }
+        findFirst: {
+          args: Prisma.finance_ai_capturesFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$finance_ai_capturesPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.finance_ai_capturesFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$finance_ai_capturesPayload>
+        }
+        findMany: {
+          args: Prisma.finance_ai_capturesFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$finance_ai_capturesPayload>[]
+        }
+        create: {
+          args: Prisma.finance_ai_capturesCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$finance_ai_capturesPayload>
+        }
+        createMany: {
+          args: Prisma.finance_ai_capturesCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.finance_ai_capturesCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$finance_ai_capturesPayload>[]
+        }
+        delete: {
+          args: Prisma.finance_ai_capturesDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$finance_ai_capturesPayload>
+        }
+        update: {
+          args: Prisma.finance_ai_capturesUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$finance_ai_capturesPayload>
+        }
+        deleteMany: {
+          args: Prisma.finance_ai_capturesDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.finance_ai_capturesUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.finance_ai_capturesUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$finance_ai_capturesPayload>[]
+        }
+        upsert: {
+          args: Prisma.finance_ai_capturesUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$finance_ai_capturesPayload>
+        }
+        aggregate: {
+          args: Prisma.Finance_ai_capturesAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFinance_ai_captures>
+        }
+        groupBy: {
+          args: Prisma.finance_ai_capturesGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Finance_ai_capturesGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.finance_ai_capturesCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.Finance_ai_capturesCountAggregateOutputType> | number
         }
       }
     }
@@ -8642,7 +8717,8 @@ export const AttachmentsScalarFieldEnum = {
   uploaded_by: 'uploaded_by',
   uploaded_by_name: 'uploaded_by_name',
   bound_at: 'bound_at',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  content_sha256: 'content_sha256'
 } as const
 
 export type AttachmentsScalarFieldEnum = (typeof AttachmentsScalarFieldEnum)[keyof typeof AttachmentsScalarFieldEnum]
@@ -9508,10 +9584,27 @@ export const Finance_transactionsScalarFieldEnum = {
   updated_by: 'updated_by',
   updated_by_name: 'updated_by_name',
   approval_note: 'approval_note',
-  revision: 'revision'
+  revision: 'revision',
+  ai_capture_id: 'ai_capture_id'
 } as const
 
 export type Finance_transactionsScalarFieldEnum = (typeof Finance_transactionsScalarFieldEnum)[keyof typeof Finance_transactionsScalarFieldEnum]
+
+
+export const Finance_ai_capturesScalarFieldEnum = {
+  id: 'id',
+  created_by: 'created_by',
+  created_by_name: 'created_by_name',
+  attachment_ids: 'attachment_ids',
+  model: 'model',
+  status: 'status',
+  result: 'result',
+  error: 'error',
+  duration_ms: 'duration_ms',
+  created_at: 'created_at'
+} as const
+
+export type Finance_ai_capturesScalarFieldEnum = (typeof Finance_ai_capturesScalarFieldEnum)[keyof typeof Finance_ai_capturesScalarFieldEnum]
 
 
 export const Geofence_logsScalarFieldEnum = {
@@ -11917,6 +12010,7 @@ export type GlobalOmitConfig = {
   finance_ticket_versions?: Prisma.finance_ticket_versionsOmit
   finance_tickets?: Prisma.finance_ticketsOmit
   finance_transactions?: Prisma.finance_transactionsOmit
+  finance_ai_captures?: Prisma.finance_ai_capturesOmit
   geofence_logs?: Prisma.geofence_logsOmit
   idempotency_keys?: Prisma.idempotency_keysOmit
   ledger_entries?: Prisma.ledger_entriesOmit

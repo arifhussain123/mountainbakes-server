@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireFinance, requireFinanceReviewer, requireIncomeVerifier } from '../middleware/requireFinance';
 import { validate } from '../middleware/validate';
+import { idempotent } from '../middleware/idempotency';
 import {
   ApproveSchema,
   CreateFinanceTransactionSchema,
@@ -275,6 +276,9 @@ entriesRouter.get('/:id', requireFinance('view'), async (req: AuthRequest, res, 
 entriesRouter.post(
   '/',
   requireFinance('create'),
+  // With an Idempotency-Key a retried save returns the entry it already made
+  // (AI Expense Capture sends one per card); without one, unchanged.
+  idempotent('finance_entry.create'),
   validate(CreateFinanceTransactionSchema),
   async (req: AuthRequest, res, next) => {
     try {
