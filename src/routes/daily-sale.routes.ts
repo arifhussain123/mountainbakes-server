@@ -44,15 +44,14 @@ const db = dbFor('daily-sale');
  *
  * ─── What each role may DO is decided per endpoint, not here ─────────────────
  *   feed            branch roles + admin   (locks decided per method, in SQL)
- *   verify          branch_manager + admin
+ *   verify          nobody — the 12:30 AM job (daily-sale-verify.job.ts)
  *   lock / unlock   admin only
  *   amend           admin only
  *   set a lock      admin only
  *
- * Verification is granted to `branch_manager` rather than kept admin-only because
- * §20 lists Verify among the actions a branch sees, and because a company with
- * four shops cannot have one person sign off four drawers every night. What stays
- * admin-only is everything that CLOSES a record or CHANGES a signed figure.
+ * Verification is not an endpoint: every fed record is verified automatically at
+ * 12:30 AM. What stays admin-only is everything that CLOSES a record or CHANGES a
+ * signed figure.
  *
  * ─── Nothing here computes money ─────────────────────────────────────────────
  * Every figure comes from Postgres (migration 101). This file resolves whose data
@@ -316,26 +315,6 @@ router.get('/', async (req: AuthRequest, res, next) => {
 router.get('/:id', async (req: AuthRequest, res, next) => {
   try {
     res.json(await getDailySaleRecordDetail(req.params['id']!, readScope(req)));
-  } catch (err) {
-    next(err);
-  }
-});
-
-/**
- * PUT /api/daily-sale-records/:id/verify — sign off the counted figures.
- *
- * `branch_manager` and `super_admin`.
- */
-router.put('/:id/verify', requireRole('super_admin', 'branch_manager'), async (req: AuthRequest, res, next) => {
-  try {
-    res.json(
-      await decideDailySaleRecord({
-        id: req.params['id']!,
-        action: 'verify',
-        branchScope: readScope(req),
-        actor: await resolveActor(req),
-      }),
-    );
   } catch (err) {
     next(err);
   }
