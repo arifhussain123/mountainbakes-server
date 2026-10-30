@@ -87,8 +87,11 @@ export function errorHandler(
 
   const status = (err as { status?: number }).status || 500;
   // Client errors (4xx) carry actionable, user-facing messages (e.g. "business day
-  // closed", "not found") — expose them. Server errors (5xx) stay masked in prod.
-  const expose = status < 500 || process.env.NODE_ENV !== 'production';
+  // closed", "not found") — expose them. Server errors (5xx) stay masked in prod,
+  // unless the thrower marked the message as written for the user (`expose:
+  // true`) — e.g. AI Expense Capture's "not set up yet" (503) or "the AI took
+  // too long" (504), which the finance user or administrator can act on.
+  const expose = status < 500 || (err as { expose?: boolean }).expose === true || process.env.NODE_ENV !== 'production';
   // Optional structured payload alongside the message — e.g. the duplicate-income
   // check attaches { code, existing } so the frontend can offer a confirm-and-retry
   // instead of just a dead-end toast. Nothing else in the app sets this today, so
