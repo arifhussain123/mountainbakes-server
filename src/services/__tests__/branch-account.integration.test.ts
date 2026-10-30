@@ -578,7 +578,8 @@ test('the Collections export carries the Demand Record figures, per branch', asy
   const august = (await collectionsWorkbook('&from=2026-08-01&to=2026-08-31')).get('Collections')!;
   assert.deepEqual(august[1]!.slice(1), ['DMD-000100', 'Alpha', 1000, 0, 0, 1000, (1000 * pct) / 100]);
 
-  const main = wb.get('Collections')!;
+  // The table only: the note under it is rich text.
+  const main = wb.get('Collections')!.filter((x) => !(x[0] && typeof x[0] === 'object' && 'richText' in x[0]));
   const h = main[0]!;
   assert.equal(h.includes('Actual Sales'), false); // production users never see sales
   const at = (name: string) => h.indexOf(name);
