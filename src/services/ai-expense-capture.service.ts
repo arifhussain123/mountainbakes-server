@@ -13,10 +13,10 @@ import {
 } from '../shared';
 import { assertStagedAttachments, uploadAttachment } from './attachments.service';
 import { fileStore } from './file-store';
-import { GeminiError, gemini, geminiConfig, type GeminiImage } from './ai/gemini';
+import { AiError, aiConfig, aiReader, type AiImage } from './ai/claude';
 
 /**
- * AI Expense Capture: read a finance user's receipt photos with Gemini and
+ * AI Expense Capture: read a finance user's receipt photos with Claude and
  * propose one expense per bill (owner's order, 2026-10-30).
  *
  * Nothing here writes an entry. The proposals go back to the user, who edits
@@ -43,60 +43,51 @@ const TOLERANCE = 1;
 
 // ── What the model is asked for ────────────────────────────────────────────
 
-const nullableString = { type: 'STRING', nullable: true };
-const nullableNumber = { type: 'NUMBER', nullable: true };
+// Structured outputs need every object closed (additionalProperties: false);
+// every field is required, and a value the receipt does not show is null.
+const nullable = (type: 'string' | 'number') => ({ anyOf: [{ type }, { type: 'null' }] });
+const obj = (properties: Record<string, unknown>) => ({
+  type: 'object',
+  properties,
+  required: Object.keys(properties),
+  additionalProperties: false,
+});
 
-const RESPONSE_SCHEMA = {
-  type: 'OBJECT',
-  properties: {
-    photos: {
-      type: 'ARRAY',
-      items: {
-        type: 'OBJECT',
-        properties: { photo: { type: 'INTEGER' }, readable: { type: 'BOOLEAN' }, note: nullableString },
-        required: ['photo', 'readable'],
-      },
-    },
-    bills: {
-      type: 'ARRAY',
-      items: {
-        type: 'OBJECT',
-        properties: {
-          photos: { type: 'ARRAY', items: { type: 'INTEGER' } },
-          merchant: nullableString,
-          invoiceNo: nullableString,
-          date: { ...nullableString, description: 'YYYY-MM-DD' },
-          currency: nullableString,
-          subtotal: nullableNumber,
-          tax: nullableNumber,
-          discount: nullableNumber,
-          total: nullableNumber,
-          description: { type: 'STRING' },
-          descriptionOriginal: nullableString,
-          language: nullableString,
-          lineItems: {
-            type: 'ARRAY',
-            items: {
-              type: 'OBJECT',
-              properties: {
-                description: { type: 'STRING' },
-                descriptionEnglish: nullableString,
-                quantity: nullableNumber,
-                amount: nullableNumber,
-              },
-              required: ['description'],
-            },
-          },
-          ledgerHeadCode: nullableString,
-          confidence: { type: 'STRING', enum: ['high', 'medium', 'low'] },
-          unclear: nullableString,
-        },
-        required: ['photos', 'description', 'lineItems', 'confidence'],
-      },
-    },
+const RESPONSE_SCHEMA = obj({
+  photos: {
+    type: 'array',
+    items: obj({ photo: { type: 'integer' }, readable: { type: 'boolean' }, note: nullable('string') }),
   },
-  required: ['photos', 'bills'],
-};
+  bills: {
+    type: 'array',
+    items: obj({
+      photos: { type: 'array', items: { type: 'integer' } },
+      merchant: nullable('string'),
+      invoiceNo: nullable('string'),
+      date: { ...nullable('string'), description: 'YYYY-MM-DD' },
+      currency: nullable('string'),
+      subtotal: nullable('number'),
+      tax: nullable('number'),
+      discount: nullable('number'),
+      total: nullable('number'),
+      description: { type: 'string' },
+      descriptionOriginal: nullable('string'),
+      language: nullable('string'),
+      lineItems: {
+        type: 'array',
+        items: obj({
+          description: { type: 'string' },
+          descriptionEnglish: nullable('string'),
+          quantity: nullable('number'),
+          amount: nullable('number'),
+        }),
+      },
+      ledgerHeadCode: nullable('string'),
+      confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+      unclear: nullable('string'),
+    }),
+  },
+});
 
 function buildPrompt(photoCount: number, heads: { code: string; name: string }[], today: string): string {
   return [
@@ -338,9 +329,9 @@ export async function analyzeReceipts(input: {
   attachmentIds: string[];
   actor: { uid: string; email: string };
 }): Promise<AiCaptureResult> {
-  const cfg = geminiConfig();
+  const cfg = aiConfig();
   if (!cfg) {
-    throw Object.assign(new Error('AI Expense Capture is not set up yet: the server has no Gemini key. Ask the administrator to add GEMINI_API_KEY.'), {
+    throw Object.assign(new Error('AI Expense Capture is not set up yet: the server has no Anthropic key. Ask the administrator to add ANTHROPIC_API_KEY.'), {
       status: 503,
       expose: true,
     });
@@ -362,7 +353,7 @@ export async function analyzeReceipts(input: {
   );
   const byId = new Map(found.map((r) => [r.id, r]));
   const photos = ids.map((id) => byId.get(id)!);
-  const images: GeminiImage[] = [];
+  const images: AiImage[] = [];
   for (const p of photos) images.push({ mimeType: p.mime_type, data: await readPhoto(p.storage_path) });
 
   const heads = await prisma.$queryRawUnsafe<{ id: string; code: string; name: string }[]>(
@@ -374,12 +365,12 @@ export async function analyzeReceipts(input: {
   const started = Date.now();
   let reply: Reply;
   try {
-    const raw = await gemini()({ prompt: buildPrompt(photos.length, heads, today), images, responseSchema: RESPONSE_SCHEMA }, cfg);
+    const raw = await aiReader()({ prompt: buildPrompt(photos.length, heads, today), images, responseSchema: RESPONSE_SCHEMA }, cfg);
     const parsed = ReplySchema.safeParse(raw);
-    if (!parsed.success) throw new GeminiError('The AI reply could not be understood. Try again.', 502, 'bad_reply');
+    if (!parsed.success) throw new AiError('The AI reply could not be understood. Try again.', 502, 'bad_reply');
     reply = parsed.data;
   } catch (err) {
-    const known = err instanceof GeminiError;
+    const known = err instanceof AiError;
     await recordRun({
       actor: input.actor, attachmentIds: ids, model: cfg.model, status: 'failed',
       error: known ? err.code : 'internal', durationMs: Date.now() - started,

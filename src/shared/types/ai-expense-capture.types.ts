@@ -1,5 +1,5 @@
 /**
- * AI Expense Capture — receipts photographed or uploaded, read by Google Gemini
+ * AI Expense Capture — receipts photographed or uploaded, read by Claude
  * on the server, proposed back as expense entries for a finance user to check.
  *
  * Shared because the web page, the mobile screen and the API state the same

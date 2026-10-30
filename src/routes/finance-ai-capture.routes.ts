@@ -17,7 +17,7 @@ import { analyzeReceipts, copyReceiptPhoto } from '../services/ai-expense-captur
 export const router = Router();
 router.use(authenticate);
 
-// Each run is a paid call to Gemini with up to ten photos. Far above what
+// Each run is a paid call to Claude with up to ten photos. Far above what
 // anyone entering receipts needs; low enough that a stuck retry loop cannot
 // run up a bill.
 const analyzeLimiter = rateLimit({

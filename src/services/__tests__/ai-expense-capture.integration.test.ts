@@ -12,12 +12,12 @@ import { usePglite } from '../../db/testing';
 import { PrismaClient } from '../../generated/prisma/client';
 import { signAccessToken } from '../auth/tokens';
 import { businessDateStr, businessDaysAgoStr } from '../../shared';
-import { GeminiError, setGeminiCaller, type GeminiRequest } from '../ai/gemini';
+import { AiError, setAiReader, type AiRequest } from '../ai/claude';
 
 /**
  * AI Expense Capture end to end (migration 20261030000001_ai_expense_capture):
  * the real baseline tables, the finance approval migrations and this one, the
- * real routes behind real access tokens — and Gemini replaced by canned
+ * real routes behind real access tokens — and Claude replaced by canned
  * replies, so what is tested is everything around the model: which photos go,
  * how the reply becomes proposals, the server's own checks, duplicates, the
  * audit row, and saving a proposal through the ordinary entry create exactly
@@ -100,9 +100,9 @@ let server: Server;
 let base: string;
 /** The fake store's files, by path. */
 const files = new Map<string, Buffer>();
-/** What the stubbed Gemini was last sent. */
-let lastRequest: GeminiRequest | null = null;
-let reply: (req: GeminiRequest) => unknown = () => ({ photos: [], bills: [] });
+/** What the stubbed AI was last sent. */
+let lastRequest: AiRequest | null = null;
+let reply: (req: AiRequest) => unknown = () => ({ photos: [], bills: [] });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Json = any;
@@ -147,7 +147,7 @@ before(async () => {
   process.env['JWT_SECRET'] = 'ai-expense-capture-test-secret-long-enough';
   process.env['FILES_S3_BUCKET'] = 'test-bucket';
   process.env['PUBLIC_API_URL'] = 'https://api.test';
-  process.env['GEMINI_API_KEY'] = 'test-key';
+  process.env['ANTHROPIC_API_KEY'] = 'test-key';
 
   db = new PGlite();
   await db.exec(STUBS);
@@ -213,7 +213,7 @@ before(async () => {
     publicUrl: (_bucket, path) => `https://api.test/api/public/branding/${path}`,
     download: async (_bucket, path) => files.get(path) ?? null,
   });
-  setGeminiCaller(async (req) => {
+  setAiReader(async (req) => {
     lastRequest = req;
     return reply(req);
   });
@@ -232,14 +232,14 @@ before(async () => {
 });
 
 after(async () => {
-  setGeminiCaller();
+  setAiReader();
   server?.close();
   await db?.close();
 });
 
 beforeEach(() => {
   lastRequest = null;
-  process.env['GEMINI_API_KEY'] = 'test-key';
+  process.env['ANTHROPIC_API_KEY'] = 'test-key';
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -253,8 +253,8 @@ describe('who may run it', () => {
     assert.equal(lastRequest, null);
   });
 
-  test('without a Gemini key the feature says so (503), in production too', async () => {
-    delete process.env['GEMINI_API_KEY'];
+  test('without an Anthropic key the feature says so (503), in production too', async () => {
+    delete process.env['ANTHROPIC_API_KEY'];
     const nodeEnv = process.env['NODE_ENV'];
     // Production masks 5xx messages as "Internal server error"; this one must
     // still reach the screen, or the administrator never learns the key is missing.
@@ -262,7 +262,7 @@ describe('who may run it', () => {
     try {
       const r = await call('accountant', 'POST', ANALYZE, { attachmentIds: [await photo()] });
       assert.equal(r.status, 503);
-      assert.match(r.body.error, /GEMINI_API_KEY/);
+      assert.match(r.body.error, /ANTHROPIC_API_KEY/);
     } finally {
       process.env['NODE_ENV'] = nodeEnv;
     }
@@ -306,6 +306,19 @@ describe('reading receipts', () => {
     // The model got every photo's bytes, in order, and the active expense heads.
     assert.deepEqual(lastRequest!.images.map((i) => i.data.toString()), ids.map((_, i) => `receipt-${photoSeq - 3 + i}`));
     assert.match(lastRequest!.prompt, /EXP-ELECTRICITY — Electricity/);
+    // Structured outputs refuse an object schema that is not closed and fully required.
+    const open: string[] = [];
+    const walk = (node: unknown, at: string): void => {
+      if (!node || typeof node !== 'object') return;
+      const n = node as Record<string, unknown>;
+      if (n['type'] === 'object') {
+        const keys = Object.keys(n['properties'] as object);
+        if (n['additionalProperties'] !== false || JSON.stringify(n['required']) !== JSON.stringify(keys)) open.push(at);
+      }
+      for (const [k, v] of Object.entries(n)) walk(v, `${at}.${k}`);
+    };
+    walk(lastRequest!.responseSchema, 'schema');
+    assert.deepEqual(open, []);
     assert.doesNotMatch(lastRequest!.prompt, /EXP-OLD|INC-OTHER/);
 
     assert.equal(out.expenses.length, 4);
@@ -321,7 +334,7 @@ describe('reading receipts', () => {
     // The run is recorded, with what was proposed.
     const run = (await db.query<Json>(`select status, model, attachment_ids::text[] ids, result from finance_ai_captures where id = $1`, [out.captureId])).rows[0];
     assert.equal(run.status, 'ok');
-    assert.equal(run.model, 'gemini-2.5-flash');
+    assert.equal(run.model, 'claude-opus-5-5');
     assert.deepEqual(run.ids, ids);
     assert.equal(run.result.expenses.length, 4);
   });
@@ -358,8 +371,8 @@ describe('reading receipts', () => {
     assert.deepEqual(out.photos.find((p: Json) => p.id === ids[3]), { id: ids[3], readable: false, note: 'Blurred' });
   });
 
-  test('a Gemini timeout is a clear 504, and the failed run is recorded', async () => {
-    reply = () => { throw new GeminiError('The AI took too long to read these receipts.', 504, 'timeout'); };
+  test('an AI timeout is a clear 504, and the failed run is recorded', async () => {
+    reply = () => { throw new AiError('The AI took too long to read these receipts.', 504, 'timeout'); };
     const r = await call('accountant', 'POST', ANALYZE, { attachmentIds: [await photo()] });
     assert.equal(r.status, 504);
     assert.match(r.body.error, /took too long/);
