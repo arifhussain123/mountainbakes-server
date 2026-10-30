@@ -342,6 +342,7 @@ export async function analyzeReceipts(input: {
   if (!cfg) {
     throw Object.assign(new Error('AI Expense Capture is not set up yet: the server has no Gemini key. Ask the administrator to add GEMINI_API_KEY.'), {
       status: 503,
+      expose: true,
     });
   }
   const ids = [...new Set(input.attachmentIds)];
@@ -383,7 +384,7 @@ export async function analyzeReceipts(input: {
       actor: input.actor, attachmentIds: ids, model: cfg.model, status: 'failed',
       error: known ? err.code : 'internal', durationMs: Date.now() - started,
     });
-    if (known) throw Object.assign(new Error(err.message), { status: err.status, details: { code: `ai_${err.code}` } });
+    if (known) throw Object.assign(new Error(err.message), { status: err.status, expose: true, details: { code: `ai_${err.code}` } });
     throw err;
   }
 

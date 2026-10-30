@@ -253,11 +253,19 @@ describe('who may run it', () => {
     assert.equal(lastRequest, null);
   });
 
-  test('without a Gemini key the feature says so (503)', async () => {
+  test('without a Gemini key the feature says so (503), in production too', async () => {
     delete process.env['GEMINI_API_KEY'];
-    const r = await call('accountant', 'POST', ANALYZE, { attachmentIds: [await photo()] });
-    assert.equal(r.status, 503);
-    assert.match(r.body.error, /GEMINI_API_KEY/);
+    const nodeEnv = process.env['NODE_ENV'];
+    // Production masks 5xx messages as "Internal server error"; this one must
+    // still reach the screen, or the administrator never learns the key is missing.
+    process.env['NODE_ENV'] = 'production';
+    try {
+      const r = await call('accountant', 'POST', ANALYZE, { attachmentIds: [await photo()] });
+      assert.equal(r.status, 503);
+      assert.match(r.body.error, /GEMINI_API_KEY/);
+    } finally {
+      process.env['NODE_ENV'] = nodeEnv;
+    }
   });
 
   test('only the caller\'s own unused receipt photos can be read', async () => {
