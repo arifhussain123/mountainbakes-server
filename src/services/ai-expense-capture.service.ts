@@ -106,7 +106,7 @@ function buildPrompt(photoCount: number, heads: { code: string; name: string }[]
     '',
     'Rules:',
     '1. Read every receipt line by line, printed or handwritten, in whatever language it is written (English, Urdu or others).',
-    '2. Group the photos into BILLS. One bill is one purchase from one supplier: several photos of the same long receipt are ONE bill; one photo showing two separate receipts is TWO bills. List in `photos` every photo number a bill appears on.',
+    '2. Group the photos into BILLS. One bill is one purchase from one supplier: several photos of the same long receipt, or the same receipt photographed twice or from different angles, are ONE bill; one photo showing two separate receipts is TWO bills. List in `photos` every photo number a bill appears on.',
     '3. Return one entry in `bills` per bill. The items on a bill go in its `lineItems`; never make a separate bill for each item.',
     '4. Never invent anything. If a date, amount, merchant or invoice number cannot be read with confidence, return null for it and say what was unclear in `unclear`. Do not compute a missing total from the items.',
     '5. `total` is the final amount payable as printed. `subtotal`, `tax` and `discount` only when printed.',
