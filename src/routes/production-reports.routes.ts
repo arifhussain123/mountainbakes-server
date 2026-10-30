@@ -262,7 +262,7 @@ const AMOUNT = '#,##0;-#,##0;';
 const RS_TOTAL = '"Rs. "#,##0;-"Rs. "#,##0;';
 const money: ExcelColumn = { numFmt: AMOUNT, totalNumFmt: RS_TOTAL };
 const RS_SUMMARY = RS_TOTAL;
-/** The statement's notes (owner's wording, 2026-10-29), under each branch's table. */
+/** The statement's note lines (owner's wording, 2026-10-29), under each table. */
 const NOTE_1 = 'This computer-generated statement does not require a signature.';
 const NOTE_2 = 'This detail is not valid for any legal or law requirement.';
 
@@ -303,7 +303,7 @@ function collectionsFromDemandRecord(
   period: { fromStr: string; toStr: string },
   /** Demands before the record began, when the window runs back past its start: listed first on each branch's tab. */
   earlier: { start: string; rows: DemandBeforeRecordRow[] } | null = null,
-): { title: string; headers: string[]; rows: (string | number)[][]; specialRowCount: number; columns: ExcelColumn[]; totalRows: number[]; highlight: { row: number; col: number }[]; borders: boolean; extraSheets: ExcelSheet[] } {
+): { title: string; headers: string[]; rows: (string | number)[][]; specialRowCount: number; columns: ExcelColumn[]; totalRows: number[]; highlight: { row: number; col: number }[]; borders: boolean; notes: NonNullable<ExcelSheet['notes']>; extraSheets: ExcelSheet[] } {
   type Row = (typeof record.rows)[number];
   // No Closing Status or Slip No. column (owner's calls, 2026-10-29): a
   // negative Closing already reads as a credit, and the demand number is the
@@ -434,22 +434,30 @@ function collectionsFromDemandRecord(
       { ...item('Balance', balance ?? ''), bold: true, highlight: record.monthClosed },
     ];
   };
-  // Note 3 only for a finished month: it names the month's last day, and the
-  // balance is final only once the Closing Stock is off.
+  // The statement's note (owner's wording, 2026-10-29; shown on every export
+  // since 2026-10-30, not only a finished month's): under each branch's table,
+  // and under the main sheet with every branch's balance added together. The
+  // balance is the one at the To date and the back date is that day, which
+  // for a finished month is its last day.
   const notesOf = (balance: number | null): NonNullable<ExcelSheet['notes']> => [
-    [{ text: 'Note 1: ', bold: true }, { text: NOTE_1 }],
-    [{ text: 'Note 2: ', bold: true }, { text: NOTE_2 }],
-    ...(record.monthClosed && balance !== null ? [[
-      { text: 'Note 3: ', bold: true },
-      { text: 'Balance Amount ' },
-      // Whole rupees like the cells; paisa only when there are some.
-      { text: `Rs. ${balance.toLocaleString('en-US', { maximumFractionDigits: 2 })}`, bold: true },
-      { text: ' (' },
-      { text: rupeesInWords(balance), bold: true },
-      { text: ') is deposited through the application of the cash deposit procedure followed. When the amount is deposited with a back date on the last month\'s date ' },
-      { text: dmy(record.to), bold: true },
-      { text: ', submit the application to the admin for access on the back date.' },
-    ]] : []),
+    [{ text: 'Note:', bold: true }],
+    [{ text: NOTE_1 }],
+    [{ text: NOTE_2 }],
+    ...(balance !== null ? [
+      [
+        { text: 'Balance Amount ' },
+        // Whole rupees like the cells; paisa only when there are some.
+        { text: `Rs. ${balance.toLocaleString('en-US', { maximumFractionDigits: 2 })}`, bold: true },
+        { text: ' (' },
+        { text: rupeesInWords(balance), bold: true },
+        { text: ') is deposited through the application of the cash deposit procedure followed.' },
+      ],
+      [
+        { text: 'When the amount is deposited with a back date on the last month of date ' },
+        { text: dmy(record.to), bold: true },
+        { text: ', submit the application to the admin for access on the back date.' },
+      ],
+    ] : []),
   ];
 
   const tabs = [
@@ -538,6 +546,7 @@ function collectionsFromDemandRecord(
     totalRows,
     highlight,
     borders: true,
+    notes: notesOf(branches.length > 0 ? toPaisa(branches.reduce((a, b) => a + b.closingBalance, 0)) : null),
     extraSheets: [
       { title: 'By Branch', headers: byBranchHeaders, rows: byBranchRows, columns: byBranchColumns, totalRows: byBranchRows.length > 0 ? [byBranchRows.length - 1] : [], borders: true },
       ...monthEnd,
@@ -671,6 +680,7 @@ async function buildReport(
   totalRows?: number[];
   highlight?: { row: number; col: number }[];
   borders?: boolean;
+  notes?: ExcelSheet['notes'];
 }> {
   // `prepared-detail` and `collections` are driven by an explicit from/to window
   // rather than the period dropdown; every other report still anchors to the
@@ -1237,7 +1247,7 @@ router.get('/export', async (req: AuthRequest, res, next) => {
     const exportType = String(req.query['type'] || 'excel');
     const range = usesDateRange(report) ? reportDateRange(report, req.query['from'], req.query['to']) : undefined;
     const branchId = typeof req.query['branchId'] === 'string' ? req.query['branchId'] : '';
-    const { title, headers, rows, extraSheets, columns, totalRows, highlight, borders } = await buildReport(report, period, range, branchId);
+    const { title, headers, rows, extraSheets, columns, totalRows, highlight, borders, notes } = await buildReport(report, period, range, branchId);
     // A range report names the window it covers, so two exports taken the same
     // day for different windows don't land on the same filename.
     const dateLabel = range
@@ -1256,7 +1266,7 @@ router.get('/export', async (req: AuthRequest, res, next) => {
       res.send(genericCSV(headers, rows));
     } else {
       const buffer = extraSheets?.length
-        ? await genericExcelMultiSheet([{ title, headers, rows, columns, totalRows, highlight, borders }, ...extraSheets])
+        ? await genericExcelMultiSheet([{ title, headers, rows, columns, totalRows, highlight, borders, notes }, ...extraSheets])
         : await genericExcel(title, headers, rows);
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}.xlsx"`);

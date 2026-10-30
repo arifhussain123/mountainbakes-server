@@ -1,5 +1,6 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { rupeesInWords } from '../../utils/amountInWords';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { AddressInfo } from 'node:net';
@@ -315,6 +316,8 @@ const valuesOf = (ws: { eachRow: (cb: (r: { values: unknown }) => void) => void 
 
 const HEADERS = ['Date', 'Demand No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share',
   'Received', 'Previous', 'Closing'];
+/** The main sheet's rows without the note under it. */
+const tableOf = (ws: Parameters<typeof valuesOf>[0]) => valuesOf(ws).filter((r) => !isNote(r));
 /** A branch's tab: the same columns without Branch. */
 const BRANCH_HEADERS = HEADERS.filter((h) => h !== 'Branch');
 /** A branch's tab split at its header row: the lines above it, then the table. */
@@ -332,8 +335,14 @@ test('the Collections sheet is the Demand Record page, row for row, in the page\
   const page = ok(await call('accountant', 'GET', `${API}?from=2026-10-01&to=2026-10-03&sortDir=asc&pageSize=500`));
   const wb = await workbook('&from=2026-10-01&to=2026-10-03');
   assert.deepEqual(wb.worksheets.map((w) => w.name), ['Collections', 'By Branch', 'Blue Area', 'Committee Chowk', 'F-7', 'Gulberg', 'Saddar']);
-  const main = valuesOf(wb.getWorksheet('Collections')!);
+  const main = tableOf(wb.getWorksheet('Collections')!);
   assert.deepEqual(main[0], HEADERS);
+  // The note under it too, on every branch's balance added together (By Branch's Closing).
+  const closings = tableOf(wb.getWorksheet('By Branch')!).slice(1, -1).reduce((a, r) => a + (r[9] as number), 0);
+  const mainNotes = valuesOf(wb.getWorksheet('Collections')!).filter(isNote).map(noteText);
+  assert.equal(mainNotes.length, 5);
+  assert.equal(mainNotes[0], 'Note:');
+  assert.equal(mainNotes[3], `Balance Amount Rs. ${closings.toLocaleString('en-US')} (${rupeesInWords(closings)}) is deposited through the application of the cash deposit procedure followed.`);
 
   const data = main.slice(1, -1);
   // Each branch's Opening Stock row first (1 Oct, "Opening Stock" in Demand No.), then the demands.
@@ -384,7 +393,7 @@ test('cells stay numeric and carry the page\'s formats', async () => {
   assert.equal(r124.getCell(11).numFmt, '#,##0;-#,##0;'); // Closing: no "Rs." on a row
   assert.ok(r124.getCell(11).border?.top, 'the table has borders');
   assert.notEqual(r124.getCell(11).font?.color?.argb, 'FFDC2626'); // red only on a finished month's final balance
-  const total = ws.getRow(ws.rowCount);
+  const total = ws.getRow(ws.rowCount - 6); // then a blank line and the five note lines
   assert.equal(total.getCell(1).value, 'TOTAL');
   assert.equal(total.getCell(4).font?.bold, true);
   assert.equal(total.getCell(4).numFmt, '"Rs. "#,##0;-"Rs. "#,##0;'); // only the TOTAL carries "Rs."
@@ -408,13 +417,16 @@ test('each branch keeps its own chain; By Branch adds up to the same totals', as
   assert.deepEqual(gulberg.table.slice(1, -1).map((r) => [r[1], r[8], r[9]]),
     [['Opening Stock', 0, 0], ['DMD-000127', 0, -2000], ['DMD-000129', -2000, 4000]]);
   assert.deepEqual(gulberg.table.at(-1), ['TOTAL', '', 45000, 1400, 1100, 42500, 34000, 30000, '', '']);
-  // Mid-month: Notes 1 and 2 only; Note 3 waits for the month's last day.
+  // Mid-month too: the whole note, on the balance at the To date.
   assert.deepEqual(gulberg.notes, [
-    'Note 1: This computer-generated statement does not require a signature.',
-    'Note 2: This detail is not valid for any legal or law requirement.',
+    'Note:',
+    'This computer-generated statement does not require a signature.',
+    'This detail is not valid for any legal or law requirement.',
+    'Balance Amount Rs. 4,000 (Rupees Four Thousand Only) is deposited through the application of the cash deposit procedure followed.',
+    'When the amount is deposited with a back date on the last month of date 03 Oct 2026, submit the application to the admin for access on the back date.',
   ]);
   const ws = wb.getWorksheet('Gulberg')!;
-  const totalAt = ws.rowCount - 3; // TOTAL, a blank line, then the two notes
+  const totalAt = ws.rowCount - 6; // TOTAL, a blank line, then the five note lines
   assert.equal(ws.getRow(totalAt).getCell(1).value, 'TOTAL');
   assert.equal(ws.getRow(totalAt).getCell(3).font?.bold, true); // the TOTAL, below the preamble
   assert.equal(ws.getRow(totalAt).getCell(3).numFmt, '"Rs. "#,##0;-"Rs. "#,##0;');
@@ -427,13 +439,13 @@ test('each branch keeps its own chain; By Branch adds up to the same totals', as
 });
 
 test('the window always starts on the 1st of the To date\'s month', async () => {
-  const picked = valuesOf((await workbook('&from=2026-10-03&to=2026-10-03')).getWorksheet('Collections')!);
-  const month = valuesOf((await workbook('&from=2026-10-01&to=2026-10-03')).getWorksheet('Collections')!);
+  const picked = tableOf((await workbook('&from=2026-10-03&to=2026-10-03')).getWorksheet('Collections')!);
+  const month = tableOf((await workbook('&from=2026-10-01&to=2026-10-03')).getWorksheet('Collections')!);
   assert.deepEqual(picked, month);
 });
 
 test('a later month starts each branch from its own carried balance, with that morning\'s stock', async () => {
-  const main = valuesOf((await workbook('&from=2026-11-05&to=2026-11-05')).getWorksheet('Collections')!);
+  const main = tableOf((await workbook('&from=2026-11-05&to=2026-11-05')).getWorksheet('Collections')!);
   // No demand is required in 1–5 Nov; each branch carries October's balance in.
   assert.deepEqual(main.slice(1, -1).map((r) => [(r[0] as Date).toISOString().slice(0, 10), r[1], r[2], r[9], r[10]]), [
     ['2026-11-01', 'Opening Stock', 'Blue Area', 4640, 4640],
@@ -447,7 +459,7 @@ test('a later month starts each branch from its own carried balance, with that m
 
 test('a demand is placed and dated by its required date, not the day it was submitted', async () => {
   const wb = await workbook('&from=2026-10-04&to=2026-10-04');
-  const main = valuesOf(wb.getWorksheet('Collections')!);
+  const main = tableOf(wb.getWorksheet('Collections')!);
   const r = main.find((x) => x[1] === 'DMD-000130')!;
   assert.equal((r[0] as Date).toISOString().slice(0, 10), '2026-10-04');
   //                            Delivered        Share Received Previous Closing
@@ -455,7 +467,7 @@ test('a demand is placed and dated by its required date, not the day it was subm
 });
 
 test('To may run past today: a demand required later is shown on its required date', async () => {
-  const main = valuesOf((await workbook('&from=2099-01-01&to=2099-01-05')).getWorksheet('Collections')!);
+  const main = tableOf((await workbook('&from=2099-01-01&to=2099-01-05')).getWorksheet('Collections')!);
   const r = main.find((x) => x[1] === 'DMD-000131')!;
   assert.ok(r, 'DMD-000131 is in the window');
   assert.equal((r[0] as Date).toISOString().slice(0, 10), '2099-01-02');
@@ -465,7 +477,7 @@ test('To may run past today: a demand required later is shown on its required da
 test('July–September, before the Demand Record began: each demand\'s figures, no Received or balance', async () => {
   const wb = await workbook('&from=2026-07-01&to=2026-09-30');
   assert.deepEqual(wb.worksheets.map((w) => w.name), ['Collections', 'By Branch', 'F-7', 'Saddar']);
-  const main = valuesOf(wb.getWorksheet('Collections')!);
+  const main = tableOf(wb.getWorksheet('Collections')!);
   assert.deepEqual(main[0], ['Date', 'Demand No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share']);
   assert.deepEqual(main.slice(1, 4).map((r) => r.slice(1)), [
     ['DMD-000090', 'Saddar', 1000, 100, 50, 850, 680],
@@ -569,9 +581,11 @@ test('a finished month ends each branch on its Closing Stock, valued at that day
     ['Balance', '', 11160],
   ]);
   assert.deepEqual(saddar.notes, [
-    'Note 1: This computer-generated statement does not require a signature.',
-    'Note 2: This detail is not valid for any legal or law requirement.',
-    'Note 3: Balance Amount Rs. 11,160 (Rupees Eleven Thousand One Hundred Sixty Only) is deposited through the application of the cash deposit procedure followed. When the amount is deposited with a back date on the last month\'s date 31 Oct 2026, submit the application to the admin for access on the back date.',
+    'Note:',
+    'This computer-generated statement does not require a signature.',
+    'This detail is not valid for any legal or law requirement.',
+    'Balance Amount Rs. 11,160 (Rupees Eleven Thousand One Hundred Sixty Only) is deposited through the application of the cash deposit procedure followed.',
+    'When the amount is deposited with a back date on the last month of date 31 Oct 2026, submit the application to the admin for access on the back date.',
   ]);
 
   // Bold red: the Closing Stock row's Closing and the summary's Balance, nothing else.
@@ -588,10 +602,10 @@ test('a finished month ends each branch on its Closing Stock, valued at that day
   assert.deepEqual(blue.table.at(-2)!.slice(1), ['Closing Stock', 0, 0, 0, 0, 0, 0, 4640, 4640]);
   const chowk = branchTab(wb.getWorksheet('Committee Chowk')!);
   assert.deepEqual(chowk.table.at(-2)!.slice(1), ['Closing Stock', -600, 0, 0, -600, -480, 0, 640, 160]);
-  assert.match(chowk.notes[2]!, /Rs\. 160 \(Rupees One Hundred Sixty Only\)/);
+  assert.match(chowk.notes[3]!, /Rs\. 160 \(Rupees One Hundred Sixty Only\)/);
 
   // The main sheet: each branch's Closing Stock last on 31 Oct, its Closing in red.
-  const main = valuesOf(wb.getWorksheet('Collections')!);
+  const main = tableOf(wb.getWorksheet('Collections')!);
   assert.deepEqual(main.filter((r) => r[1] === 'Closing Stock').map((r) => [r[2], r[10]]),
     [['Blue Area', 4640], ['Committee Chowk', 160], ['F-7', 7720], ['Gulberg', 4000], ['Saddar', 11160]]);
   assert.equal(main.at(-2)![1], 'Closing Stock');
@@ -612,5 +626,5 @@ test('a finished month ends each branch on its Closing Stock, valued at that day
   // Worked out from the records each time: a second export is the same file's figures, nothing deducted twice.
   const again = await workbook('&from=2026-10-01&to=2026-10-31');
   assert.deepEqual(valuesOf(again.getWorksheet('Saddar')!), valuesOf(ws));
-  assert.deepEqual(valuesOf(again.getWorksheet('Collections')!), main);
+  assert.deepEqual(tableOf(again.getWorksheet('Collections')!), main);
 });
