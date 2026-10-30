@@ -36,6 +36,7 @@ import { router as loginAttemptsRouter } from './login-attempts.routes';
 import { router as businessDayRouter } from './business-day.routes';
 import { router as financeRouter } from './finance.routes';
 import { router as financeIncomeRouter, entriesRouter as financeEntriesRouter } from './finance-income.routes';
+import { router as financeAiCaptureRouter } from './finance-ai-capture.routes';
 import { router as financePayrollRouter } from './finance-payroll.routes';
 import { router as financePartnersRouter } from './finance-partners.routes';
 import { router as financeBranchShareRouter } from './finance-branch-share.routes';
@@ -148,6 +149,7 @@ export function setupRoutes(app: Express) {
   // swallow every one of the four specific prefixes below if it came first. The
   // symptom would be a 404 from the general router rather than an obvious
   // routing error, so keep the general mount LAST.
+  app.use('/api/finance/ai-capture', financeAiCaptureRouter);
   app.use('/api/finance/income/entries', financeEntriesRouter);
   app.use('/api/finance/income', financeIncomeRouter);
   app.use('/api/finance/payroll', financePayrollRouter);

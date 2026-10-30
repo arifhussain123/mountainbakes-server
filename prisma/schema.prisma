@@ -23,11 +23,13 @@ model attachments {
   uploaded_by_name   String?
   bound_at           DateTime?           @db.Timestamptz(6)
   created_at         DateTime            @default(now()) @db.Timestamptz(6)
+  content_sha256     String?
   users              users?              @relation(fields: [uploaded_by], references: [id], onUpdate: NoAction)
   production_returns production_returns?
 
   @@index([entity, entity_id], map: "attachments_entity_idx", where: raw("(entity_id IS NOT NULL)"))
   @@index([created_at], map: "attachments_orphan_idx", where: raw("(entity_id IS NULL)"))
+  @@index([content_sha256], map: "attachments_sha256_idx", where: raw("(content_sha256 IS NOT NULL)"))
 }
 
 model audit_logs {
@@ -1031,55 +1033,57 @@ model finance_tickets {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model finance_transactions {
-  id                                             String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  txn_no                                         String             @unique @default(dbgenerated("app.next_finance_number('finance_txn'::text, 'FTX'::text)"))
+  id                                             String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  txn_no                                         String               @unique @default(dbgenerated("app.next_finance_number('finance_txn'::text, 'FTX'::text)"))
   txn_type                                       ledger_head_type
-  ledger_head_id                                 String             @db.Uuid
+  ledger_head_id                                 String               @db.Uuid
   ledger_head_name                               String
-  branch_id                                      String?            @db.Uuid
+  branch_id                                      String?              @db.Uuid
   branch_name                                    String?
   description                                    String
-  amount                                         Decimal            @db.Decimal(14, 2)
+  amount                                         Decimal              @db.Decimal(14, 2)
   payment_method                                 String
   account                                        finance_account
-  business_date                                  DateTime           @db.Date
-  status                                         finance_doc_status @default(pending_approval)
+  business_date                                  DateTime             @db.Date
+  status                                         finance_doc_status   @default(pending_approval)
   reference_no                                   String?
   notes                                          String?
-  created_by                                     String?            @db.Uuid
+  created_by                                     String?              @db.Uuid
   created_by_name                                String?
-  approved_by                                    String?            @db.Uuid
+  approved_by                                    String?              @db.Uuid
   approved_by_name                               String?
-  approved_at                                    DateTime?          @db.Timestamptz(6)
+  approved_at                                    DateTime?            @db.Timestamptz(6)
   rejection_reason                               String?
-  ledger_entry_id                                String?            @unique(map: "finance_transactions_ledger_entry_key", where: raw("(ledger_entry_id IS NOT NULL)")) @db.Uuid
-  created_at                                     DateTime           @default(now()) @db.Timestamptz(6)
-  updated_at                                     DateTime           @default(now()) @db.Timestamptz(6)
-  deleted_at                                     DateTime?          @db.Timestamptz(6)
-  deleted_by                                     String?            @db.Uuid
+  ledger_entry_id                                String?              @unique(map: "finance_transactions_ledger_entry_key", where: raw("(ledger_entry_id IS NOT NULL)")) @db.Uuid
+  created_at                                     DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at                                     DateTime             @default(now()) @db.Timestamptz(6)
+  deleted_at                                     DateTime?            @db.Timestamptz(6)
+  deleted_by                                     String?              @db.Uuid
   deleted_by_name                                String?
   delete_reason                                  String?
-  deleted_query_id                               String?            @db.Uuid
+  deleted_query_id                               String?              @db.Uuid
   deleted_query_no                               String?
-  submitted_by                                   String?            @db.Uuid
+  submitted_by                                   String?              @db.Uuid
   submitted_by_name                              String?
-  submitted_at                                   DateTime?          @db.Timestamptz(6)
-  rejected_by                                    String?            @db.Uuid
+  submitted_at                                   DateTime?            @db.Timestamptz(6)
+  rejected_by                                    String?              @db.Uuid
   rejected_by_name                               String?
-  rejected_at                                    DateTime?          @db.Timestamptz(6)
-  updated_by                                     String?            @db.Uuid
+  rejected_at                                    DateTime?            @db.Timestamptz(6)
+  updated_by                                     String?              @db.Uuid
   updated_by_name                                String?
   approval_note                                  String?
-  revision                                       Int                @default(1)
-  users_finance_transactions_approved_byTousers  users?             @relation("finance_transactions_approved_byTousers", fields: [approved_by], references: [id], onUpdate: NoAction)
-  branches                                       branches?          @relation(fields: [branch_id], references: [id], onUpdate: NoAction)
-  users_finance_transactions_created_byTousers   users?             @relation("finance_transactions_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
-  users_finance_transactions_deleted_byTousers   users?             @relation("finance_transactions_deleted_byTousers", fields: [deleted_by], references: [id], onUpdate: NoAction)
-  ledger_entries                                 ledger_entries?    @relation(fields: [ledger_entry_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
-  ledger_heads                                   ledger_heads       @relation(fields: [ledger_head_id], references: [id], onUpdate: NoAction)
-  users_finance_transactions_rejected_byTousers  users?             @relation("finance_transactions_rejected_byTousers", fields: [rejected_by], references: [id], onUpdate: NoAction)
-  users_finance_transactions_submitted_byTousers users?             @relation("finance_transactions_submitted_byTousers", fields: [submitted_by], references: [id], onUpdate: NoAction)
-  users_finance_transactions_updated_byTousers   users?             @relation("finance_transactions_updated_byTousers", fields: [updated_by], references: [id], onUpdate: NoAction)
+  revision                                       Int                  @default(1)
+  ai_capture_id                                  String?              @db.Uuid
+  finance_ai_captures                            finance_ai_captures? @relation(fields: [ai_capture_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  users_finance_transactions_approved_byTousers  users?               @relation("finance_transactions_approved_byTousers", fields: [approved_by], references: [id], onUpdate: NoAction)
+  branches                                       branches?            @relation(fields: [branch_id], references: [id], onUpdate: NoAction)
+  users_finance_transactions_created_byTousers   users?               @relation("finance_transactions_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
+  users_finance_transactions_deleted_byTousers   users?               @relation("finance_transactions_deleted_byTousers", fields: [deleted_by], references: [id], onUpdate: NoAction)
+  ledger_entries                                 ledger_entries?      @relation(fields: [ledger_entry_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  ledger_heads                                   ledger_heads         @relation(fields: [ledger_head_id], references: [id], onUpdate: NoAction)
+  users_finance_transactions_rejected_byTousers  users?               @relation("finance_transactions_rejected_byTousers", fields: [rejected_by], references: [id], onUpdate: NoAction)
+  users_finance_transactions_submitted_byTousers users?               @relation("finance_transactions_submitted_byTousers", fields: [submitted_by], references: [id], onUpdate: NoAction)
+  users_finance_transactions_updated_byTousers   users?               @relation("finance_transactions_updated_byTousers", fields: [updated_by], references: [id], onUpdate: NoAction)
 
   @@index([deleted_at], map: "finance_transactions_live_idx", where: raw("(deleted_at IS NULL)"))
   @@index([branch_id, business_date(sort: Desc), created_at(sort: Desc)], map: "finance_txn_branch_date_idx", where: raw("((branch_id IS NOT NULL) AND (deleted_at IS NULL))"))
@@ -1087,6 +1091,26 @@ model finance_transactions {
   @@index([ledger_head_id], map: "finance_txn_head_idx")
   @@index([status, business_date(sort: Desc)], map: "finance_txn_status_idx")
   @@index([submitted_at], map: "finance_transactions_queue_idx", where: raw("((status = 'pending_approval'::finance_doc_status) AND (deleted_at IS NULL))"))
+  @@index([ai_capture_id], map: "finance_txn_ai_capture_idx", where: raw("(ai_capture_id IS NOT NULL)"))
+}
+
+/// AI Expense Capture runs (migration 20261030000001_ai_expense_capture).
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model finance_ai_captures {
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_by           String                 @db.Uuid
+  created_by_name      String?
+  attachment_ids       String[]               @db.Uuid
+  model                String
+  status               String
+  result               Json?
+  error                String?
+  duration_ms          Int?
+  created_at           DateTime               @default(now()) @db.Timestamptz(6)
+  users                users                  @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  finance_transactions finance_transactions[]
+
+  @@index([created_by, created_at(sort: Desc)], map: "finance_ai_captures_created_by_idx")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -2270,6 +2294,7 @@ model users {
   updated_at                                                           DateTime                     @default(now()) @db.Timestamptz(6)
   user_code                                                            String                       @unique @default(dbgenerated("next_user_number()"))
   attachments                                                          attachments[]
+  finance_ai_captures                                                  finance_ai_captures[]
   audit_logs_audit_logs_admin_idTousers                                audit_logs[]                 @relation("audit_logs_admin_idTousers")
   audit_logs_audit_logs_target_user_idTousers                          audit_logs[]                 @relation("audit_logs_target_user_idTousers")
   auth_sessions                                                        auth_sessions[]

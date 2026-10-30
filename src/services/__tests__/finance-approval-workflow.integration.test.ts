@@ -36,6 +36,8 @@ const PRISMA = join(__dirname, '../../../prisma/migrations');
 const BASELINE = readFileSync(join(PRISMA, '0_baseline/migration.sql'), 'utf8');
 const MIGRATION = readFileSync(join(PRISMA, '20261028000001_finance_approval_workflow/migration.sql'), 'utf8');
 const ACCOUNTS_REVIEW = readFileSync(join(PRISMA, '20261028000002_cash_deposit_accounts_review/migration.sql'), 'utf8');
+// Later and additive (finance_transactions.ai_capture_id): applied so the catalog check below sees the table as it now is.
+const AI_CAPTURE = readFileSync(join(PRISMA, '20261030000001_ai_expense_capture/migration.sql'), 'utf8');
 const AUTH = readFileSync(join(__dirname, '../../../db/history/migrations/20261009000149_custom_auth.sql'), 'utf8');
 
 function lift(head: string, tail: string): string {
@@ -236,6 +238,7 @@ before(async () => {
   // The migrations under test, each in one transaction, as `prisma migrate deploy` runs them.
   await db.exec(`begin;${MIGRATION}commit;`);
   await db.exec(`begin;${ACCOUNTS_REVIEW}commit;`);
+  await db.exec(`begin;${AI_CAPTURE}commit;`);
 
   await usePglite(db);
   const prisma = new PrismaClient({ adapter: new PrismaPGlite(db) });

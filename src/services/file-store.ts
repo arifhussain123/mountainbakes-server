@@ -32,6 +32,13 @@ export interface FileStore {
   signUrls(bucket: FileBucket, paths: string[], ttlSeconds: number): Promise<Map<string, string>>;
   /** A permanent, unauthenticated URL. Only meaningful for `branding`. */
   publicUrl(bucket: FileBucket, path: string): string;
+  /**
+   * The stored bytes, or null if there is no such file. Only the server reads
+   * them (AI Expense Capture sends a receipt to the model, and copies one when
+   * a bill is split); a client always gets a signed URL instead. Optional so a
+   * test store that never reads need not implement it.
+   */
+  download?(bucket: FileBucket, path: string): Promise<Buffer | null>;
 }
 
 // ── S3 ─────────────────────────────────────────────────────────────────────
@@ -131,6 +138,24 @@ export function createS3FileStore(
         }
       }));
       return urlByPath;
+    },
+
+    async download(bucket, path) {
+      try {
+        const out = await client.send(new GetObjectCommand({ Bucket: cfg.bucket, Key: s3Key(cfg, bucket, path) }));
+        const body = out?.Body as { transformToByteArray?: () => Promise<Uint8Array> } | Readable | undefined;
+        if (!body) return null;
+        if ('transformToByteArray' in body && typeof body.transformToByteArray === 'function') {
+          return Buffer.from(await body.transformToByteArray());
+        }
+        const chunks: Buffer[] = [];
+        for await (const chunk of body as Readable) chunks.push(Buffer.from(chunk as Buffer));
+        return Buffer.concat(chunks);
+      } catch (err) {
+        const e = err as { name?: string; $metadata?: { httpStatusCode?: number } };
+        if (e?.name === 'NoSuchKey' || e?.$metadata?.httpStatusCode === 404) return null;
+        throw err;
+      }
     },
 
     // The bucket is private, so there is no S3 URL a signed-out login page or a

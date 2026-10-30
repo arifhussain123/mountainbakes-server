@@ -90,6 +90,7 @@ export const ModelName = {
   finance_ticket_versions: 'finance_ticket_versions',
   finance_tickets: 'finance_tickets',
   finance_transactions: 'finance_transactions',
+  finance_ai_captures: 'finance_ai_captures',
   geofence_logs: 'geofence_logs',
   idempotency_keys: 'idempotency_keys',
   ledger_entries: 'ledger_entries',
@@ -190,7 +191,8 @@ export const AttachmentsScalarFieldEnum = {
   uploaded_by: 'uploaded_by',
   uploaded_by_name: 'uploaded_by_name',
   bound_at: 'bound_at',
-  created_at: 'created_at'
+  created_at: 'created_at',
+  content_sha256: 'content_sha256'
 } as const
 
 export type AttachmentsScalarFieldEnum = (typeof AttachmentsScalarFieldEnum)[keyof typeof AttachmentsScalarFieldEnum]
@@ -1056,10 +1058,27 @@ export const Finance_transactionsScalarFieldEnum = {
   updated_by: 'updated_by',
   updated_by_name: 'updated_by_name',
   approval_note: 'approval_note',
-  revision: 'revision'
+  revision: 'revision',
+  ai_capture_id: 'ai_capture_id'
 } as const
 
 export type Finance_transactionsScalarFieldEnum = (typeof Finance_transactionsScalarFieldEnum)[keyof typeof Finance_transactionsScalarFieldEnum]
+
+
+export const Finance_ai_capturesScalarFieldEnum = {
+  id: 'id',
+  created_by: 'created_by',
+  created_by_name: 'created_by_name',
+  attachment_ids: 'attachment_ids',
+  model: 'model',
+  status: 'status',
+  result: 'result',
+  error: 'error',
+  duration_ms: 'duration_ms',
+  created_at: 'created_at'
+} as const
+
+export type Finance_ai_capturesScalarFieldEnum = (typeof Finance_ai_capturesScalarFieldEnum)[keyof typeof Finance_ai_capturesScalarFieldEnum]
 
 
 export const Geofence_logsScalarFieldEnum = {
