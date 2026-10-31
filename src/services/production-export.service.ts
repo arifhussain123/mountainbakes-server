@@ -37,6 +37,13 @@ export interface ExcelSheet {
   preamble?: { cells: Cell[]; bold?: boolean; size?: number; numFmts?: (string | undefined)[]; highlight?: boolean }[];
   /** Cells shown in bold red (a statement's final balance): `row` indexes into `rows`, `col` from 0. */
   highlight?: { row: number; col: number }[];
+  /**
+   * Cells written as a formula (the closing stock taken off a Delivered:
+   * =45000-17000): `row` indexes into `rows`, `col` from 0. The row's own value
+   * is kept as the formula's cached result, so the cell shows it without a
+   * recalculation, and PDF/CSV, which ignore this, print that value.
+   */
+  formulas?: { row: number; col: number; formula: string }[];
   /** Thin borders round the header and the data cells. */
   borders?: boolean;
   /**
@@ -123,7 +130,7 @@ export async function genericExcelMultiSheet(sheets: ExcelSheet[]): Promise<Buff
   wb.creator = 'Mountain Bakes ERP';
   const used = new Set<string>();
 
-  for (const { title, headers, rows, columns, totalRows, preamble = [], highlight = [], borders, notes = [] } of sheets) {
+  for (const { title, headers, rows, columns, totalRows, preamble = [], highlight = [], formulas = [], borders, notes = [] } of sheets) {
     const sheet = wb.addWorksheet(uniqueSheetName(title, used));
     // A statement is printed: landscape, the whole width on one page.
     sheet.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
@@ -160,6 +167,11 @@ export async function genericExcelMultiSheet(sheets: ExcelSheet[]): Promise<Buff
       });
     }
     for (const { row, col } of highlight) sheet.getRow(headerAt + 1 + row).getCell(col + 1).font = HIGHLIGHT;
+    for (const { row, col, formula } of formulas) {
+      const cell = sheet.getRow(headerAt + 1 + row).getCell(col + 1);
+      const result = rows[row]?.[col];
+      cell.value = { formula, ...(typeof result === 'number' ? { result } : {}) };
+    }
     if (borders) {
       [headers, ...rows].forEach((cells, i) => {
         if (i > 0 && isNote(cells)) return;
@@ -206,7 +218,9 @@ function trimNote(cells: Cell[]): Cell[] {
 
 /** Roughly what a cell shows, in characters: a number as its format draws it, a date as dd mmm yyyy. */
 function shownLength(cell: ExcelJS.Cell): number {
-  const v = cell.value;
+  // A formula cell shows its result.
+  const raw = cell.value;
+  const v = raw !== null && typeof raw === 'object' && 'formula' in raw ? (raw as { result?: ExcelJS.CellValue }).result : raw;
   if (v === null || v === undefined || v === '') return 0;
   if (v instanceof Date) return 11;
   if (typeof v === 'number') {

@@ -564,7 +564,7 @@ test('every column is sized to its text, and rows are left to size themselves', 
   assert.ok(chowk.getColumn(2).width! >= 'Opening Stock'.length);
 });
 
-test('a finished month ends each branch on its Closing Stock, valued at that day\'s price, its balance in bold red, with Note 3', async () => {
+test('a finished month takes its Closing Stock off the last demand, valued at that day\'s price, its balance in bold red, with Note 3', async () => {
   const wb = await workbook('&from=2026-10-01&to=2026-10-31');
   const saddar = branchTab(wb.getWorksheet('Saddar')!);
   //                                       Delivered  Ret  Disc  G.Total  Share  Received Previous Closing
@@ -572,16 +572,18 @@ test('a finished month ends each branch on its Closing Stock, valued at that day
     ['2026-10-01', 'Opening Stock', 2000, 0, 0, 2000, 1600, 0, 0, 1600],
     ['2026-10-01', 'DMD-000123', 45000, 1200, 1000, 42800, 34240, 28000, 1600, 7840],
     ['2026-10-02', 'DMD-000124', 50000, 0, 2000, 48000, 38400, 42200, 7840, 4040],
-    ['2026-10-03', 'DMD-000125', 39000, 500, 1000, 37500, 30000, 20000, 4040, 14040],
-    // 30 Bun left at the end of 31 Oct, at that day's Rs. 120 (not today's Rs. 100): 3,600 → 2,880 off.
-    ['2026-10-31', 'Closing Stock', -3600, 0, 0, -3600, -2880, 0, 14040, 11160],
+    // 30 Bun left at the end of 31 Oct, at that day's Rs. 120 (not today's Rs. 100): 3,600 off the
+    // month's last demand (owner's rule, 2026-11-01), written as the sum: 39,000 − 3,600 = 35,400.
+    ['2026-10-03', 'DMD-000125', { formula: '39000-3600', result: 35400 }, 500, 1000, 33900, 27120, 20000, 4040, 11160],
+    // The amount only: no share, no balance.
+    ['2026-10-31', 'Closing Stock', 3600, '', '', '', '', '', '', ''],
   ]);
-  // The stock rows are in the totals: 2,000 in, 3,600 out.
+  // The Closing Stock row is not in the totals; its amount is, through the last demand: 2,000 in, 3,600 out.
   assert.deepEqual(saddar.table.at(-1), ['TOTAL', '', 132400, 1700, 4000, 126700, 101360, 90200, '', '']);
   assert.deepEqual(saddar.preamble.slice(1, 2), [['Period: 01 Oct 2026 to 31 Oct 2026']]);
   assert.deepEqual(saddar.preamble.slice(3), [
     ['Total Demands', '', 3],
-    ['Total Demand Amount', '', 134000], // the demands only: neither stock row
+    ['Total Demand Amount', '', 134000], // the demands as delivered: neither stock row
     ['Total Company Share', '', 101360], // 1,600 + 102,640 − 2,880: Balance = 101,360 − 90,200
     ['Total Received', '', 90200],
     ['Balance', '', 11160],
@@ -594,26 +596,28 @@ test('a finished month ends each branch on its Closing Stock, valued at that day
     'When the amount is deposited with a back date on the last month of date 31 Oct 2026, submit the application to the admin for access on the back date.',
   ]);
 
-  // Bold red: the Closing Stock row's Closing and the summary's Balance, nothing else.
+  // Bold red: the last demand's Closing and the summary's Balance, nothing else.
   const ws = wb.getWorksheet('Saddar')!;
   const red: string[] = [];
   ws.eachRow((row) => row.eachCell((cell) => { if (cell.font?.color?.argb === 'FFDC2626') red.push(`${cell.address}=${cell.value}`); }));
-  const closingRow = [...Array(ws.rowCount).keys()].map((i) => ws.getRow(i + 1)).find((r) => r.getCell(2).value === 'Closing Stock')!;
-  assert.deepEqual(red, ['A9=Balance', 'C9=11160', `J${closingRow.number}=11160`]);
+  const lastDemand = [...Array(ws.rowCount).keys()].map((i) => ws.getRow(i + 1)).find((r) => r.getCell(2).value === 'DMD-000125')!;
+  assert.deepEqual(red, ['A9=Balance', 'C9=11160', `J${lastDemand.number}=11160`]);
   assert.equal(ws.getRow(9).getCell(3).font?.bold, true);
-  assert.equal(closingRow.getCell(10).font?.bold, true);
+  assert.equal(lastDemand.getCell(10).font?.bold, true);
 
-  // A branch with no stock still closes the month, on a zero row.
+  // A branch with no stock still shows the month's Closing Stock, at zero, and nothing is taken off.
   const blue = branchTab(wb.getWorksheet('Blue Area')!);
-  assert.deepEqual(blue.table.at(-2)!.slice(1), ['Closing Stock', 0, 0, 0, 0, 0, 0, 4640, 4640]);
+  assert.deepEqual(blue.table.at(-2)!.slice(1), ['Closing Stock', 0, '', '', '', '', '', '', '']);
+  assert.equal(typeof blue.table.at(-3)![2], 'number');
+  assert.equal(blue.table.at(-3)![9], 4640);
   const chowk = branchTab(wb.getWorksheet('Committee Chowk')!);
-  assert.deepEqual(chowk.table.at(-2)!.slice(1), ['Closing Stock', -600, 0, 0, -600, -480, 0, 640, 160]);
+  assert.deepEqual(chowk.table.at(-2)!.slice(1), ['Closing Stock', 600, '', '', '', '', '', '', '']);
   assert.match(chowk.notes[3]!, /Rs\. 160 \(Rupees One Hundred Sixty Only\)/);
 
-  // The main sheet: each branch's Closing Stock last on 31 Oct, its Closing in red.
+  // The main sheet: each branch's Closing Stock last on 31 Oct, the amount only.
   const main = tableOf(wb.getWorksheet('Collections')!);
-  assert.deepEqual(main.filter((r) => r[1] === 'Closing Stock').map((r) => [r[2], r[10]]),
-    [['Blue Area', 4640], ['Committee Chowk', 160], ['F-7', 7720], ['Gulberg', 4000], ['Saddar', 11160]]);
+  assert.deepEqual(main.filter((r) => r[1] === 'Closing Stock').map((r) => [r[2], r[3], r[10]]),
+    [['Blue Area', 0, ''], ['Committee Chowk', 600, ''], ['F-7', 0, ''], ['Gulberg', 0, ''], ['Saddar', 3600, '']]);
   assert.equal(main.at(-2)![1], 'Closing Stock');
 
   // The Month-End tab works each branch's closing through on one line, and it agrees with the tabs.

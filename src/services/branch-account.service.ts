@@ -387,6 +387,12 @@ const STOCK_VALUE_SQL = `
 /** A Collections row: a Demand Record row, or one of a branch's two stock rows (`orderId` null). */
 export interface CollectionsRow extends DemandRecordRow {
   stockRow: 'opening' | 'closing' | null;
+  /**
+   * The month's closing stock taken off this row's Delivered (the branch's
+   * last row of a finished month), so `delivered` is already net of it and
+   * `delivered + closingStockDeducted` is what was delivered. 0 elsewhere.
+   */
+  closingStockDeducted: number;
 }
 
 export interface CollectionsMonth extends Omit<DemandRecordResult, 'pagination' | 'rows'> {
@@ -545,12 +551,16 @@ export async function getDemandRecordPeriod(q: { branchId?: string | null; from?
  *    window (submitted 30 Sep for 1 Oct) follows the opening stock as a row
  *    of its own, with no Received.
  *  - When the window reaches the last day of its month (owner's rule,
- *    2026-10-29), each branch closes it with a "Closing Stock" row on that
- *    day: the stock still held at the end of it, deducted — Delivered is
- *    minus its value, so its Company Share comes off the balance — the
- *    mirror of the next month's Opening Stock, which charges it back. Nothing
- *    is posted: it is worked out from the records on every export, so
- *    exporting a month again gives the same figures and deducts nothing twice.
+ *    2026-10-29, reworked 2026-11-01), the stock each branch still holds at
+ *    the end of that day is taken off the Delivered of its LAST row (its last
+ *    demand of the month, or the Opening Stock row when it had none): e.g.
+ *    45,000 − 17,000 = 28,000, then G. Total, Co. Share at that demand's own
+ *    % and the balance as usual. A "Closing Stock" row follows on that day
+ *    showing the amount only — no share, no balance, left out of every
+ *    total — the mirror of the next month's Opening Stock, which charges it
+ *    back. Nothing is posted: it is worked out from the records on every
+ *    export, so exporting a month again gives the same figures and deducts
+ *    nothing twice.
  *  - Both stock rows are valued at the prices in force on their own day
  *    (STOCK_VALUE_SQL), so a closed month keeps its rates.
  *  - Previous / Closing run per branch down the rows in date order, starting
@@ -657,31 +667,42 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
       adjustments: recordOpening?.adjustments ?? 0,
       unpricedLines: 0,
     };
-    // Last of all on the month's last day, after every demand of that day.
-    const closing: BranchAccountFacts | null = !monthClosed ? null : {
-      ...opening,
-      businessDate: to,
-      at: new Date(Date.parse(`${to}T23:59:59+05:00`)).toISOString(),
-      delivered: -closingValue,
-      returns: 0, returnsQty: 0, discount: 0, received: 0, sales: 0, adjustments: 0,
-    };
-    const computed = computeBranchAccount([opening, ...demands.map((d) => d.fact), ...(closing ? [closing] : [])], carried);
+    // A finished month: the closing stock comes off the last row's Delivered
+    // (owner's rule, 2026-11-01), so its share is worked at that row's own %.
+    const facts = [opening, ...demands.map((d) => d.fact)];
+    const deductAt = monthClosed && closingValue !== 0 ? facts.length - 1 : -1;
+    if (deductAt >= 0) facts[deductAt] = { ...facts[deductAt]!, delivered: toPaisa(facts[deductAt]!.delivered - closingValue) };
+    const computed = computeBranchAccount(facts, carried);
     computed.forEach((r, i) => rows.push({
       ...r,
-      open: i === 0 || i > demands.length ? false : demands[i - 1]!.open,
-      stockRow: i === 0 ? 'opening' : i > demands.length ? 'closing' : null,
+      open: i === 0 ? false : demands[i - 1]!.open,
+      stockRow: i === 0 ? 'opening' : null,
+      closingStockDeducted: i === deductAt ? closingValue : 0,
     }));
+    const finalBalance = computed[computed.length - 1]!.closingBalance;
+    if (monthClosed) {
+      // Last of all on the month's last day: the amount only. Previous and
+      // Closing both hold the final balance, as the row moves nothing.
+      const [shown] = computeBranchAccount([{
+        ...opening,
+        businessDate: to,
+        at: new Date(Date.parse(`${to}T23:59:59+05:00`)).toISOString(),
+        delivered: 0, returns: 0, returnsQty: 0, discount: 0, received: 0, sales: 0, adjustments: 0,
+      }], finalBalance);
+      rows.push({ ...shown!, delivered: closingValue, totalDemandAmount: closingValue, open: false, stockRow: 'closing', closingStockDeducted: 0 });
+    }
     balances.push({
       branchId: b.id,
       branchName: opening.branchName,
       openingBalance: carried,
-      closingBalance: computed[computed.length - 1]!.closingBalance,
+      closingBalance: finalBalance,
     });
   }
   const rank = (r: CollectionsRow) => (r.stockRow === 'opening' ? 0 : r.stockRow === 'closing' ? 2 : 1);
   rows.sort((a, b) => a.branchName.localeCompare(b.branchName) || a.businessDate.localeCompare(b.businessDate)
     || rank(a) - rank(b) || Date.parse(a.at) - Date.parse(b.at));
-  return { start, from, to, rows, totals: totalBranchAccount(rows, balances), branches: balances, monthClosed };
+  // The Closing Stock rows are shown, not counted.
+  return { start, from, to, rows, totals: totalBranchAccount(rows.filter((r) => r.stockRow !== 'closing'), balances), branches: balances, monthClosed };
 }
 
 function stripBounds<T extends { lo: string; hi: string | null }>(r: T): Omit<T, 'lo' | 'hi'> {

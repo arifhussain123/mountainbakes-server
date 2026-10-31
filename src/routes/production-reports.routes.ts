@@ -302,7 +302,7 @@ function collectionsFromDemandRecord(
   period: { fromStr: string; toStr: string },
   /** Demands before the record began, when the window runs back past its start: listed first on each branch's tab. */
   earlier: { start: string; rows: DemandBeforeRecordRow[] } | null = null,
-): { title: string; headers: string[]; rows: (string | number)[][]; specialRowCount: number; columns: ExcelColumn[]; totalRows: number[]; highlight: { row: number; col: number }[]; borders: boolean; notes: NonNullable<ExcelSheet['notes']>; extraSheets: ExcelSheet[] } {
+): { title: string; headers: string[]; rows: (string | number)[][]; specialRowCount: number; columns: ExcelColumn[]; totalRows: number[]; highlight: { row: number; col: number }[]; formulas: NonNullable<ExcelSheet['formulas']>; borders: boolean; notes: NonNullable<ExcelSheet['notes']>; extraSheets: ExcelSheet[] } {
   type Row = (typeof record.rows)[number];
   // No Closing Status or Slip No. column (owner's calls, 2026-10-29): a
   // negative Closing already reads as a credit, and the demand number is the
@@ -315,17 +315,33 @@ function collectionsFromDemandRecord(
   ];
   // The Opening Stock row is the branch's first row of the chain (owner's
   // call, 2026-10-29): its Co. Share opens the balance, and its Closing is the
-  // next demand's Previous. A finished month ends on the Closing Stock row,
-  // which takes the stock still held back off (getCollectionsMonth).
+  // next demand's Previous. In a finished month the stock still held comes off
+  // the branch's last demand's Delivered (written =45000-17000), and a Closing
+  // Stock row after it shows that amount only, left out of every total
+  // (owner's rule, 2026-11-01; getCollectionsMonth).
   const STOCK_LABEL = { opening: 'Opening Stock', closing: 'Closing Stock' } as const;
-  const line = (r: Row): (string | number)[] => [
-    r.businessDate, r.stockRow ? STOCK_LABEL[r.stockRow] : r.demandNumber ?? '', r.branchName,
-    r.delivered, r.returns, r.discount, r.gTotal, r.companyShare, r.received,
-    r.previousBalance, r.closingBalance,
-  ];
+  const DELIVERED_COL = 3;
+  const line = (r: Row): (string | number)[] => r.stockRow === 'closing'
+    ? [r.businessDate, STOCK_LABEL.closing, r.branchName, r.delivered, '', '', '', '', '', '', '']
+    : [
+      r.businessDate, r.stockRow ? STOCK_LABEL[r.stockRow] : r.demandNumber ?? '', r.branchName,
+      r.delivered, r.returns, r.discount, r.gTotal, r.companyShare, r.received,
+      r.previousBalance, r.closingBalance,
+    ];
+  /** What was delivered on a row, before any closing stock came off it. */
+  const grossOf = (r: Row) => toPaisa(r.delivered + r.closingStockDeducted);
+  const deliveredFormula = (r: Row) => `${grossOf(r)}-${r.closingStockDeducted}`;
+  // Each branch's final balance: the Closing of its last row before the Closing Stock row.
+  const finalRows = new Set<Row>();
+  if (record.monthClosed) {
+    const lastOf = new Map<string, Row>();
+    for (const r of record.rows) if (r.stockRow !== 'closing') lastOf.set(r.branchId, r);
+    for (const r of lastOf.values()) finalRows.add(r);
+  }
   const sumOf = (rows: Row[]) => {
     const t = { delivered: 0, returns: 0, discount: 0, gTotal: 0, share: 0, received: 0 };
     for (const r of rows) {
+      if (r.stockRow === 'closing') continue;
       t.delivered += r.delivered; t.returns += r.returns; t.discount += r.discount;
       t.gTotal += r.gTotal; t.share += r.companyShare; t.received += r.received;
     }
@@ -346,15 +362,18 @@ function collectionsFromDemandRecord(
     || a.branchName.localeCompare(b.branchName);
   /**
    * A sheet of rows with its TOTAL in bold and, for a finished month, each
-   * branch's final balance — the Closing of its Closing Stock row — in bold red.
+   * branch's final balance — the Closing of its last demand — in bold red,
+   * that demand's Delivered written as the closing stock taken off it.
    */
-  const sheetOf = (title: string, list: Row[]): ExcelSheet & { specialRowCount: number; highlight: { row: number; col: number }[] } => {
+  type Sheet = ExcelSheet & { specialRowCount: number; highlight: { row: number; col: number }[]; formulas: NonNullable<ExcelSheet['formulas']> };
+  const sheetOf = (title: string, list: Row[]): Sheet => {
     const sorted = [...list].sort(byDate);
     const rows = sorted.map(line);
-    const highlight = sorted.flatMap((r, i) => (r.stockRow === 'closing' ? [{ row: i, col: headers.length - 1 }] : []));
-    if (list.length === 0) return { title, headers, rows, columns, specialRowCount: 0, highlight };
+    const highlight = sorted.flatMap((r, i) => (finalRows.has(r) ? [{ row: i, col: headers.length - 1 }] : []));
+    const formulas = sorted.flatMap((r, i) => (r.closingStockDeducted !== 0 ? [{ row: i, col: DELIVERED_COL, formula: deliveredFormula(r) }] : []));
+    if (list.length === 0) return { title, headers, rows, columns, specialRowCount: 0, highlight, formulas };
     rows.push(totalLine(list));
-    return { title, headers, rows, columns, totalRows: [rows.length - 1], specialRowCount: 1, highlight };
+    return { title, headers, rows, columns, totalRows: [rows.length - 1], specialRowCount: 1, highlight, formulas };
   };
 
   const rowsByBranch = new Map<string, Row[]>();
@@ -410,16 +429,17 @@ function collectionsFromDemandRecord(
   // the period, then a summary, above a table without the Branch column (the
   // tab is the branch). The summary covers the balance chain only — the
   // Opening Stock row and the demands — so Balance = Previous + Total Company
-  // Share − Total Received; Total Demands and Total Demand Amount (Delivered)
-  // leave the stock rows out, as they are not demands. For a finished month
-  // the Balance is the month's final balance, in bold red like the table's.
+  // Share − Total Received; Total Demands and Total Demand Amount (Delivered,
+  // before any closing stock came off) leave the stock rows out, as they are
+  // not demands. For a finished month the Balance is the month's final
+  // balance, in bold red like the table's.
   const withoutBranch = (row: (string | number)[]) => [...row.slice(0, 2), ...row.slice(3)];
   const branchHeaders = withoutBranch(headers) as string[];
   const branchColumns = columns.filter((_, i) => i !== 2);
   const preambleOf = (name: string, list: Row[], balance: number | null): NonNullable<ExcelSheet['preamble']> => {
     const t = sumOf(list);
     const demands = list.filter((r) => r.orderId);
-    const demandAmount = toPaisa(demands.reduce((a, r) => a + r.delivered, 0));
+    const demandAmount = toPaisa(demands.reduce((a, r) => a + grossOf(r), 0));
     const item = (label: string, value: number | string, numFmt = RS_SUMMARY) => ({ cells: [label, '', value], numFmts: [undefined, undefined, numFmt] });
     return [
       { cells: [`Mountain Bakes - ${name}`], bold: true, size: 14 },
@@ -480,6 +500,7 @@ function collectionsFromDemandRecord(
       rows: [...top, ...sheet.rows].map(withoutBranch),
       totalRows: [...(before ? [top.length - 1] : []), ...(sheet.totalRows ?? []).map((i) => i + top.length)],
       highlight: sheet.highlight.map((h) => ({ row: h.row + top.length, col: h.col - 1 })),
+      formulas: sheet.formulas.map((f) => ({ ...f, row: f.row + top.length, col: f.col - 1 })),
       borders: true,
       notes: notesOf(b.closingBalance),
     };
@@ -488,25 +509,27 @@ function collectionsFromDemandRecord(
   // Month-End (owner's call, 2026-10-29): for a finished month, each branch's
   // closing worked through on one line, so the bold red balance on its tab can
   // be checked without reading every row:
-  //   Last-Day Net  = Last-Day Demand − Closing Stock (both Delivered values)
+  //   Last-Day Net  = Last-Day Demand − Closing Stock (Delivered before and
+  //                   after the closing stock came off)
   //   Final Balance = Previous + Co. Share + Adjustments − Received
-  // Co. Share covers every row, the two stock rows included; Adjustments are
-  // Finance's entries, which feed the balance but have no column on the tabs.
+  // Co. Share covers every row (the Closing Stock row has none: its amount
+  // is in the last demand's); Adjustments are Finance's entries, which feed
+  // the balance but have no column on the tabs.
   // Check reads OK when the second line holds to the paisa.
   const monthEnd: ExcelSheet[] = [];
   if (record.monthClosed) {
     const lines = branches.map((b) => {
       const list = rowsByBranch.get(b.branchId) ?? [];
       const sum = (pick: (r: Row) => number, keep: (r: Row) => boolean = () => true) => toPaisa(list.filter(keep).reduce((a, r) => a + pick(r), 0));
-      const lastDay = sum((r) => r.delivered, (r) => r.stockRow === null && r.businessDate === record.to);
-      const closingStock = -sum((r) => r.delivered, (r) => r.stockRow === 'closing');
+      const lastDay = sum(grossOf, (r) => r.stockRow === null && r.businessDate === record.to);
+      const closingStock = sum((r) => r.delivered, (r) => r.stockRow === 'closing');
       const share = sum((r) => r.companyShare);
       const adjustments = sum((r) => r.adjustments);
       const received = sum((r) => r.received);
       const diff = toPaisa(b.closingBalance - (b.openingBalance + share + adjustments - received));
       return {
         cells: [b.branchName, lastDay, closingStock, toPaisa(lastDay - closingStock), b.openingBalance,
-          sum((r) => r.delivered, (r) => r.stockRow === 'opening'), share, adjustments, received, b.closingBalance] as (string | number)[],
+          sum(grossOf, (r) => r.stockRow === 'opening'), share, adjustments, received, b.closingBalance] as (string | number)[],
         diff,
       };
     });
@@ -529,13 +552,13 @@ function collectionsFromDemandRecord(
         { cells: [`Period: ${dmy(period.fromStr)} to ${dmy(period.toStr)}`] },
       ],
       notes: [
-        [{ text: 'Last-Day Net', bold: true }, { text: ` = Last-Day Demand − Closing Stock: the demands delivered for ${dmy(record.to)} less the stock still held at the end of that day, which next month's Opening Stock charges back.` }],
-        [{ text: 'Final Balance', bold: true }, { text: ' = Previous + Co. Share + Adjustments − Received. Co. Share includes the Opening and Closing Stock rows; Check reads OK when this holds to the paisa.' }],
+        [{ text: 'Last-Day Net', bold: true }, { text: ` = Last-Day Demand − Closing Stock: the demands delivered for ${dmy(record.to)} less the stock still held at the end of that day, which comes off the branch's last demand of the month and which next month's Opening Stock charges back.` }],
+        [{ text: 'Final Balance', bold: true }, { text: ' = Previous + Co. Share + Adjustments − Received. Co. Share includes the Opening Stock row and is worked on each demand after the closing stock came off; the Closing Stock row only shows the amount. Check reads OK when this holds to the paisa.' }],
       ],
     });
   }
 
-  const { rows, totalRows = [], specialRowCount, highlight } = sheetOf('Collections', record.rows);
+  const { rows, totalRows = [], specialRowCount, highlight, formulas } = sheetOf('Collections', record.rows);
   return {
     title: 'Collections',
     headers,
@@ -544,6 +567,7 @@ function collectionsFromDemandRecord(
     columns,
     totalRows,
     highlight,
+    formulas,
     borders: true,
     notes: notesOf(branches.length > 0 ? toPaisa(branches.reduce((a, b) => a + b.closingBalance, 0)) : null),
     extraSheets: [
@@ -678,6 +702,7 @@ async function buildReport(
   columns?: ExcelColumn[];
   totalRows?: number[];
   highlight?: { row: number; col: number }[];
+  formulas?: ExcelSheet['formulas'];
   borders?: boolean;
   notes?: ExcelSheet['notes'];
 }> {
@@ -1246,7 +1271,7 @@ router.get('/export', async (req: AuthRequest, res, next) => {
     const exportType = String(req.query['type'] || 'excel');
     const range = usesDateRange(report) ? reportDateRange(report, req.query['from'], req.query['to']) : undefined;
     const branchId = typeof req.query['branchId'] === 'string' ? req.query['branchId'] : '';
-    const { title, headers, rows, extraSheets, columns, totalRows, highlight, borders, notes } = await buildReport(report, period, range, branchId);
+    const { title, headers, rows, extraSheets, columns, totalRows, highlight, formulas, borders, notes } = await buildReport(report, period, range, branchId);
     // A range report names the window it covers, so two exports taken the same
     // day for different windows don't land on the same filename.
     const dateLabel = range
@@ -1265,7 +1290,7 @@ router.get('/export', async (req: AuthRequest, res, next) => {
       res.send(genericCSV(headers, rows));
     } else {
       const buffer = extraSheets?.length
-        ? await genericExcelMultiSheet([{ title, headers, rows, columns, totalRows, highlight, borders, notes }, ...extraSheets])
+        ? await genericExcelMultiSheet([{ title, headers, rows, columns, totalRows, highlight, formulas, borders, notes }, ...extraSheets])
         : await genericExcel(title, headers, rows);
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}.xlsx"`);
