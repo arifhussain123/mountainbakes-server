@@ -475,6 +475,36 @@ test('a later month opens on the month before\'s final balance, its Opening Stoc
   }
 });
 
+test('a window across a month\'s end closes that month on its last day and opens the next on the 1st', async () => {
+  // 1 Oct to 5 Nov, as the dialog gives it on a November day (owner's report, 2026-11-01).
+  const wb = await workbook('&from=2026-10-01&to=2026-11-05');
+  const saddar = branchTab(wb.getWorksheet('Saddar')!);
+  //                                       Delivered  Ret  Disc  G.Total  Share  Received Previous Closing
+  assert.deepEqual(saddar.table.slice(1, -1).map((r) => [(r[0] as Date).toISOString().slice(0, 10), ...r.slice(1)]), [
+    ['2026-10-01', 'Opening Stock', 2000, 0, 0, 2000, 1600, 0, 0, 1600],
+    ['2026-10-01', 'DMD-000123', 45000, 1200, 1000, 42800, 34240, 28000, 1600, 7840],
+    ['2026-10-02', 'DMD-000124', 50000, 0, 2000, 48000, 38400, 42200, 7840, 4040],
+    ['2026-10-03', 'DMD-000125', { formula: '39000-3600', result: 35400 }, 500, 1000, 33900, 27120, 20000, 4040, 11160],
+    ['2026-10-31', 'Closing Stock', 3600, '', '', '', '', '', '', ''],
+    ['2026-11-01', 'Opening Stock', 3600, 0, 0, 3600, 2880, 0, 11160, 14040],
+  ]);
+  // The same figures as two exports, October then November.
+  const october = branchTab((await workbook('&from=2026-10-01&to=2026-10-31')).getWorksheet('Saddar')!);
+  assert.deepEqual(saddar.table.slice(1, 6), october.table.slice(1, 6));
+  const main = tableOf(wb.getWorksheet('Collections')!);
+  assert.deepEqual(main.filter((r) => r[1] === 'Closing Stock').map((r) => [r[2], r[3]]),
+    [['Blue Area', 0], ['Committee Chowk', 600], ['F-7', 0], ['Gulberg', 0], ['Saddar', 3600]]);
+  // October's final balance in bold red on its last demand; the window is not a month's end, so no Month-End tab.
+  const ws = wb.getWorksheet('Saddar')!;
+  const red: string[] = [];
+  ws.eachRow((row) => row.eachCell((cell) => { if (cell.font?.color?.argb === 'FFDC2626') red.push(`${cell.value}`); }));
+  assert.deepEqual(red, ['11160']);
+  assert.ok(!wb.getWorksheet('Month-End'));
+  // Each branch ends the window on its November balance.
+  const byBranch = tableOf(wb.getWorksheet('By Branch')!);
+  assert.equal(byBranch.find((r) => r[0] === 'Saddar')![9], 14040);
+});
+
 test('a demand is placed and dated by its required date, not the day it was submitted', async () => {
   const wb = await workbook('&from=2026-10-04&to=2026-10-04');
   const main = tableOf(wb.getWorksheet('Collections')!);
