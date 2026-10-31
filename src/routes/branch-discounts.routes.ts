@@ -13,6 +13,7 @@ import {
 } from '../shared';
 import { notify } from '../services/push.service';
 import { getMonthlyDiscountSummary } from '../services/discount-summary.service';
+import { summaryRangeFromQuery } from '../utils/summaryRange';
 import { rowToApi } from '../utils/case';
 
 const db = dbFor('branch-discounts');
@@ -92,8 +93,9 @@ const BRANCH_DISCOUNT_SORTABLE_COLUMNS: Record<string, string> = {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// GET /api/branch-discounts/summary — this branch's claims, this business month
-// to date (1st → today), by status. Same branch rule as every route here: a
+// GET /api/branch-discounts/summary?from=&to= — this branch's claims, this
+// business month to date (1st → today) by default, or the page's Date filter
+// range when `from`/`to` are sent, by status. Same branch rule as every route here: a
 // branch role is pinned to its token's branch (a `branchId` it sends is
 // ignored), super_admin names one. Every branch at once is
 // GET /api/production-discounts/summary.
@@ -102,7 +104,9 @@ router.get('/summary', async (req: AuthRequest, res, next) => {
     const branchId = scopeBranch(req);
     if (!branchId) { res.status(400).json({ error: 'Branch context required' }); return; }
     if (!UUID_RE.test(branchId)) { res.status(400).json({ error: 'branchId must be a uuid' }); return; }
-    res.json(await getMonthlyDiscountSummary({ branchId }));
+    const window = summaryRangeFromQuery(req.query);
+    if (!window.ok) { res.status(400).json({ error: window.error }); return; }
+    res.json(await getMonthlyDiscountSummary({ branchId, range: window.range }));
   } catch (err) {
     next(err);
   }

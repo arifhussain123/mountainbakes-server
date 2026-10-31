@@ -23,6 +23,7 @@ import {
   listCashTransfers,
 } from '../services/cash-transfers.service';
 import { getMonthlyCashTransferSummary } from '../services/cash-transfer-summary.service';
+import { summaryRangeFromQuery } from '../utils/summaryRange';
 
 /**
  * Branch → cash transfers. The raising half of the feature; Finance's review
@@ -90,17 +91,20 @@ router.get('/', async (req: AuthRequest, res, next) => {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// GET /api/cash-transfers/monthly-summary — this branch's transfers, this
-// business month to date (1st → today), per channel, status and fuel. Same
+// GET /api/cash-transfers/monthly-summary?from=&to= — this branch's transfers,
+// this business month to date (1st → today) by default, or the page's Date
+// filter range when `from`/`to` are sent, per channel, status and fuel. Same
 // branch rule as the list: a branch role is pinned to its token's branch (a
-// `branchId` it sends is ignored), super_admin names one. Ignores every list
-// filter by design. Registered before `/:id`, which would otherwise take it.
+// `branchId` it sends is ignored), super_admin names one. Every other list
+// filter (status, channel, search) is ignored by design. Registered before `/:id`, which would otherwise take it.
 router.get('/monthly-summary', async (req: AuthRequest, res, next) => {
   try {
     const branchId = scopeBranch(req);
     if (!branchId) { res.status(400).json({ error: 'Branch context required' }); return; }
     if (!UUID_RE.test(branchId)) { res.status(400).json({ error: 'branchId must be a uuid' }); return; }
-    res.json(await getMonthlyCashTransferSummary({ branchId }));
+    const window = summaryRangeFromQuery(req.query);
+    if (!window.ok) { res.status(400).json({ error: window.error }); return; }
+    res.json(await getMonthlyCashTransferSummary({ branchId, range: window.range }));
   } catch (err) {
     next(err);
   }

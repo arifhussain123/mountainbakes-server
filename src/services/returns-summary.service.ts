@@ -110,10 +110,10 @@ const ROW_PRICING_SQL = `
    where r.id = any($1::uuid[])
 `;
 
+/** Month to date unless `range` (a page's Date filter — see utils/summaryRange.ts) says otherwise. */
 export async function getMonthlyReturnsSummary(
-  { branchId, now = new Date() }: { branchId: string | null; now?: Date },
+  { branchId, now = new Date(), range = monthToDateRange(now) }: { branchId: string | null; now?: Date; range?: { from: string; to: string } },
 ): Promise<MonthlyReturnsSummary> {
-  const range = monthToDateRange(now);
   const prisma = getPrisma();
   const [rows, branches] = await Promise.all([
     prisma.$queryRawUnsafe<ReturnsSummaryRow[]>(SUMMARY_SQL, range.from, range.to, branchId),

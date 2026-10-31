@@ -250,4 +250,21 @@ describe('GET /api/cash-transfers/monthly-summary', () => {
   test('Production cannot read a branch\'s transfers', async () => {
     assert.equal((await call('production', '/api/cash-transfers/monthly-summary')).status, 403);
   });
+
+  test('follows the page\'s Date filter when from/to are sent', async () => {
+    const res = await call('branch-a', '/api/cash-transfers/monthly-summary?from=2026-09-30&to=2026-09-30');
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+    assert.equal(res.body.from, '2026-09-30');
+    assert.equal(res.body.to, '2026-09-30');
+    assert.equal(res.body.totals.transferred.amount, 9000);
+    assert.equal(res.body.totals.transferred.count, 1);
+
+    const tomorrow = await call('branch-a', '/api/cash-transfers/monthly-summary?from=2026-10-19&to=2026-10-19');
+    assert.equal(tomorrow.body.totals.transferred.amount, 8000);
+  });
+
+  test('a malformed from/to is a 400', async () => {
+    assert.equal((await call('branch-a', '/api/cash-transfers/monthly-summary?from=2026-13-01')).status, 400);
+    assert.equal((await call('branch-a', '/api/cash-transfers/monthly-summary?to=yesterday')).status, 400);
+  });
 });

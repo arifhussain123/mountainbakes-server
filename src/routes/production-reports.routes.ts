@@ -97,13 +97,12 @@ function explicitDateRange(from: unknown, to: unknown): { fromStr: string; toStr
 }
 
 /**
- * The window a report runs on. Collections always starts on the 1st of the To
- * date's month (owner's call, 2026-10-29): a branch's detail opens with that
- * month's Opening Stock, whatever From was picked.
+ * The window a report runs on. Collections takes From as picked (owner's call,
+ * 2026-10-31, lifting 2026-10-29's lock to the 1st of To's month) so a previous
+ * month's record can be checked; each branch opens with that day's Opening Stock.
  */
-function reportDateRange(report: string, from: unknown, to: unknown): { fromStr: string; toStr: string } {
-  const range = explicitDateRange(from, to);
-  return report === 'collections' ? { fromStr: `${range.toStr.slice(0, 7)}-01`, toStr: range.toStr } : range;
+function reportDateRange(_report: string, from: unknown, to: unknown): { fromStr: string; toStr: string } {
+  return explicitDateRange(from, to);
 }
 
 /** A delivered order as the Collections export chains them. */
