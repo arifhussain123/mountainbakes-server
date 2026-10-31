@@ -451,17 +451,28 @@ test('From is taken as picked: a window from 3 Oct opens on that morning\'s stoc
   assert.deepEqual(picked.map((r) => r[1]).filter((n) => String(n).startsWith('DMD-')), ['DMD-000125', 'DMD-000129']);
 });
 
-test('a later month starts each branch from its own carried balance, with that morning\'s stock', async () => {
+test('a later month opens on the month before\'s final balance, its Opening Stock the month before\'s Closing Stock', async () => {
   const main = tableOf((await workbook('&from=2026-11-01&to=2026-11-05')).getWorksheet('Collections')!);
-  // No demand is required in 1–5 Nov; each branch carries October's balance in.
+  // No demand is required in 1–5 Nov; each branch's Previous is exactly October's final balance
+  // (owner's rule, 2026-11-01), Closing Stock taken off and all.
   assert.deepEqual(main.slice(1, -1).map((r) => [(r[0] as Date).toISOString().slice(0, 10), r[1], r[2], r[9], r[10]]), [
     ['2026-11-01', 'Opening Stock', 'Blue Area', 4640, 4640],
-    ['2026-11-01', 'Opening Stock', 'Committee Chowk', 0, 480], // DMD-000093 had no balance of the record's to carry
+    ['2026-11-01', 'Opening Stock', 'Committee Chowk', 160, 640],
     ['2026-11-01', 'Opening Stock', 'F-7', 7720, 7720],
     ['2026-11-01', 'Opening Stock', 'Gulberg', 4000, 4000],
-    ['2026-11-01', 'Opening Stock', 'Saddar', 12440, 15320], // 30 Bun at 1 Nov's Rs. 120 = 3,600 → 2,880
+    ['2026-11-01', 'Opening Stock', 'Saddar', 11160, 14040], // 30 Bun = 3,600 → 2,880 charged back
   ]);
   assert.deepEqual(main.find((r) => r[2] === 'Saddar')!.slice(3, 8), [3600, 0, 0, 3600, 2880]);
+
+  // The link, branch by branch: October's Closing Stock is November's Opening Stock, and
+  // October's last Closing is November's first Previous.
+  const october = tableOf((await workbook('&from=2026-10-01&to=2026-10-31')).getWorksheet('Collections')!);
+  for (const r of main.slice(1, -1)) {
+    const branch = r[2];
+    const oct = october.filter((x) => x[2] === branch);
+    assert.equal(r[3], oct.find((x) => x[1] === 'Closing Stock')![3], `${branch} stock`);
+    assert.equal(r[9], oct.filter((x) => x[1] !== 'Closing Stock').at(-1)![10], `${branch} balance`);
+  }
 });
 
 test('a demand is placed and dated by its required date, not the day it was submitted', async () => {

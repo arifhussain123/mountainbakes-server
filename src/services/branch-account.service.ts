@@ -542,11 +542,13 @@ export async function getDemandRecordPeriod(q: { branchId?: string | null; from?
  *    the returns, deposits and discounts in its window) are the record's.
  *  - Each branch starts the window with an "Opening Stock" row (`orderId` and
  *    `demandNumber` null) on the first day: Delivered is the value of the stock
- *    the branch held that morning (STOCK_SQL's opening, at today's prices), and
- *    it is calculated like a demand — G. Total, Company Share at the branch's
- *    % today, into the balance. When the window holds the record's own opening
- *    row (the go-live month), its returns, deposits and Finance entries are
- *    folded into this row.
+ *    the branch held that morning, and it is calculated like a demand — G.
+ *    Total, Company Share at the branch's % today, into the balance. On the
+ *    1st of a month after the go-live day it is exactly the previous month's
+ *    Closing Stock (the stock at the end of its last day, at that day's
+ *    prices), so 31 Oct's Closing Stock of 17,000 opens 1 Nov at 17,000.
+ *    When the window holds the record's own opening row (the go-live month),
+ *    its returns, deposits and Finance entries are folded into this row.
  *  - A demand submitted before the go-live day but required inside the
  *    window (submitted 30 Sep for 1 Oct) follows the opening stock as a row
  *    of its own, with no Received.
@@ -561,12 +563,12 @@ export async function getDemandRecordPeriod(q: { branchId?: string | null; from?
  *    back. Nothing is posted: it is worked out from the records on every
  *    export, so exporting a month again gives the same figures and deducts
  *    nothing twice.
- *  - Both stock rows are valued at the prices in force on their own day
- *    (STOCK_VALUE_SQL), so a closed month keeps its rates.
- *  - Previous / Closing run per branch down the rows in date order, starting
- *    from the balance of every row dated before the window. Counting the opening
- *    stock adds to that balance, so this sheet's Closing is NOT the Demand
- *    Record page's — the owner chose this knowing it.
+ *  - Previous / Closing run per branch down the rows in date order. The
+ *    balance carried in is the sheet's own (owner's rule, 2026-11-01): every
+ *    whole month from the go-live day to the window is worked through the
+ *    same way, month by month, so a month opens on exactly the final balance
+ *    the month before it closed on. Counting the stock rows, this sheet's
+ *    Closing is NOT the Demand Record page's — the owner chose this knowing it.
  *
  * Null while the Demand Record is not switched on.
  */
@@ -582,21 +584,86 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
 
   const all = await loadAccounts(branchId, start);
   const orderIds = all.flatMap((r) => (r.orderId ? [r.orderId] : []));
-  const monthClosed = to === monthEndOf(to);
-  const [required, stock, closingStock, branchRows, before] = await Promise.all([
+  const [required, branchRows] = await Promise.all([
     orderIds.length === 0
       ? Promise.resolve([] as { id: string; day: string }[])
       : prisma.$queryRawUnsafe<{ id: string; day: string }[]>(
         `select id::text as id, to_char(coalesce(required_date, business_date), 'YYYY-MM-DD') as day
            from public.production_orders where id = any($1::uuid[])`, orderIds),
-    // The window's first morning, and the end of the month's last day.
-    prisma.$queryRawUnsafe<{ branchId: string; amount: number }[]>(STOCK_VALUE_SQL, branchId, from, false),
-    monthClosed
-      ? prisma.$queryRawUnsafe<{ branchId: string; amount: number }[]>(STOCK_VALUE_SQL, branchId, to, true)
-      : Promise.resolve([] as { branchId: string; amount: number }[]),
     prisma.$queryRawUnsafe<{ id: string; name: string; pct: number }[]>(
       `select id::text as id, name, app.resolve_company_share_pct(id)::float8 as pct
          from public.branches where $1::uuid is null or id = $1::uuid order by name`, branchId),
+  ]);
+  const dayOf = new Map(required.map((r) => [r.id, r.day]));
+  const byBranch = new Map<string, AccountRow[]>();
+  for (const r of all) {
+    const list = byBranch.get(r.branchId);
+    if (list) list.push(r); else byBranch.set(r.branchId, [r]);
+  }
+  const ctx: CollectionsContext = {
+    start, branchId, branchRows, byBranch,
+    dateOf: (r) => (r.orderId ? dayOf.get(r.orderId) ?? r.businessDate : r.businessDate),
+  };
+
+  // Every whole month before the window, from the go-live day, in turn: each
+  // closes on the balance the next one opens with. Not past next month: no
+  // stock moves after today, so a later month's Opening Stock and closing
+  // stock cancel out, and only its demands (required that far ahead) count —
+  // which the carry below adds by date. A window years ahead stays quick.
+  const lastChained = dayAfter(monthEndOf(businessDateStr()));
+  let carry: Carry | null = null;
+  for (let mFrom = start; monthEndOf(mFrom) < from && mFrom <= lastChained; mFrom = dayAfter(monthEndOf(mFrom))) {
+    const month = await collectionsWindow(ctx, mFrom, monthEndOf(mFrom), carry);
+    carry = { through: monthEndOf(mFrom), balances: new Map(month.balances.map((b) => [b.branchId, b.closingBalance])) };
+  }
+  const { rows, balances, monthClosed } = await collectionsWindow(ctx, from, to, carry);
+  // The Closing Stock rows are shown, not counted.
+  return { start, from, to, rows, totals: totalBranchAccount(rows.filter((r) => r.stockRow !== 'closing'), balances), branches: balances, monthClosed };
+}
+
+type AccountRow = BranchAccountRow & { lo: string; hi: string | null };
+
+interface CollectionsContext {
+  start: string;
+  branchId: string | null;
+  branchRows: { id: string; name: string; pct: number }[];
+  /** Every Demand Record row from the go-live day, per branch, in order. */
+  byBranch: Map<string, AccountRow[]>;
+  /** A row's date on this sheet: a demand's required date. */
+  dateOf: (r: BranchAccountRow) => string;
+}
+
+/** Each branch's final balance at the end of `through`, the last day of a month worked through before. */
+type Carry = { through: string; balances: Map<string, number> };
+
+/** The day after a 'YYYY-MM-DD' date. */
+function dayAfter(ymd: string): string {
+  const d = new Date(`${ymd}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+/** The day before a 'YYYY-MM-DD' date. */
+function dayBefore(ymd: string): string {
+  const d = new Date(`${ymd}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
+/** One window of the Collections sheet, every branch's chain (see getCollectionsMonth). */
+async function collectionsWindow(ctx: CollectionsContext, from: string, to: string, carry: Carry | null) {
+  const { start, branchId, branchRows, byBranch, dateOf } = ctx;
+  const prisma = getPrisma();
+  const monthClosed = to === monthEndOf(to);
+  // The 1st of a month after the go-live day opens on the month before's
+  // Closing Stock: the end of its last day, at that day's prices.
+  const opensOnMonthBefore = from.endsWith('-01') && from > start;
+  const [stock, closingStock, before] = await Promise.all([
+    opensOnMonthBefore
+      ? prisma.$queryRawUnsafe<{ branchId: string; amount: number }[]>(STOCK_VALUE_SQL, branchId, dayBefore(from), true)
+      : prisma.$queryRawUnsafe<{ branchId: string; amount: number }[]>(STOCK_VALUE_SQL, branchId, from, false),
+    monthClosed
+      ? prisma.$queryRawUnsafe<{ branchId: string; amount: number }[]>(STOCK_VALUE_SQL, branchId, to, true)
+      : Promise.resolve([] as { branchId: string; amount: number }[]),
     getDemandFiguresBeforeRecord({ branchId, from, to }),
   ]);
   const beforeByBranch = new Map<string, DemandBeforeRecordRow[]>();
@@ -604,23 +671,20 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
     const list = beforeByBranch.get(r.branchId);
     if (list) list.push(r); else beforeByBranch.set(r.branchId, [r]);
   }
-  const dayOf = new Map(required.map((r) => [r.id, r.day]));
   const stockOf = new Map(stock.map((s) => [s.branchId, toPaisa(s.amount)]));
   const closingStockOf = new Map(closingStock.map((s) => [s.branchId, toPaisa(s.amount)]));
-  const dateOf = (r: BranchAccountRow) => (r.orderId ? dayOf.get(r.orderId) ?? r.businessDate : r.businessDate);
-
-  const byBranch = new Map<string, (BranchAccountRow & { lo: string; hi: string | null })[]>();
-  for (const r of all) {
-    const list = byBranch.get(r.branchId);
-    if (list) list.push(r); else byBranch.set(r.branchId, [r]);
-  }
 
   const rows: CollectionsRow[] = [];
   const balances: DemandRecordResult['branches'] = [];
   for (const b of branchRows) {
     const list = byBranch.get(b.id) ?? [];
-    // What every row dated before the window left owing — each row's own effect, by its date.
-    const carried = toPaisa(list.filter((r) => dateOf(r) < from).reduce((a, r) => a + r.closingBalance - r.previousBalance, 0));
+    // What every row dated before the window left owing — each row's own
+    // effect, by its date — on top of the balance the months before closed on.
+    const effect = (keep: (d: string) => boolean) =>
+      list.filter((r) => keep(dateOf(r))).reduce((a, r) => a + r.closingBalance - r.previousBalance, 0);
+    const carried = toPaisa(carry
+      ? (carry.balances.get(b.id) ?? 0) + effect((d) => d > carry.through && d < from)
+      : effect((d) => d < from));
     const inWindow = list
       .filter((r) => { const d = dateOf(r); return d >= from && d <= to; })
       .sort((x, y) => dateOf(x).localeCompare(dateOf(y)) || Date.parse(x.at) - Date.parse(y.at));
@@ -701,8 +765,7 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
   const rank = (r: CollectionsRow) => (r.stockRow === 'opening' ? 0 : r.stockRow === 'closing' ? 2 : 1);
   rows.sort((a, b) => a.branchName.localeCompare(b.branchName) || a.businessDate.localeCompare(b.businessDate)
     || rank(a) - rank(b) || Date.parse(a.at) - Date.parse(b.at));
-  // The Closing Stock rows are shown, not counted.
-  return { start, from, to, rows, totals: totalBranchAccount(rows.filter((r) => r.stockRow !== 'closing'), balances), branches: balances, monthClosed };
+  return { rows, balances, monthClosed };
 }
 
 function stripBounds<T extends { lo: string; hi: string | null }>(r: T): Omit<T, 'lo' | 'hi'> {
