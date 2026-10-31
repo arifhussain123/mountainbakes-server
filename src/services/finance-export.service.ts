@@ -157,7 +157,11 @@ function truncateToWidth(doc: PDFKit.PDFDocument, text: string, maxWidth: number
  * units), normalised to the printable width so a report with few columns spreads
  * out and one with many stays inside the page.
  */
-export async function exportFinanceReportPDF(report: FinanceReport, companyName = 'Mountain Bakes'): Promise<Buffer> {
+export async function exportFinanceReportPDF(
+  report: FinanceReport,
+  companyName = 'Mountain Bakes',
+  opts: { logo?: Buffer | null } = {},
+): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 30, size: 'A4', layout: 'landscape' });
     const chunks: Buffer[] = [];
@@ -191,10 +195,25 @@ export async function exportFinanceReportPDF(report: FinanceReport, companyName 
     // "Status") never read as touching, on headers and body rows alike.
     const GUTTER = 10;
 
+    // The company logo, when the caller passes one (PNG/JPEG — pdfkit draws
+    // nothing else). A logo it cannot read is left out, never a failed export.
+    let logo = opts.logo ?? null;
+    const LOGO = 38;
+
     const drawHeader = () => {
-      doc.fillColor(BRAND).fontSize(18).font('Helvetica-Bold').text(companyName, left, doc.page.margins.top);
+      const top = doc.page.margins.top;
+      let textLeft = left;
+      if (logo) {
+        try {
+          doc.image(logo, left, top, { fit: [LOGO, LOGO] });
+          textLeft = left + LOGO + 8;
+        } catch {
+          logo = null;
+        }
+      }
+      doc.fillColor(BRAND).fontSize(18).font('Helvetica-Bold').text(companyName, textLeft, top);
       doc.moveDown(0.25);
-      doc.fillColor(INK).fontSize(13).font('Helvetica-Bold').text(report.title, left);
+      doc.fillColor(INK).fontSize(13).font('Helvetica-Bold').text(report.title, textLeft);
       doc.moveDown(0.25);
       doc.fillColor(BODY).fontSize(8).font('Helvetica').text(report.subtitle, left);
       doc.moveDown(0.25);

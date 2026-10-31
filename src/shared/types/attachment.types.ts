@@ -38,6 +38,9 @@ export const ATTACHMENT_ENTITIES = [
   // and the photo is bound to that row (`entity_id`). Returns raised before then
   // share one photo across their rows (`legacy_single_photo`).
   'branch_return',
+  // Refundable & Receivable Loans (migration 20261031000001): the optional
+  // supporting document for one loan register entry.
+  'finance_loan_entry',
 ] as const;
 
 export type AttachmentEntity = (typeof ATTACHMENT_ENTITIES)[number];
@@ -58,6 +61,7 @@ export const ATTACHMENT_ENTITY_LABELS: Record<AttachmentEntity, string> = {
   finance_ticket_message: 'Help Desk reply',
   cash_transfer: 'Branch cash transfer',
   branch_return: 'Branch return',
+  finance_loan_entry: 'Loan register entry',
 };
 
 /**

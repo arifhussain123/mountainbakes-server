@@ -43,6 +43,7 @@ const upload = multer({
  */
 const ENTITY_ROLES: Record<AttachmentEntity, (role: UserRole) => boolean> = {
   finance_transaction: (r) => isFinanceRole(r) || r === 'super_admin',
+  finance_loan_entry: (r) => isFinanceRole(r) || r === 'super_admin',
   partner_expense: (r) => isFinanceRole(r) || r === 'super_admin',
   branch_share_payment: (r) => isFinanceRole(r) || r === 'super_admin',
   salary_payment: (r) => isFinanceRole(r) || r === 'super_admin',

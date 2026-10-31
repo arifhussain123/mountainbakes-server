@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import { dbFor } from '../db';
-import { businessDateStr, SYSTEM_LEDGER_HEAD_CODES } from '../shared';
+import { businessDateStr, SYSTEM_LEDGER_HEAD_CODES, type LoanClientBalance, type LoanLedgerPage } from '../shared';
 import { rowToApi } from '../utils/case';
 import { getDemandRecordForAccounts, type DemandRecordForAccounts } from './branch-account.service';
+import { getClientBalances, getLoanLedgerAll } from './finance-loans.service';
 import { withoutDeleted } from '../utils/softDelete';
 
 const db = dbFor('finance-accounting');
@@ -84,6 +85,21 @@ export interface BooksInput {
   branch: { id: string; name: string } | null;
   /** Finance → Demand Record, when it is switched on (branch-account.service.ts). */
   demandRecord?: DemandRecordForAccounts | null;
+  /** Finance → Refundable & Receivable Loans (finance-loans.service.ts). Null before its migration. */
+  loans?: LoansForAccounts | null;
+}
+
+/**
+ * The loan register beside the books. It is never posted to the finance
+ * ledger, so it is in no account, no total and no balance check: the Balance
+ * Sheet shows it as a memorandum under Liabilities and the Loan Ledger sheet
+ * lists it. Amounts are rupees, as the register keeps them.
+ */
+export interface LoansForAccounts {
+  /** Posted totals per client as at `to`. */
+  clients: LoanClientBalance[];
+  /** Every register entry in the period, with the opening and closing balance. */
+  ledger: LoanLedgerPage;
 }
 
 // ---------------------------------------------------------------------------
@@ -313,6 +329,8 @@ export interface AccountingBooks {
    * Demand Record is off.
    */
   branchBalances: { branchId: string; branchName: string; balance: number; page: number | null }[] | null;
+  /** The loan register (memorandum), with its outstanding total in paisa. Null before the loans migration. */
+  loans: (LoansForAccounts & { totalOutstanding: number }) | null;
   checks: ValidationCheck[];
   limitations: string[];
   status: { level: Exclude<CheckLevel, 'info'>; text: string };
@@ -647,6 +665,29 @@ export function buildAccountingBooks(input: BooksInput): AccountingBooks {
   const retained = 0 - closingOf(RETAINED_CODE);
   const branchOpening = 0 - closingOf(BRANCH_OPENING_CODE);
   const totalLiabilities = totalCredits;
+
+  // Refundable & Receivable Loans: a separate register, shown as a
+  // memorandum. NOT added to totalLiabilities — the loans never went through
+  // the ledger, so there is no asset against them here, and adding them would
+  // break the balance check by exactly the loan balance.
+  const loans = input.loans ?? null;
+  const loanClients = (loans?.clients ?? []).filter((c) => paisa(c.balance) !== 0);
+  const loansOutstanding = loanClients.reduce((s, c) => s + paisa(c.balance), 0);
+  const loanLines: StatementLine[] = !loans
+    ? [{ label: 'Loans and other liabilities — not recorded in the finance ledger', amount: null, kind: 'note', indent: 1 }]
+    : [
+        { label: 'Refundable & Receivable Loans — separate loan register (memorandum, not in Total liabilities)', amount: null, kind: 'heading', indent: 1 },
+        ...(loanClients.length
+          ? loanClients.map((c) => ({
+              label: `${c.clientCode} — ${c.clientName}${c.companyName ? ` (${c.companyName})` : ''}`,
+              amount: paisa(c.balance),
+              kind: 'item' as const,
+              indent: 2,
+            }))
+          : [{ label: 'No loan balance outstanding', amount: null, kind: 'note' as const, indent: 2 }]),
+        { label: 'Total loans outstanding (memorandum — see the Loan Ledger sheet)', amount: loansOutstanding, kind: 'subtotal', indent: 1 },
+        { label: 'Other liabilities — not recorded in the finance ledger', amount: null, kind: 'note', indent: 1 },
+      ];
   const totalEquity = generalFund + retained + branchOpening + netProfit;
   const difference = totalAssets - (totalLiabilities + totalEquity);
 
@@ -677,7 +718,7 @@ export function buildAccountingBooks(input: BooksInput): AccountingBooks {
         ]
       : []),
     { label: 'Accounts payable — not recorded in the finance ledger', amount: null, kind: 'note', indent: 1 },
-    { label: 'Loans and other liabilities — not recorded in the finance ledger', amount: null, kind: 'note', indent: 1 },
+    ...loanLines,
     { label: 'Total liabilities', amount: totalLiabilities, kind: 'total' },
     { label: 'Equity', amount: null, kind: 'heading' },
     { label: "Owner's capital — General Fund", amount: null, kind: 'heading', indent: 1 },
@@ -853,6 +894,20 @@ export function buildAccountingBooks(input: BooksInput): AccountingBooks {
         : { key: 'share_twice', label: 'Company share recognised once', level: 'pass', detail: 'No sales-income share posting overlaps the Demand Record.' },
     );
   }
+  if (loans) {
+    const closing = paisa(loans.ledger.closingBalance);
+    checks.push(
+      closing === loansOutstanding
+        ? {
+            key: 'loan_register', label: 'Loan register agrees with the Loan Ledger', level: 'pass',
+            detail: `Outstanding loans ${fmt(loansOutstanding)} across ${loanClients.length} client(s) equal the Loan Ledger closing balance. Shown under Liabilities as a memorandum only — never posted to the finance ledger, so not in any total here.`,
+          }
+        : {
+            key: 'loan_register', label: 'Loan register agrees with the Loan Ledger', level: 'warn',
+            detail: `Client balances total ${fmt(loansOutstanding)} but the Loan Ledger closes at ${fmt(closing)}.`,
+          },
+    );
+  }
   if (branch) {
     checks.push({
       key: 'branch_scope', label: 'Branch filter', level: 'warn',
@@ -868,7 +923,9 @@ export function buildAccountingBooks(input: BooksInput): AccountingBooks {
     dr
       ? `Branch Company Share is on an accrual basis from the Demand Record's start (${dr.start}): each delivered demand debits the branch's receivable and credits Company Share, and each deposit the Demand Record counts as Received credits the receivable instead of revenue. A positive balance is owed to Mountain Bakes (asset); a negative one is a credit owed back to the branch (liability). Deposits outside the Demand Record (before its start, or before a branch's first demand) stay income when received.`
       : 'Branch receivables are not included: the Demand Record is not switched on.',
-    'Inventory, payables, loans and fixed assets are not recorded in the finance ledger.',
+    loans
+      ? 'Inventory, payables and fixed assets are not recorded in the finance ledger. Refundable & Receivable Loans are kept in their own register and never posted to the finance ledger: the outstanding balance per client is shown under Liabilities as a memorandum, outside Total liabilities, and every entry is on the Loan Ledger sheet.'
+      : 'Inventory, payables, loans and fixed assets are not recorded in the finance ledger.',
     'General Fund = opening balances, capital introduced (Investment) and partner withdrawals (including partner advances). Branch Share Payout stays an expense.',
     'Employee advances are booked under Salaries as expenses; their recovery through payroll deductions is not a separate posting, so no advances receivable is kept.',
     'Branch-income bank slices combine Easypaisa and bank receipts and are shown under Bank — Bank Account.',
@@ -893,7 +950,7 @@ export function buildAccountingBooks(input: BooksInput): AccountingBooks {
       ? 'NOT VERIFIED — the books have critical exceptions (see the checks below); do not rely on these figures.'
       : difference !== 0
         ? 'NOT BALANCED — see the balance check.'
-        : `Balanced, but INCOMPLETE — inventory, payables, loans and fixed assets are not in the finance ledger; ${dr ? 'branch receivables from the Demand Record' : 'no branch receivables (Demand Record off)'}; ${openingNote}${branch ? '; one branch only' : ''}.`,
+        : `Balanced, but INCOMPLETE — inventory, payables${loans ? '' : ', loans'} and fixed assets are not in the finance ledger${loans ? ' (loans shown as a memorandum)' : ''}; ${dr ? 'branch receivables from the Demand Record' : 'no branch receivables (Demand Record off)'}; ${openingNote}${branch ? '; one branch only' : ''}.`,
   };
 
   return {
@@ -907,6 +964,7 @@ export function buildAccountingBooks(input: BooksInput): AccountingBooks {
     incomeStatement: { lines: isLines, netProfit, totalRevenue: salesTotal + otherIncomeTotal, totalExpenses: opexTotal + otherExpTotal },
     balanceSheet: { lines: bsLines, totalAssets, totalLiabilities, totalEquity, difference },
     branchBalances,
+    loans: loans ? { ...loans, totalOutstanding: loansOutstanding } : null,
     checks,
     limitations,
     status,
@@ -1050,13 +1108,14 @@ export async function loadAccountingBooks(q: AccountingWorkbookQuery): Promise<A
     branch = { id: String(data['id']), name: String(data['name']) };
   }
 
-  const [vouchers, heads, demandRecord] = await Promise.all([
+  const [vouchers, heads, demandRecord, loans] = await Promise.all([
     loadVouchers(q.to, q.branchId),
     loadHeads(),
     // Same period and branch as the rest of the workbook. Null while the
     // Demand Record is off; any other failure fails the export rather than
     // leaving receivables silently out.
     getDemandRecordForAccounts({ branchId: q.branchId, from: q.from, to: q.to }),
+    loadLoans(q),
   ]);
 
   const transferIds = [
@@ -1072,5 +1131,25 @@ export async function loadAccountingBooks(q: AccountingWorkbookQuery): Promise<A
     to: q.to,
     branch,
     demandRecord,
+    loans,
   });
+}
+
+/**
+ * The loan register for the workbook: client balances as at `to` and every
+ * entry in the period, for the same branch filter. Null only while its
+ * migration is not applied (503) — any other failure fails the export rather
+ * than leaving the loans silently out.
+ */
+async function loadLoans(q: AccountingWorkbookQuery): Promise<LoansForAccounts | null> {
+  try {
+    const [clients, ledger] = await Promise.all([
+      getClientBalances(q.to, q.branchId ?? null),
+      getLoanLedgerAll({ from: q.from, to: q.to, branchId: q.branchId ?? undefined }),
+    ]);
+    return { clients, ledger };
+  } catch (err) {
+    if ((err as { status?: number }).status === 503) return null;
+    throw err;
+  }
 }

@@ -1,7 +1,8 @@
 import ExcelJS from 'exceljs';
-import type { FinanceReport } from '../shared';
+import { LOAN_ENTRY_TYPE_LABELS, type FinanceReport } from '../shared';
 import { addFinanceReportSheet } from './finance-export.service';
 import {
+  paisa,
   rupees,
   type AccountingBooks,
   type CheckLevel,
@@ -14,8 +15,9 @@ import {
  *
  * The workbook opens with the sheet the button has always produced — the
  * Daily Cash Book, written by the same addFinanceReportSheet as every finance
- * report — and then the five accounting sheets, in this order: General
- * Entries, Ledger, Trial Balance, Income Statement, Balance Sheet.
+ * report — and then the accounting sheets, in this order: General Entries,
+ * Ledger, Trial Balance, Income Statement, Balance Sheet, and the Loan Ledger
+ * (the Refundable & Receivable Loans register, which is not in the books).
  *
  * Every accounting figure comes from `buildAccountingBooks`, which has already
  * checked them; this module only lays them out. Column totals are written as
@@ -26,7 +28,7 @@ import {
  * Brand colours as in finance-export.service.ts.
  */
 
-export const ACCOUNTING_SHEETS = ['General Entries', 'Ledger', 'Trial Balance', 'Income Statement', 'Balance Sheet'] as const;
+export const ACCOUNTING_SHEETS = ['General Entries', 'Ledger', 'Trial Balance', 'Income Statement', 'Balance Sheet', 'Loan Ledger'] as const;
 
 const ORANGE = 'FFF97316';
 const INK = 'FF6B3B1E';
@@ -204,6 +206,7 @@ export async function exportAccountingWorkbook(
   trialBalance(wb, books, ctx);
   statement(wb, 'Income Statement', books, ctx, books.incomeStatement.lines, books.statementStatus.incomeStatement);
   balanceSheet(wb, books, ctx);
+  loanLedger(wb, books, ctx);
 
   return wb.xlsx.writeBuffer() as unknown as Promise<Buffer>;
 }
@@ -585,4 +588,121 @@ function balanceSheet(wb: ExcelJS.Workbook, books: AccountingBooks, ctx: Ctx) {
     cell.font = { size: 9 };
     sheet.getRow(row).height = Math.min(75, 14 * Math.ceil(l.length / 150));
   }
+}
+
+// ── 7. Loan Ledger — the Refundable & Receivable Loans register ────────────
+
+/**
+ * Every loan register entry in the period, in posting order with its running
+ * balance, then the balance per client. The client total is the figure the
+ * Balance Sheet shows as a memorandum under Liabilities. None of it is in the
+ * other sheets: the register is never posted to the finance ledger.
+ */
+function loanLedger(wb: ExcelJS.Workbook, books: AccountingBooks, ctx: Ctx) {
+  const HEAD = 6;
+  const sheet = newSheet(wb, 'Loan Ledger', ctx.companyName, HEAD);
+  const labels = ['Date', 'Voucher No', 'Client', 'Entry Type', 'Ledger Head', 'Branch', 'Description', 'Debit', 'Credit', 'Balance', 'Status'];
+  const DR = 8;
+  widths(sheet, [13, 13, 26, 16, 22, 16, 40, 15, 15, 16, 11]);
+  letterhead(
+    sheet, 'Refundable & Receivable Loans Ledger', books, ctx, labels.length,
+    'Separate loan register — never posted to the finance ledger; outstanding balances appear under Balance Sheet → Liabilities as a memorandum.',
+  );
+
+  const loans = books.loans;
+  if (!loans) {
+    sheet.mergeCells(HEAD, 1, HEAD, labels.length);
+    const c = sheet.getCell(HEAD, 1);
+    c.value = 'The loan register is not available: database migration 20261031000001_finance_loans has not been applied.';
+    c.font = { italic: true, color: { argb: MUTED } };
+    return;
+  }
+  headerRow(sheet, HEAD, labels, DR);
+
+  let row = HEAD + 1;
+  const opening = sheet.getRow(row);
+  opening.getCell(1).value = asDate(books.from);
+  opening.getCell(1).numFmt = DATE;
+  opening.getCell(7).value = 'Opening balance brought forward';
+  opening.getCell(7).font = { italic: true };
+  setMoney(opening.getCell(DR + 2), paisa(loans.ledger.openingBalance));
+
+  let shaded = false;
+  for (const e of loans.ledger.entries) {
+    row += 1;
+    shaded = !shaded;
+    const r = sheet.getRow(row);
+    const posted = e.status === 'posted';
+    r.getCell(1).value = asDate(e.businessDate);
+    r.getCell(1).numFmt = DATE;
+    r.getCell(2).value = safeText(e.voucherNo);
+    r.getCell(3).value = safeText(`${e.clientCode} — ${e.clientName}`);
+    r.getCell(4).value = LOAN_ENTRY_TYPE_LABELS[e.entryType];
+    r.getCell(5).value = safeText(e.ledgerHeadName);
+    r.getCell(6).value = safeText(e.branchName ?? '');
+    r.getCell(7).value = safeText(posted ? e.description : `${e.description} — cancelled: ${e.cancelReason ?? ''}`);
+    r.getCell(7).alignment = { wrapText: true, vertical: 'top' };
+    // A cancelled entry is listed but carries no amount: it is in no total.
+    setMoney(r.getCell(DR), posted ? paisa(e.debit) : 0, true);
+    setMoney(r.getCell(DR + 1), posted ? paisa(e.credit) : 0, true);
+    setMoney(r.getCell(DR + 2), paisa(e.balance));
+    r.getCell(11).value = posted ? 'Posted' : 'Cancelled';
+    if (!posted) r.getCell(11).font = { color: { argb: RED } };
+    if (shaded) band(r, labels.length);
+  }
+  const last = row;
+  if (last > HEAD + 1) sheet.autoFilter = { from: { row: HEAD, column: 1 }, to: { row: last, column: labels.length } };
+
+  row += 1;
+  const total = sheet.getRow(row);
+  total.getCell(1).value = `TOTAL — ${loans.ledger.entries.filter((e) => e.status === 'posted').length} posted entries`;
+  setSum(total.getCell(DR), 'H', HEAD + 2, last, paisa(loans.ledger.totalDebit));
+  setSum(total.getCell(DR + 1), 'I', HEAD + 2, last, paisa(loans.ledger.totalCredit));
+  setMoney(total.getCell(DR + 2), paisa(loans.ledger.closingBalance));
+  totalStyle(total, labels.length);
+  row += 1;
+  const closing = sheet.getRow(row);
+  closing.getCell(1).value = 'Closing balance (opening + debit − credit)';
+  closing.getCell(1).font = { bold: true, color: { argb: INK } };
+  setMoney(closing.getCell(DR + 2), paisa(loans.ledger.closingBalance));
+  sheet.pageSetup.printTitlesRow = `${HEAD}:${HEAD}`;
+
+  // Balance per client as at the end of the period.
+  row += 2;
+  sheet.mergeCells(row, 1, row, 6);
+  const ct = sheet.getCell(row, 1);
+  ct.value = `Outstanding per client as at ${books.to}`;
+  ct.font = { bold: true, size: 12, color: { argb: INK } };
+  row += 1;
+  headerRow(sheet, row, ['Client ID', 'Client', 'Company', 'Refundable Loan', 'Receivable Loan', 'Total Loan', 'Loan Paid', 'Balance'], 4);
+  const first = row + 1;
+  const clients = loans.clients.filter((c) => c.entryCount > 0);
+  let ref = 0, rec = 0, deb = 0, cred = 0, bal = 0;
+  for (const c of clients) {
+    row += 1;
+    const r = sheet.getRow(row);
+    r.getCell(1).value = safeText(c.clientCode);
+    r.getCell(2).value = safeText(c.clientName);
+    r.getCell(3).value = safeText(c.companyName ?? '');
+    setMoney(r.getCell(4), paisa(c.totalRefundable));
+    setMoney(r.getCell(5), paisa(c.totalReceivable));
+    setMoney(r.getCell(6), paisa(c.totalDebit));
+    setMoney(r.getCell(7), paisa(c.totalCredit));
+    setMoney(r.getCell(8), paisa(c.balance));
+    ref += paisa(c.totalRefundable);
+    rec += paisa(c.totalReceivable);
+    deb += paisa(c.totalDebit);
+    cred += paisa(c.totalCredit);
+    bal += paisa(c.balance);
+  }
+  const lastClient = row;
+  row += 1;
+  const ctot = sheet.getRow(row);
+  ctot.getCell(1).value = clients.length ? 'Total outstanding (memorandum on the Balance Sheet)' : 'No loan entries up to this date';
+  setSum(ctot.getCell(4), 'D', first, lastClient, ref);
+  setSum(ctot.getCell(5), 'E', first, lastClient, rec);
+  setSum(ctot.getCell(6), 'F', first, lastClient, deb);
+  setSum(ctot.getCell(7), 'G', first, lastClient, cred);
+  setSum(ctot.getCell(8), 'H', first, lastClient, bal);
+  totalStyle(ctot, 8);
 }

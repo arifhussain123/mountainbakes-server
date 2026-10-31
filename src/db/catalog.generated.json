@@ -772,6 +772,83 @@
   },
   {
    "columns": [
+    "created_by"
+   ],
+   "name": "finance_loan_clients_created_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "finance_loan_clients"
+  },
+  {
+   "columns": [
+    "updated_by"
+   ],
+   "name": "finance_loan_clients_updated_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "finance_loan_clients"
+  },
+  {
+   "columns": [
+    "branch_id"
+   ],
+   "name": "finance_loan_entries_branch_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "branches",
+   "table": "finance_loan_entries"
+  },
+  {
+   "columns": [
+    "cancelled_by"
+   ],
+   "name": "finance_loan_entries_cancelled_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "finance_loan_entries"
+  },
+  {
+   "columns": [
+    "client_id"
+   ],
+   "name": "finance_loan_entries_client_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "finance_loan_clients",
+   "table": "finance_loan_entries"
+  },
+  {
+   "columns": [
+    "created_by"
+   ],
+   "name": "finance_loan_entries_created_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "finance_loan_entries"
+  },
+  {
+   "columns": [
+    "ledger_head_id"
+   ],
+   "name": "finance_loan_entries_ledger_head_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "ledger_heads",
+   "table": "finance_loan_entries"
+  },
+  {
+   "columns": [
     "branch_id"
    ],
    "name": "finance_queries_branch_id_fkey",
@@ -3609,6 +3686,37 @@
     "volatility": "s"
    }
   ],
+  "cancel_finance_loan_entry": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_reason",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "cancel_finance_loan_entry",
+    "returnType": "public.finance_loan_entries",
+    "returns": "composite",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
   "claim_backup_job": [
    {
     "args": [
@@ -4580,6 +4688,93 @@
     "volatility": "s"
    }
   ],
+  "finance_loan_client_balances": [
+   {
+    "args": [
+     {
+      "hasDefault": true,
+      "name": "p_to",
+      "type": "date"
+     },
+     {
+      "hasDefault": true,
+      "name": "p_branch_id",
+      "type": "uuid"
+     }
+    ],
+    "name": "finance_loan_client_balances",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "s"
+   }
+  ],
+  "finance_loan_ledger": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_from",
+      "type": "date"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_to",
+      "type": "date"
+     },
+     {
+      "hasDefault": true,
+      "name": "p_client_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": true,
+      "name": "p_branch_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": true,
+      "name": "p_entry_type",
+      "type": "text"
+     },
+     {
+      "hasDefault": true,
+      "name": "p_ledger_head_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": true,
+      "name": "p_payment_method",
+      "type": "text"
+     },
+     {
+      "hasDefault": true,
+      "name": "p_status",
+      "type": "text"
+     },
+     {
+      "hasDefault": true,
+      "name": "p_search",
+      "type": "text"
+     },
+     {
+      "hasDefault": true,
+      "name": "p_limit",
+      "type": "integer"
+     },
+     {
+      "hasDefault": true,
+      "name": "p_offset",
+      "type": "integer"
+     }
+    ],
+    "name": "finance_loan_ledger",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "s"
+   }
+  ],
   "finance_monthly_dashboard": [
    {
     "args": [
@@ -4885,6 +5080,77 @@
     ],
     "name": "post_finance_ledger_entry",
     "returnType": "public.ledger_entries",
+    "returns": "composite",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "post_finance_loan_entry": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_request_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_client_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_entry_type",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_ledger_head_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_branch_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_business_date",
+      "type": "date"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_amount",
+      "type": "numeric"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_payment_method",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_description",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_note",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "post_finance_loan_entry",
+    "returnType": "public.finance_loan_entries",
     "returns": "composite",
     "returnsSet": false,
     "volatility": "v"
@@ -7674,6 +7940,83 @@
     ],
     [
      "reference_no"
+    ]
+   ]
+  },
+  "finance_loan_clients": {
+   "columns": {
+    "id": "uuid",
+    "client_code": "text",
+    "company_name": "text",
+    "client_name": "text",
+    "mobile_number": "text",
+    "whatsapp_number": "text",
+    "address": "text",
+    "note": "text",
+    "is_active": "boolean",
+    "created_by": "uuid",
+    "created_by_name": "text",
+    "updated_by": "uuid",
+    "updated_by_name": "text",
+    "created_at": "timestamp with time zone",
+    "updated_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "client_code"
+    ],
+    [
+     "id"
+    ]
+   ]
+  },
+  "finance_loan_entries": {
+   "columns": {
+    "id": "uuid",
+    "voucher_no": "text",
+    "seq": "bigint",
+    "client_id": "uuid",
+    "entry_type": "text",
+    "ledger_head_id": "uuid",
+    "ledger_head_name": "text",
+    "branch_id": "uuid",
+    "branch_name": "text",
+    "business_date": "date",
+    "amount": "numeric",
+    "debit": "numeric",
+    "credit": "numeric",
+    "payment_method": "text",
+    "description": "text",
+    "note": "text",
+    "status": "text",
+    "cancel_reason": "text",
+    "cancelled_by": "uuid",
+    "cancelled_by_name": "text",
+    "cancelled_at": "timestamp with time zone",
+    "request_id": "uuid",
+    "created_by": "uuid",
+    "created_by_name": "text",
+    "created_at": "timestamp with time zone",
+    "updated_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ],
+    [
+     "request_id"
+    ],
+    [
+     "seq"
+    ],
+    [
+     "voucher_no"
     ]
    ]
   },

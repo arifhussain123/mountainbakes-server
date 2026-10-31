@@ -1040,7 +1040,10 @@ export type FinanceAuditEntity =
   // Migration 118 — approve / reject of a branch cash transfer.
   | 'cash_transfer'
   // Demand Record: go-live date, opening balances, adjustments, reversals.
-  | 'branch_account';
+  | 'branch_account'
+  // Refundable & Receivable Loans: clients and register entries.
+  | 'loan_client'
+  | 'loan_entry';
 
 export interface FinanceAuditLog {
   id: string;
@@ -1074,6 +1077,7 @@ export const FINANCE_REPORT_TYPES = [
   'salary',
   'partner_expense',
   'trial_balance',
+  'loan_ledger',
 ] as const;
 
 export type FinanceReportType = (typeof FINANCE_REPORT_TYPES)[number];
@@ -1089,6 +1093,7 @@ export const FINANCE_REPORT_LABELS: Record<FinanceReportType, string> = {
   salary: 'Salary Report',
   partner_expense: 'Partner Expense Report',
   trial_balance: 'Trial Balance',
+  loan_ledger: 'Refundable & Receivable Loans Ledger',
 };
 
 export type ReportCellFormat = 'text' | 'money' | 'number' | 'date';

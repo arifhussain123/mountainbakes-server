@@ -2,7 +2,9 @@ import { dbFor } from '../db';
 import {
   businessDateStr,
   businessDaysAgoStr,
+  FINANCE_PAYMENT_METHOD_LABELS,
   FINANCE_REPORT_LABELS,
+  LOAN_ENTRY_TYPE_LABELS,
   SYSTEM_LEDGER_HEAD_CODES,
   type FinanceReport,
   type FinanceReportColumn,
@@ -14,6 +16,7 @@ import { rowToApi } from '../utils/case';
 import { sortRows } from '../utils/sortRows';
 import { withoutDeleted } from '../utils/softDelete';
 import { getDayClosing } from './finance-ledger.service';
+import { getLoanLedgerAll } from './finance-loans.service';
 import { getLedgerHeadByCode, round2 } from './finance-settings.service';
 
 const db = dbFor('finance-reports');
@@ -64,6 +67,7 @@ const PAGINATED_REPORT_TYPES = new Set<FinanceReportType>([
   'branch_share',
   'salary',
   'partner_expense',
+  'loan_ledger',
 ]);
 
 /**
@@ -114,6 +118,8 @@ export async function buildFinanceReport(
         return partnerExpenseReport(q, from, to, generatedBy);
       case 'trial_balance':
         return trialBalance(q, from, to, generatedBy);
+      case 'loan_ledger':
+        return loanLedger(q, from, to, generatedBy);
       default: {
         // Exhaustiveness: adding a report type without a builder becomes a compile
         // error rather than an empty page in production.
@@ -284,6 +290,96 @@ async function dailyCashBook(
       { label: 'Total Receipts', value: totalDebit, format: 'money' },
       { label: 'Total Payments', value: totalCredit, format: 'money' },
       { label: 'Closing Balance', value: round2(opening.openingBalance + totalDebit - totalCredit), format: 'money' },
+    ],
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Refundable & Receivable Loans — the loan register, not the finance ledger
+// ---------------------------------------------------------------------------
+
+/**
+ * The Loan Ledger as a report, so the existing /export renders its PDF and
+ * Excel. Read from finance_loan_ledger — the same function the screen uses — so
+ * the opening, totals and every running balance match the page exactly.
+ * The first row is the opening balance brought forward.
+ */
+async function loanLedger(
+  q: FinanceReportQueryInput,
+  from: string,
+  to: string,
+  by: string,
+): Promise<FinanceReport> {
+  const book = await getLoanLedgerAll({
+    from,
+    to,
+    clientId: q.clientId,
+    branchId: q.branchId,
+    entryType: q.loanEntryType,
+    ledgerHeadId: q.ledgerHeadId,
+    paymentMethod: q.paymentMethod,
+    status: q.loanStatus,
+    search: q.search,
+  });
+
+  const columns: FinanceReportColumn[] = [
+    { key: 'businessDate', label: 'Date', format: 'date', width: 12 },
+    { key: 'voucherNo', label: 'Voucher No', width: 12 },
+    { key: 'entryType', label: 'Entry Type', width: 14 },
+    { key: 'clientName', label: 'Client', width: 20 },
+    { key: 'ledgerHeadName', label: 'Ledger Head', width: 18 },
+    { key: 'description', label: 'Description', width: 30 },
+    { key: 'branchName', label: 'Branch', width: 14 },
+    { key: 'paymentMethod', label: 'Payment Method', width: 12, pdfOmit: true },
+    { key: 'debit', label: 'Debit', format: 'money', align: 'right', width: 13 },
+    { key: 'credit', label: 'Credit', format: 'money', align: 'right', width: 13 },
+    { key: 'balance', label: 'Balance', format: 'money', align: 'right', width: 14 },
+    { key: 'status', label: 'Status', width: 10 },
+  ];
+
+  const client = q.clientId ? book.entries.find((e) => e.clientId === q.clientId) : undefined;
+  const clientLabel = q.clientId ? client?.clientName ?? 'Selected client' : 'All clients';
+
+  return {
+    ...shell('loan_ledger', from, to, by, `${clientLabel} · ${period(from, to)} · separate loan register, not in the General Ledger`),
+    columns,
+    rows: [
+      {
+        businessDate: from,
+        voucherNo: '',
+        entryType: '',
+        clientName: '',
+        ledgerHeadName: '',
+        description: 'Opening balance brought forward',
+        branchName: '',
+        paymentMethod: '',
+        debit: null,
+        credit: null,
+        balance: book.openingBalance,
+        status: '',
+      },
+      ...book.entries.map((e) => ({
+        businessDate: e.businessDate,
+        voucherNo: e.voucherNo,
+        entryType: LOAN_ENTRY_TYPE_LABELS[e.entryType],
+        clientName: e.clientName,
+        ledgerHeadName: e.ledgerHeadName,
+        description: e.status === 'cancelled' ? `${e.description} (cancelled: ${e.cancelReason ?? ''})` : e.description,
+        branchName: e.branchName ?? '—',
+        paymentMethod: e.paymentMethod ? FINANCE_PAYMENT_METHOD_LABELS[e.paymentMethod] ?? e.paymentMethod : '—',
+        // A cancelled row shows its amount nowhere: it is in no total.
+        debit: e.status === 'posted' ? e.debit || null : null,
+        credit: e.status === 'posted' ? e.credit || null : null,
+        balance: e.balance,
+        status: e.status === 'posted' ? 'Posted' : 'Cancelled',
+      })),
+    ],
+    totals: { debit: book.totalDebit, credit: book.totalCredit },
+    summary: [
+      { label: 'Opening Balance', value: book.openingBalance, format: 'money' },
+      { label: 'Total Loan Payment', value: book.totalDebit, format: 'money' },
+      { label: 'Loan Paid', value: book.totalCredit, format: 'money' },
+      { label: 'Closing Balance', value: book.closingBalance, format: 'money' },
     ],
   };
 }
