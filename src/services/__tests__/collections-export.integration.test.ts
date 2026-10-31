@@ -438,14 +438,21 @@ test('each branch keeps its own chain; By Branch adds up to the same totals', as
   assert.deepEqual(byBranch.at(-1), ['GRAND TOTAL', 8, 314300, 4100, 6300, 303900, 241845, 211605, 0, 30240]);
 });
 
-test('the window always starts on the 1st of the To date\'s month', async () => {
+test('From is taken as picked: a window from 3 Oct opens on that morning\'s stock', async () => {
   const picked = tableOf((await workbook('&from=2026-10-03&to=2026-10-03')).getWorksheet('Collections')!);
-  const month = tableOf((await workbook('&from=2026-10-01&to=2026-10-03')).getWorksheet('Collections')!);
-  assert.deepEqual(picked, month);
+  const day = (r: unknown[]) => (r[0] as Date).toISOString().slice(0, 10);
+  // Nothing before 3 Oct: DMD-000123/124/126/127/128 (1–2 Oct) are carried in, not listed.
+  assert.ok(picked.slice(1, -1).every((r) => day(r) === '2026-10-03'));
+  //                                Delivered Ret Disc G.Total Share Rec  Previous Closing
+  assert.deepEqual(picked.find((r) => r[1] === 'Opening Stock' && r[2] === 'Saddar')!.slice(3),
+    [3000, 0, 0, 3000, 2400, 0, 2440, 4840]); // 30 Bun that morning; 2,440 carried from DMD-000124
+  assert.deepEqual(picked.find((r) => r[1] === 'DMD-000125')!.slice(3), [39000, 500, 1000, 37500, 30000, 20000, 4840, 14840]);
+  assert.deepEqual(picked.find((r) => r[1] === 'Opening Stock' && r[2] === 'Gulberg')!.slice(9), [-2000, -2000]);
+  assert.deepEqual(picked.map((r) => r[1]).filter((n) => String(n).startsWith('DMD-')), ['DMD-000125', 'DMD-000129']);
 });
 
 test('a later month starts each branch from its own carried balance, with that morning\'s stock', async () => {
-  const main = tableOf((await workbook('&from=2026-11-05&to=2026-11-05')).getWorksheet('Collections')!);
+  const main = tableOf((await workbook('&from=2026-11-01&to=2026-11-05')).getWorksheet('Collections')!);
   // No demand is required in 1–5 Nov; each branch carries October's balance in.
   assert.deepEqual(main.slice(1, -1).map((r) => [(r[0] as Date).toISOString().slice(0, 10), r[1], r[2], r[9], r[10]]), [
     ['2026-11-01', 'Opening Stock', 'Blue Area', 4640, 4640],
@@ -498,8 +505,7 @@ test('July–September, before the Demand Record began: each demand\'s figures, 
 });
 
 test('a demand submitted before the record for its first day follows the opening stock on the branch\'s tab', async () => {
-  const wb = await workbook('&from=2026-09-01&to=2026-10-03');
-  // From is the 1st of October, the To date's month: nothing of September is in the file.
+  const wb = await workbook('&from=2026-10-01&to=2026-10-03');
   assert.ok(!wb.worksheets.some((w) => w.name.startsWith('Before')));
   const chowk = branchTab(wb.getWorksheet('Committee Chowk')!);
   assert.deepEqual(chowk.preamble, [
