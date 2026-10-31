@@ -266,6 +266,7 @@ model branches {
   expenses                         expenses[]
   finance_employees                finance_employees[]
   finance_income_approvals         finance_income_approvals[]
+  finance_loan_entries             finance_loan_entries[]
   finance_queries                  finance_queries[]
   finance_tickets                  finance_tickets[]
   finance_transactions             finance_transactions[]
@@ -1234,6 +1235,7 @@ model ledger_heads {
   created_by           String?                @db.Uuid
   created_at           DateTime               @default(now()) @db.Timestamptz(6)
   updated_at           DateTime               @default(now()) @db.Timestamptz(6)
+  finance_loan_entries finance_loan_entries[]
   finance_transactions finance_transactions[]
   ledger_entries       ledger_entries[]
   users                users?                 @relation(fields: [created_by], references: [id], onUpdate: NoAction)
@@ -2332,6 +2334,10 @@ model users {
   finance_income_approvals_finance_income_approvals_approved_byTousers finance_income_approvals[]   @relation("finance_income_approvals_approved_byTousers")
   finance_income_approvals_finance_income_approvals_deleted_byTousers  finance_income_approvals[]   @relation("finance_income_approvals_deleted_byTousers")
   finance_income_approvals_finance_income_approvals_verified_byTousers finance_income_approvals[]   @relation("finance_income_approvals_verified_byTousers")
+  finance_loan_clients_finance_loan_clients_created_byTousers          finance_loan_clients[]       @relation("finance_loan_clients_created_byTousers")
+  finance_loan_clients_finance_loan_clients_updated_byTousers          finance_loan_clients[]       @relation("finance_loan_clients_updated_byTousers")
+  finance_loan_entries_finance_loan_entries_cancelled_byTousers        finance_loan_entries[]       @relation("finance_loan_entries_cancelled_byTousers")
+  finance_loan_entries_finance_loan_entries_created_byTousers          finance_loan_entries[]       @relation("finance_loan_entries_created_byTousers")
   finance_queries_finance_queries_created_byTousers                    finance_queries[]            @relation("finance_queries_created_byTousers")
   finance_queries_finance_queries_updated_byTousers                    finance_queries[]            @relation("finance_queries_updated_byTousers")
   finance_ticket_messages                                              finance_ticket_messages[]
@@ -3072,6 +3078,74 @@ model finance_document_events {
   @@index([document_type, document_id, created_at], map: "finance_document_events_doc_idx")
 }
 
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model finance_loan_clients {
+  id                                           String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  client_code                                  String                 @unique @default(dbgenerated("app.next_finance_number('finance_loan_client'::text, 'LC'::text)"))
+  company_name                                 String?
+  client_name                                  String
+  mobile_number                                String?
+  whatsapp_number                              String?
+  address                                      String?
+  note                                         String?
+  is_active                                    Boolean                @default(true)
+  created_by                                   String?                @db.Uuid
+  created_by_name                              String?
+  updated_by                                   String?                @db.Uuid
+  updated_by_name                              String?
+  created_at                                   DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at                                   DateTime               @default(now()) @db.Timestamptz(6)
+  users_finance_loan_clients_created_byTousers users?                 @relation("finance_loan_clients_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
+  users_finance_loan_clients_updated_byTousers users?                 @relation("finance_loan_clients_updated_byTousers", fields: [updated_by], references: [id], onUpdate: NoAction)
+  finance_loan_entries                         finance_loan_entries[]
+
+  @@index([mobile_number], map: "finance_loan_clients_mobile_idx", where: raw("(mobile_number IS NOT NULL)"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model finance_loan_entries {
+  id                                             String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  voucher_no                                     String               @unique
+  seq                                            BigInt               @unique @default(autoincrement())
+  client_id                                      String               @db.Uuid
+  entry_type                                     String
+  ledger_head_id                                 String               @db.Uuid
+  ledger_head_name                               String
+  branch_id                                      String?              @db.Uuid
+  branch_name                                    String?
+  business_date                                  DateTime             @db.Date
+  amount                                         Decimal              @db.Decimal(14, 2)
+  debit                                          Decimal              @default(0) @db.Decimal(14, 2)
+  credit                                         Decimal              @default(0) @db.Decimal(14, 2)
+  payment_method                                 String?
+  description                                    String
+  note                                           String?
+  status                                         String               @default("posted")
+  cancel_reason                                  String?
+  cancelled_by                                   String?              @db.Uuid
+  cancelled_by_name                              String?
+  cancelled_at                                   DateTime?            @db.Timestamptz(6)
+  request_id                                     String               @unique @db.Uuid
+  created_by                                     String?              @db.Uuid
+  created_by_name                                String?
+  created_at                                     DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at                                     DateTime             @default(now()) @db.Timestamptz(6)
+  branches                                       branches?            @relation(fields: [branch_id], references: [id], onUpdate: NoAction)
+  users_finance_loan_entries_cancelled_byTousers users?               @relation("finance_loan_entries_cancelled_byTousers", fields: [cancelled_by], references: [id], onUpdate: NoAction)
+  finance_loan_clients                           finance_loan_clients @relation(fields: [client_id], references: [id], onUpdate: NoAction)
+  users_finance_loan_entries_created_byTousers   users?               @relation("finance_loan_entries_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
+  ledger_heads                                   ledger_heads         @relation(fields: [ledger_head_id], references: [id], onUpdate: NoAction)
+
+  @@index([client_id, business_date, seq], map: "finance_loan_entries_client_idx")
+  @@index([business_date, seq], map: "finance_loan_entries_date_idx")
+  @@index([ledger_head_id], map: "finance_loan_entries_head_idx")
+  @@index([status])
+  @@index([entry_type], map: "finance_loan_entries_type_idx")
+}
+
 enum app_theme {
   light
   dark
@@ -3092,6 +3166,7 @@ enum attachment_entity {
   cash_transfer
   special_order_verification
   branch_return
+  finance_loan_entry
 }
 
 enum branch_discount_status {

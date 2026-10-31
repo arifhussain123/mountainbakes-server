@@ -13,7 +13,7 @@ import {
   type SourceVoucher,
 } from '../finance-accounting.service';
 import { ACCOUNTING_SHEETS, accountingWorkbookFilename, exportAccountingWorkbook, safeText } from '../finance-accounting-export.service';
-import type { FinanceReport } from '../../shared';
+import type { FinanceReport, LoanEntry } from '../../shared';
 
 /**
  * The accounting workbook's engine, on a book worked out by hand.
@@ -397,13 +397,13 @@ describe('workbook', () => {
   };
   const resultOf = (v: ExcelJS.CellValue) => (v && typeof v === 'object' && 'result' in v ? v.result : v);
 
-  test('five accounting sheets, in order', async () => {
+  test('six accounting sheets, in order', async () => {
     const { wb } = await workbook(scenario());
     assert.deepEqual(wb.worksheets.map((s) => s.name), [...ACCOUNTING_SHEETS]);
-    assert.deepEqual([...ACCOUNTING_SHEETS], ['General Entries', 'Ledger', 'Trial Balance', 'Income Statement', 'Balance Sheet']);
+    assert.deepEqual([...ACCOUNTING_SHEETS], ['General Entries', 'Ledger', 'Trial Balance', 'Income Statement', 'Balance Sheet', 'Loan Ledger']);
   });
 
-  test('the existing cash book sheet stays first, unchanged, ahead of the five', async () => {
+  test('the existing cash book sheet stays first, unchanged, ahead of the six', async () => {
     const cashBook: FinanceReport = {
       type: 'daily_cash_book', title: 'Daily Cash Book', subtitle: 'Cash book for 2026-10-10 to 2026-10-12',
       periodFrom: '2026-10-10', periodTo: '2026-10-12', generatedAt: '2026-10-12T10:00:00Z', generatedBy: 'accountant@mb.test',
@@ -509,9 +509,60 @@ describe('workbook', () => {
     assert.match(String(bs.getCell(5, 1).value), /^Statement status: Balanced, but INCOMPLETE/);
   });
 
-  test('an empty period still opens with all five sheets', async () => {
+  test('an empty period still opens with all six sheets', async () => {
     const { wb } = await workbook({ vouchers: [], heads: HEADS, transfers: [], from: '2026-10-10', to: '2026-10-10', branch: null });
-    assert.equal(wb.worksheets.length, 5);
+    assert.equal(wb.worksheets.length, 6);
+  });
+
+  test('loans: a memorandum under Liabilities and the Loan Ledger sheet, outside every total', async () => {
+    // The loan spec's §18 client: loans 100 000 + 50 000 + 25 000, paid 30 000 + 20 000.
+    const entry = (n: number, entryType: LoanEntry['entryType'], debit: number, credit: number, balance: number): LoanEntry => ({
+      id: `l${n}`, voucherNo: `LN-00000${n}`, seq: n, clientId: 'c1', clientCode: 'LC-000001', clientName: 'Ali Traders',
+      companyName: null, entryType, ledgerHeadId: 'h', ledgerHeadName: 'Loans', branchId: null, branchName: null,
+      businessDate: `2026-10-1${n - 1}`, amount: debit || credit, debit, credit, balance, paymentMethod: credit ? 'cash' : null,
+      description: `entry ${n}`, note: null, status: 'posted', cancelReason: null, cancelledByName: null, cancelledAt: null,
+      createdByName: 'x', createdAt: '2026-10-10T00:00:00Z',
+    });
+    const entries = [
+      entry(1, 'refundable_loan', 100000, 0, 100000),
+      entry(2, 'receivable_loan', 50000, 0, 150000),
+      entry(3, 'paid_payment', 0, 30000, 120000),
+    ];
+    const input = scenario();
+    const plain = buildAccountingBooks(input);
+    input.loans = {
+      clients: [{
+        clientId: 'c1', clientCode: 'LC-000001', clientName: 'Ali Traders', companyName: null, isActive: true,
+        totalRefundable: 125000, totalReceivable: 50000, totalDebit: 175000, totalCredit: 50000, balance: 125000, entryCount: 5,
+      }],
+      ledger: {
+        from: '2026-10-10', to: '2026-10-12', openingBalance: 0, totalDebit: 150000, totalCredit: 30000, closingBalance: 125000,
+        total: 3, limit: 3, offset: 0, entries,
+      },
+    };
+    const books = buildAccountingBooks(input);
+
+    // Nothing in the books moves.
+    assert.equal(books.balanceSheet.totalLiabilities, plain.balanceSheet.totalLiabilities);
+    assert.equal(books.balanceSheet.difference, plain.balanceSheet.difference);
+    assert.equal(books.incomeStatement.netProfit, plain.incomeStatement.netProfit);
+    assert.equal(books.loans!.totalOutstanding, 12_500_000);
+
+    const { wb } = await workbook(input);
+    const bs = wb.getWorksheet('Balance Sheet')!;
+    assert.ok(findRow(bs, 1, (v) => String(v).startsWith('Refundable & Receivable Loans — separate loan register')));
+    assert.equal(findRow(bs, 1, (v) => v === 'LC-000001 — Ali Traders')!.getCell(2).value, 125000);
+    assert.equal(findRow(bs, 1, (v) => String(v).startsWith('Total loans outstanding'))!.getCell(3).value, 125000);
+    assert.equal(findRow(bs, 1, (v) => v === 'Balance check (assets − liabilities − equity)')!.getCell(3).value, 0);
+    assert.ok(!findRow(bs, 1, (v) => String(v).startsWith('Loans and other liabilities')));
+
+    const ll = wb.getWorksheet('Loan Ledger')!;
+    assert.equal(findRow(ll, 2, (v) => v === 'LN-000003')!.getCell(10).value, 120000);
+    assert.equal(findRow(ll, 1, (v) => String(v).startsWith('Closing balance'))!.getCell(10).value, 125000);
+    const clientTotal = findRow(ll, 1, (v) => String(v).startsWith('Total outstanding'))!;
+    assert.equal((clientTotal.getCell(6).value as { result: number }).result, 175000);
+    assert.equal((clientTotal.getCell(7).value as { result: number }).result, 50000);
+    assert.equal((clientTotal.getCell(8).value as { result: number }).result, 125000);
   });
 
   test('text a spreadsheet would run as a formula is written as text', async () => {

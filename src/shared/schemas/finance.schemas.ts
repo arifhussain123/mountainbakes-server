@@ -5,6 +5,7 @@ import {
   FINANCE_REPORT_TYPES,
   FINANCE_ROLES,
 } from '../types/finance.types';
+import { LOAN_ENTRY_STATUSES, LOAN_ENTRY_TYPES } from '../types/finance-loan.types';
 import { optionalAttachmentIds, requiredAttachmentIds } from './attachment.schemas';
 
 /**
@@ -471,6 +472,12 @@ export const FinanceReportQuerySchema = z.object({
   employeeId: z.string().uuid().optional(),
   department: z.string().max(80).optional(),
   salaryMonth: salaryMonth.optional(),
+  // Loan ledger only (type 'loan_ledger').
+  clientId: z.string().uuid().optional(),
+  loanEntryType: z.enum(LOAN_ENTRY_TYPES).optional(),
+  paymentMethod: z.enum(FINANCE_PAYMENT_METHODS).optional(),
+  loanStatus: z.enum(LOAN_ENTRY_STATUSES).optional(),
+  search: z.string().trim().max(120).optional(),
   // Only meaningful for the row-level reports (cash book, general ledger,
   // expense report, share reports, salary, partner expense) — the aggregated
   // ones (income statement, P&L, trial balance) always return every head. The

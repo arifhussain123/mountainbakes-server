@@ -11,6 +11,7 @@ import {
 import { getAppSettings } from '../services/settings.service';
 import { AccountingWorkbookQuerySchema, loadAccountingBooks } from '../services/finance-accounting.service';
 import { accountingWorkbookFilename, exportAccountingWorkbook } from '../services/finance-accounting-export.service';
+import { fileStore, LOGO_PATH_PATTERN } from '../services/file-store';
 
 /**
  * /api/finance/reports — the ten reports, on screen and as files.
@@ -42,6 +43,16 @@ function parseQuery(req: AuthRequest) {
   return parsed.data;
 }
 
+/** The uploaded company logo's bytes for a PDF letterhead, or null — a missing logo never fails an export. */
+async function brandingLogo(path: string | undefined): Promise<Buffer | null> {
+  if (!path || !LOGO_PATH_PATTERN.test(path) || !/\.(png|jpg)$/.test(path)) return null;
+  try {
+    return (await fileStore().download?.('branding', path)) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 router.get('/', requireFinance('view'), async (req: AuthRequest, res, next) => {
   try {
     const report = await buildFinanceReport(parseQuery(req), req.user!.email, { paginate: true });
@@ -70,7 +81,10 @@ router.get('/export', requireFinance('view'), async (req: AuthRequest, res, next
     const filename = `mountain-bakes-${query.type.replace(/_/g, '-')}-${report.periodFrom}_${report.periodTo}`;
 
     if (format === 'pdf') {
-      const buffer = await exportFinanceReportPDF(report, settings.companyName);
+      // The loan ledger's PDF carries the logo (its spec asks for it); the
+      // other reports keep their text letterhead unchanged.
+      const logo = query.type === 'loan_ledger' ? await brandingLogo((settings as { logoPath?: string }).logoPath) : null;
+      const buffer = await exportFinanceReportPDF(report, settings.companyName, { logo });
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}.pdf"`);
       res.send(buffer);

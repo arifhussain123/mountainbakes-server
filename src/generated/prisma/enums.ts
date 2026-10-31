@@ -31,7 +31,8 @@ export const attachment_entity = {
   finance_ticket_message: 'finance_ticket_message',
   cash_transfer: 'cash_transfer',
   special_order_verification: 'special_order_verification',
-  branch_return: 'branch_return'
+  branch_return: 'branch_return',
+  finance_loan_entry: 'finance_loan_entry'
 } as const
 
 export type attachment_entity = (typeof attachment_entity)[keyof typeof attachment_entity]

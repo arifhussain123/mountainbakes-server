@@ -218,7 +218,7 @@ describe('access', () => {
 });
 
 describe('the workbook', () => {
-  test('is a real .xlsx: the existing cash book sheet, then the five sheets in order, with a meaningful name', async () => {
+  test('is a real .xlsx: the existing cash book sheet, then the six sheets in order, with a meaningful name', async () => {
     const { res, buf } = await download('auditor', '?from=2026-10-10&to=2026-10-11');
     assert.equal(res.status, 200);
     assert.match(res.headers.get('content-type') ?? '', /spreadsheetml/);
@@ -226,7 +226,7 @@ describe('the workbook', () => {
     assert.equal(buf.subarray(0, 2).toString(), 'PK');
     const wb = await open(buf);
     assert.deepEqual(wb.worksheets.map((s) => s.name), [
-      'Daily Cash Book', 'General Entries', 'Ledger', 'Trial Balance', 'Income Statement', 'Balance Sheet',
+      'Daily Cash Book', 'General Entries', 'Ledger', 'Trial Balance', 'Income Statement', 'Balance Sheet', 'Loan Ledger',
     ]);
   });
 
@@ -339,11 +339,11 @@ describe('the workbook', () => {
     assert.equal(a.res.headers.get('x-accounting-status'), b.res.headers.get('x-accounting-status'));
   });
 
-  test('an empty period still downloads all six sheets', async () => {
+  test('an empty period still downloads all seven sheets', async () => {
     const { res, buf } = await download('auditor', '?from=2026-09-01&to=2026-09-02');
     assert.equal(res.status, 200);
     const wb = await open(buf);
-    assert.equal(wb.worksheets.length, 6);
+    assert.equal(wb.worksheets.length, 7);
     assert.equal(entryIds(wb).length, 0);
   });
 });

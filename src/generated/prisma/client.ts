@@ -611,3 +611,16 @@ export type production_order_share_snapshots = Prisma.production_order_share_sna
  * This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
  */
 export type finance_document_events = Prisma.finance_document_eventsModel
+/**
+ * Model finance_loan_clients
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ * This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+ * This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+ */
+export type finance_loan_clients = Prisma.finance_loan_clientsModel
+/**
+ * Model finance_loan_entries
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ * This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+ */
+export type finance_loan_entries = Prisma.finance_loan_entriesModel

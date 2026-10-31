@@ -341,6 +341,7 @@ export type branchesWhereInput = {
   expenses?: Prisma.ExpensesListRelationFilter
   finance_employees?: Prisma.Finance_employeesListRelationFilter
   finance_income_approvals?: Prisma.Finance_income_approvalsListRelationFilter
+  finance_loan_entries?: Prisma.Finance_loan_entriesListRelationFilter
   finance_queries?: Prisma.Finance_queriesListRelationFilter
   finance_tickets?: Prisma.Finance_ticketsListRelationFilter
   finance_transactions?: Prisma.Finance_transactionsListRelationFilter
@@ -400,6 +401,7 @@ export type branchesOrderByWithRelationInput = {
   expenses?: Prisma.expensesOrderByRelationAggregateInput
   finance_employees?: Prisma.finance_employeesOrderByRelationAggregateInput
   finance_income_approvals?: Prisma.finance_income_approvalsOrderByRelationAggregateInput
+  finance_loan_entries?: Prisma.finance_loan_entriesOrderByRelationAggregateInput
   finance_queries?: Prisma.finance_queriesOrderByRelationAggregateInput
   finance_tickets?: Prisma.finance_ticketsOrderByRelationAggregateInput
   finance_transactions?: Prisma.finance_transactionsOrderByRelationAggregateInput
@@ -462,6 +464,7 @@ export type branchesWhereUniqueInput = Prisma.AtLeast<{
   expenses?: Prisma.ExpensesListRelationFilter
   finance_employees?: Prisma.Finance_employeesListRelationFilter
   finance_income_approvals?: Prisma.Finance_income_approvalsListRelationFilter
+  finance_loan_entries?: Prisma.Finance_loan_entriesListRelationFilter
   finance_queries?: Prisma.Finance_queriesListRelationFilter
   finance_tickets?: Prisma.Finance_ticketsListRelationFilter
   finance_transactions?: Prisma.Finance_transactionsListRelationFilter
@@ -568,6 +571,7 @@ export type branchesCreateInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -626,6 +630,7 @@ export type branchesUncheckedCreateInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -684,6 +689,7 @@ export type branchesUpdateInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -742,6 +748,7 @@ export type branchesUncheckedUpdateInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -1536,6 +1543,22 @@ export type branchesUpdateOneRequiredWithoutBranch_account_adjustmentsNestedInpu
   update?: Prisma.XOR<Prisma.XOR<Prisma.branchesUpdateToOneWithWhereWithoutBranch_account_adjustmentsInput, Prisma.branchesUpdateWithoutBranch_account_adjustmentsInput>, Prisma.branchesUncheckedUpdateWithoutBranch_account_adjustmentsInput>
 }
 
+export type branchesCreateNestedOneWithoutFinance_loan_entriesInput = {
+  create?: Prisma.XOR<Prisma.branchesCreateWithoutFinance_loan_entriesInput, Prisma.branchesUncheckedCreateWithoutFinance_loan_entriesInput>
+  connectOrCreate?: Prisma.branchesCreateOrConnectWithoutFinance_loan_entriesInput
+  connect?: Prisma.branchesWhereUniqueInput
+}
+
+export type branchesUpdateOneWithoutFinance_loan_entriesNestedInput = {
+  create?: Prisma.XOR<Prisma.branchesCreateWithoutFinance_loan_entriesInput, Prisma.branchesUncheckedCreateWithoutFinance_loan_entriesInput>
+  connectOrCreate?: Prisma.branchesCreateOrConnectWithoutFinance_loan_entriesInput
+  upsert?: Prisma.branchesUpsertWithoutFinance_loan_entriesInput
+  disconnect?: Prisma.branchesWhereInput | boolean
+  delete?: Prisma.branchesWhereInput | boolean
+  connect?: Prisma.branchesWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.branchesUpdateToOneWithWhereWithoutFinance_loan_entriesInput, Prisma.branchesUpdateWithoutFinance_loan_entriesInput>, Prisma.branchesUncheckedUpdateWithoutFinance_loan_entriesInput>
+}
+
 export type branchesCreateWithoutBranch_discountsInput = {
   id?: string
   legacy_id?: string | null
@@ -1568,6 +1591,7 @@ export type branchesCreateWithoutBranch_discountsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -1625,6 +1649,7 @@ export type branchesUncheckedCreateWithoutBranch_discountsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -1698,6 +1723,7 @@ export type branchesUpdateWithoutBranch_discountsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -1755,6 +1781,7 @@ export type branchesUncheckedUpdateWithoutBranch_discountsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -1812,6 +1839,7 @@ export type branchesCreateWithoutBranch_locationsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -1869,6 +1897,7 @@ export type branchesUncheckedCreateWithoutBranch_locationsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -1942,6 +1971,7 @@ export type branchesUpdateWithoutBranch_locationsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -1999,6 +2029,7 @@ export type branchesUncheckedUpdateWithoutBranch_locationsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -2056,6 +2087,7 @@ export type branchesCreateWithoutBranch_share_paymentsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -2113,6 +2145,7 @@ export type branchesUncheckedCreateWithoutBranch_share_paymentsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -2186,6 +2219,7 @@ export type branchesUpdateWithoutBranch_share_paymentsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -2243,6 +2277,7 @@ export type branchesUncheckedUpdateWithoutBranch_share_paymentsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -2300,6 +2335,7 @@ export type branchesCreateWithoutCash_transfersInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -2357,6 +2393,7 @@ export type branchesUncheckedCreateWithoutCash_transfersInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -2430,6 +2467,7 @@ export type branchesUpdateWithoutCash_transfersInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -2487,6 +2525,7 @@ export type branchesUncheckedUpdateWithoutCash_transfersInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -2544,6 +2583,7 @@ export type branchesCreateWithoutCustomersInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -2601,6 +2641,7 @@ export type branchesUncheckedCreateWithoutCustomersInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -2674,6 +2715,7 @@ export type branchesUpdateWithoutCustomersInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -2731,6 +2773,7 @@ export type branchesUncheckedUpdateWithoutCustomersInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -2788,6 +2831,7 @@ export type branchesCreateWithoutDaily_closing_reportsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -2845,6 +2889,7 @@ export type branchesUncheckedCreateWithoutDaily_closing_reportsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -2918,6 +2963,7 @@ export type branchesUpdateWithoutDaily_closing_reportsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -2975,6 +3021,7 @@ export type branchesUncheckedUpdateWithoutDaily_closing_reportsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -3032,6 +3079,7 @@ export type branchesCreateWithoutDaily_sale_record_auditsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -3089,6 +3137,7 @@ export type branchesUncheckedCreateWithoutDaily_sale_record_auditsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -3162,6 +3211,7 @@ export type branchesUpdateWithoutDaily_sale_record_auditsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -3219,6 +3269,7 @@ export type branchesUncheckedUpdateWithoutDaily_sale_record_auditsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -3276,6 +3327,7 @@ export type branchesCreateWithoutDaily_sale_recordsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -3333,6 +3385,7 @@ export type branchesUncheckedCreateWithoutDaily_sale_recordsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -3406,6 +3459,7 @@ export type branchesUpdateWithoutDaily_sale_recordsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -3463,6 +3517,7 @@ export type branchesUncheckedUpdateWithoutDaily_sale_recordsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -3520,6 +3575,7 @@ export type branchesCreateWithoutEvent_branch_demandsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -3577,6 +3633,7 @@ export type branchesUncheckedCreateWithoutEvent_branch_demandsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -3650,6 +3707,7 @@ export type branchesUpdateWithoutEvent_branch_demandsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -3707,6 +3765,7 @@ export type branchesUncheckedUpdateWithoutEvent_branch_demandsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -3764,6 +3823,7 @@ export type branchesCreateWithoutEvent_branchesInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -3821,6 +3881,7 @@ export type branchesUncheckedCreateWithoutEvent_branchesInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -3894,6 +3955,7 @@ export type branchesUpdateWithoutEvent_branchesInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -3951,6 +4013,7 @@ export type branchesUncheckedUpdateWithoutEvent_branchesInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -4008,6 +4071,7 @@ export type branchesCreateWithoutEvent_notificationsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -4065,6 +4129,7 @@ export type branchesUncheckedCreateWithoutEvent_notificationsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -4138,6 +4203,7 @@ export type branchesUpdateWithoutEvent_notificationsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -4195,6 +4261,7 @@ export type branchesUncheckedUpdateWithoutEvent_notificationsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -4252,6 +4319,7 @@ export type branchesCreateWithoutExpensesInput = {
   event_notifications?: Prisma.event_notificationsCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -4309,6 +4377,7 @@ export type branchesUncheckedCreateWithoutExpensesInput = {
   event_notifications?: Prisma.event_notificationsUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -4382,6 +4451,7 @@ export type branchesUpdateWithoutExpensesInput = {
   event_notifications?: Prisma.event_notificationsUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -4439,6 +4509,7 @@ export type branchesUncheckedUpdateWithoutExpensesInput = {
   event_notifications?: Prisma.event_notificationsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -4496,6 +4567,7 @@ export type branchesCreateWithoutFinance_employeesInput = {
   event_notifications?: Prisma.event_notificationsCreateNestedManyWithoutBranchesInput
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -4553,6 +4625,7 @@ export type branchesUncheckedCreateWithoutFinance_employeesInput = {
   event_notifications?: Prisma.event_notificationsUncheckedCreateNestedManyWithoutBranchesInput
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -4626,6 +4699,7 @@ export type branchesUpdateWithoutFinance_employeesInput = {
   event_notifications?: Prisma.event_notificationsUpdateManyWithoutBranchesNestedInput
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -4683,6 +4757,7 @@ export type branchesUncheckedUpdateWithoutFinance_employeesInput = {
   event_notifications?: Prisma.event_notificationsUncheckedUpdateManyWithoutBranchesNestedInput
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -4740,6 +4815,7 @@ export type branchesCreateWithoutFinance_income_approvalsInput = {
   event_notifications?: Prisma.event_notificationsCreateNestedManyWithoutBranchesInput
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -4797,6 +4873,7 @@ export type branchesUncheckedCreateWithoutFinance_income_approvalsInput = {
   event_notifications?: Prisma.event_notificationsUncheckedCreateNestedManyWithoutBranchesInput
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -4870,6 +4947,7 @@ export type branchesUpdateWithoutFinance_income_approvalsInput = {
   event_notifications?: Prisma.event_notificationsUpdateManyWithoutBranchesNestedInput
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -4927,6 +5005,7 @@ export type branchesUncheckedUpdateWithoutFinance_income_approvalsInput = {
   event_notifications?: Prisma.event_notificationsUncheckedUpdateManyWithoutBranchesNestedInput
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -4985,6 +5064,7 @@ export type branchesCreateWithoutFinance_queriesInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
   geofence_logs?: Prisma.geofence_logsCreateNestedManyWithoutBranchesInput
@@ -5042,6 +5122,7 @@ export type branchesUncheckedCreateWithoutFinance_queriesInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
   geofence_logs?: Prisma.geofence_logsUncheckedCreateNestedManyWithoutBranchesInput
@@ -5115,6 +5196,7 @@ export type branchesUpdateWithoutFinance_queriesInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
   geofence_logs?: Prisma.geofence_logsUpdateManyWithoutBranchesNestedInput
@@ -5172,6 +5254,7 @@ export type branchesUncheckedUpdateWithoutFinance_queriesInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
   geofence_logs?: Prisma.geofence_logsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -5229,6 +5312,7 @@ export type branchesCreateWithoutFinance_ticketsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
   geofence_logs?: Prisma.geofence_logsCreateNestedManyWithoutBranchesInput
@@ -5286,6 +5370,7 @@ export type branchesUncheckedCreateWithoutFinance_ticketsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
   geofence_logs?: Prisma.geofence_logsUncheckedCreateNestedManyWithoutBranchesInput
@@ -5359,6 +5444,7 @@ export type branchesUpdateWithoutFinance_ticketsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
   geofence_logs?: Prisma.geofence_logsUpdateManyWithoutBranchesNestedInput
@@ -5416,6 +5502,7 @@ export type branchesUncheckedUpdateWithoutFinance_ticketsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
   geofence_logs?: Prisma.geofence_logsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -5473,6 +5560,7 @@ export type branchesCreateWithoutFinance_transactionsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   geofence_logs?: Prisma.geofence_logsCreateNestedManyWithoutBranchesInput
@@ -5530,6 +5618,7 @@ export type branchesUncheckedCreateWithoutFinance_transactionsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   geofence_logs?: Prisma.geofence_logsUncheckedCreateNestedManyWithoutBranchesInput
@@ -5603,6 +5692,7 @@ export type branchesUpdateWithoutFinance_transactionsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   geofence_logs?: Prisma.geofence_logsUpdateManyWithoutBranchesNestedInput
@@ -5660,6 +5750,7 @@ export type branchesUncheckedUpdateWithoutFinance_transactionsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   geofence_logs?: Prisma.geofence_logsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -5717,6 +5808,7 @@ export type branchesCreateWithoutGeofence_logsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -5774,6 +5866,7 @@ export type branchesUncheckedCreateWithoutGeofence_logsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -5847,6 +5940,7 @@ export type branchesUpdateWithoutGeofence_logsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -5904,6 +5998,7 @@ export type branchesUncheckedUpdateWithoutGeofence_logsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -5961,6 +6056,7 @@ export type branchesCreateWithoutLedger_entriesInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -6018,6 +6114,7 @@ export type branchesUncheckedCreateWithoutLedger_entriesInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -6091,6 +6188,7 @@ export type branchesUpdateWithoutLedger_entriesInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -6148,6 +6246,7 @@ export type branchesUncheckedUpdateWithoutLedger_entriesInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -6205,6 +6304,7 @@ export type branchesCreateWithoutLogin_sessionsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -6262,6 +6362,7 @@ export type branchesUncheckedCreateWithoutLogin_sessionsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -6335,6 +6436,7 @@ export type branchesUpdateWithoutLogin_sessionsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -6392,6 +6494,7 @@ export type branchesUncheckedUpdateWithoutLogin_sessionsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -6449,6 +6552,7 @@ export type branchesCreateWithoutNotification_recipientsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -6506,6 +6610,7 @@ export type branchesUncheckedCreateWithoutNotification_recipientsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -6579,6 +6684,7 @@ export type branchesUpdateWithoutNotification_recipientsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -6636,6 +6742,7 @@ export type branchesUncheckedUpdateWithoutNotification_recipientsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -6693,6 +6800,7 @@ export type branchesCreateWithoutNotificationsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -6750,6 +6858,7 @@ export type branchesUncheckedCreateWithoutNotificationsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -6823,6 +6932,7 @@ export type branchesUpdateWithoutNotificationsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -6880,6 +6990,7 @@ export type branchesUncheckedUpdateWithoutNotificationsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -6937,6 +7048,7 @@ export type branchesCreateWithoutOrdersInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -6994,6 +7106,7 @@ export type branchesUncheckedCreateWithoutOrdersInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -7067,6 +7180,7 @@ export type branchesUpdateWithoutOrdersInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -7124,6 +7238,7 @@ export type branchesUncheckedUpdateWithoutOrdersInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -7181,6 +7296,7 @@ export type branchesCreateWithoutPayment_method_settingsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -7238,6 +7354,7 @@ export type branchesUncheckedCreateWithoutPayment_method_settingsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -7311,6 +7428,7 @@ export type branchesUpdateWithoutPayment_method_settingsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -7368,6 +7486,7 @@ export type branchesUncheckedUpdateWithoutPayment_method_settingsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -7425,6 +7544,7 @@ export type branchesCreateWithoutProduction_balancesInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -7482,6 +7602,7 @@ export type branchesUncheckedCreateWithoutProduction_balancesInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -7555,6 +7676,7 @@ export type branchesUpdateWithoutProduction_balancesInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -7612,6 +7734,7 @@ export type branchesUncheckedUpdateWithoutProduction_balancesInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -7669,6 +7792,7 @@ export type branchesCreateWithoutProduction_ordersInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -7726,6 +7850,7 @@ export type branchesUncheckedCreateWithoutProduction_ordersInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -7799,6 +7924,7 @@ export type branchesUpdateWithoutProduction_ordersInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -7856,6 +7982,7 @@ export type branchesUncheckedUpdateWithoutProduction_ordersInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -7913,6 +8040,7 @@ export type branchesCreateWithoutProduction_returnsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -7970,6 +8098,7 @@ export type branchesUncheckedCreateWithoutProduction_returnsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -8043,6 +8172,7 @@ export type branchesUpdateWithoutProduction_returnsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -8100,6 +8230,7 @@ export type branchesUncheckedUpdateWithoutProduction_returnsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -8157,6 +8288,7 @@ export type branchesCreateWithoutProduction_stock_historyInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -8214,6 +8346,7 @@ export type branchesUncheckedCreateWithoutProduction_stock_historyInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -8287,6 +8420,7 @@ export type branchesUpdateWithoutProduction_stock_historyInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -8344,6 +8478,7 @@ export type branchesUncheckedUpdateWithoutProduction_stock_historyInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -8401,6 +8536,7 @@ export type branchesCreateWithoutRestriction_eventsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -8458,6 +8594,7 @@ export type branchesUncheckedCreateWithoutRestriction_eventsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -8531,6 +8668,7 @@ export type branchesUpdateWithoutRestriction_eventsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -8588,6 +8726,7 @@ export type branchesUncheckedUpdateWithoutRestriction_eventsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -8645,6 +8784,7 @@ export type branchesCreateWithoutRestriction_requestsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -8702,6 +8842,7 @@ export type branchesUncheckedCreateWithoutRestriction_requestsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -8775,6 +8916,7 @@ export type branchesUpdateWithoutRestriction_requestsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -8832,6 +8974,7 @@ export type branchesUncheckedUpdateWithoutRestriction_requestsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -8889,6 +9032,7 @@ export type branchesCreateWithoutReturn_stock_historyInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -8946,6 +9090,7 @@ export type branchesUncheckedCreateWithoutReturn_stock_historyInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -9019,6 +9164,7 @@ export type branchesUpdateWithoutReturn_stock_historyInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -9076,6 +9222,7 @@ export type branchesUncheckedUpdateWithoutReturn_stock_historyInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -9133,6 +9280,7 @@ export type branchesCreateWithoutSpecial_ordersInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -9190,6 +9338,7 @@ export type branchesUncheckedCreateWithoutSpecial_ordersInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -9263,6 +9412,7 @@ export type branchesUpdateWithoutSpecial_ordersInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -9320,6 +9470,7 @@ export type branchesUncheckedUpdateWithoutSpecial_ordersInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -9377,6 +9528,7 @@ export type branchesCreateWithoutStockInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -9434,6 +9586,7 @@ export type branchesUncheckedCreateWithoutStockInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -9507,6 +9660,7 @@ export type branchesUpdateWithoutStockInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -9564,6 +9718,7 @@ export type branchesUncheckedUpdateWithoutStockInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -9621,6 +9776,7 @@ export type branchesCreateWithoutStock_audit_logInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -9678,6 +9834,7 @@ export type branchesUncheckedCreateWithoutStock_audit_logInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -9751,6 +9908,7 @@ export type branchesUpdateWithoutStock_audit_logInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -9808,6 +9966,7 @@ export type branchesUncheckedUpdateWithoutStock_audit_logInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -9865,6 +10024,7 @@ export type branchesCreateWithoutStock_historyInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -9922,6 +10082,7 @@ export type branchesUncheckedCreateWithoutStock_historyInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -9995,6 +10156,7 @@ export type branchesUpdateWithoutStock_historyInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -10052,6 +10214,7 @@ export type branchesUncheckedUpdateWithoutStock_historyInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -10109,6 +10272,7 @@ export type branchesCreateWithoutSupport_ticketsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -10166,6 +10330,7 @@ export type branchesUncheckedCreateWithoutSupport_ticketsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -10239,6 +10404,7 @@ export type branchesUpdateWithoutSupport_ticketsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -10296,6 +10462,7 @@ export type branchesUncheckedUpdateWithoutSupport_ticketsInput = {
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -10352,6 +10519,7 @@ export type branchesCreateWithoutUsers_branches_manager_idTousersInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -10409,6 +10577,7 @@ export type branchesUncheckedCreateWithoutUsers_branches_manager_idTousersInput 
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -10477,6 +10646,7 @@ export type branchesCreateWithoutUsers_users_branch_idTobranchesInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -10534,6 +10704,7 @@ export type branchesUncheckedCreateWithoutUsers_users_branch_idTobranchesInput =
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -10646,6 +10817,7 @@ export type branchesUpdateWithoutUsers_users_branch_idTobranchesInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -10703,6 +10875,7 @@ export type branchesUncheckedUpdateWithoutUsers_users_branch_idTobranchesInput =
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -10759,6 +10932,7 @@ export type branchesCreateWithoutBranch_account_adjustmentsInput = {
   expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
@@ -10816,6 +10990,7 @@ export type branchesUncheckedCreateWithoutBranch_account_adjustmentsInput = {
   expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
   finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
   finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
   finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
@@ -10889,6 +11064,7 @@ export type branchesUpdateWithoutBranch_account_adjustmentsInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -10932,6 +11108,255 @@ export type branchesUncheckedUpdateWithoutBranch_account_adjustmentsInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
+  branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
+  branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
+  cash_transfers?: Prisma.cash_transfersUncheckedUpdateManyWithoutBranchesNestedInput
+  customers?: Prisma.customersUncheckedUpdateManyWithoutBranchesNestedInput
+  daily_closing_reports?: Prisma.daily_closing_reportsUncheckedUpdateManyWithoutBranchesNestedInput
+  daily_sale_record_audits?: Prisma.daily_sale_record_auditsUncheckedUpdateManyWithoutBranchesNestedInput
+  daily_sale_records?: Prisma.daily_sale_recordsUncheckedUpdateManyWithoutBranchesNestedInput
+  event_branch_demands?: Prisma.event_branch_demandsUncheckedUpdateManyWithoutBranchesNestedInput
+  event_branches?: Prisma.event_branchesUncheckedUpdateManyWithoutBranchesNestedInput
+  event_notifications?: Prisma.event_notificationsUncheckedUpdateManyWithoutBranchesNestedInput
+  expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
+  geofence_logs?: Prisma.geofence_logsUncheckedUpdateManyWithoutBranchesNestedInput
+  ledger_entries?: Prisma.ledger_entriesUncheckedUpdateManyWithoutBranchesNestedInput
+  login_sessions?: Prisma.login_sessionsUncheckedUpdateManyWithoutBranchesNestedInput
+  notification_recipients?: Prisma.notification_recipientsUncheckedUpdateManyWithoutBranchesNestedInput
+  notifications?: Prisma.notificationsUncheckedUpdateManyWithoutBranchesNestedInput
+  orders?: Prisma.ordersUncheckedUpdateManyWithoutBranchesNestedInput
+  payment_method_settings?: Prisma.payment_method_settingsUncheckedUpdateManyWithoutBranchesNestedInput
+  production_balances?: Prisma.production_balancesUncheckedUpdateManyWithoutBranchesNestedInput
+  production_orders?: Prisma.production_ordersUncheckedUpdateManyWithoutBranchesNestedInput
+  production_returns?: Prisma.production_returnsUncheckedUpdateManyWithoutBranchesNestedInput
+  production_stock_history?: Prisma.production_stock_historyUncheckedUpdateManyWithoutBranchesNestedInput
+  restriction_events?: Prisma.restriction_eventsUncheckedUpdateManyWithoutBranchesNestedInput
+  restriction_requests?: Prisma.restriction_requestsUncheckedUpdateManyWithoutBranchesNestedInput
+  return_stock_history?: Prisma.return_stock_historyUncheckedUpdateManyWithoutBranchesNestedInput
+  special_orders?: Prisma.special_ordersUncheckedUpdateManyWithoutBranchesNestedInput
+  stock?: Prisma.stockUncheckedUpdateManyWithoutBranchesNestedInput
+  stock_audit_log?: Prisma.stock_audit_logUncheckedUpdateManyWithoutBranchesNestedInput
+  stock_history?: Prisma.stock_historyUncheckedUpdateManyWithoutBranchesNestedInput
+  support_tickets?: Prisma.support_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
+  users_users_branch_idTobranches?: Prisma.usersUncheckedUpdateManyWithoutBranches_users_branch_idTobranchesNestedInput
+}
+
+export type branchesCreateWithoutFinance_loan_entriesInput = {
+  id?: string
+  legacy_id?: string | null
+  name: string
+  slug: string
+  location?: string | null
+  phone?: string | null
+  address?: string | null
+  city?: string | null
+  manager_name?: string | null
+  is_active?: boolean
+  daily_budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  weekly_budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  monthly_budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsCreateNestedManyWithoutBranchesInput
+  branch_discounts?: Prisma.branch_discountsCreateNestedManyWithoutBranchesInput
+  branch_locations?: Prisma.branch_locationsCreateNestedOneWithoutBranchesInput
+  branch_share_payments?: Prisma.branch_share_paymentsCreateNestedManyWithoutBranchesInput
+  users_branches_manager_idTousers?: Prisma.usersCreateNestedOneWithoutBranches_branches_manager_idTousersInput
+  cash_transfers?: Prisma.cash_transfersCreateNestedManyWithoutBranchesInput
+  customers?: Prisma.customersCreateNestedManyWithoutBranchesInput
+  daily_closing_reports?: Prisma.daily_closing_reportsCreateNestedManyWithoutBranchesInput
+  daily_sale_record_audits?: Prisma.daily_sale_record_auditsCreateNestedManyWithoutBranchesInput
+  daily_sale_records?: Prisma.daily_sale_recordsCreateNestedManyWithoutBranchesInput
+  event_branch_demands?: Prisma.event_branch_demandsCreateNestedManyWithoutBranchesInput
+  event_branches?: Prisma.event_branchesCreateNestedManyWithoutBranchesInput
+  event_notifications?: Prisma.event_notificationsCreateNestedManyWithoutBranchesInput
+  expenses?: Prisma.expensesCreateNestedManyWithoutBranchesInput
+  finance_employees?: Prisma.finance_employeesCreateNestedManyWithoutBranchesInput
+  finance_income_approvals?: Prisma.finance_income_approvalsCreateNestedManyWithoutBranchesInput
+  finance_queries?: Prisma.finance_queriesCreateNestedManyWithoutBranchesInput
+  finance_tickets?: Prisma.finance_ticketsCreateNestedManyWithoutBranchesInput
+  finance_transactions?: Prisma.finance_transactionsCreateNestedManyWithoutBranchesInput
+  geofence_logs?: Prisma.geofence_logsCreateNestedManyWithoutBranchesInput
+  ledger_entries?: Prisma.ledger_entriesCreateNestedManyWithoutBranchesInput
+  login_sessions?: Prisma.login_sessionsCreateNestedManyWithoutBranchesInput
+  notification_recipients?: Prisma.notification_recipientsCreateNestedManyWithoutBranchesInput
+  notifications?: Prisma.notificationsCreateNestedManyWithoutBranchesInput
+  orders?: Prisma.ordersCreateNestedManyWithoutBranchesInput
+  payment_method_settings?: Prisma.payment_method_settingsCreateNestedManyWithoutBranchesInput
+  production_balances?: Prisma.production_balancesCreateNestedManyWithoutBranchesInput
+  production_orders?: Prisma.production_ordersCreateNestedManyWithoutBranchesInput
+  production_returns?: Prisma.production_returnsCreateNestedManyWithoutBranchesInput
+  production_stock_history?: Prisma.production_stock_historyCreateNestedManyWithoutBranchesInput
+  restriction_events?: Prisma.restriction_eventsCreateNestedManyWithoutBranchesInput
+  restriction_requests?: Prisma.restriction_requestsCreateNestedManyWithoutBranchesInput
+  return_stock_history?: Prisma.return_stock_historyCreateNestedManyWithoutBranchesInput
+  special_orders?: Prisma.special_ordersCreateNestedManyWithoutBranchesInput
+  stock?: Prisma.stockCreateNestedManyWithoutBranchesInput
+  stock_audit_log?: Prisma.stock_audit_logCreateNestedManyWithoutBranchesInput
+  stock_history?: Prisma.stock_historyCreateNestedManyWithoutBranchesInput
+  support_tickets?: Prisma.support_ticketsCreateNestedManyWithoutBranchesInput
+  users_users_branch_idTobranches?: Prisma.usersCreateNestedManyWithoutBranches_users_branch_idTobranchesInput
+}
+
+export type branchesUncheckedCreateWithoutFinance_loan_entriesInput = {
+  id?: string
+  legacy_id?: string | null
+  name: string
+  slug: string
+  location?: string | null
+  phone?: string | null
+  address?: string | null
+  city?: string | null
+  manager_id?: string | null
+  manager_name?: string | null
+  is_active?: boolean
+  daily_budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  weekly_budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  monthly_budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  company_share_pct?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedCreateNestedManyWithoutBranchesInput
+  branch_discounts?: Prisma.branch_discountsUncheckedCreateNestedManyWithoutBranchesInput
+  branch_locations?: Prisma.branch_locationsUncheckedCreateNestedOneWithoutBranchesInput
+  branch_share_payments?: Prisma.branch_share_paymentsUncheckedCreateNestedManyWithoutBranchesInput
+  cash_transfers?: Prisma.cash_transfersUncheckedCreateNestedManyWithoutBranchesInput
+  customers?: Prisma.customersUncheckedCreateNestedManyWithoutBranchesInput
+  daily_closing_reports?: Prisma.daily_closing_reportsUncheckedCreateNestedManyWithoutBranchesInput
+  daily_sale_record_audits?: Prisma.daily_sale_record_auditsUncheckedCreateNestedManyWithoutBranchesInput
+  daily_sale_records?: Prisma.daily_sale_recordsUncheckedCreateNestedManyWithoutBranchesInput
+  event_branch_demands?: Prisma.event_branch_demandsUncheckedCreateNestedManyWithoutBranchesInput
+  event_branches?: Prisma.event_branchesUncheckedCreateNestedManyWithoutBranchesInput
+  event_notifications?: Prisma.event_notificationsUncheckedCreateNestedManyWithoutBranchesInput
+  expenses?: Prisma.expensesUncheckedCreateNestedManyWithoutBranchesInput
+  finance_employees?: Prisma.finance_employeesUncheckedCreateNestedManyWithoutBranchesInput
+  finance_income_approvals?: Prisma.finance_income_approvalsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_queries?: Prisma.finance_queriesUncheckedCreateNestedManyWithoutBranchesInput
+  finance_tickets?: Prisma.finance_ticketsUncheckedCreateNestedManyWithoutBranchesInput
+  finance_transactions?: Prisma.finance_transactionsUncheckedCreateNestedManyWithoutBranchesInput
+  geofence_logs?: Prisma.geofence_logsUncheckedCreateNestedManyWithoutBranchesInput
+  ledger_entries?: Prisma.ledger_entriesUncheckedCreateNestedManyWithoutBranchesInput
+  login_sessions?: Prisma.login_sessionsUncheckedCreateNestedManyWithoutBranchesInput
+  notification_recipients?: Prisma.notification_recipientsUncheckedCreateNestedManyWithoutBranchesInput
+  notifications?: Prisma.notificationsUncheckedCreateNestedManyWithoutBranchesInput
+  orders?: Prisma.ordersUncheckedCreateNestedManyWithoutBranchesInput
+  payment_method_settings?: Prisma.payment_method_settingsUncheckedCreateNestedManyWithoutBranchesInput
+  production_balances?: Prisma.production_balancesUncheckedCreateNestedManyWithoutBranchesInput
+  production_orders?: Prisma.production_ordersUncheckedCreateNestedManyWithoutBranchesInput
+  production_returns?: Prisma.production_returnsUncheckedCreateNestedManyWithoutBranchesInput
+  production_stock_history?: Prisma.production_stock_historyUncheckedCreateNestedManyWithoutBranchesInput
+  restriction_events?: Prisma.restriction_eventsUncheckedCreateNestedManyWithoutBranchesInput
+  restriction_requests?: Prisma.restriction_requestsUncheckedCreateNestedManyWithoutBranchesInput
+  return_stock_history?: Prisma.return_stock_historyUncheckedCreateNestedManyWithoutBranchesInput
+  special_orders?: Prisma.special_ordersUncheckedCreateNestedManyWithoutBranchesInput
+  stock?: Prisma.stockUncheckedCreateNestedManyWithoutBranchesInput
+  stock_audit_log?: Prisma.stock_audit_logUncheckedCreateNestedManyWithoutBranchesInput
+  stock_history?: Prisma.stock_historyUncheckedCreateNestedManyWithoutBranchesInput
+  support_tickets?: Prisma.support_ticketsUncheckedCreateNestedManyWithoutBranchesInput
+  users_users_branch_idTobranches?: Prisma.usersUncheckedCreateNestedManyWithoutBranches_users_branch_idTobranchesInput
+}
+
+export type branchesCreateOrConnectWithoutFinance_loan_entriesInput = {
+  where: Prisma.branchesWhereUniqueInput
+  create: Prisma.XOR<Prisma.branchesCreateWithoutFinance_loan_entriesInput, Prisma.branchesUncheckedCreateWithoutFinance_loan_entriesInput>
+}
+
+export type branchesUpsertWithoutFinance_loan_entriesInput = {
+  update: Prisma.XOR<Prisma.branchesUpdateWithoutFinance_loan_entriesInput, Prisma.branchesUncheckedUpdateWithoutFinance_loan_entriesInput>
+  create: Prisma.XOR<Prisma.branchesCreateWithoutFinance_loan_entriesInput, Prisma.branchesUncheckedCreateWithoutFinance_loan_entriesInput>
+  where?: Prisma.branchesWhereInput
+}
+
+export type branchesUpdateToOneWithWhereWithoutFinance_loan_entriesInput = {
+  where?: Prisma.branchesWhereInput
+  data: Prisma.XOR<Prisma.branchesUpdateWithoutFinance_loan_entriesInput, Prisma.branchesUncheckedUpdateWithoutFinance_loan_entriesInput>
+}
+
+export type branchesUpdateWithoutFinance_loan_entriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legacy_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  daily_budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  weekly_budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  monthly_budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUpdateManyWithoutBranchesNestedInput
+  branch_discounts?: Prisma.branch_discountsUpdateManyWithoutBranchesNestedInput
+  branch_locations?: Prisma.branch_locationsUpdateOneWithoutBranchesNestedInput
+  branch_share_payments?: Prisma.branch_share_paymentsUpdateManyWithoutBranchesNestedInput
+  users_branches_manager_idTousers?: Prisma.usersUpdateOneWithoutBranches_branches_manager_idTousersNestedInput
+  cash_transfers?: Prisma.cash_transfersUpdateManyWithoutBranchesNestedInput
+  customers?: Prisma.customersUpdateManyWithoutBranchesNestedInput
+  daily_closing_reports?: Prisma.daily_closing_reportsUpdateManyWithoutBranchesNestedInput
+  daily_sale_record_audits?: Prisma.daily_sale_record_auditsUpdateManyWithoutBranchesNestedInput
+  daily_sale_records?: Prisma.daily_sale_recordsUpdateManyWithoutBranchesNestedInput
+  event_branch_demands?: Prisma.event_branch_demandsUpdateManyWithoutBranchesNestedInput
+  event_branches?: Prisma.event_branchesUpdateManyWithoutBranchesNestedInput
+  event_notifications?: Prisma.event_notificationsUpdateManyWithoutBranchesNestedInput
+  expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
+  finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
+  finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
+  finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
+  finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
+  geofence_logs?: Prisma.geofence_logsUpdateManyWithoutBranchesNestedInput
+  ledger_entries?: Prisma.ledger_entriesUpdateManyWithoutBranchesNestedInput
+  login_sessions?: Prisma.login_sessionsUpdateManyWithoutBranchesNestedInput
+  notification_recipients?: Prisma.notification_recipientsUpdateManyWithoutBranchesNestedInput
+  notifications?: Prisma.notificationsUpdateManyWithoutBranchesNestedInput
+  orders?: Prisma.ordersUpdateManyWithoutBranchesNestedInput
+  payment_method_settings?: Prisma.payment_method_settingsUpdateManyWithoutBranchesNestedInput
+  production_balances?: Prisma.production_balancesUpdateManyWithoutBranchesNestedInput
+  production_orders?: Prisma.production_ordersUpdateManyWithoutBranchesNestedInput
+  production_returns?: Prisma.production_returnsUpdateManyWithoutBranchesNestedInput
+  production_stock_history?: Prisma.production_stock_historyUpdateManyWithoutBranchesNestedInput
+  restriction_events?: Prisma.restriction_eventsUpdateManyWithoutBranchesNestedInput
+  restriction_requests?: Prisma.restriction_requestsUpdateManyWithoutBranchesNestedInput
+  return_stock_history?: Prisma.return_stock_historyUpdateManyWithoutBranchesNestedInput
+  special_orders?: Prisma.special_ordersUpdateManyWithoutBranchesNestedInput
+  stock?: Prisma.stockUpdateManyWithoutBranchesNestedInput
+  stock_audit_log?: Prisma.stock_audit_logUpdateManyWithoutBranchesNestedInput
+  stock_history?: Prisma.stock_historyUpdateManyWithoutBranchesNestedInput
+  support_tickets?: Prisma.support_ticketsUpdateManyWithoutBranchesNestedInput
+  users_users_branch_idTobranches?: Prisma.usersUpdateManyWithoutBranches_users_branch_idTobranchesNestedInput
+}
+
+export type branchesUncheckedUpdateWithoutFinance_loan_entriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  legacy_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manager_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  daily_budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  weekly_budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  monthly_budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  company_share_pct?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  branch_account_adjustments?: Prisma.branch_account_adjustmentsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_discounts?: Prisma.branch_discountsUncheckedUpdateManyWithoutBranchesNestedInput
   branch_locations?: Prisma.branch_locationsUncheckedUpdateOneWithoutBranchesNestedInput
   branch_share_payments?: Prisma.branch_share_paymentsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -11022,6 +11447,7 @@ export type branchesUpdateWithoutUsers_branches_manager_idTousersInput = {
   expenses?: Prisma.expensesUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUpdateManyWithoutBranchesNestedInput
@@ -11079,6 +11505,7 @@ export type branchesUncheckedUpdateWithoutUsers_branches_manager_idTousersInput 
   expenses?: Prisma.expensesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_employees?: Prisma.finance_employeesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_income_approvals?: Prisma.finance_income_approvalsUncheckedUpdateManyWithoutBranchesNestedInput
+  finance_loan_entries?: Prisma.finance_loan_entriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_queries?: Prisma.finance_queriesUncheckedUpdateManyWithoutBranchesNestedInput
   finance_tickets?: Prisma.finance_ticketsUncheckedUpdateManyWithoutBranchesNestedInput
   finance_transactions?: Prisma.finance_transactionsUncheckedUpdateManyWithoutBranchesNestedInput
@@ -11143,6 +11570,7 @@ export type BranchesCountOutputType = {
   expenses: number
   finance_employees: number
   finance_income_approvals: number
+  finance_loan_entries: number
   finance_queries: number
   finance_tickets: number
   finance_transactions: number
@@ -11183,6 +11611,7 @@ export type BranchesCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   expenses?: boolean | BranchesCountOutputTypeCountExpensesArgs
   finance_employees?: boolean | BranchesCountOutputTypeCountFinance_employeesArgs
   finance_income_approvals?: boolean | BranchesCountOutputTypeCountFinance_income_approvalsArgs
+  finance_loan_entries?: boolean | BranchesCountOutputTypeCountFinance_loan_entriesArgs
   finance_queries?: boolean | BranchesCountOutputTypeCountFinance_queriesArgs
   finance_tickets?: boolean | BranchesCountOutputTypeCountFinance_ticketsArgs
   finance_transactions?: boolean | BranchesCountOutputTypeCountFinance_transactionsArgs
@@ -11314,6 +11743,13 @@ export type BranchesCountOutputTypeCountFinance_employeesArgs<ExtArgs extends ru
  */
 export type BranchesCountOutputTypeCountFinance_income_approvalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.finance_income_approvalsWhereInput
+}
+
+/**
+ * BranchesCountOutputType without action
+ */
+export type BranchesCountOutputTypeCountFinance_loan_entriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.finance_loan_entriesWhereInput
 }
 
 /**
@@ -11512,6 +11948,7 @@ export type branchesSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   expenses?: boolean | Prisma.branches$expensesArgs<ExtArgs>
   finance_employees?: boolean | Prisma.branches$finance_employeesArgs<ExtArgs>
   finance_income_approvals?: boolean | Prisma.branches$finance_income_approvalsArgs<ExtArgs>
+  finance_loan_entries?: boolean | Prisma.branches$finance_loan_entriesArgs<ExtArgs>
   finance_queries?: boolean | Prisma.branches$finance_queriesArgs<ExtArgs>
   finance_tickets?: boolean | Prisma.branches$finance_ticketsArgs<ExtArgs>
   finance_transactions?: boolean | Prisma.branches$finance_transactionsArgs<ExtArgs>
@@ -11618,6 +12055,7 @@ export type branchesInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   expenses?: boolean | Prisma.branches$expensesArgs<ExtArgs>
   finance_employees?: boolean | Prisma.branches$finance_employeesArgs<ExtArgs>
   finance_income_approvals?: boolean | Prisma.branches$finance_income_approvalsArgs<ExtArgs>
+  finance_loan_entries?: boolean | Prisma.branches$finance_loan_entriesArgs<ExtArgs>
   finance_queries?: boolean | Prisma.branches$finance_queriesArgs<ExtArgs>
   finance_tickets?: boolean | Prisma.branches$finance_ticketsArgs<ExtArgs>
   finance_transactions?: boolean | Prisma.branches$finance_transactionsArgs<ExtArgs>
@@ -11669,6 +12107,7 @@ export type $branchesPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     expenses: Prisma.$expensesPayload<ExtArgs>[]
     finance_employees: Prisma.$finance_employeesPayload<ExtArgs>[]
     finance_income_approvals: Prisma.$finance_income_approvalsPayload<ExtArgs>[]
+    finance_loan_entries: Prisma.$finance_loan_entriesPayload<ExtArgs>[]
     finance_queries: Prisma.$finance_queriesPayload<ExtArgs>[]
     finance_tickets: Prisma.$finance_ticketsPayload<ExtArgs>[]
     finance_transactions: Prisma.$finance_transactionsPayload<ExtArgs>[]
@@ -12121,6 +12560,7 @@ export interface Prisma__branchesClient<T, Null = never, ExtArgs extends runtime
   expenses<T extends Prisma.branches$expensesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.branches$expensesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$expensesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   finance_employees<T extends Prisma.branches$finance_employeesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.branches$finance_employeesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$finance_employeesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   finance_income_approvals<T extends Prisma.branches$finance_income_approvalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.branches$finance_income_approvalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$finance_income_approvalsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  finance_loan_entries<T extends Prisma.branches$finance_loan_entriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.branches$finance_loan_entriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$finance_loan_entriesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   finance_queries<T extends Prisma.branches$finance_queriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.branches$finance_queriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$finance_queriesPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   finance_tickets<T extends Prisma.branches$finance_ticketsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.branches$finance_ticketsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$finance_ticketsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   finance_transactions<T extends Prisma.branches$finance_transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.branches$finance_transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$finance_transactionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -12962,6 +13402,30 @@ export type branches$finance_income_approvalsArgs<ExtArgs extends runtime.Types.
   take?: number
   skip?: number
   distinct?: Prisma.Finance_income_approvalsScalarFieldEnum | Prisma.Finance_income_approvalsScalarFieldEnum[]
+}
+
+/**
+ * branches.finance_loan_entries
+ */
+export type branches$finance_loan_entriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the finance_loan_entries
+   */
+  select?: Prisma.finance_loan_entriesSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the finance_loan_entries
+   */
+  omit?: Prisma.finance_loan_entriesOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.finance_loan_entriesInclude<ExtArgs> | null
+  where?: Prisma.finance_loan_entriesWhereInput
+  orderBy?: Prisma.finance_loan_entriesOrderByWithRelationInput | Prisma.finance_loan_entriesOrderByWithRelationInput[]
+  cursor?: Prisma.finance_loan_entriesWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Finance_loan_entriesScalarFieldEnum | Prisma.Finance_loan_entriesScalarFieldEnum[]
 }
 
 /**

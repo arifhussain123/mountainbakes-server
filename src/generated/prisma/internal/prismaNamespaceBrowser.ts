@@ -160,7 +160,9 @@ export const ModelName = {
   whatsapp_webhook_events: 'whatsapp_webhook_events',
   branch_account_adjustments: 'branch_account_adjustments',
   production_order_share_snapshots: 'production_order_share_snapshots',
-  finance_document_events: 'finance_document_events'
+  finance_document_events: 'finance_document_events',
+  finance_loan_clients: 'finance_loan_clients',
+  finance_loan_entries: 'finance_loan_entries'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -2574,6 +2576,59 @@ export const Finance_document_eventsScalarFieldEnum = {
 } as const
 
 export type Finance_document_eventsScalarFieldEnum = (typeof Finance_document_eventsScalarFieldEnum)[keyof typeof Finance_document_eventsScalarFieldEnum]
+
+
+export const Finance_loan_clientsScalarFieldEnum = {
+  id: 'id',
+  client_code: 'client_code',
+  company_name: 'company_name',
+  client_name: 'client_name',
+  mobile_number: 'mobile_number',
+  whatsapp_number: 'whatsapp_number',
+  address: 'address',
+  note: 'note',
+  is_active: 'is_active',
+  created_by: 'created_by',
+  created_by_name: 'created_by_name',
+  updated_by: 'updated_by',
+  updated_by_name: 'updated_by_name',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Finance_loan_clientsScalarFieldEnum = (typeof Finance_loan_clientsScalarFieldEnum)[keyof typeof Finance_loan_clientsScalarFieldEnum]
+
+
+export const Finance_loan_entriesScalarFieldEnum = {
+  id: 'id',
+  voucher_no: 'voucher_no',
+  seq: 'seq',
+  client_id: 'client_id',
+  entry_type: 'entry_type',
+  ledger_head_id: 'ledger_head_id',
+  ledger_head_name: 'ledger_head_name',
+  branch_id: 'branch_id',
+  branch_name: 'branch_name',
+  business_date: 'business_date',
+  amount: 'amount',
+  debit: 'debit',
+  credit: 'credit',
+  payment_method: 'payment_method',
+  description: 'description',
+  note: 'note',
+  status: 'status',
+  cancel_reason: 'cancel_reason',
+  cancelled_by: 'cancelled_by',
+  cancelled_by_name: 'cancelled_by_name',
+  cancelled_at: 'cancelled_at',
+  request_id: 'request_id',
+  created_by: 'created_by',
+  created_by_name: 'created_by_name',
+  created_at: 'created_at',
+  updated_at: 'updated_at'
+} as const
+
+export type Finance_loan_entriesScalarFieldEnum = (typeof Finance_loan_entriesScalarFieldEnum)[keyof typeof Finance_loan_entriesScalarFieldEnum]
 
 
 export const SortOrder = {
