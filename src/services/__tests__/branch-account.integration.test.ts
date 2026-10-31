@@ -11,6 +11,7 @@ import { setPrisma } from '../../db/prisma';
 import { usePglite } from '../../db/testing';
 import { PrismaClient } from '../../generated/prisma/client';
 import { signAccessToken } from '../auth/tokens';
+import { companyShareOf, toPaisa } from '../../shared';
 
 /**
  * The Demand Record end to end: the REAL baseline tables for every record it
@@ -596,27 +597,39 @@ test('the Collections export carries the Demand Record figures, per branch', asy
     assert.equal(open[at('Previous')], 0);
     shift.set(b.branchName, open[at('Co. Share')] - (recOpen?.companyShare ?? 0));
   }
-  for (const r of (record.rows as Json[]).filter((x) => x.orderId !== null)) {
-    const line = main.find((x) => x[at('Branch')] === r.branchName && x[at('Demand No.')] === r.demandNumber);
-    assert.ok(line, `no line for ${r.branchName} ${r.demandNumber}`);
-    for (const [col, key] of [['Delivered', 'delivered'], ['G. Total', 'gTotal'], ['Co. Share', 'companyShare'], ['Received', 'received']] as const) {
-      assert.equal(line[at(col)], r[key], `${r.demandNumber} ${col}`);
-    }
-    const d = shift.get(r.branchName)!;
-    assert.equal(line[at('Previous')], r.previousBalance + d, `${r.demandNumber} Previous`);
-    assert.equal(line[at('Closing')], r.closingBalance + d, `${r.demandNumber} Closing`);
-  }
-  // September runs to its last day, so each branch closes it on a Closing
-  // Stock row: the stock still held then, its share taken back off.
+  // September runs to its last day, so the stock each branch still holds
+  // then comes off its last demand's Delivered (written as =delivered-stock),
+  // and a Closing Stock row after it shows that amount only (owner's rule,
+  // 2026-11-01).
+  const stockOf = new Map<string, number>();
   for (const b of record.branches as Json[]) {
     const close = main.find((x) => x[at('Branch')] === b.branchName && x[at('Demand No.')] === 'Closing Stock');
     assert.ok(close, `no Closing Stock row for ${b.branchName}`);
     assert.equal((close[0] as Date).toISOString().slice(0, 10), '2026-09-30');
-    assert.ok(close[at('Co. Share')] <= 0);
-    assert.equal(close[at('Previous')], b.closingBalance + shift.get(b.branchName)!);
-    shift.set(b.branchName, shift.get(b.branchName)! + close[at('Co. Share')]);
-    assert.equal(close[at('Closing')], b.closingBalance + shift.get(b.branchName)!);
+    assert.ok(close[at('Delivered')] >= 0);
+    for (const col of ['G. Total', 'Co. Share', 'Received', 'Previous', 'Closing']) assert.equal(close[at(col)], '', `Closing Stock ${col}`);
+    stockOf.set(b.branchName, close[at('Delivered')]);
   }
+  const deductedShare = new Map<string, number>();
+  for (const r of (record.rows as Json[]).filter((x) => x.orderId !== null)) {
+    const line = main.find((x) => x[at('Branch')] === r.branchName && x[at('Demand No.')] === r.demandNumber);
+    assert.ok(line, `no line for ${r.branchName} ${r.demandNumber}`);
+    const cell = line[at('Delivered')];
+    const stock = typeof cell === 'object' ? stockOf.get(r.branchName)! : 0;
+    if (stock) assert.deepEqual(cell, { formula: `${r.delivered}-${stock}`, result: r.delivered - stock }, `${r.demandNumber} Delivered`);
+    else assert.equal(cell, r.delivered, `${r.demandNumber} Delivered`);
+    assert.equal(line[at('G. Total')], r.gTotal - stock, `${r.demandNumber} G. Total`);
+    assert.equal(line[at('Received')], r.received, `${r.demandNumber} Received`);
+    // The share is the demand's own %, on what is left after the stock.
+    const less = toPaisa(line[at('Co. Share')] - r.companyShare);
+    if (stock) assert.equal(line[at('Co. Share')], companyShareOf(r.gTotal - stock, r.sharePct), `${r.demandNumber} Co. Share`);
+    else assert.equal(less, 0, `${r.demandNumber} Co. Share`);
+    if (stock) deductedShare.set(r.branchName, less);
+    const d = shift.get(r.branchName)!;
+    assert.equal(line[at('Previous')], r.previousBalance + d, `${r.demandNumber} Previous`);
+    assert.equal(line[at('Closing')], toPaisa(r.closingBalance + d + less), `${r.demandNumber} Closing`);
+  }
+  for (const [name, less] of deductedShare) shift.set(name, toPaisa(shift.get(name)! + less));
   const shifted = [...shift.values()].reduce((a, v) => a + v, 0);
   const total = main.at(-1)!;
   assert.equal(total[0], 'TOTAL');
@@ -634,7 +647,8 @@ test('the Collections export carries the Demand Record figures, per branch', asy
     const lines = main.filter((x) => x[at('Branch')] === b.branchName && x[0] !== 'TOTAL');
     assert.deepEqual(rows.map((x) => x[1]), lines.map((x) => x[at('Demand No.')]));
     const closing = b.closingBalance + shift.get(b.branchName)!;
-    assert.equal(rows.at(-1)![tab[head]!.indexOf('Closing')], closing);
+    assert.equal(rows.at(-1)![1], 'Closing Stock');
+    assert.equal(rows.at(-2)![tab[head]!.indexOf('Closing')], closing);
     assert.deepEqual(tab.find((x) => x[0] === 'Balance'), ['Balance', '', closing]);
   }
   const byBranch = wb.get('By Branch')!;
