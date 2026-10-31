@@ -49,6 +49,7 @@ import {
 import { assertStagedAttachments, bindAttachments } from '../services/attachments.service';
 import { logAudit } from '../services/audit.service';
 import { getMonthlyReturnsSummary } from '../services/returns-summary.service';
+import { summaryRangeFromQuery } from '../utils/summaryRange';
 import { idempotent, persistIfCommitted } from '../middleware/idempotency';
 import { resolveClientBusinessDate } from '../utils/clientBusinessDate';
 import { requireInsideGeofence } from '../middleware/requireInsideGeofence';
@@ -442,8 +443,9 @@ router.post('/return', requireRole('super_admin', ...BRANCH_ROLES), idempotent('
 // role, exactly as it does for the rest of this router.
 // ───────────────────────────────────────────────────────────────────────────────
 
-// GET /api/stock/returns/summary — the branch's own returns, this business month
-// to date (1st → today), by status. Same branch rule as the list below: a branch
+// GET /api/stock/returns/summary?from=&to= — the branch's own returns, this
+// business month to date (1st → today) by default, or the page's Date filter
+// range when `from`/`to` are sent, by status. Same branch rule as the list below: a branch
 // role is pinned to the branch on its token (a `branchId` it sends is ignored),
 // super_admin names one. Production's all-branch view of the same figures is
 // GET /api/production-returns/summary.
@@ -454,7 +456,9 @@ router.get('/returns/summary', requireRole('super_admin', ...BRANCH_ROLES), asyn
       : ((req.query['branchId'] as string | undefined) ?? null);
     if (!branchId) { res.status(400).json({ error: 'Branch context required' }); return; }
     if (!UUID_RE.test(branchId)) { res.status(400).json({ error: 'branchId must be a uuid' }); return; }
-    res.json(await getMonthlyReturnsSummary({ branchId }));
+    const window = summaryRangeFromQuery(req.query);
+    if (!window.ok) { res.status(400).json({ error: window.error }); return; }
+    res.json(await getMonthlyReturnsSummary({ branchId, range: window.range }));
   } catch (err) {
     next(err);
   }

@@ -14,7 +14,8 @@ import {
  * join, so no row can be multiplied.
  *
  * The window is the one the returns and discount summaries use
- * (`monthToDateRange`): `business_date` is a date column, so `between from and
+ * (`monthToDateRange`) unless the caller passes the page's Date filter as
+ * `range` (see utils/summaryRange.ts): `business_date` is a date column, so `between from and
  * to` is the whole of both days. A transfer saved at 00:30 on the 1st carries
  * the previous business date (the day rolls over at 02:00), so it stays in the
  * month it was traded in — the same day the table shows it under.
@@ -45,9 +46,8 @@ const SUMMARY_SQL = `
 `;
 
 export async function getMonthlyCashTransferSummary(
-  { branchId, now = new Date() }: { branchId: string; now?: Date },
+  { branchId, now = new Date(), range = monthToDateRange(now) }: { branchId: string; now?: Date; range?: { from: string; to: string } },
 ): Promise<MonthlyCashTransferSummary> {
-  const range = monthToDateRange(now);
   const rows = await getPrisma().$queryRawUnsafe<CashTransferSummaryRow[]>(SUMMARY_SQL, range.from, range.to, branchId);
   return buildCashTransferSummary(rows, range, branchId);
 }

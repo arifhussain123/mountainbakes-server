@@ -45,9 +45,8 @@ const BRANCHES_SQL = `
 `;
 
 export async function getMonthlyDiscountSummary(
-  { branchId, now = new Date() }: { branchId: string | null; now?: Date },
+  { branchId, now = new Date(), range = monthToDateRange(now) }: { branchId: string | null; now?: Date; range?: { from: string; to: string } },
 ): Promise<MonthlyDiscountSummary> {
-  const range = monthToDateRange(now);
   const prisma = getPrisma();
   const [rows, branches] = await Promise.all([
     prisma.$queryRawUnsafe<DiscountSummaryRow[]>(SUMMARY_SQL, range.from, range.to, branchId),
