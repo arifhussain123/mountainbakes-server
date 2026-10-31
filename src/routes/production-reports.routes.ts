@@ -331,12 +331,14 @@ function collectionsFromDemandRecord(
   /** What was delivered on a row, before any closing stock came off it. */
   const grossOf = (r: Row) => toPaisa(r.delivered + r.closingStockDeducted);
   const deliveredFormula = (r: Row) => `${grossOf(r)}-${r.closingStockDeducted}`;
-  // Each branch's final balance: the Closing of its last row before the Closing Stock row.
+  // Each month's final balance per branch: the Closing of its last row before
+  // each Closing Stock row (record.rows is by branch, then in chain order). A
+  // window across a month's end has one for every month it closes.
   const finalRows = new Set<Row>();
-  if (record.monthClosed) {
-    const lastOf = new Map<string, Row>();
-    for (const r of record.rows) if (r.stockRow !== 'closing') lastOf.set(r.branchId, r);
-    for (const r of lastOf.values()) finalRows.add(r);
+  const lastOf = new Map<string, Row>();
+  for (const r of record.rows) {
+    if (r.stockRow !== 'closing') lastOf.set(r.branchId, r);
+    else if (lastOf.has(r.branchId)) finalRows.add(lastOf.get(r.branchId)!);
   }
   const sumOf = (rows: Row[]) => {
     const t = { delivered: 0, returns: 0, discount: 0, gTotal: 0, share: 0, received: 0 };
@@ -522,7 +524,7 @@ function collectionsFromDemandRecord(
       const list = rowsByBranch.get(b.branchId) ?? [];
       const sum = (pick: (r: Row) => number, keep: (r: Row) => boolean = () => true) => toPaisa(list.filter(keep).reduce((a, r) => a + pick(r), 0));
       const lastDay = sum(grossOf, (r) => r.stockRow === null && r.businessDate === record.to);
-      const closingStock = sum((r) => r.delivered, (r) => r.stockRow === 'closing');
+      const closingStock = sum((r) => r.delivered, (r) => r.stockRow === 'closing' && r.businessDate === record.to);
       const share = sum((r) => r.companyShare);
       const adjustments = sum((r) => r.adjustments);
       const received = sum((r) => r.received);

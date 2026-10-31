@@ -552,8 +552,9 @@ export async function getDemandRecordPeriod(q: { branchId?: string | null; from?
  *  - A demand submitted before the go-live day but required inside the
  *    window (submitted 30 Sep for 1 Oct) follows the opening stock as a row
  *    of its own, with no Received.
- *  - When the window reaches the last day of its month (owner's rule,
- *    2026-10-29, reworked 2026-11-01), the stock each branch still holds at
+ *  - On the last day of every month the window reaches — its To, or a
+ *    month's end inside it (owner's rule, 2026-10-29, reworked
+ *    2026-11-01) — the stock each branch still holds at
  *    the end of that day is taken off the Delivered of its LAST row (its last
  *    demand of the month, or the Opening Stock row when it had none): e.g.
  *    45,000 − 17,000 = 28,000, then G. Total, Co. Share at that demand's own
@@ -616,9 +617,38 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
     const month = await collectionsWindow(ctx, mFrom, monthEndOf(mFrom), carry);
     carry = { through: monthEndOf(mFrom), balances: new Map(month.balances.map((b) => [b.branchId, b.closingBalance])) };
   }
-  const { rows, balances, monthClosed } = await collectionsWindow(ctx, from, to, carry);
+
+  // The window itself, a month at a time (owner's rule, 2026-11-01): a window
+  // that runs across a month's end (1 Oct to 1 Nov) closes that month on its
+  // last day — Closing Stock off the last demand — and opens the next on the
+  // 1st with that stock as its Opening Stock, exactly as two exports would.
+  const rows: CollectionsRow[] = [];
+  const firstSeen = new Map<string, number>();
+  const lastSeen = new Map<string, DemandRecordResult['branches'][number]>();
+  for (let sFrom = from; ; sFrom = dayAfter(monthEndOf(sFrom))) {
+    const whole = monthEndOf(sFrom) < to && sFrom <= lastChained;
+    const sTo = whole ? monthEndOf(sFrom) : to;
+    const part = await collectionsWindow(ctx, sFrom, sTo, carry);
+    rows.push(...part.rows);
+    for (const b of part.balances) {
+      if (!firstSeen.has(b.branchId)) firstSeen.set(b.branchId, b.openingBalance);
+      lastSeen.set(b.branchId, b);
+    }
+    if (!whole) break;
+    carry = { through: sTo, balances: new Map(part.balances.map((b) => [b.branchId, b.closingBalance])) };
+  }
+  const balances = branchRows.flatMap((b) => {
+    const last = lastSeen.get(b.id);
+    return last ? [{ ...last, openingBalance: firstSeen.get(b.id)! }] : [];
+  });
+  const rank = (r: CollectionsRow) => (r.stockRow === 'opening' ? 0 : r.stockRow === 'closing' ? 2 : 1);
+  rows.sort((a, b) => a.branchName.localeCompare(b.branchName) || a.businessDate.localeCompare(b.businessDate)
+    || rank(a) - rank(b) || Date.parse(a.at) - Date.parse(b.at));
   // The Closing Stock rows are shown, not counted.
-  return { start, from, to, rows, totals: totalBranchAccount(rows.filter((r) => r.stockRow !== 'closing'), balances), branches: balances, monthClosed };
+  return {
+    start, from, to, rows, totals: totalBranchAccount(rows.filter((r) => r.stockRow !== 'closing'), balances),
+    branches: balances, monthClosed: to === monthEndOf(to),
+  };
 }
 
 type AccountRow = BranchAccountRow & { lo: string; hi: string | null };
