@@ -558,7 +558,7 @@ export async function approveCashTransfer(
   ]);
   const transfer = { ...toApi(row), attachments };
 
-  await notifyBranch(transfer, 'approved');
+  await notifyBranchOfDecision(transfer, 'approved');
   return { transfer, ledgerEntry };
 }
 
@@ -582,7 +582,7 @@ export async function rejectCashTransfer(
   if (!row) throw Object.assign(new Error('Cash transfer not found'), { status: 404 });
 
   const transfer = { ...toApi(row), attachments: await listAttachments('cash_transfer', id) };
-  await notifyBranch(transfer, 'rejected');
+  await notifyBranchOfDecision(transfer, 'rejected');
   return transfer;
 }
 
@@ -638,7 +638,7 @@ export async function resubmitCashTransfer(input: {
 }
 
 /** Tell the branch. Best effort: the decision is committed before this runs. */
-async function notifyBranch(transfer: CashTransfer, decision: 'approved' | 'rejected'): Promise<void> {
+export async function notifyBranchOfDecision(transfer: CashTransfer, decision: 'approved' | 'rejected'): Promise<void> {
   const amount = depositSummary(transfer);
   const message =
     decision === 'approved'

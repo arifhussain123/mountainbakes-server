@@ -27,6 +27,7 @@ import {
 import { notify } from '../services/push.service';
 import { logFinanceAudit } from '../services/finance-audit.service';
 import { listAttachments } from '../services/attachments.service';
+import { getCashTransfer, notifyBranchOfDecision } from '../services/cash-transfers.service';
 import {
   applyStockCorrection,
   applyStockMovement,
@@ -458,7 +459,8 @@ async function resolveReference(
   // PATCH /:id/figures, which calls amend_finance_record — the same function the
   // Finance Help Desk uses, so an approved deposit's RV- receipt is reversed and
   // re-posted rather than left disagreeing with the row (migration 120). A
-  // rejected deposit is final and never booked; it stays read-only.
+  // rejected deposit is correctable too, and may be approved from the same
+  // dialog (correct_rejected_cash_transfer, migration 20261104000001).
   if (type === 'cash_transfer') {
     // Branch money only — the production counter never hands over a deposit.
     if (role !== 'production_user') {
@@ -511,7 +513,7 @@ async function resolveReference(
             ...(data.rejection_reason ? [{ label: 'Rejection Reason', value: data.rejection_reason }] : []),
             ...(data.note?.trim() ? [{ label: 'Note', value: data.note.trim() }] : []),
           ],
-          editableFields: data.status === 'rejected' ? [] : [
+          editableFields: [
             // The Total is not editable: it is Cash + Easypaisa + Bank (migration 121).
             { key: 'cashAmount', label: 'Cash', kind: 'number', value: channels.cashAmount },
             { key: 'easypaisaAmount', label: 'Easypaisa', kind: 'number', value: channels.easypaisaAmount },
@@ -522,7 +524,7 @@ async function resolveReference(
           branchId: data.branch_id,
           businessDate: String(data.business_date),
           cashTransferApproved: data.status === 'approved',
-          ...(data.status === 'rejected' ? { readOnly: true } : {}),
+          cashTransferRejected: data.status === 'rejected',
         };
       }
     }
@@ -1006,7 +1008,11 @@ async function amendCashDeposit(
   snapshot: SupportReference,
   edits: Record<string, string | number>,
   note: string,
-): Promise<{ changes: CashDepositAmendment[] } | { status: number; error: string }> {
+  approve = false,
+): Promise<
+  | { changes: CashDepositAmendment[]; approved?: { voucherNo: string | null } }
+  | { status: number; error: string }
+> {
   const { data: live, error: liveErr } = await withoutDeleted(
     db
       .from('cash_transfers')
@@ -1017,10 +1023,14 @@ async function amendCashDeposit(
   if (!live) {
     return { status: 409, error: `${ticket.reference_id} has been deleted, so there is nothing left to correct.` };
   }
-  if (live.status === 'rejected') {
+  // Approving here is for a REJECTED deposit only: a pending one is still in
+  // Accounts' / Finance Admin's queue, and an approved one is already booked.
+  if (approve && live.status !== 'rejected') {
     return {
       status: 409,
-      error: `${live.transfer_no} was rejected and is final — nothing was booked for it. The branch records a new deposit instead.`,
+      error: live.status === 'approved'
+        ? `${live.transfer_no} is already approved.`
+        : `${live.transfer_no} is still pending — it is approved from Cash Transfers, not from a query.`,
     };
   }
   if ('amount' in edits || 'paymentMethod' in edits) {
@@ -1087,6 +1097,10 @@ async function amendCashDeposit(
   pending.sort((a, b) => b.delta - a.delta);
 
   const reason = [`Support query ${ticket.ticket_number}`, note?.trim()].filter(Boolean).join(' — ');
+
+  if (live.status === 'rejected') {
+    return amendRejectedCashDeposit(req, ticket, live, pending, after, reason, approve);
+  }
   const changes: CashDepositAmendment[] = [];
   for (const { field, value } of pending) {
     const { data, error } =
@@ -1140,6 +1154,91 @@ async function amendCashDeposit(
   return { changes };
 }
 
+/**
+ * A REJECTED deposit: nothing was booked for it, so there is no ledger to keep
+ * in step field by field. Every change lands in one statement
+ * (correct_rejected_cash_transfer), and so does the approval when asked for —
+ * a refused posting leaves the deposit rejected and uncorrected, not half-done.
+ */
+async function amendRejectedCashDeposit(
+  req: AuthRequest,
+  ticket: Record<string, any>,
+  live: Record<string, any>,
+  pending: { field: DepositField; value: string }[],
+  after: Record<(typeof DEPOSIT_MONEY_FIELDS)[number], number>,
+  reason: string,
+  approve: boolean,
+): Promise<
+  | { changes: CashDepositAmendment[]; approved?: { voucherNo: string | null } }
+  | { status: number; error: string }
+> {
+  if (pending.length === 0 && !approve) return { changes: [] };
+
+  const noteEdit = pending.find((p) => p.field === 'note');
+  const dateEdit = pending.find((p) => p.field === 'businessDate');
+  const { data, error } = await db.rpc('correct_rejected_cash_transfer', {
+    p_id: live.id,
+    p_cash: after.cashAmount / 100,
+    p_easypaisa: after.easypaisaAmount / 100,
+    p_bank: after.bankAmount / 100,
+    p_fuel: after.fuelCharges / 100,
+    p_note: noteEdit ? noteEdit.value : (live.note ?? ''),
+    p_business_date: dateEdit ? dateEdit.value : null,
+    p_approve: approve,
+    p_actor_id: req.user!.uid,
+    p_actor_name: req.user!.email,
+    p_today: businessDateStr(),
+    p_approval_note: approve ? reason : null,
+  });
+  if (error) {
+    if (error.code === 'P0001' || error.code === 'P0002') return { status: 409, error: error.message };
+    throw error;
+  }
+  const row = (Array.isArray(data) ? data[0] : data) as Record<string, any> | null;
+  if (!row) return { status: 409, error: `${ticket.reference_id} has been deleted, so there is nothing left to correct.` };
+
+  const original = (field: DepositField): string | null =>
+    field === 'note'
+      ? (live.note ?? '')
+      : field === 'businessDate'
+        ? String(live.business_date)
+        : String(Number(live[DEPOSIT_COLUMNS[field]] ?? 0));
+  const changes: CashDepositAmendment[] = pending.map(({ field, value }) => ({
+    field,
+    originalValue: original(field),
+    newValue: field === 'note' || field === 'businessDate' ? value : String(Number(value)),
+  }));
+
+  if (changes.length) {
+    await logFinanceAudit(req, {
+      entity: 'cash_transfer',
+      entityId: live.id,
+      entityRef: live.transfer_no,
+      action: 'updated',
+      previousValues: Object.fromEntries(changes.map((c) => [c.field, c.originalValue])),
+      newValues: {
+        ...Object.fromEntries(changes.map((c) => [c.field, c.newValue])),
+        supportTicketNo: ticket.ticket_number,
+        reason,
+      },
+    });
+  }
+  if (!approve) return { changes };
+
+  await logFinanceAudit(req, {
+    entity: 'cash_transfer',
+    entityId: live.id,
+    entityRef: live.transfer_no,
+    action: 'approved',
+    previousValues: { status: 'rejected' },
+    newValues: { status: 'approved', voucherNo: row.voucher_no ?? null, supportTicketNo: ticket.ticket_number, reason },
+  });
+  // The branch hears of it as of any approval. Best effort, after the commit.
+  const transfer = await getCashTransfer(live.id);
+  if (transfer) await notifyBranchOfDecision(transfer, 'approved');
+  return { changes, approved: { voucherNo: row.voucher_no ?? null } };
+}
+
 // PATCH /api/support/:id/figures — admin "Change" button. Applies a live edit to an
 // expense's amount/description, or a correction to a branch's stock figures (New /
 // Sold / Returned / Balance, as absolute targets). Anything with no correctable
@@ -1179,8 +1278,9 @@ router.patch('/:id/figures', requireRole('super_admin'), validate(ChangeFiguresS
     //
     // A cash deposit is exempt too: tickets raised before deposits became
     // correctable froze `readOnly: true` for every CT-, and whether one can be
-    // corrected is a question about the LIVE row — amend_finance_record refuses
-    // a rejected or deleted deposit with its own message.
+    // corrected is a question about the LIVE row — a deleted deposit is refused
+    // with its own message, and a rejected one goes through
+    // correct_rejected_cash_transfer.
     const isCashDeposit = snapshot?.type === 'cash_transfer';
     if (snapshot?.readOnly && !isPoolStock && !isCashDeposit) {
       res.status(400).json({
@@ -1189,7 +1289,15 @@ router.patch('/:id/figures', requireRole('super_admin'), validate(ChangeFiguresS
       return;
     }
 
-    const { edits, note } = req.body as { edits: Record<string, string | number>; note: string };
+    const { edits, note, approveDeposit } = req.body as {
+      edits: Record<string, string | number>;
+      note: string;
+      approveDeposit: boolean;
+    };
+    if (approveDeposit && !isCashDeposit) {
+      res.status(400).json({ error: 'Only a cash deposit query can approve a deposit.' });
+      return;
+    }
     const allowed = new Set((snapshot?.editableFields ?? []).map((f) => f.key));
 
     let applied = false;
@@ -1198,6 +1306,7 @@ router.patch('/:id/figures', requireRole('super_admin'), validate(ChangeFiguresS
     let stockResult: (StockCorrectionResult & { productName: string }) | null = null;
     let poolResult: (ProductionStockCorrectionResult & { productName: string }) | null = null;
     let depositResult: CashDepositAmendment[] | null = null;
+    let depositApproved: { voucherNo: string | null } | null = null;
 
     // The pool first — a pool ticket is `type === 'stock'` too, and the branch path
     // below would otherwise claim it.
@@ -1337,10 +1446,11 @@ router.patch('/:id/figures', requireRole('super_admin'), validate(ChangeFiguresS
         throw err;
       }
     } else if (isCashDeposit && snapshot) {
-      const outcome = await amendCashDeposit(req, ticket, snapshot, edits, note);
+      const outcome = await amendCashDeposit(req, ticket, snapshot, edits, note, approveDeposit);
       if ('error' in outcome) { res.status(outcome.status).json({ error: outcome.error }); return; }
       depositResult = outcome.changes;
-      applied = depositResult.length > 0;
+      depositApproved = outcome.approved ?? null;
+      applied = depositResult.length > 0 || depositApproved !== null;
     } else if (snapshot?.entityTable && LIVE_EDITABLE_TABLES.has(snapshot.entityTable) && allowed.size > 0) {
       // Live mutation — only expense columns are ever in `allowed` here.
       const patch: Record<string, unknown> = {};
@@ -1362,9 +1472,17 @@ router.patch('/:id/figures', requireRole('super_admin'), validate(ChangeFiguresS
       .filter(([k]) => allowed.size === 0 || allowed.has(k))
       .map(([k, v]) => `${k} → ${v}`);
     const summary = depositResult
-      ? depositResult.length > 0
-        ? `Cash deposit ${ticket.reference_id} corrected: ${describeDepositChange(depositResult)}`
-        : `Cash deposit ${ticket.reference_id} already matched — nothing to correct`
+      ? [
+          depositResult.length > 0
+            ? `Cash deposit ${ticket.reference_id} corrected: ${describeDepositChange(depositResult)}`
+            : depositApproved
+              ? ''
+              : `Cash deposit ${ticket.reference_id} already matched — nothing to correct`,
+          depositApproved
+            ? `Cash deposit ${ticket.reference_id} changed from Rejected to Approved` +
+              (depositApproved.voucherNo ? ` — receipt ${depositApproved.voucherNo}` : '')
+            : '',
+        ].filter(Boolean).join('; ')
       : stockResult
       ? stockResult.applied
         ? `Branch stock corrected for ${stockResult.productName}: ${describeStockChange(stockResult)}`
@@ -1405,7 +1523,14 @@ router.patch('/:id/figures', requireRole('super_admin'), validate(ChangeFiguresS
 
     // `stock` stays the BRANCH result so existing clients are untouched; a pool
     // correction reports under its own key with its own (different) figure shape.
-    res.json({ ticket: rowToApi(data), applied, stock: stockResult, productionStock: poolResult, cashDeposit: depositResult });
+    res.json({
+      ticket: rowToApi(data),
+      applied,
+      stock: stockResult,
+      productionStock: poolResult,
+      cashDeposit: depositResult,
+      cashDepositApproved: depositApproved,
+    });
   } catch (err) {
     next(err);
   }

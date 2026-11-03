@@ -34,6 +34,8 @@ export type ResolveSupportTicketInput = z.infer<typeof ResolveSupportTicketSchem
 export const ChangeFiguresSchema = z.object({
   edits: z.record(z.string(), z.union([z.string(), z.number()])),
   note: z.string().trim().max(2000).optional().default(''),
+  /** Cash deposit queries only: move a REJECTED deposit to Approved (books its RV- receipts). */
+  approveDeposit: z.boolean().optional().default(false),
 });
 export type ChangeFiguresInput = z.infer<typeof ChangeFiguresSchema>;
 
