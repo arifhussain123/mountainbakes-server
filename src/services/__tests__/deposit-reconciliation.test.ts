@@ -214,6 +214,32 @@ describe('no deposit of the same amount', () => {
     assert.equal(unclaimed.length, 2);
   });
 
+  test('a same amount dated later does not take a day whose own deposit is unused (Alabad, 4–5 Nov)', () => {
+    // Before: 4 Nov (16,650) took 5 Nov's 16,650 as the same amount, its own
+    // 16,230 sat beside it as "+ 1 more", and 5 Nov showed nothing received.
+    const { of } = reconcile(
+      [day('2026-11-04', 16650), day('2026-11-05', 16800)],
+      [deposit('2026-11-04', 16230), deposit('2026-11-05', 16650)],
+    );
+    assert.deepEqual(of('2026-11-04').deposits.map((d) => [d.businessDate, d.amount]), [['2026-11-04', 16230]]);
+    assert.equal(of('2026-11-04').extraCount, 0);
+    assert.equal(of('2026-11-04').difference, 420);
+    assert.deepEqual(of('2026-11-05').deposits.map((d) => [d.businessDate, d.amount]), [['2026-11-05', 16650]]);
+    assert.equal(of('2026-11-05').difference, 150);
+  });
+
+  test('a branch that deposits the next morning still matches by amount: the day before took the own-date one', () => {
+    // Committee Chowk in October: each deposit is the day before's cash.
+    const { of } = reconcile(
+      [day('2026-10-12', 17025), day('2026-10-13', 29175), day('2026-10-14', 29025)],
+      [deposit('2026-10-13', 17025), deposit('2026-10-14', 29175), deposit('2026-10-15', 29025)],
+    );
+    for (const [date, paidOn] of [['2026-10-12', '2026-10-13'], ['2026-10-13', '2026-10-14'], ['2026-10-14', '2026-10-15']]) {
+      assert.equal(of(date).status, 'matched', date);
+      assert.equal(of(date).deposits[0]!.businessDate, paidOn, date);
+    }
+  });
+
   test('a day\'s own deposit comes before a near amount dated later (Alabad, 1–3 Nov)', () => {
     // Before 2026-11-06: 1 Nov took 3 Nov's 14,540 as its nearest amount and
     // its own 17,850 as "+ 1 more", and 2 Nov took 4 Nov's 16,230 the same way.
@@ -248,13 +274,13 @@ describe('deposits awaiting approval', () => {
     assert.equal(r.pendingCount, 1);
   });
 
-  test('an approved deposit of the same amount wins over a pending one', () => {
+  test('an approved deposit of the same amount wins over a pending one on the same date', () => {
     const { of, unclaimed } = reconcile(
-      [day('2026-10-01', 500), day('2026-10-02', 0)],
-      [deposit('2026-10-01', 500, { status: 'pending' }), deposit('2026-10-02', 500)],
+      [day('2026-10-01', 500)],
+      [deposit('2026-10-01', 500, { status: 'pending' }), deposit('2026-10-01', 500)],
     );
-    // 10-01 is paid by the approved one; the pending one, dated 10-01, then
-    // sits on its own date's row as an extra — 10-01 again.
+    // 10-01 is paid by the approved one; the pending one, dated 10-01 too,
+    // then sits on its own date's row as an extra.
     assert.equal(of('2026-10-01').approvedCount, 1);
     assert.equal(of('2026-10-01').received, 500);
     assert.equal(of('2026-10-01').pending, 500);
@@ -266,10 +292,22 @@ describe('deposits awaiting approval', () => {
   test('a pending deposit of the same amount is preferred to an approved one of a different amount', () => {
     const r = reconcile(
       [day('2026-10-01', 500)],
-      [deposit('2026-10-01', 320), deposit('2026-10-02', 500, { status: 'pending' })],
+      [deposit('2026-10-01', 320, { status: 'pending' }), deposit('2026-10-01', 500, { status: 'pending' }), deposit('2026-10-02', 480)],
     ).of('2026-10-01');
     assert.equal(r.status, 'pending');
-    assert.equal(r.pending, 500);
+    assert.equal(r.match, 'amount');
+    assert.ok(r.deposits.some((d) => d.amount === 500 && d.status === 'pending'));
+    assert.equal(r.received, 0);
+  });
+
+  test('the day\'s own deposit, even pending or a different amount, before a same amount dated later', () => {
+    const own = reconcile(
+      [day('2026-10-01', 500)],
+      [deposit('2026-10-01', 320), deposit('2026-10-02', 500, { status: 'pending' })],
+    );
+    assert.equal(own.of('2026-10-01').match, 'same_day');
+    assert.equal(own.of('2026-10-01').received, 320);
+    assert.equal(own.unclaimed.length, 1); // 10-02's has no row of its own here
   });
 });
 
@@ -373,9 +411,9 @@ describe('summarizeDepositReconciliation', () => {
     const { of } = reconcile(
       [day('2026-10-01', 1000), day('2026-10-02', 2000), day('2026-10-03', 3000), day('2026-10-06', 4000)],
       [
-        deposit('2026-10-02', 1000),
-        deposit('2026-10-03', 1500),
-        deposit('2026-10-04', 3000, { status: 'pending' }),
+        deposit('2026-10-01', 1000),
+        deposit('2026-10-02', 1500),
+        deposit('2026-10-03', 3000, { status: 'pending' }),
       ],
     );
     const rows = ['2026-10-01', '2026-10-02', '2026-10-03', '2026-10-06'].map((d) => ({ reconciliation: of(d) }));

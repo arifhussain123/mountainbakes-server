@@ -31,6 +31,16 @@ import { round2 } from './daily-sale';
  *   5. approved, nearest amount     → discrepancy
  *   6. pending,  nearest amount     → awaiting approval
  *
+ * A deposit of the same amount dated LATER than the day counts only when no
+ * deposit dated the day itself is left that could be its cash — one within
+ * `NEAREST_AMOUNT_GAP` of the share (the owner's rule, 2026-11-06): Alabad's
+ * 4 Nov share of 16,650 had been paid by 5 Nov's 16,650 — 5 Nov's own cash, a
+ * coincidence — with 4 Nov's own 16,230 added as "+ 1 more" and 5 Nov left
+ * unpaid. Days run oldest first, so where a branch deposits the next morning
+ * (Committee Chowk in October) each day's own-date deposit has already been
+ * taken by the day before, and the next day's exact amount still matches; a
+ * small extra deposit on the day (50 against 1,425) blocks nothing.
+ *
  * A day without a deposit of its share takes the deposits dated on the sale
  * day itself (`match: 'same_day'`), and the gap is shown on that day — before
  * any near miss is looked for (the owner's rule, 2026-11-06: Alabad's 1 Nov
@@ -183,12 +193,24 @@ export function reconcileDeposits(
     found.set(dayKey(record.branchId, record.businessDate), { deposits, match, extraCount: 0 });
   };
 
+  /**
+   * A deposit dated the record's own day, of either status, that no day has
+   * taken yet and that could be its cash: within `NEAREST_AMOUNT_GAP` of its share.
+   */
+  const ownDateNear = (record: DepositReconRecord) =>
+    pool.some((d) => !claimed.has(d.id) && d.branchId === record.branchId && d.businessDate === record.businessDate
+      && Math.abs(round2(d.amount - record.companyShare)) < NEAREST_AMOUNT_GAP);
+
   const pass = (status: 'approved' | 'pending', match: 'amount' | 'same_day') => {
     for (const record of waiting()) {
       const open = candidates(record, status);
+      // A later-dated deposit of the same amount only when nothing dated the
+      // day itself could be its cash (see the header): a branch that deposits
+      // the next morning has its own-date deposit taken by the day before.
+      const offered = ownDateNear(record) ? open.filter((d) => d.businessDate === record.businessDate) : open;
       const taken =
         match === 'amount'
-          ? sameAmount(open, record.companyShare)
+          ? sameAmount(offered, record.companyShare)
           : open.filter((d) => d.businessDate === record.businessDate);
       if (taken.length > 0) take(record, taken, match);
     }
