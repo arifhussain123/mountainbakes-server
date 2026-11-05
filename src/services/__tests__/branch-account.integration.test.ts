@@ -678,3 +678,40 @@ test('an accepted return between the go-live day and the first demand counts in 
   assert.deepEqual(d.returns.map((r: Json) => [r.qty, r.unitPrice, r.amount]), [[2, 100, 200]]);
   assert.deepEqual(d.payments, []);
 });
+
+test('a deposit pays its own day\'s demand, even when the next demand was submitted first', async () => {
+  // The owner's rule, 2026-11-06 (Committee Chowk, 31 Oct): a demand is
+  // submitted the night before its day and that day's cash is deposited after
+  // closing, so by time the cash would land on the NEXT demand. By date it
+  // stays on the demand required for the deposit's business date.
+  const GAMMA = '40000000-0000-4000-8000-00000000000c';
+  const G1 = '60000000-0000-4000-8000-0000000000c1';
+  const G2 = '60000000-0000-4000-8000-0000000000c2';
+  await db.query(`insert into branches (id, name, slug) values ($1, 'Gamma', 'gamma')`, [GAMMA]);
+  await order(G1, GAMMA, '2026-09-21', '2026-09-21T23:30:00+05', 'DMD-000301', [{ qty: 10, approved: 10, unitPrice: 100 }]);
+  await order(G2, GAMMA, '2026-09-22', '2026-09-22T23:30:00+05', 'DMD-000302', [{ qty: 10, approved: 10, unitPrice: 100 }]);
+  for (const id of [G1, G2]) {
+    await setStatus(id, 'awaiting_verification');
+    await setStatus(id, 'approved');
+  }
+  await db.query(`update production_orders set required_date = business_date + 1 where id in ($1, $2)`, [G1, G2]);
+  const deposit = (amount: number, businessDate: string, createdAt: string) => db.query(
+    `insert into cash_transfers (branch_id, branch_name, amount, cash_amount, business_date, created_at, status, ledger_entry_id, approved_at)
+     values ($1, 'Gamma', $2, $2, $3, $4, 'approved', gen_random_uuid(), $4)`, [GAMMA, amount, businessDate, createdAt]);
+  await deposit(50, '2026-09-21', '2026-09-21T23:45:00+05');   // before G1's day (09-22): a pre-record demand's cash → nowhere
+  await deposit(1000, '2026-09-22', '2026-09-22T23:45:00+05'); // 09-22's cash, after G2 was submitted → G1, not G2
+  await deposit(2000, '2026-09-23', '2026-09-24T00:05:00+05'); // 09-23's cash → G2
+  await deposit(300, '2026-09-25', '2026-09-25T23:45:00+05');  // a day with no demand → the latest before it, G2
+
+  const rows = (await rowsOf(`&branchId=${GAMMA}`)).rows as Json[];
+  assert.deepEqual(rows.map((r: Json) => [r.demandNumber, r.received]), [['DMD-000301', 1000], ['DMD-000302', 2300]]);
+  const [g1, g2] = rows;
+  assert.equal(g1.closingBalance, g1.companyShare - 1000);
+  assert.equal(g2.previousBalance, g1.closingBalance);
+  assert.equal(g2.open, true);
+
+  const p1 = ok(await call('accountant', 'GET', `${API}/detail?branchId=${GAMMA}&orderId=${G1}`)).payments as Json[];
+  const p2 = ok(await call('accountant', 'GET', `${API}/detail?branchId=${GAMMA}&orderId=${G2}`)).payments as Json[];
+  assert.deepEqual(p1.map((p) => [p.businessDate, p.amount]), [['2026-09-22', 1000]]);
+  assert.deepEqual(p2.map((p) => [p.businessDate, p.amount]), [['2026-09-23', 2000], ['2026-09-25', 300]]);
+});

@@ -32,8 +32,9 @@ import { priceOnDateLateral, UNIT_PRICE_LATERAL } from './returns-summary.servic
  * row:
  *   - accepted returns, by `created_at`, at the price on the return's own date
  *     (the Return Summary's price);
- *   - approved cash transfers (not deleted, amount > 0), by `created_at`, each
- *     once — unlike the slip, which also shows the rest of a day's deposits;
+ *   - approved cash transfers (not deleted, amount > 0) are the exception: they
+ *     go by DATE, not time (owner's rule, 2026-11-06 — see PLACED_DEPOSITS),
+ *     each once, unlike the slip, which also shows the rest of a day's deposits;
  *   - POS sales (not cancelled, not staff), by `created_at`;
  *   - Finance's entries, by `effective_at`;
  *   - approved discounts go to the demand they were claimed against when that
@@ -41,9 +42,10 @@ import { priceOnDateLateral, UNIT_PRICE_LATERAL } from './returns-summary.servic
  * Only records from the go-live instant on count; everything earlier is the
  * branch's opening balance.
  *
- * The opening row holds Finance's entries and accepted returns. A deposit,
- * sale or loose discount recorded before a branch's first demand in the record
- * settles a demand from before the go-live day, so it is not counted, and the
+ * The opening row holds Finance's entries and accepted returns. A sale or loose
+ * discount recorded before a branch's first demand in the record, or a deposit
+ * dated before the go-live day, settles a demand from before the go-live day,
+ * so it is not counted, and the
  * first demand's Previous is 0 unless Finance entered an opening balance (the
  * owner's rule from 1 Oct 2026: on the live data, deposits made on the
  * morning of 1 Oct for 30 Sep's demands had opened two branches in credit).
@@ -64,12 +66,49 @@ const DELIVERED = `('awaiting_verification', 'verified', 'approved')`;
 /** The go-live instant: 02:00 Karachi on the start date — the business-day start. */
 const START_AT = `(($2::date + time '02:00') at time zone 'Asia/Karachi')`;
 
+/**
+ * The demand each counted deposit pays for (owner's rule, 2026-11-06): a
+ * branch's deposit is the cash from selling a day's stock, so it lands on the
+ * demand REQUIRED for its business date — the Collections sheet's Date. A
+ * demand is submitted the night before its day and that day's cash is
+ * deposited after closing, so placing deposits by time (the rule before) put
+ * each day's cash on the NEXT demand once that one was delivered, and a row
+ * exported before then held two days of cash: Committee Chowk's DMD-000342
+ * (31 Oct) read Received 66,248 on 1 Nov and 34,350 after DMD-000346 was
+ * delivered, when its own day's cash was CT-000106's 31,897.50.
+ *
+ *   - Two demands for one day (an extra demand): the later-submitted one.
+ *   - A day with no demand (cash from stock still on hand): the branch's
+ *     latest demand before it, whose stock it is.
+ *   - Dated before the branch's first demand in the record: the cash of a
+ *     demand from before the go-live day, so not counted — the opening rule
+ *     above. On the live data this counts exactly the deposits the time rule
+ *     did (checked 2026-11-06): 1 Oct's CT-000016 and CT-000017 stay out.
+ *
+ * Counted: approved, not deleted, amount > 0. Needs CTEs `br` (branches in
+ * scope: id) and `d` (the record's delivered demands: id, branch_id,
+ * submitted_at, day = required date, else business date). `order_id` null:
+ * not counted.
+ */
+const PLACED_DEPOSITS = `
+  placed as (
+    select t.id, t.branch_id, t.amount,
+           (select d2.id from d d2
+             where d2.branch_id = t.branch_id and d2.day <= t.business_date
+             order by d2.day desc, d2.submitted_at desc, d2.id desc limit 1) as order_id
+      from public.cash_transfers t
+      join br on br.id = t.branch_id
+     where t.status::text = 'approved' and t.deleted_at is null and t.amount > 0
+       and t.business_date >= $2::date
+  )`;
+
 const ROWS_SQL = `
   with br as (
     select b.id, b.name from public.branches b where ($1::uuid is null or b.id = $1::uuid)
   ),
   d as (
     select o.id, o.branch_id, o.demand_number, o.business_date as bd, o.submitted_at,
+           coalesce(o.required_date, o.business_date) as day,
            o.status::text as status, coalesce(o.branch_name, br.name) as branch_name,
            sn.company_share_pct as frozen_pct
       from public.production_orders o
@@ -124,14 +163,12 @@ const ROWS_SQL = `
        and not exists (select 1 from d where d.id = x.production_order_id)
      group by w.branch_id, w.order_id
   ),
+  ${PLACED_DEPOSITS},
   pay as (
-    select w.branch_id, w.order_id, sum(t.amount) as amount
-      from w
-      join public.cash_transfers t
-        on t.branch_id = w.branch_id and t.created_at > w.lo and (w.hi is null or t.created_at <= w.hi)
-     where w.order_id is not null and t.status::text = 'approved' and t.deleted_at is null and t.amount > 0
-       and t.created_at >= ${START_AT}
-     group by w.branch_id, w.order_id
+    select placed.branch_id, placed.order_id, sum(placed.amount) as amount
+      from placed
+     where placed.order_id is not null
+     group by placed.branch_id, placed.order_id
   ),
   sale as (
     select w.branch_id, w.order_id, sum(s.grand_total) as amount
@@ -856,14 +893,22 @@ export async function getDemandRecordDetail(branchId: string, orderId: string | 
          and ((x.production_order_id = $5::uuid)
               or (not exists (select 1 from d where d.id = x.production_order_id) and ${win('x.created_at')}))
        order by x.created_at`, ...args, orderId),
+    // Deposits go by date, not by the window (PLACED_DEPOSITS): $1 branch, $2 start, $3 the demand.
     !counted ? Promise.resolve([]) : prisma.$queryRawUnsafe<DemandRecordDetail['payments']>(`
+      with br as (select $1::uuid as id),
+      d as (
+        select o.id, o.branch_id, o.submitted_at, coalesce(o.required_date, o.business_date) as day
+          from public.production_orders o
+         where o.branch_id = $1::uuid and o.status::text in ${DELIVERED} and o.business_date >= $2::date
+      ),
+      ${PLACED_DEPOSITS}
       select t.id::text as "id", t.transfer_no as "transferNo", t.voucher_no as "voucherNo",
              to_char(t.business_date, 'YYYY-MM-DD') as "businessDate", t.amount::float8 as "amount",
              to_json(t.created_at)#>>'{}' as "createdAt"
-        from public.cash_transfers t
-       where t.branch_id = $1::uuid and t.status::text = 'approved' and t.deleted_at is null and t.amount > 0
-         and ${win('t.created_at')}
-       order by t.created_at`, ...args),
+        from placed
+        join public.cash_transfers t on t.id = placed.id
+       where placed.order_id = $3::uuid
+       order by t.business_date, t.created_at`, branchId, start, orderId),
     !counted ? Promise.resolve([]) : prisma.$queryRawUnsafe<{ count: number; amount: number }[]>(`
       select count(*)::int as "count", coalesce(sum(s.grand_total), 0)::float8 as "amount"
         from public.orders s
@@ -1068,8 +1113,7 @@ export interface DemandRecordForAccounts {
  * Everything the workbook needs to carry the Demand Record into its books:
  * the same rows the page shows (so each demand's Company Share is the page's
  * figure), Finance's entries, the deposits counted as Received — selected by
- * exactly the rule ROWS_SQL places them by (approved, live, positive, after the
- * go-live instant and after the branch's first demand) — and the page's own
+ * exactly the rule ROWS_SQL places them by (PLACED_DEPOSITS) — and the page's own
  * Balance by Branch for the period, to reconcile against. Null while the
  * Demand Record is not switched on.
  */
@@ -1093,21 +1137,23 @@ export async function getDemandRecordForAccounts(
        where ($1::uuid is null or a.branch_id = $1::uuid) and a.effective_at >= ${START_AT}
        order by a.effective_at, a.created_at`, branchId, start),
     prisma.$queryRawUnsafe<DemandRecordForAccounts['receivedTransfers']>(`
-      with first_demand as (
-        select o.branch_id, min(o.submitted_at) as lo
+      with br as (
+        select b.id from public.branches b where ($1::uuid is null or b.id = $1::uuid)
+      ),
+      d as (
+        select o.id, o.branch_id, o.submitted_at, coalesce(o.required_date, o.business_date) as day
           from public.production_orders o
+          join br on br.id = o.branch_id
          where o.status::text in ${DELIVERED} and o.business_date >= $2::date
-           and ($1::uuid is null or o.branch_id = $1::uuid)
-         group by o.branch_id
-      )
+      ),
+      ${PLACED_DEPOSITS}
       select t.id::text as "id", t.transfer_no as "transferNo", t.branch_id::text as "branchId",
              coalesce(b.name, t.branch_name) as "branchName", t.amount::float8 as "amount",
              to_char(t.business_date, 'YYYY-MM-DD') as "businessDate"
-        from public.cash_transfers t
-        join first_demand f on f.branch_id = t.branch_id
+        from placed
+        join public.cash_transfers t on t.id = placed.id
         left join public.branches b on b.id = t.branch_id
-       where t.status::text = 'approved' and t.deleted_at is null and t.amount > 0
-         and t.created_at > f.lo and t.created_at >= ${START_AT}`, branchId, start),
+       where placed.order_id is not null`, branchId, start),
   ]);
 
   return {
