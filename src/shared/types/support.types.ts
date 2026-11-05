@@ -194,6 +194,12 @@ export interface SupportReference {
    * warns about before applying.
    */
   cashTransferApproved?: boolean;
+  /**
+   * For cash deposit references: whether Finance rejected the deposit. It can
+   * still be corrected, and the Support Center may approve it (rejected →
+   * approved, which books its RV- receipts) or delete it.
+   */
+  cashTransferRejected?: boolean;
   /** Internal uuid of the underlying row, used when applying a figure edit. */
   entityId: string;
   /** For expenses: which table the row lives in, so the figure edit hits the right one. */

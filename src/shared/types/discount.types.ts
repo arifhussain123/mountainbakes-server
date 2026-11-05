@@ -76,3 +76,38 @@ export interface BranchDiscount {
    */
   reviewNote: string | null;
 }
+
+/**
+ * One product's till discounts on one branch's business day — a row of the
+ * Production → Discounts "Product breakdown" table.
+ */
+export interface DiscountDayProduct {
+  /** Null for an order line whose product has since been deleted. */
+  productId: string | null;
+  productName: string;
+  /** Units sold on discounted lines. */
+  qty: number;
+  /** Money taken off on this product that day. */
+  discount: number;
+}
+
+/**
+ * What the branch's till actually gave away on a day, per product, set against
+ * what the branch claimed for that day. GET /api/production-discounts/day-check.
+ *
+ * `actualTotal` comes from the POS (order_items.discount on non-cancelled sales,
+ * staff sales included — they can carry a discount too). `claimedTotal` is every
+ * claim the branch raised for the day that still stands — rejected ones are left
+ * out, since a refused claim asks for nothing.
+ */
+export interface DiscountDayCheck {
+  branchId: string;
+  date: string; // 'YYYY-MM-DD'
+  products: DiscountDayProduct[];
+  actualTotal: number;
+  claimedTotal: number;
+  /** claimedTotal − actualTotal. Positive = the branch claimed more than the till gave. */
+  difference: number;
+  matches: boolean;
+  claims: { id: string; demandNumber: string | null; amount: number; status: BranchDiscountStatus }[];
+}
