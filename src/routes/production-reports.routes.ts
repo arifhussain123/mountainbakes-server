@@ -8,7 +8,7 @@ import { getReturnStockRows } from '../services/return-stock.service';
 import { genericPDF, genericExcel, genericExcelMultiSheet, genericCSV, type ExcelColumn, type ExcelSheet } from '../services/production-export.service';
 import { getPreviousOrderBalance } from '../services/previous-balance.service';
 import { getCollectionsReturnRows } from '../services/returns-summary.service';
-import { getCollectionsMonth, getDemandFiguresBeforeRecord, type DemandBeforeRecordRow } from '../services/branch-account.service';
+import { getCollectionsMonth, getDemandFiguresBeforeRecord, getPendingByDemand, type DemandBeforeRecordRow, type PendingOnRow } from '../services/branch-account.service';
 import { format } from 'date-fns';
 import { rupeesInWords } from '../utils/amountInWords';
 import { sortRows } from '../utils/sortRows';
@@ -295,6 +295,12 @@ const NOTE_2 = 'This detail is not valid for any legal or law requirement.';
  * one tab per branch, headed by the branch's name, the period and a summary
  * (see preambleOf). A TOTAL sums the activity columns only — a carried
  * balance summed row by row would count the same money once per demand.
+ *
+ * Status (owner's call, 2026-11-06): a demand with a deposit, return or
+ * discount still waiting for Finance's decision reads "Provisional" with what
+ * is pending (getPendingByDemand), in bold red, and a note under the table
+ * says its figures and every balance after it can still change. Blank
+ * otherwise: the row is final.
  */
 function collectionsFromDemandRecord(
   record: NonNullable<Awaited<ReturnType<typeof getCollectionsMonth>>>,
@@ -302,17 +308,33 @@ function collectionsFromDemandRecord(
   period: { fromStr: string; toStr: string },
   /** Demands before the record began, when the window runs back past its start: listed first on each branch's tab. */
   earlier: { start: string; rows: DemandBeforeRecordRow[] } | null = null,
+  /** What is still undecided on each demand (getPendingByDemand). */
+  pending: Map<string, PendingOnRow> = new Map(),
 ): { title: string; headers: string[]; rows: (string | number)[][]; specialRowCount: number; columns: ExcelColumn[]; totalRows: number[]; highlight: { row: number; col: number }[]; formulas: NonNullable<ExcelSheet['formulas']>; borders: boolean; notes: NonNullable<ExcelSheet['notes']>; extraSheets: ExcelSheet[] } {
   type Row = (typeof record.rows)[number];
   // No Closing Status or Slip No. column (owner's calls, 2026-10-29): a
   // negative Closing already reads as a credit, and the demand number is the
   // one reference the sheet carries.
-  const headers = ['Date', 'Demand No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Received', 'Previous', 'Closing'];
+  const headers = ['Date', 'Demand No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share', 'Received', 'Previous', 'Closing', 'Status'];
   const columns: ExcelColumn[] = [
     { date: true, numFmt: 'dd mmm yyyy' }, {}, {},
     money, money, money, money, money,
-    money, money, money,
+    money, money, money, {},
   ];
+  const CLOSING_COL = headers.indexOf('Closing');
+  const STATUS_COL = headers.indexOf('Status');
+  /** "Provisional: deposit 27,668, return 500 pending", or '' when the row is final. */
+  const statusOf = (r: Row): string => {
+    const p = r.orderId && r.stockRow === null ? pending.get(r.orderId) : undefined;
+    if (!p) return '';
+    const rs = (n: number) => Math.round(n).toLocaleString('en-US');
+    const parts = [
+      ...(p.deposits ? [`deposit ${rs(p.deposits)}`] : []),
+      ...(p.returns ? [`return ${rs(p.returns)}`] : []),
+      ...(p.discounts ? [`discount ${rs(p.discounts)}`] : []),
+    ];
+    return parts.length > 0 ? `Provisional: ${parts.join(', ')} pending` : '';
+  };
   // The Opening Stock row is the branch's first row of the chain (owner's
   // call, 2026-10-29): its Co. Share opens the balance, and its Closing is the
   // next demand's Previous. In a finished month the stock still held comes off
@@ -322,11 +344,11 @@ function collectionsFromDemandRecord(
   const STOCK_LABEL = { opening: 'Opening Stock', closing: 'Closing Stock' } as const;
   const DELIVERED_COL = 3;
   const line = (r: Row): (string | number)[] => r.stockRow === 'closing'
-    ? [r.businessDate, STOCK_LABEL.closing, r.branchName, r.delivered, '', '', '', '', '', '', '']
+    ? [r.businessDate, STOCK_LABEL.closing, r.branchName, r.delivered, '', '', '', '', '', '', '', '']
     : [
       r.businessDate, r.stockRow ? STOCK_LABEL[r.stockRow] : r.demandNumber ?? '', r.branchName,
       r.delivered, r.returns, r.discount, r.gTotal, r.companyShare, r.received,
-      r.previousBalance, r.closingBalance,
+      r.previousBalance, r.closingBalance, statusOf(r),
     ];
   /** What was delivered on a row, before any closing stock came off it. */
   const grossOf = (r: Row) => toPaisa(r.delivered + r.closingStockDeducted);
@@ -352,7 +374,7 @@ function collectionsFromDemandRecord(
   };
   const totalLine = (rows: Row[]): (string | number)[] => {
     const t = sumOf(rows);
-    return ['TOTAL', '', '', t.delivered, t.returns, t.discount, t.gTotal, t.share, t.received, '', ''];
+    return ['TOTAL', '', '', t.delivered, t.returns, t.discount, t.gTotal, t.share, t.received, '', '', ''];
   };
   // Date, then demand number; on a day, the Opening Stock rows before its
   // demands and the Closing Stock rows after them.
@@ -371,7 +393,10 @@ function collectionsFromDemandRecord(
   const sheetOf = (title: string, list: Row[]): Sheet => {
     const sorted = [...list].sort(byDate);
     const rows = sorted.map(line);
-    const highlight = sorted.flatMap((r, i) => (finalRows.has(r) ? [{ row: i, col: headers.length - 1 }] : []));
+    const highlight = sorted.flatMap((r, i) => [
+      ...(finalRows.has(r) ? [{ row: i, col: CLOSING_COL }] : []),
+      ...(statusOf(r) ? [{ row: i, col: STATUS_COL }] : []),
+    ]);
     const formulas = sorted.flatMap((r, i) => (r.closingStockDeducted !== 0 ? [{ row: i, col: DELIVERED_COL, formula: deliveredFormula(r) }] : []));
     if (list.length === 0) return { title, headers, rows, columns, specialRowCount: 0, highlight, formulas };
     rows.push(totalLine(list));
@@ -421,9 +446,9 @@ function collectionsFromDemandRecord(
     const t = { delivered: 0, returns: 0, discount: 0, gTotal: 0, share: 0 };
     const rows: (string | number)[][] = list.map((r) => {
       t.delivered += r.delivered; t.returns += r.returns; t.discount += r.discount; t.gTotal += r.gTotal; t.share += r.companyShare;
-      return [r.businessDate, r.demandNumber ?? '', r.branchName, r.delivered, r.returns, r.discount, r.gTotal, r.companyShare, '', '', ''];
+      return [r.businessDate, r.demandNumber ?? '', r.branchName, r.delivered, r.returns, r.discount, r.gTotal, r.companyShare, '', '', '', ''];
     });
-    rows.push([`TOTAL BEFORE ${dmy(earlier!.start).toUpperCase()}`, '', '', toPaisa(t.delivered), toPaisa(t.returns), toPaisa(t.discount), toPaisa(t.gTotal), toPaisa(t.share), '', '', '']);
+    rows.push([`TOTAL BEFORE ${dmy(earlier!.start).toUpperCase()}`, '', '', toPaisa(t.delivered), toPaisa(t.returns), toPaisa(t.discount), toPaisa(t.gTotal), toPaisa(t.share), '', '', '', '']);
     return rows;
   };
 
@@ -460,26 +485,33 @@ function collectionsFromDemandRecord(
   // and under the main sheet with every branch's balance added together. The
   // balance is the one at the To date and the back date is that day, which
   // for a finished month is its last day.
-  const notesOf = (balance: number | null): NonNullable<ExcelSheet['notes']> => [
-    [{ text: 'Note:', bold: true }],
-    [{ text: NOTE_1 }],
-    [{ text: NOTE_2 }],
-    ...(balance !== null ? [
-      [
-        { text: 'Balance Amount ' },
-        // Whole rupees like the cells; paisa only when there are some.
-        { text: `Rs. ${balance.toLocaleString('en-US', { maximumFractionDigits: 2 })}`, bold: true },
-        { text: ' (' },
-        { text: rupeesInWords(balance), bold: true },
-        { text: ') is deposited through the application of the cash deposit procedure followed.' },
-      ],
-      [
-        { text: 'When the amount is deposited with a back date on the last month of date ' },
-        { text: dmy(record.to), bold: true },
-        { text: ', submit the application to the admin for access on the back date.' },
-      ],
-    ] : []),
-  ];
+  const notesOf = (balance: number | null, list: Row[]): NonNullable<ExcelSheet['notes']> => {
+    const provisional = list.filter((r) => statusOf(r) !== '').length;
+    return [
+      [{ text: 'Note:', bold: true }],
+      [{ text: NOTE_1 }],
+      [{ text: NOTE_2 }],
+      ...(provisional > 0 ? [[
+        { text: `${provisional} row(s) marked Provisional`, bold: true },
+        { text: ' have a deposit, return or discount not approved yet. Their figures, and every balance after them, can change once Finance approves or rejects it. Export again after approval for final figures.' },
+      ]] : []),
+      ...(balance !== null ? [
+        [
+          { text: 'Balance Amount ' },
+          // Whole rupees like the cells; paisa only when there are some.
+          { text: `Rs. ${balance.toLocaleString('en-US', { maximumFractionDigits: 2 })}`, bold: true },
+          { text: ' (' },
+          { text: rupeesInWords(balance), bold: true },
+          { text: ') is deposited through the application of the cash deposit procedure followed.' },
+        ],
+        [
+          { text: 'When the amount is deposited with a back date on the last month of date ' },
+          { text: dmy(record.to), bold: true },
+          { text: ', submit the application to the admin for access on the back date.' },
+        ],
+      ] : []),
+    ];
+  };
 
   const tabs = [
     ...branches.map((b) => ({ branchId: b.branchId, name: b.branchName, closingBalance: b.closingBalance as number | null })),
@@ -504,7 +536,7 @@ function collectionsFromDemandRecord(
       highlight: sheet.highlight.map((h) => ({ row: h.row + top.length, col: h.col - 1 })),
       formulas: sheet.formulas.map((f) => ({ ...f, row: f.row + top.length, col: f.col - 1 })),
       borders: true,
-      notes: notesOf(b.closingBalance),
+      notes: notesOf(b.closingBalance, list),
     };
   });
 
@@ -571,7 +603,7 @@ function collectionsFromDemandRecord(
     highlight,
     formulas,
     borders: true,
-    notes: notesOf(branches.length > 0 ? toPaisa(branches.reduce((a, b) => a + b.closingBalance, 0)) : null),
+    notes: notesOf(branches.length > 0 ? toPaisa(branches.reduce((a, b) => a + b.closingBalance, 0)) : null, record.rows),
     extraSheets: [
       { title: 'By Branch', headers: byBranchHeaders, rows: byBranchRows, columns: byBranchColumns, totalRows: byBranchRows.length > 0 ? [byBranchRows.length - 1] : [], borders: true },
       ...monthEnd,
@@ -951,7 +983,8 @@ async function buildReport(
         // (getCollectionsMonth); the rest are required before it began.
         const beforeRows = (before?.rows ?? []).filter((r) => r.businessDate < record.from);
         const earlier = before && beforeRows.length > 0 ? { start: before.start, rows: beforeRows } : null;
-        const result = collectionsFromDemandRecord(record, { fromStr, toStr }, earlier);
+        const pending = await getPendingByDemand(branchId || null);
+        const result = collectionsFromDemandRecord(record, { fromStr, toStr }, earlier, pending);
         if (earlier) {
           const sheet = collectionsBeforeRecord(earlier.rows, earlier.start);
           result.rows.push([`Demands before ${dmy(earlier.start)} are on the "${sheet.title}" tab and at the top of each branch's tab: demand figures only, no Received or balance.`, ...new Array<string>(result.headers.length - 1).fill('')]);

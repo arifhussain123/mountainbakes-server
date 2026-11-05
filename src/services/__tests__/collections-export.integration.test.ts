@@ -315,7 +315,7 @@ const valuesOf = (ws: { eachRow: (cb: (r: { values: unknown }) => void) => void 
 };
 
 const HEADERS = ['Date', 'Demand No.', 'Branch', 'Delivered', 'Return', 'Discount', 'G. Total', 'Co. Share',
-  'Received', 'Previous', 'Closing'];
+  'Received', 'Previous', 'Closing', 'Status'];
 /** The main sheet's rows without the note under it. */
 const tableOf = (ws: Parameters<typeof valuesOf>[0]) => valuesOf(ws).filter((r) => !isNote(r));
 /** A branch's tab: the same columns without Branch. */
@@ -365,21 +365,21 @@ test('the Collections sheet is the Demand Record page, row for row, in the page\
   assert.equal((opening('Saddar')[0] as Date).toISOString().slice(0, 10), '2026-10-01');
   // The Opening Stock row opens the chain: its Closing is the first demand's Previous.
   //                                            Delivered Ret Disc G.Total Share Received Previous Closing
-  assert.deepEqual(opening('Saddar').slice(3), [2000, 0, 0, 2000, 1600, 0, 0, 1600]);
-  assert.deepEqual(opening('Gulberg').slice(3), [0, 0, 0, 0, 0, 0, 0, 0]);
-  assert.deepEqual(opening('Committee Chowk').slice(3), [500, 0, 0, 500, 400, 0, 0, 400]);
+  assert.deepEqual(opening('Saddar').slice(3), [2000, 0, 0, 2000, 1600, 0, 0, 1600, '']);
+  assert.deepEqual(opening('Gulberg').slice(3), [0, 0, 0, 0, 0, 0, 0, 0, '']);
+  assert.deepEqual(opening('Committee Chowk').slice(3), [500, 0, 0, 500, 400, 0, 0, 400, '']);
 
   const row = (d: string) => data.find((x) => x[1] === d)!;
   //                                            Co. Share Received  Previous Closing
-  assert.deepEqual(row('DMD-000123').slice(7), [34240, 28000, 1600, 7840]);
-  assert.deepEqual(row('DMD-000124').slice(7), [38400, 42200, 7840, 4040]);
-  assert.deepEqual(row('DMD-000127').slice(7), [10000, 12000, 0, -2000]);
-  assert.deepEqual(row('DMD-000129').slice(7), [24000, 18000, -2000, 4000]);
-  assert.deepEqual(row('DMD-000128').slice(7), [19125, 11405, 0, 7720]); // F-7 at 75%
+  assert.deepEqual(row('DMD-000123').slice(7), [34240, 28000, 1600, 7840, '']);
+  assert.deepEqual(row('DMD-000124').slice(7), [38400, 42200, 7840, 4040, '']);
+  assert.deepEqual(row('DMD-000127').slice(7), [10000, 12000, 0, -2000, '']);
+  assert.deepEqual(row('DMD-000129').slice(7), [24000, 18000, -2000, 4000, '']);
+  assert.deepEqual(row('DMD-000128').slice(7), [19125, 11405, 0, 7720, '']); // F-7 at 75%
   // Submitted before the record, required on 1 Oct: after the stock, no Received.
-  assert.deepEqual(row('DMD-000093').slice(2), ['Committee Chowk', 300, 0, 0, 300, 240, 0, 400, 640]);
+  assert.deepEqual(row('DMD-000093').slice(2), ['Committee Chowk', 300, 0, 0, 300, 240, 0, 400, 640, '']);
 
-  assert.deepEqual(main.at(-1), ['TOTAL', '', '', 314300, 4100, 6300, 303900, 241845, 211605, '', '']);
+  assert.deepEqual(main.at(-1), ['TOTAL', '', '', 314300, 4100, 6300, 303900, 241845, 211605, '', '', '']);
 });
 
 test('cells stay numeric and carry the page\'s formats', async () => {
@@ -416,7 +416,7 @@ test('each branch keeps its own chain; By Branch adds up to the same totals', as
   assert.deepEqual(gulberg.table[0], BRANCH_HEADERS);
   assert.deepEqual(gulberg.table.slice(1, -1).map((r) => [r[1], r[8], r[9]]),
     [['Opening Stock', 0, 0], ['DMD-000127', 0, -2000], ['DMD-000129', -2000, 4000]]);
-  assert.deepEqual(gulberg.table.at(-1), ['TOTAL', '', 45000, 1400, 1100, 42500, 34000, 30000, '', '']);
+  assert.deepEqual(gulberg.table.at(-1), ['TOTAL', '', 45000, 1400, 1100, 42500, 34000, 30000, '', '', '']);
   // Mid-month too: the whole note, on the balance at the To date.
   assert.deepEqual(gulberg.notes, [
     'Note:',
@@ -445,9 +445,9 @@ test('From is taken as picked: a window from 3 Oct opens on that morning\'s stoc
   assert.ok(picked.slice(1, -1).every((r) => day(r) === '2026-10-03'));
   //                                Delivered Ret Disc G.Total Share Rec  Previous Closing
   assert.deepEqual(picked.find((r) => r[1] === 'Opening Stock' && r[2] === 'Saddar')!.slice(3),
-    [3000, 0, 0, 3000, 2400, 0, 2440, 4840]); // 30 Bun that morning; 2,440 carried from DMD-000124
-  assert.deepEqual(picked.find((r) => r[1] === 'DMD-000125')!.slice(3), [39000, 500, 1000, 37500, 30000, 20000, 4840, 14840]);
-  assert.deepEqual(picked.find((r) => r[1] === 'Opening Stock' && r[2] === 'Gulberg')!.slice(9), [-2000, -2000]);
+    [3000, 0, 0, 3000, 2400, 0, 2440, 4840, '']); // 30 Bun that morning; 2,440 carried from DMD-000124
+  assert.deepEqual(picked.find((r) => r[1] === 'DMD-000125')!.slice(3), [39000, 500, 1000, 37500, 30000, 20000, 4840, 14840, '']);
+  assert.deepEqual(picked.find((r) => r[1] === 'Opening Stock' && r[2] === 'Gulberg')!.slice(9), [-2000, -2000, '']);
   assert.deepEqual(picked.map((r) => r[1]).filter((n) => String(n).startsWith('DMD-')), ['DMD-000125', 'DMD-000129']);
 });
 
@@ -481,12 +481,12 @@ test('a window across a month\'s end closes that month on its last day and opens
   const saddar = branchTab(wb.getWorksheet('Saddar')!);
   //                                       Delivered  Ret  Disc  G.Total  Share  Received Previous Closing
   assert.deepEqual(saddar.table.slice(1, -1).map((r) => [(r[0] as Date).toISOString().slice(0, 10), ...r.slice(1)]), [
-    ['2026-10-01', 'Opening Stock', 2000, 0, 0, 2000, 1600, 0, 0, 1600],
-    ['2026-10-01', 'DMD-000123', 45000, 1200, 1000, 42800, 34240, 28000, 1600, 7840],
-    ['2026-10-02', 'DMD-000124', 50000, 0, 2000, 48000, 38400, 42200, 7840, 4040],
-    ['2026-10-03', 'DMD-000125', { formula: '39000-3600', result: 35400 }, 500, 1000, 33900, 27120, 20000, 4040, 11160],
-    ['2026-10-31', 'Closing Stock', 3600, '', '', '', '', '', '', ''],
-    ['2026-11-01', 'Opening Stock', 3600, 0, 0, 3600, 2880, 0, 11160, 14040],
+    ['2026-10-01', 'Opening Stock', 2000, 0, 0, 2000, 1600, 0, 0, 1600, ''],
+    ['2026-10-01', 'DMD-000123', 45000, 1200, 1000, 42800, 34240, 28000, 1600, 7840, ''],
+    ['2026-10-02', 'DMD-000124', 50000, 0, 2000, 48000, 38400, 42200, 7840, 4040, ''],
+    ['2026-10-03', 'DMD-000125', { formula: '39000-3600', result: 35400 }, 500, 1000, 33900, 27120, 20000, 4040, 11160, ''],
+    ['2026-10-31', 'Closing Stock', 3600, '', '', '', '', '', '', '', ''],
+    ['2026-11-01', 'Opening Stock', 3600, 0, 0, 3600, 2880, 0, 11160, 14040, ''],
   ]);
   // The same figures as two exports, October then November.
   const october = branchTab((await workbook('&from=2026-10-01&to=2026-10-31')).getWorksheet('Saddar')!);
@@ -511,7 +511,7 @@ test('a demand is placed and dated by its required date, not the day it was subm
   const r = main.find((x) => x[1] === 'DMD-000130')!;
   assert.equal((r[0] as Date).toISOString().slice(0, 10), '2026-10-04');
   //                            Delivered        Share Received Previous Closing
-  assert.deepEqual(r.slice(2), ['Blue Area', 1000, 0, 0, 1000, 800, 0, 3840, 4640]);
+  assert.deepEqual(r.slice(2), ['Blue Area', 1000, 0, 0, 1000, 800, 0, 3840, 4640, '']);
 });
 
 test('To may run past today: a demand required later is shown on its required date', async () => {
@@ -562,9 +562,9 @@ test('a demand submitted before the record for its first day follows the opening
   assert.deepEqual(chowk.table[0], BRANCH_HEADERS);
   //                          Delivered Ret Disc G.Total Share Received Previous Closing
   assert.deepEqual(chowk.table.slice(1).map((r) => r.slice(1)), [
-    ['Opening Stock', 500, 0, 0, 500, 400, 0, 0, 400],
-    ['DMD-000093', 300, 0, 0, 300, 240, 0, 400, 640],
-    ['', 800, 0, 0, 800, 640, 0, '', ''],
+    ['Opening Stock', 500, 0, 0, 500, 400, 0, 0, 400, ''],
+    ['DMD-000093', 300, 0, 0, 300, 240, 0, 400, 640, ''],
+    ['', 800, 0, 0, 800, 640, 0, '', '', ''],
   ]);
   assert.equal(chowk.table.at(-1)![0], 'TOTAL');
   assert.ok(!wb.worksheets.some((w) => valuesOf(w).some((r) => String(r[0]).startsWith('TOTAL BEFORE'))));
@@ -610,17 +610,17 @@ test('a finished month takes its Closing Stock off the last demand, valued at th
   const saddar = branchTab(wb.getWorksheet('Saddar')!);
   //                                       Delivered  Ret  Disc  G.Total  Share  Received Previous Closing
   assert.deepEqual(saddar.table.slice(1, -1).map((r) => [(r[0] as Date).toISOString().slice(0, 10), ...r.slice(1)]), [
-    ['2026-10-01', 'Opening Stock', 2000, 0, 0, 2000, 1600, 0, 0, 1600],
-    ['2026-10-01', 'DMD-000123', 45000, 1200, 1000, 42800, 34240, 28000, 1600, 7840],
-    ['2026-10-02', 'DMD-000124', 50000, 0, 2000, 48000, 38400, 42200, 7840, 4040],
+    ['2026-10-01', 'Opening Stock', 2000, 0, 0, 2000, 1600, 0, 0, 1600, ''],
+    ['2026-10-01', 'DMD-000123', 45000, 1200, 1000, 42800, 34240, 28000, 1600, 7840, ''],
+    ['2026-10-02', 'DMD-000124', 50000, 0, 2000, 48000, 38400, 42200, 7840, 4040, ''],
     // 30 Bun left at the end of 31 Oct, at that day's Rs. 120 (not today's Rs. 100): 3,600 off the
     // month's last demand (owner's rule, 2026-11-01), written as the sum: 39,000 − 3,600 = 35,400.
-    ['2026-10-03', 'DMD-000125', { formula: '39000-3600', result: 35400 }, 500, 1000, 33900, 27120, 20000, 4040, 11160],
+    ['2026-10-03', 'DMD-000125', { formula: '39000-3600', result: 35400 }, 500, 1000, 33900, 27120, 20000, 4040, 11160, ''],
     // The amount only: no share, no balance.
-    ['2026-10-31', 'Closing Stock', 3600, '', '', '', '', '', '', ''],
+    ['2026-10-31', 'Closing Stock', 3600, '', '', '', '', '', '', '', ''],
   ]);
   // The Closing Stock row is not in the totals; its amount is, through the last demand: 2,000 in, 3,600 out.
-  assert.deepEqual(saddar.table.at(-1), ['TOTAL', '', 132400, 1700, 4000, 126700, 101360, 90200, '', '']);
+  assert.deepEqual(saddar.table.at(-1), ['TOTAL', '', 132400, 1700, 4000, 126700, 101360, 90200, '', '', '']);
   assert.deepEqual(saddar.preamble.slice(1, 2), [['Period: 01 Oct 2026 to 31 Oct 2026']]);
   assert.deepEqual(saddar.preamble.slice(3), [
     ['Total Demands', '', 3],
@@ -648,11 +648,11 @@ test('a finished month takes its Closing Stock off the last demand, valued at th
 
   // A branch with no stock still shows the month's Closing Stock, at zero, and nothing is taken off.
   const blue = branchTab(wb.getWorksheet('Blue Area')!);
-  assert.deepEqual(blue.table.at(-2)!.slice(1), ['Closing Stock', 0, '', '', '', '', '', '', '']);
+  assert.deepEqual(blue.table.at(-2)!.slice(1), ['Closing Stock', 0, '', '', '', '', '', '', '', '']);
   assert.equal(typeof blue.table.at(-3)![2], 'number');
   assert.equal(blue.table.at(-3)![9], 4640);
   const chowk = branchTab(wb.getWorksheet('Committee Chowk')!);
-  assert.deepEqual(chowk.table.at(-2)!.slice(1), ['Closing Stock', 600, '', '', '', '', '', '', '']);
+  assert.deepEqual(chowk.table.at(-2)!.slice(1), ['Closing Stock', 600, '', '', '', '', '', '', '', '']);
   assert.match(chowk.notes[3]!, /Rs\. 160 \(Rupees One Hundred Sixty Only\)/);
 
   // The main sheet: each branch's Closing Stock last on 31 Oct, the amount only.

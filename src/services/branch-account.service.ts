@@ -90,17 +90,93 @@ const START_AT = `(($2::date + time '02:00') at time zone 'Asia/Karachi')`;
  * submitted_at, day = required date, else business date). `order_id` null:
  * not counted.
  */
-const PLACED_DEPOSITS = `
-  placed as (
+const placedDeposits = (name: string, status: string) => `
+  ${name} as (
     select t.id, t.branch_id, t.amount,
            (select d2.id from d d2
              where d2.branch_id = t.branch_id and d2.day <= t.business_date
              order by d2.day desc, d2.submitted_at desc, d2.id desc limit 1) as order_id
       from public.cash_transfers t
       join br on br.id = t.branch_id
-     where t.status::text = 'approved' and t.deleted_at is null and t.amount > 0
+     where t.status::text = '${status}' and t.deleted_at is null and t.amount > 0
        and t.business_date >= $2::date
   )`;
+const PLACED_DEPOSITS = placedDeposits('placed', 'approved');
+
+/**
+ * What is still waiting for a decision on each Demand Record row, placed as
+ * it will be once decided: deposits not approved yet (by date, as
+ * PLACED_DEPOSITS), returns not accepted yet (pending, or sent back to the
+ * branch) at the Return Summary's price in the row's window, and discounts
+ * not approved yet (on their demand, else by window). While any is there,
+ * the row's Received, Return or Discount — and every balance after it — can
+ * still change (owner's call, 2026-11-06: such rows are marked Provisional on
+ * the Collections export). $1 branch (null: all), $2 the go-live day.
+ */
+const PENDING_SQL_BY_ROW = `
+  with br as (
+    select b.id from public.branches b where ($1::uuid is null or b.id = $1::uuid)
+  ),
+  d as (
+    select o.id, o.branch_id, o.submitted_at, coalesce(o.required_date, o.business_date) as day
+      from public.production_orders o
+      join br on br.id = o.branch_id
+     where o.status::text in ${DELIVERED} and o.business_date >= $2::date
+  ),
+  w as (
+    select d.branch_id, d.id as order_id, d.submitted_at as lo,
+           lead(d.submitted_at) over (partition by d.branch_id order by d.submitted_at, d.id) as hi
+      from d
+  ),
+  ${placedDeposits('dep', 'pending')},
+  ret as (
+    select w.order_id, sum(round(r.qty * px.unit_price, 2)) as amount
+      from w
+      join public.production_returns r
+        on r.branch_id = w.branch_id and r.created_at > w.lo and (w.hi is null or r.created_at <= w.hi)
+      left join public.products p on p.id = r.product_id
+      ${UNIT_PRICE_LATERAL}
+     where r.status::text in ('pending', 'returned') and r.created_at >= ${START_AT}
+     group by w.order_id
+  ),
+  disc as (
+    select x.production_order_id as order_id, x.amount
+      from public.branch_discounts x join d on d.id = x.production_order_id
+     where x.status::text in ('pending', 'returned')
+    union all
+    select w.order_id, x.amount
+      from w
+      join public.branch_discounts x
+        on x.branch_id = w.branch_id and x.created_at > w.lo and (w.hi is null or x.created_at <= w.hi)
+     where x.status::text in ('pending', 'returned') and x.created_at >= ${START_AT}
+       and not exists (select 1 from d where d.id = x.production_order_id)
+  ),
+  ids as (
+    select order_id from dep where order_id is not null
+    union select order_id from ret union select order_id from disc
+  )
+  select ids.order_id::text as "orderId",
+         coalesce((select sum(amount) from dep where dep.order_id = ids.order_id), 0)::float8 as "deposits",
+         coalesce((select sum(amount) from ret where ret.order_id = ids.order_id), 0)::float8 as "returns",
+         coalesce((select sum(amount) from disc where disc.order_id = ids.order_id), 0)::float8 as "discounts"
+    from ids
+`;
+
+/** A row's undecided records (see PENDING_SQL_BY_ROW). Rupees. */
+export interface PendingOnRow { deposits: number; returns: number; discounts: number }
+
+/**
+ * Every Demand Record row with something still undecided on it, by demand id.
+ * Empty while the Demand Record is not switched on.
+ */
+export async function getPendingByDemand(branchId: string | null): Promise<Map<string, PendingOnRow>> {
+  const start = await getLedgerStart();
+  if (!start) return new Map();
+  const rows = await getPrisma().$queryRawUnsafe<(PendingOnRow & { orderId: string })[]>(PENDING_SQL_BY_ROW, branchId, start);
+  return new Map(rows.map(({ orderId, ...p }) => [orderId, {
+    deposits: toPaisa(p.deposits), returns: toPaisa(p.returns), discounts: toPaisa(p.discounts),
+  }]));
+}
 
 const ROWS_SQL = `
   with br as (
