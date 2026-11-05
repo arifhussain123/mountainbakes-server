@@ -6,6 +6,7 @@ import { validate } from '../middleware/validate';
 import { ReviewBranchDiscountSchema, businessDaysAgoStr } from '../shared';
 import { notify } from '../services/push.service';
 import { getMonthlyDiscountSummary } from '../services/discount-summary.service';
+import { getDiscountDayCheck } from '../services/discount-day-check.service';
 import { rowToApi } from '../utils/case';
 
 const db = dbFor('production-discounts');
@@ -81,6 +82,21 @@ router.get('/summary', async (req: AuthRequest, res, next) => {
     const branchId = (req.query['branchId'] as string | undefined) || null;
     if (branchId && !UUID_RE.test(branchId)) { res.status(400).json({ error: 'branchId must be a uuid' }); return; }
     res.json(await getMonthlyDiscountSummary({ branchId }));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/production-discounts/day-check?branchId=&date=
+// — the branch's till discounts for that business day, per product, against the
+// claims it raised for the same day. Behind the "Product breakdown" button.
+router.get('/day-check', async (req: AuthRequest, res, next) => {
+  try {
+    const branchId = req.query['branchId'] as string | undefined;
+    const date = req.query['date'] as string | undefined;
+    if (!branchId || !UUID_RE.test(branchId)) { res.status(400).json({ error: 'branchId must be a uuid' }); return; }
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) { res.status(400).json({ error: 'date must be YYYY-MM-DD' }); return; }
+    res.json(await getDiscountDayCheck({ branchId, date }));
   } catch (err) {
     next(err);
   }
