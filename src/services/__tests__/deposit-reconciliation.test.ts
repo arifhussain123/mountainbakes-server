@@ -196,19 +196,37 @@ describe('no deposit of the same amount', () => {
     assert.equal(r.difference, -250);
   });
 
-  test('nearest means nearest in amount: one deposit, or one date\'s together', () => {
+  test('nearest is one deposit, never several added together', () => {
     const alone = reconcile(
       [day('2026-10-05', 1000)],
       [deposit('2026-10-07', 900), deposit('2026-10-06', 300), deposit('2026-10-06', 200)],
     ).of('2026-10-05');
     assert.equal(alone.received, 900);
 
-    const together = reconcile(
+    // 600 + 350 = 950 would be nearer, but the nearest is a single amount: 800.
+    const { of, unclaimed } = reconcile(
       [day('2026-10-05', 1000)],
       [deposit('2026-10-07', 800), deposit('2026-10-06', 600), deposit('2026-10-06', 350)],
-    ).of('2026-10-05');
-    assert.equal(together.received, 950);
-    assert.deepEqual(together.deposits.map((d) => d.businessDate), ['2026-10-06', '2026-10-06']);
+    );
+    assert.equal(of('2026-10-05').match, 'nearest');
+    assert.equal(of('2026-10-05').received, 800);
+    assert.deepEqual(of('2026-10-05').deposits.map((d) => d.businessDate), ['2026-10-07']);
+    assert.equal(unclaimed.length, 2);
+  });
+
+  test('a day\'s own deposit comes before a near amount dated later (Alabad, 1–3 Nov)', () => {
+    // Before 2026-11-06: 1 Nov took 3 Nov's 14,540 as its nearest amount and
+    // its own 17,850 as "+ 1 more", and 2 Nov took 4 Nov's 16,230 the same way.
+    const { of } = reconcile(
+      [day('2026-11-01', 15105), day('2026-11-02', 16950), day('2026-11-03', 0)],
+      [deposit('2026-11-01', 17850), deposit('2026-11-02', 31270), deposit('2026-11-03', 14540), deposit('2026-11-04', 16230)],
+    );
+    for (const [date, amount] of [['2026-11-01', 17850], ['2026-11-02', 31270], ['2026-11-03', 14540]] as const) {
+      const r = of(date);
+      assert.deepEqual(r.deposits.map((d) => [d.businessDate, d.amount]), [[date, amount]], date);
+      assert.equal(r.match, 'same_day', date);
+      assert.equal(r.extraCount, date === '2026-11-03' ? 1 : 0, date); // 3 Nov owes nothing: its deposit is a leftover on its own date
+    }
   });
 
   test('nothing in the window → not received, the whole share outstanding', () => {

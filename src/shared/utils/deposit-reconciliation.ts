@@ -26,22 +26,25 @@ import { round2 } from './daily-sale';
  *
  *   1. approved, same amount        → matched
  *   2. pending,  same amount        → awaiting approval
- *   3. approved, nearest amount     → discrepancy
- *   4. pending,  nearest amount     → awaiting approval
- *   5. approved, dated the same day → discrepancy
- *   6. pending,  dated the same day → awaiting approval
+ *   3. approved, dated the same day → discrepancy
+ *   4. pending,  dated the same day → awaiting approval
+ *   5. approved, nearest amount     → discrepancy
+ *   6. pending,  nearest amount     → awaiting approval
  *
- * "Nearest amount" is the deposit (or one date's deposits together) closest to
- * the share, and only when it is less than `NEAREST_AMOUNT_GAP` away — 1 to 999
- * rupees. The closest pairings across all of a branch's days are made first, so
- * a deposit goes to the day it is nearest. It is a likely pairing shown so the
- * gap is visible, and is labelled as such (`match: 'nearest'`); it is never
- * called matched.
+ * A day without a deposit of its share takes the deposits dated on the sale
+ * day itself (`match: 'same_day'`), and the gap is shown on that day — before
+ * any near miss is looked for (the owner's rule, 2026-11-06: Alabad's 1 Nov
+ * had been handed 3 Nov's deposit as its nearest amount, with its own 1 Nov
+ * deposit added beside it as "+ 1 more", and 3 Nov lost its row). Branches
+ * now deposit the same night, so a day's own date is the better evidence than
+ * a near amount on a later date.
  *
- * A gap of a thousand or more is not a near miss of that day's share; it is
- * more likely some other day's money. So a day left without a deposit then takes
- * the ones dated on the sale day itself (`match: 'same_day'`), and the gap is
- * shown on that day.
+ * "Nearest amount" is then only for a day with nothing dated that day: ONE
+ * deposit, dated within the next `DEPOSIT_MATCH_DAYS`, closest to the share
+ * and less than `NEAREST_AMOUNT_GAP` away — 1 to 999 rupees. The closest
+ * pairings across all of a branch's days are made first, so a deposit goes to
+ * the day it is nearest. It is a likely pairing shown so the gap is visible,
+ * and is labelled as such (`match: 'nearest'`); it is never called matched.
  *
  * ─── A deposit no day claimed is shown on its own date ───────────────────────
  * Last, any deposit still unclaimed — its amount paid no day, or its date's day
@@ -100,21 +103,13 @@ function sameAmount(candidates: BranchDayDeposit[], share: number): BranchDayDep
   return [];
 }
 
-/**
- * The ways `candidates` could pay `share` within `NEAREST_AMOUNT_GAP`: one
- * deposit alone, or one date's deposits together, each with its gap.
- */
+/** The single deposits in `candidates` within `NEAREST_AMOUNT_GAP` of `share`, each with its gap. */
 function nearAmounts(
   candidates: BranchDayDeposit[],
   share: number,
 ): { deposits: BranchDayDeposit[]; gap: number }[] {
-  const options = candidates.map((d) => [d]);
-  for (const date of [...new Set(candidates.map((d) => d.businessDate))]) {
-    const onDate = candidates.filter((d) => d.businessDate === date);
-    if (onDate.length > 1) options.push(onDate);
-  }
-  return options
-    .map((deposits) => ({ deposits, gap: Math.abs(round2(total(deposits) - share)) }))
+  return candidates
+    .map((d) => ({ deposits: [d], gap: Math.abs(round2(d.amount - share)) }))
     .filter((o) => o.gap < NEAREST_AMOUNT_GAP);
 }
 
@@ -216,10 +211,10 @@ export function reconcileDeposits(
 
   pass('approved', 'amount');
   pass('pending', 'amount');
-  nearestPass('approved');
-  nearestPass('pending');
   pass('approved', 'same_day');
   pass('pending', 'same_day');
+  nearestPass('approved');
+  nearestPass('pending');
 
   // What is left goes on the row of the date it was handed over, alongside
   // whatever that day already has.
