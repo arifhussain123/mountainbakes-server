@@ -13,6 +13,7 @@ import {
 } from '../shared';
 import { notify } from '../services/push.service';
 import { getMonthlyDiscountSummary } from '../services/discount-summary.service';
+import { getDiscountDayCheck } from '../services/discount-day-check.service';
 import { summaryRangeFromQuery } from '../utils/summaryRange';
 import { rowToApi } from '../utils/case';
 
@@ -107,6 +108,23 @@ router.get('/summary', async (req: AuthRequest, res, next) => {
     const window = summaryRangeFromQuery(req.query);
     if (!window.ok) { res.status(400).json({ error: window.error }); return; }
     res.json(await getMonthlyDiscountSummary({ branchId, range: window.range }));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/branch-discounts/day-check?date=YYYY-MM-DD — the branch's own till
+// discounts for that business day, per product, against the claims it raised
+// for the same day. The same figures Production sees behind its "Product
+// breakdown" button (owner's call, 2026-11-06), pinned to the caller's branch.
+router.get('/day-check', async (req: AuthRequest, res, next) => {
+  try {
+    const branchId = scopeBranch(req);
+    if (!branchId) { res.status(400).json({ error: 'Branch context required' }); return; }
+    if (!UUID_RE.test(branchId)) { res.status(400).json({ error: 'branchId must be a uuid' }); return; }
+    const date = req.query['date'] as string | undefined;
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) { res.status(400).json({ error: 'date must be YYYY-MM-DD' }); return; }
+    res.json(await getDiscountDayCheck({ branchId, date }));
   } catch (err) {
     next(err);
   }
