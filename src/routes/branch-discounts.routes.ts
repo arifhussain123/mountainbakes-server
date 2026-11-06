@@ -72,9 +72,11 @@ function scopeBranch(req: AuthRequest): string | null {
  */
 function toApi(rows: unknown): Record<string, unknown>[] {
   const camel = rowToApi<Record<string, unknown>[]>((rows ?? []) as Record<string, unknown>[]);
-  return camel.map(({ businessDate, amount, ...rest }) => ({
+  return camel.map(({ businessDate, amount, originalAmount, ...rest }) => ({
     ...rest,
     amount: Number(amount),
+    // Same numeric-as-string fix as `amount`; null while the figure is the branch's own.
+    originalAmount: originalAmount == null ? null : Number(originalAmount),
     date: businessDate,
   }));
 }
@@ -284,6 +286,12 @@ router.put('/:id', validate(ReviseBranchDiscountSchema), async (req: AuthRequest
         reviewed_by: null,
         reviewed_by_name: null,
         reviewed_at: null,
+        // The branch's new figure replaces any correction Production made, so
+        // the "changed by Production" record goes with it.
+        original_amount: null,
+        amount_changed_by: null,
+        amount_changed_by_name: null,
+        amount_changed_at: null,
       })
       .eq('id', req.params['id']!)
       .in('status', ['pending', 'returned']);
