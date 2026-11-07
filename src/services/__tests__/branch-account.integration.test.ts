@@ -33,7 +33,6 @@ import { companyShareOf, toPaisa } from '../../shared';
 const PRISMA = join(__dirname, '../../../prisma/migrations');
 const BASELINE = readFileSync(join(PRISMA, '0_baseline/migration.sql'), 'utf8');
 const MIGRATION = readFileSync(join(PRISMA, '20261024000001_branch_account_ledger/migration.sql'), 'utf8');
-const SHARE_ON_DELIVERED = readFileSync(join(PRISMA, '20261107000001_company_share_on_delivered/migration.sql'), 'utf8');
 const AUTH = readFileSync(join(__dirname, '../../../db/history/migrations/20261009000149_custom_auth.sql'), 'utf8');
 
 function lift(head: string, tail: string): string {
@@ -207,7 +206,6 @@ before(async () => {
 
   // The migration under test, in one transaction, as `prisma migrate deploy` runs it.
   await db.exec(`begin;${MIGRATION}commit;`);
-  await db.exec(`begin;${SHARE_ON_DELIVERED}commit;`);
 
   // Delivered after it: the trigger freezes 80% as D1 leaves pending.
   await order(ORD.d1, ALPHA, '2026-09-02', '2026-09-02T09:00:00+05', 'DMD-000101', [{ qty: 12, approved: 10, unitPrice: 100 }]);
@@ -780,86 +778,3 @@ test('the Collections export marks a demand Provisional while anything on it wai
   assert.ok(!after.some((x) => x[0] && typeof x[0] === 'object' && 'richText' in x[0]
     && (x[0].richText as { text: string }[]).some((p) => p.text.includes('Provisional'))));
 });
-
-test('from 1 Nov 2026 the share is on Delivered: Return and Discount are shown, not subtracted — on the record and the slip', async () => {
-  // Owner's rule, 2026-11-07 (migration 20261107000001): a demand required on
-  // or after finance_settings.share_on_delivered_from takes Company Share =
-  // Delivered × %, and its Return and Discount stay figures of their own.
-  // October keeps (Delivered − Return − Discount) × %.
-  const EPS = '40000000-0000-4000-8000-00000000000e';
-  const E1 = '60000000-0000-4000-8000-0000000000e1';
-  const E2 = '60000000-0000-4000-8000-0000000000e2';
-  const E3 = '60000000-0000-4000-8000-0000000000e3';
-  await db.query(`insert into branches (id, name, slug, company_share_pct) values ($1, 'Epsilon', 'epsilon', 80)`, [EPS]);
-  await order(E1, EPS, '2026-10-30', '2026-10-30T20:00:00+05', 'DMD-000501', [{ qty: 10, approved: 10, unitPrice: 100 }]);
-  await order(E2, EPS, '2026-10-31', '2026-10-31T20:00:00+05', 'DMD-000502', [{ qty: 20, approved: 20, unitPrice: 100 }]);
-  for (const id of [E1, E2]) {
-    await setStatus(id, 'awaiting_verification');
-    await setStatus(id, 'approved');
-  }
-  await db.query(`update production_orders set required_date = '2026-10-31' where id = $1`, [E1]);
-  await db.query(`update production_orders set required_date = '2026-11-01' where id = $1`, [E2]);
-  await discount(EPS, E1, 100, 'approved', '2026-10-30T21:00:00+05');
-  await discount(EPS, E2, 200, 'approved', '2026-11-01T12:00:00+05');
-  await returnRow(EPS, 'accepted', '2026-11-01', '2026-11-01T13:00:00+05', 3);
-
-  const rows = (await rowsOf(`&branchId=${EPS}`)).rows as Json[];
-  const [e1, e2] = rows;
-  // October: the old rule.
-  assert.equal(e1.shareOnDelivered, false);
-  assert.equal(e1.gTotal, 1000 - 100);
-  assert.equal(e1.companyShare, 720);
-  // November: the share on Delivered; Return and Discount kept, not subtracted.
-  assert.equal(e2.shareOnDelivered, true);
-  assert.equal(e2.delivered, 2000);
-  assert.equal(e2.discount, 200);
-  assert.ok(e2.returns > 0, 'the return is still recorded');
-  assert.equal(e2.gTotal, 2000);
-  assert.equal(e2.companyShare, 1600);
-  assert.equal(e2.previousBalance, e1.closingBalance);
-  assert.equal(e2.closingBalance, e1.closingBalance + 1600);
-
-  // The slip bills the previous demand on the same rule, by its required date.
-  const { getPreviousOrderBalance } = await import('../previous-balance.service');
-  await order(E3, EPS, '2026-11-02', '2026-11-02T20:00:00+05', 'DMD-000503', [{ qty: 1, approved: 1, unitPrice: 100 }]);
-  const onE2 = (await getPreviousOrderBalance(E3))!;
-  assert.equal(onE2.previous?.demandNumber, 'DMD-000502');
-  assert.equal(onE2.returnsDeducted, false);
-  assert.equal(onE2.amountToCollect, onE2.companyShareValue);
-  assert.ok(onE2.returnsValue > 0 && onE2.discountsValue > 0, 'shown on the slip as their own figures');
-  const onE1 = (await getPreviousOrderBalance(E2))!;
-  assert.equal(onE1.previous?.demandNumber, 'DMD-000501');
-  assert.equal(onE1.returnsDeducted, true);
-  assert.equal(onE1.amountToCollect, onE1.companyShareValue - onE1.returnsValue - onE1.discountsValue);
-});
-
-test('the reconciliation report puts each demand\'s slip beside its Demand Record row, read only', async () => {
-  // Epsilon, from the test above. Bun is Rs. 120 today; the orders were priced
-  // at Rs. 100, so the slip (today's price) and the record (the order's price)
-  // differ on Delivered — the "price" difference — on both demands.
-  const EPS = '40000000-0000-4000-8000-00000000000e';
-  const rec = ok(await call('accountant', 'GET', `${API}/reconciliation?branchId=${EPS}&from=2026-10-30&to=2026-11-02`));
-  const byNo = Object.fromEntries((rec.rows as Json[]).map((r: Json) => [r.demandNumber, r]));
-  // October (old rule): the slip on DMD-000502 collects 1,200 × 80% − the 100 discount = 860; the record books 720.
-  const oct = byNo['DMD-000501'];
-  assert.equal(oct.shareOnDelivered, false);
-  assert.equal(oct.slip.billedOn, 'DMD-000502');
-  assert.deepEqual([oct.slip.delivered, oct.slip.amountToCollect, oct.record.companyShare], [1200, 860, 720]);
-  assert.deepEqual([oct.priceDifference, oct.collectDifference, oct.status], [200, 140, 'differs']);
-  // November (new rule): both take 80% of Delivered and subtract nothing; only the price differs.
-  const nov = byNo['DMD-000502'];
-  assert.equal(nov.shareOnDelivered, true);
-  assert.equal(nov.slip.returnsDeducted, false);
-  assert.deepEqual([nov.slip.delivered, nov.slip.amountToCollect, nov.record.companyShare], [2400, 1920, 1600]);
-  assert.deepEqual([nov.priceDifference, nov.collectDifference], [400, 320]);
-  assert.equal(nov.collectDifference, toPaisaPct(nov.priceDifference, 80), 'the whole gap is the price basis');
-  const [eps] = rec.branches as Json[];
-  assert.deepEqual([eps.demands, eps.differs, eps.collectDifference], [2, 2, 460]);
-
-  // Read only: nothing in the record moved.
-  const after = (await rowsOf(`&branchId=${EPS}`)).rows as Json[];
-  assert.deepEqual(after.map((r: Json) => r.closingBalance), [720, 720 + 1600]);
-  assert.equal((await call('accountant', 'GET', `${API}/reconciliation?from=2026-01-01&to=2026-12-31`)).status, 400);
-});
-
-const toPaisaPct = (n: number, pct: number) => Math.round(n * pct) / 100;

@@ -898,7 +898,6 @@ model finance_settings {
   updated_at                 DateTime  @default(now()) @db.Timestamptz(6)
   updated_by                 String    @default("")
   account_ledger_start       DateTime? @db.Date
-  share_on_delivered_from    DateTime? @db.Date
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.

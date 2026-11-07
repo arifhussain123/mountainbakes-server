@@ -107,19 +107,3 @@ test('period totals take balances once per branch, never summed down the rows', 
   // Opening + period share + adjustments − received = closing.
   assert.equal(t.openingBalance + t.companyShare + t.adjustments - t.received, t.closingBalance);
 });
-
-test('Company Share on Delivered from its date; Return and Discount kept, never subtracted (owner, 2026-11-07)', () => {
-  const f = (businessDate: string) => ({
-    branchId: 'a', branchName: 'A', orderId: businessDate, demandNumber: businessDate, businessDate,
-    at: `${businessDate}T10:00:00Z`, status: 'approved', frozenPct: 75, livePct: 75,
-    delivered: 100000, returns: 6000, returnsQty: 60, discount: 4000, received: 0, sales: 0, adjustments: 0, unpricedLines: 0,
-  });
-  const [oct31, nov1] = computeBranchAccount([f('2026-10-31'), f('2026-11-01')], 0, '2026-11-01');
-  // Before the date: (100,000 − 6,000 − 4,000) × 75% = 67,500.
-  assert.deepEqual([oct31!.shareOnDelivered, oct31!.gTotal, oct31!.companyShare], [false, 90000, 67500]);
-  // On it: 100,000 × 75% = 75,000; the 6,000 and 4,000 are still there, unsubtracted.
-  assert.deepEqual([nov1!.shareOnDelivered, nov1!.gTotal, nov1!.companyShare, nov1!.returns, nov1!.discount], [true, 100000, 75000, 6000, 4000]);
-  assert.equal(nov1!.closingBalance, 67500 + 75000);
-  // No date set: the old rule everywhere.
-  assert.equal(computeBranchAccount([f('2026-11-01')])[0]!.companyShare, 67500);
-});

@@ -3,7 +3,6 @@ import {
   businessDateStr,
   companyShareOf,
   computeBranchAccount,
-  isShareOnDelivered,
   totalBranchAccount,
   toPaisa,
   type BranchAccountAdjustment,
@@ -301,18 +300,6 @@ const ROWS_SQL = `
 /** A row's facts plus the bounds of its window, for the detail view. */
 type FactsRow = BranchAccountFacts & { lo: string; hi: string | null };
 
-/**
- * The Company-Share-on-Delivered date (finance_settings.share_on_delivered_from,
- * owner's rule 2026-11-07): rows dated on or after it take their share on
- * Delivered, Return and Discount not subtracted. Null: the old net rule.
- */
-export async function getShareOnDeliveredFrom(): Promise<string | null> {
-  const rows = await getPrisma().$queryRawUnsafe<{ d: string | null }[]>(
-    `select to_char(share_on_delivered_from, 'YYYY-MM-DD') as d from public.finance_settings limit 1`,
-  );
-  return rows[0]?.d ?? null;
-}
-
 export async function getLedgerStart(): Promise<string | null> {
   const rows = await getPrisma().$queryRawUnsafe<{ start: string | null }[]>(
     `select to_char(account_ledger_start, 'YYYY-MM-DD') as start from public.finance_settings limit 1`,
@@ -328,10 +315,7 @@ async function requireLedgerStart(): Promise<string> {
 
 /** Every row of every branch in scope, from the go-live day to now, with the running balance. */
 async function loadAccounts(branchId: string | null, start: string): Promise<(BranchAccountRow & { lo: string; hi: string | null })[]> {
-  const [facts, deliveredFrom] = await Promise.all([
-    getPrisma().$queryRawUnsafe<FactsRow[]>(ROWS_SQL, branchId, start),
-    getShareOnDeliveredFrom(),
-  ]);
+  const facts = await getPrisma().$queryRawUnsafe<FactsRow[]>(ROWS_SQL, branchId, start);
   const byBranch = new Map<string, FactsRow[]>();
   for (const f of facts) {
     // An opening row with nothing in it says nothing; a branch's demands always show.
@@ -347,7 +331,7 @@ async function loadAccounts(branchId: string | null, start: string): Promise<(Br
     // do — so a branch's final balance is the same either way, and a period
     // cut by date splits the chain cleanly.
     list.sort(chainOrder);
-    const rows = computeBranchAccount(list, 0, deliveredFrom);
+    const rows = computeBranchAccount(list);
     rows.forEach((r, i) => out.push({ ...r, lo: list[i]!.lo, hi: list[i]!.hi }));
   }
   return out;
@@ -739,7 +723,7 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
 
   const all = await loadAccounts(branchId, start);
   const orderIds = all.flatMap((r) => (r.orderId ? [r.orderId] : []));
-  const [required, branchRows, deliveredFrom] = await Promise.all([
+  const [required, branchRows] = await Promise.all([
     orderIds.length === 0
       ? Promise.resolve([] as { id: string; day: string }[])
       : prisma.$queryRawUnsafe<{ id: string; day: string }[]>(
@@ -748,7 +732,6 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
     prisma.$queryRawUnsafe<{ id: string; name: string; pct: number }[]>(
       `select id::text as id, name, app.resolve_company_share_pct(id)::float8 as pct
          from public.branches where $1::uuid is null or id = $1::uuid order by name`, branchId),
-    getShareOnDeliveredFrom(),
   ]);
   const dayOf = new Map(required.map((r) => [r.id, r.day]));
   const byBranch = new Map<string, AccountRow[]>();
@@ -759,7 +742,6 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
   const ctx: CollectionsContext = {
     start, branchId, branchRows, byBranch,
     dateOf: (r) => (r.orderId ? dayOf.get(r.orderId) ?? r.businessDate : r.businessDate),
-    deliveredFrom,
   };
 
   // Every whole month before the window, from the go-live day, in turn: each
@@ -817,8 +799,6 @@ interface CollectionsContext {
   byBranch: Map<string, AccountRow[]>;
   /** A row's date on this sheet: a demand's required date. */
   dateOf: (r: BranchAccountRow) => string;
-  /** The Company-Share-on-Delivered date (getShareOnDeliveredFrom). */
-  deliveredFrom: string | null;
 }
 
 /** Each branch's final balance at the end of `through`, the last day of a month worked through before. */
@@ -839,7 +819,7 @@ function dayBefore(ymd: string): string {
 
 /** One window of the Collections sheet, every branch's chain (see getCollectionsMonth). */
 async function collectionsWindow(ctx: CollectionsContext, from: string, to: string, carry: Carry | null) {
-  const { start, branchId, branchRows, byBranch, dateOf, deliveredFrom } = ctx;
+  const { start, branchId, branchRows, byBranch, dateOf } = ctx;
   const prisma = getPrisma();
   const monthClosed = to === monthEndOf(to);
   // The 1st of a month after the go-live day opens on the month before's
@@ -924,7 +904,7 @@ async function collectionsWindow(ctx: CollectionsContext, from: string, to: stri
     const facts = [opening, ...demands.map((d) => d.fact)];
     const deductAt = monthClosed && closingValue !== 0 ? facts.length - 1 : -1;
     if (deductAt >= 0) facts[deductAt] = { ...facts[deductAt]!, delivered: toPaisa(facts[deductAt]!.delivered - closingValue) };
-    const computed = computeBranchAccount(facts, carried, deliveredFrom);
+    const computed = computeBranchAccount(facts, carried);
     computed.forEach((r, i) => rows.push({
       ...r,
       open: i === 0 ? false : demands[i - 1]!.open,
@@ -1416,15 +1396,11 @@ export async function getDemandFiguresBeforeRecord(
      order by d.rd, d.demand_number, d.branch_name`,
     q.branchId ?? null, start, q.from, q.to);
 
-  const deliveredFrom = await getShareOnDeliveredFrom();
   return {
     start,
     rows: rows.map(({ frozenPct, livePct, ...r }) => {
       const sharePct = frozenPct ?? livePct;
-      // The same rule as every Demand Record row (computeBranchAccount), by the required date.
-      const gTotal = isShareOnDelivered(r.businessDate, deliveredFrom)
-        ? toPaisa(r.delivered)
-        : toPaisa(r.delivered - r.returns - r.discount);
+      const gTotal = toPaisa(r.delivered - r.returns - r.discount);
       return { ...r, delivered: toPaisa(r.delivered), returns: toPaisa(r.returns), discount: toPaisa(r.discount), gTotal, sharePct, companyShare: companyShareOf(gTotal, sharePct) };
     }),
   };

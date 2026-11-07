@@ -356,24 +356,13 @@ export interface LedgerPage {
  * is the previous month's final closing balance, carried forward the same way
  * `FinanceDayClosing.openingBalance` is: everything posted before `monthStart`.
  */
-/** One account's month-to-date figures on the Daily Ledger summary. */
-export interface LedgerAccountSummary {
-  openingBalance: number;
-  totalReceived: number;
-  totalExpense: number;
-  balance: number;
-}
-
 export interface LedgerSummary {
   businessDate: string;
   monthStart: string;
-  /** Cash and bank TOGETHER — a total of the two accounts below, shown as such, never in place of them. */
   openingBalance: number;
   totalReceived: number;
   totalExpense: number;
   balance: number;
-  /** Each account on its own (centralized ledger rules, §5). Absent on an older server. */
-  accounts?: { cash: LedgerAccountSummary; bank: LedgerAccountSummary };
 }
 
 // ---------------------------------------------------------------------------
@@ -2306,67 +2295,4 @@ export interface FinancePendingApproval {
   amount: number;
   status: FinanceDocStatus;
   raisedBy: string | null;
-}
-
-// ---------------------------------------------------------------------------
-// Ledger reconciliation — collection slip against Demand Record (read only)
-// ---------------------------------------------------------------------------
-
-export interface LedgerReconciliationFigures {
-  delivered: number;
-  returns: number;
-  discount: number;
-  companyShare: number;
-}
-
-export interface LedgerReconciliationRow {
-  orderId: string;
-  demandNumber: string;
-  branchId: string;
-  branchName: string;
-  /** The demand's required date (its business date when it has none). */
-  date: string;
-  /** From 1 Nov 2026: Company Share on Delivered, Return and Discount not subtracted. */
-  shareOnDelivered: boolean;
-  /**
-   * match: the slip collects what the record books. differs: it does not.
-   * not_billed: no later order, so no slip yet. billed_other: the next slip
-   * billed a different demand (this one was not Awaiting Verification or
-   * Approved when it printed).
-   */
-  status: 'match' | 'differs' | 'not_billed' | 'billed_other';
-  record: LedgerReconciliationFigures;
-  slip: (LedgerReconciliationFigures & {
-    /** The order whose slip carries this demand's collection. */
-    billedOn: string;
-    billedDemand: string | null;
-    amountToCollect: number;
-    returnsDeducted: boolean;
-  }) | null;
-  /** Slip Delivered − record Delivered: today's price against the order's price. */
-  priceDifference: number;
-  /** Slip Amount to Collect − record Company Share: everything, price included. */
-  collectDifference: number;
-}
-
-export interface LedgerReconciliationBranch {
-  branchId: string;
-  branchName: string;
-  demands: number;
-  match: number;
-  differs: number;
-  notBilled: number;
-  billedOther: number;
-  /** Over the billed demands only (match + differs). */
-  recordShare: number;
-  slipCollect: number;
-  priceDifference: number;
-  collectDifference: number;
-}
-
-export interface LedgerReconciliation {
-  from: string;
-  to: string;
-  branches: LedgerReconciliationBranch[];
-  rows: LedgerReconciliationRow[];
 }

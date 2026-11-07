@@ -59,13 +59,6 @@ export interface BranchAccountRow extends BranchAccountFacts {
   sharePct: number;
   /** False when the row fell back to today's % (opening rows, or a demand nothing froze). */
   pctFrozen: boolean;
-  /**
-   * True from the Company-Share-on-Delivered date (owner's rule, 2026-11-07):
-   * the share is Delivered × %, and Return and Discount are figures of their
-   * own, never subtracted. False before it: (Delivered − Return − Discount) × %.
-   */
-  shareOnDelivered: boolean;
-  /** The base the share is taken on: Delivered (shareOnDelivered), else Delivered − Returns − Discount. */
   gTotal: number;
   companyShare: number;
   /** Actual Sales × %: for comparison with Share Received only. */
@@ -74,7 +67,7 @@ export interface BranchAccountRow extends BranchAccountFacts {
   closingBalance: number;
   /** Gross delivered value — the same figure as `delivered`. */
   totalDemandAmount: number;
-  /** The share's base — the same figure as `gTotal`: Delivered from the Company-Share-on-Delivered date, else the net demand. */
+  /** Net demand: Delivered − Returns − Discount — the same figure as `gTotal`. */
   demand: number;
   /** Previous Balance + Company Share + Adjustments: what is owed before this row's payments. */
   amountDue: number;
@@ -90,31 +83,16 @@ export function companyShareOf(base: number, pct: number): number {
 }
 
 /**
- * Whether a row dated `date` takes its Company Share on Delivered (owner's
- * rule, 2026-11-07): on or after `deliveredFrom` (finance_settings.
- * share_on_delivered_from). Null: the old net rule everywhere.
+ * One branch's rows, already in order (opening first, then by submission
+ * time), into money with the running balance. `startBalance` is the balance
+ * before the first row given — 0 when the list starts at the opening row.
  */
-export function isShareOnDelivered(date: string, deliveredFrom: string | null): boolean {
-  return deliveredFrom !== null && date >= deliveredFrom;
-}
-
-/**
- * One branch's rows, already in order (opening first, then by date), into
- * money with the running balance. `startBalance` is the balance before the
- * first row given — 0 when the list starts at the opening row.
- *
- * The share, by each row's date against `deliveredFrom`:
- *   from that date  Company Share = Delivered × %          (Return, Discount: their own figures)
- *   before it       Company Share = (Delivered − Return − Discount) × %
- * Either way Closing = Previous + Company Share + Adjustments − Received.
- */
-export function computeBranchAccount(facts: BranchAccountFacts[], startBalance = 0, deliveredFrom: string | null = null): BranchAccountRow[] {
+export function computeBranchAccount(facts: BranchAccountFacts[], startBalance = 0): BranchAccountRow[] {
   let balance = toPaisa(startBalance);
   return facts.map((f) => {
     const pctFrozen = f.frozenPct !== null;
     const sharePct = pctFrozen ? f.frozenPct! : f.livePct;
-    const shareOnDelivered = isShareOnDelivered(f.businessDate, deliveredFrom);
-    const gTotal = shareOnDelivered ? toPaisa(f.delivered) : toPaisa(f.delivered - f.returns - f.discount);
+    const gTotal = toPaisa(f.delivered - f.returns - f.discount);
     const companyShare = companyShareOf(gTotal, sharePct);
     const previousBalance = balance;
     const amountDue = toPaisa(previousBalance + companyShare + f.adjustments);
@@ -124,7 +102,6 @@ export function computeBranchAccount(facts: BranchAccountFacts[], startBalance =
       ...f,
       sharePct,
       pctFrozen,
-      shareOnDelivered,
       gTotal,
       companyShare,
       shareOnSales: companyShareOf(f.sales, sharePct),

@@ -135,7 +135,6 @@ before(async () => {
   `);
   await db.exec(lift('CREATE FUNCTION public.post_finance_ledger_entry(', '$$;'));
   await db.exec(lift('CREATE FUNCTION public.finance_day_summary(', '$$;'));
-  await db.exec(lift('CREATE FUNCTION public.finance_ledger_totals(', '$$;'));
   await db.exec(`begin;${AUTH}commit;`);
 
   await db.exec(`
@@ -347,27 +346,4 @@ describe('the workbook', () => {
     assert.equal(wb.worksheets.length, 7);
     assert.equal(entryIds(wb).length, 0);
   });
-});
-
-test('Daily Ledger summary: cash and bank each keep their own opening, received, expense and balance', async () => {
-  // Centralized ledger rules §5: the two accounts are never one figure. The
-  // combined line stays, as the total of the two.
-  const { getLedgerSummary } = await import('../finance-ledger.service');
-  const oct = await getLedgerSummary({ to: '2026-10-11' });
-  assert.deepEqual(oct.accounts, {
-    cash: { openingBalance: 0, totalReceived: 65500, totalExpense: 8000, balance: 57500 },
-    bank: { openingBalance: 0, totalReceived: 25000, totalExpense: 1200, balance: 23800 },
-  });
-  assert.equal(oct.totalReceived, 65500 + 25000);
-  assert.equal(oct.balance, 57500 + 23800);
-
-  // November opens on each account's own October close (12 Oct's 999 included).
-  const nov = await getLedgerSummary({ to: '2026-11-05' });
-  assert.equal(nov.accounts!.cash.openingBalance, 57500 - 999);
-  assert.equal(nov.accounts!.bank.openingBalance, 23800);
-  assert.equal(nov.openingBalance, nov.accounts!.cash.openingBalance + nov.accounts!.bank.openingBalance);
-
-  // Narrowed to a branch, each account's opening is that branch's alone.
-  const dha = await getLedgerSummary({ to: '2026-11-05', branchId: DHA });
-  assert.deepEqual([dha.accounts!.cash.openingBalance, dha.accounts!.bank.openingBalance], [1500, -1200]);
 });
