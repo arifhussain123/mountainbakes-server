@@ -325,8 +325,7 @@ function toEntry(raw: Record<string, unknown>): LoanEntry {
 export type LoanLedgerQuery = Omit<LoanLedgerQueryInput, 'limit' | 'offset'> & { limit: number; offset: number };
 
 /** One page of the register, with the filtered set's opening, totals and closing balance. */
-export async function getLoanLedger(q: LoanLedgerQuery, opts: { photos?: boolean } = {}): Promise<LoanLedgerPage> {
-  if (q.from > q.to) throw clientError('From must not be after To', 400);
+async function readLoanLedger(q: LoanLedgerQuery): Promise<Record<string, unknown>> {
   const { data, error } = await db.rpc('finance_loan_ledger', {
     p_from: q.from,
     p_to: q.to,
@@ -341,8 +340,33 @@ export async function getLoanLedger(q: LoanLedgerQuery, opts: { photos?: boolean
     p_offset: q.offset,
   });
   if (error) throw asClientError(error);
+  return (data ?? {}) as Record<string, unknown>;
+}
 
-  const out = (data ?? {}) as Record<string, unknown>;
+/**
+ * Total Loan Payment split by type. Only the two loan types debit the
+ * register, so Receivable = totalDebit − Refundable; with no type filter that
+ * costs one more read of the same function, narrowed to Refundable Loan.
+ */
+async function loanDebitSplit(q: LoanLedgerQuery, totalDebit: number): Promise<{ totalRefundable: number; totalReceivable: number }> {
+  if (q.entryType) {
+    return {
+      totalRefundable: q.entryType === 'refundable_loan' ? totalDebit : 0,
+      totalReceivable: q.entryType === 'receivable_loan' ? totalDebit : 0,
+    };
+  }
+  const refundable = num((await readLoanLedger({ ...q, entryType: 'refundable_loan', limit: 1, offset: 0 }))['totalDebit']);
+  return { totalRefundable: refundable, totalReceivable: Math.round((totalDebit - refundable) * 100) / 100 };
+}
+
+export async function getLoanLedger(
+  q: LoanLedgerQuery,
+  opts: { photos?: boolean; split?: boolean } = {},
+): Promise<LoanLedgerPage> {
+  if (q.from > q.to) throw clientError('From must not be after To', 400);
+  const out = await readLoanLedger(q);
+  const totalDebit = num(out['totalDebit']);
+  const split = opts.split === false ? { totalRefundable: 0, totalReceivable: 0 } : await loanDebitSplit(q, totalDebit);
   const entries = ((out['rows'] ?? []) as Record<string, unknown>[]).map(toEntry);
 
   if (opts.photos !== false && entries.length) {
@@ -354,7 +378,8 @@ export async function getLoanLedger(q: LoanLedgerQuery, opts: { photos?: boolean
     from: q.from,
     to: q.to,
     openingBalance: num(out['openingBalance']),
-    totalDebit: num(out['totalDebit']),
+    totalDebit,
+    ...split,
     totalCredit: num(out['totalCredit']),
     closingBalance: num(out['closingBalance']),
     total: num(out['count']),
@@ -370,7 +395,7 @@ export async function getLoanLedgerAll(q: Omit<LoanLedgerQuery, 'limit' | 'offse
   const first = await getLoanLedger({ ...q, limit: PAGE, offset: 0 }, { photos: false });
   const entries = [...first.entries];
   while (entries.length < first.total) {
-    const next = await getLoanLedger({ ...q, limit: PAGE, offset: entries.length }, { photos: false });
+    const next = await getLoanLedger({ ...q, limit: PAGE, offset: entries.length }, { photos: false, split: false });
     if (next.entries.length === 0) break;
     entries.push(...next.entries);
   }

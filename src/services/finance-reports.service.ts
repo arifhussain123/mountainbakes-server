@@ -378,6 +378,8 @@ async function loanLedger(
     summary: [
       { label: 'Opening Balance', value: book.openingBalance, format: 'money' },
       { label: 'Total Loan Payment', value: book.totalDebit, format: 'money' },
+      { label: 'Refundable Loan', value: book.totalRefundable, format: 'money' },
+      { label: 'Receivable Loan', value: book.totalReceivable, format: 'money' },
       { label: 'Loan Paid', value: book.totalCredit, format: 'money' },
       { label: 'Closing Balance', value: book.closingBalance, format: 'money' },
     ],

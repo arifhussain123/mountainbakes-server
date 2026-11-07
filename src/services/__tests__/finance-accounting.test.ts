@@ -536,7 +536,8 @@ describe('workbook', () => {
         totalRefundable: 125000, totalReceivable: 50000, totalDebit: 175000, totalCredit: 50000, balance: 125000, entryCount: 5,
       }],
       ledger: {
-        from: '2026-10-10', to: '2026-10-12', openingBalance: 0, totalDebit: 150000, totalCredit: 30000, closingBalance: 125000,
+        from: '2026-10-10', to: '2026-10-12', openingBalance: 0, totalDebit: 150000, totalRefundable: 100000, totalReceivable: 50000,
+        totalCredit: 30000, closingBalance: 125000,
         total: 3, limit: 3, offset: 0, entries,
       },
     };
