@@ -13,7 +13,7 @@ import {
   SYSTEM_LEDGER_HEAD_CODES,
 } from '../shared';
 import { round2 } from './finance-settings.service';
-import { getCollectionsMonth, getLedgerStart, type CollectionsRow } from './branch-account.service';
+import { getDemandRecordRows } from './branch-account.service';
 
 const db = dbFor('finance-monthly-dashboard');
 
@@ -32,15 +32,11 @@ const db = dbFor('finance-monthly-dashboard');
  * balance), and the ledger totals. Nothing downloads transactions.
  *
  * Once the Demand Record is switched on, the income figures from its go-live
- * day are the Collections export's (owner's rule, 2026-11-07) — see
- * collectionsFor / applyDemandRecord:
- *   Demand         = Delivered − Returns − Discount (the net demand), each
- *                    demand on its required date; each month opens with an
- *                    Opening Stock row on the 1st (the stock the branch held,
- *                    charged like a demand) and, once finished, takes its
- *                    Closing Stock off the branch's last demand
+ * day follow the Demand Record restructure
+ * (docs/demand-record-accounting-migration.md) — see applyDemandRecord:
+ *   Demand         = Delivered − Returns − Discount (the net demand)
  *   Company Share  = Demand × the demand's frozen share %
- *   Last Month Balance = what the Collections sheet carries into the month
+ *   Last Month Balance = each branch's Remaining carried into the month
  *
  * Received is the Daily Ledger's Company Share income only (no Fuel, no
  * other head), per branch, by entry date — see applyCompanyShareReceipts.
@@ -223,40 +219,28 @@ export function applyCompanyShareReceipts(
 }
 
 /**
- * Each branch's balance carried into the month on the Collections sheet (owed
- * positive): the Previous of its first row on or after `monthFirst` (the
- * month's Opening Stock row), else the Closing of its last row before it.
- * `rows` are the sheet's, by branch then date.
+ * Each branch's Remaining carried into a month: the closing balance of its last
+ * Demand Record row dated before `monthFirst`.
+ *
+ * A branch in the record with no row before the month still carried something
+ * real: its opening row's balance (Finance's opening entry) or, with none, 0 —
+ * the owner's rule is that every branch starts the Demand Record at zero. So it
+ * is listed with that figure, not left blank, once the record has started by
+ * the month's end. A branch whose rows all fall after the month (the record
+ * had not begun) is left out: null on the table, "no records".
  */
-export function collectionsCarried(rows: CollectionsRow[], monthFirst: string): FinanceDashboardPreviousBalance[] {
-  const carried = new Map<string, { balance: number; fixed: boolean }>();
+export function carriedBalances(rows: DemandRecordRow[], monthFirst: string, monthLast: string): FinanceDashboardPreviousBalance[] {
+  const carried = new Map<string, number>();
   for (const r of rows) {
-    const c = carried.get(r.branchId);
-    if (c?.fixed) continue;
-    if (r.businessDate < monthFirst) carried.set(r.branchId, { balance: r.closingBalance, fixed: false });
-    else carried.set(r.branchId, { balance: r.previousBalance, fixed: true });
+    if (r.businessDate < monthFirst) {
+      carried.set(r.branchId, r.remaining);
+    } else if (!carried.has(r.branchId) && r.businessDate <= monthLast) {
+      // The branch's first row in this month: an opening row's balance is
+      // brought forward; a demand's Previous is what it started from (0).
+      carried.set(r.branchId, r.orderId === null ? r.remaining : r.previousBalance);
+    }
   }
-  return [...carried].map(([branchId, c]) => ({ branchId, balance: round2(c.balance) }));
-}
-
-/** The rows that count: a Closing Stock row is shown on the sheet, never counted. */
-const counted = (rows: CollectionsRow[]) => rows.filter((r) => r.stockRow !== 'closing');
-
-/**
- * The Collections sheet for [from, to], as the export makes it — `to` cut at
- * today, as the export's own default (the month to date), so an unfinished
- * month takes no closing stock off. Null while the Demand Record is off; no
- * rows for a window that lies wholly before the go-live day or after today.
- */
-async function collectionsFor(branchId: string | null, from: string, to: string): Promise<{ start: string; rows: CollectionsRow[] } | null> {
-  const start = await getLedgerStart();
-  if (!start) return null;
-  const today = businessDateStr();
-  const lo = from > start ? from : start;
-  const hi = to < today ? to : today;
-  if (hi < lo) return { start, rows: [] };
-  const sheet = await getCollectionsMonth({ branchId, from: lo, to: hi });
-  return sheet ? { start, rows: sheet.rows } : null;
+  return [...carried].map(([branchId, balance]) => ({ branchId, balance: round2(balance) }));
 }
 
 export async function getFinanceMonthlyDashboard(params: {
@@ -272,16 +256,12 @@ export async function getFinanceMonthlyDashboard(params: {
   const previousMonth = shiftMonth(month, -1);
   const trendFrom = monthBounds(shiftMonth(month, -5)).first;
 
-  // The trend's sheet runs a month at a time, so its rows for the selected
-  // month are that month's own sheet; a custom window gets a sheet of its own.
-  const wholeMonth = from === bounds.first && to === bounds.last;
-  const [current, window6, ledgerTotals, branchesRes, trendSheet, windowSheet, receipts] = await Promise.all([
+  const [current, window6, ledgerTotals, branchesRes, record, receipts] = await Promise.all([
     callDashboard(from, to, branchId, true),
     callDashboard(trendFrom, bounds.last, branchId, false),
     db.rpc('finance_ledger_totals', { p_from: from, p_to: to, p_branch_id: branchId }),
     db.from('branches').select('id, name, is_active').order('name'),
-    collectionsFor(branchId, trendFrom, bounds.last),
-    wholeMonth ? Promise.resolve(null) : collectionsFor(branchId, from, to),
+    getDemandRecordRows(branchId),
     // The selected window always lies inside the trend's six months.
     companyShareReceipts(trendFrom, bounds.last, branchId),
   ]);
@@ -291,11 +271,9 @@ export async function getFinanceMonthlyDashboard(params: {
   let days = current.days.map(toDay);
   const ledger = current.ledger.map(toLedgerRow);
   let trendDays = window6.days.map(toDay);
-  const record = trendSheet;
-  if (trendSheet) {
-    const windowRows = wholeMonth ? trendSheet.rows : (windowSheet?.rows ?? []);
-    days = applyDemandRecord(days, counted(windowRows), trendSheet.start, from, to);
-    trendDays = applyDemandRecord(trendDays, counted(trendSheet.rows), trendSheet.start, trendFrom, bounds.last);
+  if (record) {
+    days = applyDemandRecord(days, record.rows, record.start, from, to);
+    trendDays = applyDemandRecord(trendDays, record.rows, record.start, trendFrom, bounds.last);
   }
   days = applyCompanyShareReceipts(days, receipts, from, to);
   trendDays = applyCompanyShareReceipts(trendDays, receipts, trendFrom, bounds.last);
@@ -332,12 +310,12 @@ export async function getFinanceMonthlyDashboard(params: {
     branchId: b,
     balance: dashboardBalance(sum(rows, (r) => r.companyShare), sum(rows, (r) => r.received)),
   }));
-  // On the Demand Record, a branch's last-month balance is what the Collections
-  // sheet carries into this month — previous balances included — not last
-  // month's activity alone, on the dashboard's sign: what is still owed is
-  // negative. Receipts with no branch keep their old line.
+  // On the Demand Record, a branch's last-month balance is what it carried into
+  // this month — its Remaining, previous balances included — not last month's
+  // activity alone, on the dashboard's sign: what is still owed is negative.
+  // Receipts with no branch keep their old line.
   if (record) {
-    const carried = collectionsCarried(record.rows, bounds.first)
+    const carried = carriedBalances(record.rows, bounds.first, bounds.last)
       .map((c) => ({ branchId: c.branchId, balance: c.balance === null ? null : round2(-c.balance) || 0 }));
     previous = [...carried, ...previous.filter((p) => p.branchId === null)];
   }
@@ -448,8 +426,8 @@ export async function getFinanceDashboardRecords(params: RecordsParams): Promise
   // so the list behind a figure adds up to that figure. Demands always have a
   // branch, so the "no branch" list stays the SQL's (empty for these metrics).
   if ((params.metric === 'demand' || params.metric === 'share') && !params.noBranch) {
-    const sheet = await collectionsFor(params.branchId, params.from, params.to);
-    if (sheet) return demandRecordRecords(params, { start: sheet.start, rows: counted(sheet.rows) });
+    const record = await getDemandRecordRows(params.branchId);
+    if (record) return demandRecordRecords(params, record);
   }
   if (params.metric === 'received') return companyShareRecords(params);
   return callRecords(params, params.pageSize, (params.page - 1) * params.pageSize);
@@ -512,31 +490,25 @@ async function companyShareRecords(params: RecordsParams): Promise<FinanceDashbo
   };
 }
 
-/** The drill-down list for Demand / Company Share, from the Collections sheet's counted rows. */
+/** The drill-down list for Demand / Company Share, from the Demand Record's rows. */
 async function demandRecordRecords(
   params: RecordsParams,
-  record: { start: string; rows: CollectionsRow[] },
+  record: { start: string; rows: DemandRecordRow[] },
 ): Promise<FinanceDashboardRecordsPage> {
   const share = params.metric === 'share';
   const lo = params.from > record.start ? params.from : record.start;
   const list: FinanceDashboardRecord[] = record.rows
     .filter((r) => r.businessDate >= lo && r.businessDate <= params.to)
-    // An Opening Stock row that charges nothing (no stock, no returns) adds
-    // nothing to the figure, so it is not listed behind it.
-    .filter((r) => r.orderId !== null || r.demand !== 0 || r.companyShare !== 0)
     .map((r) => ({
-      id: r.orderId ?? `opening-stock-${r.branchId}-${r.businessDate}`,
-      reference: r.demandNumber ?? 'Opening Stock',
+      id: r.orderId ?? `opening-${r.branchId}`,
+      reference: r.demandNumber ?? 'Opening',
       date: r.businessDate,
       branchId: r.branchId,
       branchName: r.branchName,
-      source: r.orderId ? 'Production order' : 'Opening stock',
+      source: r.orderId ? 'Production order' : 'Opening',
       detail: share
         ? `${r.sharePct}% of ${money(r.demand)}`
-        : r.orderId
-          ? `Delivered ${money(r.delivered + r.closingStockDeducted)}${r.closingStockDeducted
-            ? ` − Closing stock ${money(r.closingStockDeducted)}` : ''} − Return ${money(r.returns)} − Discount ${money(r.discount)}`
-          : `Opening stock ${money(r.delivered)} − Return ${money(r.returns)} − Discount ${money(r.discount)}`,
+        : `Delivered ${money(r.delivered)} − Return ${money(r.returns)} − Discount ${money(r.discount)}`,
       status: r.status ?? 'opening',
       amount: share ? r.companyShare : r.demand,
       createdBy: null,
@@ -552,10 +524,8 @@ async function demandRecordRecords(
   const hit = q
     ? list.filter((r) => [r.reference, r.id, r.branchName, r.detail, r.source].some((v) => (v ?? '').toLowerCase().includes(q)))
     : list;
-  // The day's Opening Stock first, as on the sheet.
-  const stockFirst = (r: FinanceDashboardRecord) => Number(r.source !== 'Opening stock');
   hit.sort((a, b) => a.date.localeCompare(b.date) || (a.branchName ?? '').localeCompare(b.branchName ?? '')
-    || stockFirst(a) - stockFirst(b) || (a.reference ?? '').localeCompare(b.reference ?? '') || a.id.localeCompare(b.id));
+    || (a.reference ?? '').localeCompare(b.reference ?? '') || a.id.localeCompare(b.id));
   const page = hit.slice((params.page - 1) * params.pageSize, params.page * params.pageSize);
 
   // Who raised and approved each demand on this page, as the SQL list shows.

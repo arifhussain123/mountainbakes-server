@@ -46,14 +46,12 @@ const fn = (qualified: string) => lift(`CREATE FUNCTION ${qualified}(`, '$$;');
 const TYPES = [
   'price_change_source', 'price_change_status', 'branch_production_order_status', 'production_return_disposition',
   'production_return_status', 'branch_discount_status', 'cash_transfer_status', 'order_status', 'payment_method',
-  'finance_account', 'finance_ledger_source', 'ledger_entry_status', 'ledger_head_type', 'stock_movement_type',
+  'finance_account', 'finance_ledger_source', 'ledger_entry_status', 'ledger_head_type',
 ];
 const TABLES = [
   'branches', 'products', 'product_price_history', 'production_orders', 'production_order_items',
   'production_returns', 'branch_discounts', 'cash_transfers', 'orders', 'finance_settings', 'finance_audit_logs',
   'ledger_heads', 'ledger_entries',
-  // Empty: the dashboard's Collections sheet values each branch's stock (none here).
-  'stock', 'stock_history',
 ];
 const FUNCTIONS = [
   'app.finance_received_head_ids', 'app.finance_order_values', 'public.finance_monthly_dashboard',
