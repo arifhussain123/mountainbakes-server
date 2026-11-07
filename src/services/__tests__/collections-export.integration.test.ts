@@ -57,11 +57,18 @@ const TYPES = [
   'price_change_source', 'price_change_status', 'branch_production_order_status', 'production_return_disposition',
   'production_return_status', 'branch_discount_status', 'cash_transfer_status', 'order_status', 'payment_method',
   'stock_movement_type',
+  // For the Finance Dashboard check at the end.
+  'finance_account', 'finance_ledger_source', 'ledger_entry_status', 'ledger_head_type',
 ];
 const TABLES = [
   'branches', 'products', 'product_price_history', 'production_orders', 'production_order_items',
   'production_returns', 'branch_discounts', 'cash_transfers', 'orders', 'finance_settings', 'finance_audit_logs',
-  'stock', 'stock_history',
+  'stock', 'stock_history', 'ledger_heads', 'ledger_entries',
+];
+const fn = (qualified: string) => lift(`CREATE FUNCTION ${qualified}(`, '$$;');
+const FUNCTIONS = [
+  'app.finance_received_head_ids', 'app.finance_order_values', 'public.finance_monthly_dashboard',
+  'public.finance_dashboard_records', 'public.finance_ledger_totals',
 ];
 
 const STUBS = `
@@ -191,7 +198,10 @@ before(async () => {
     alter table orders add primary key (id);
     alter table finance_audit_logs add primary key (id);
     alter table production_order_items add foreign key (production_order_id) references production_orders (id);
+    alter table ledger_heads add primary key (id);
+    alter table ledger_entries add primary key (id);
   `);
+  for (const f of FUNCTIONS) await db.exec(fn(f));
   await db.exec(`begin;${AUTH}commit;`);
   await db.exec(`
     insert into finance_settings (company_share_pct, branch_share_pct) values (80, 20);
@@ -678,4 +688,29 @@ test('a finished month takes its Closing Stock off the last demand, valued at th
   const again = await workbook('&from=2026-10-01&to=2026-10-31');
   assert.deepEqual(valuesOf(again.getWorksheet('Saddar')!), valuesOf(ws));
   assert.deepEqual(tableOf(again.getWorksheet('Collections')!), main);
+});
+
+test('the Finance Dashboard counts the Collections sheet: Opening Stock in, Closing Stock off, its balance carried', async () => {
+  // Owner's rule, 2026-11-07: the dashboard's Demand and Company Share are the
+  // sheet's — Saddar's October above: 2,000 of opening stock in, 3,600 of
+  // closing stock off DMD-000125 — and November's Last Month Balance is what
+  // the sheet carries into November, on the dashboard's sign (owed: negative).
+  const { getFinanceMonthlyDashboard, getFinanceDashboardRecords } = await import('../finance-monthly-dashboard.service');
+  const oct = await getFinanceMonthlyDashboard({ month: '2026-10', branchId: SADDAR });
+  assert.equal(oct.summary.demand, 126700);
+  assert.equal(oct.summary.companyShare, 101360);
+  assert.equal(oct.summary.orders, 3);
+  assert.deepEqual(oct.trend.at(-1)!, { ...oct.trend.at(-1)!, demand: 126700, companyShare: 101360 });
+
+  const base = { from: '2026-10-01', to: '2026-10-31', branchId: SADDAR, noBranch: false, ledgerHeadId: null, search: null, page: 1, pageSize: 25 };
+  const share = await getFinanceDashboardRecords({ ...base, metric: 'share' });
+  assert.equal(share.amount, 101360);
+  const demand = await getFinanceDashboardRecords({ ...base, metric: 'demand' });
+  assert.deepEqual(demand.rows.map((r) => [r.reference, r.amount]), [
+    ['Opening Stock', 2000], ['DMD-000123', 42800], ['DMD-000124', 48000], ['DMD-000125', 33900],
+  ]);
+  assert.match(demand.rows[3]!.detail!, /Delivered 39,000\.00 − Closing stock 3,600\.00/);
+
+  const nov = await getFinanceMonthlyDashboard({ month: '2026-11', branchId: SADDAR });
+  assert.equal(nov.summary.lastMonthBalance, -11160);
 });
