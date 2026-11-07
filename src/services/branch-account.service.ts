@@ -267,7 +267,10 @@ const ROWS_SQL = `
          coalesce(d.branch_name, br.name)                    as "branchName",
          w.order_id::text                                    as "orderId",
          d.demand_number                                     as "demandNumber",
-         to_char(coalesce(d.bd, $2::date), 'YYYY-MM-DD')     as "businessDate",
+         -- The demand's REQUIRED date (its business date when it has none):
+         -- every finance figure dates a demand by the day it is required for
+         -- (owner's rule, 2026-11-07). The opening row: the go-live day.
+         to_char(coalesce(d.day, $2::date), 'YYYY-MM-DD')    as "businessDate",
          to_json(coalesce(d.submitted_at, ${START_AT}))#>>'{}' as "at",
          d.status                                            as "status",
          d.frozen_pct::float8                                as "frozenPct",
@@ -322,10 +325,24 @@ async function loadAccounts(branchId: string | null, start: string): Promise<(Br
   }
   const out: (BranchAccountRow & { lo: string; hi: string | null })[] = [];
   for (const list of byBranch.values()) {
+    // The balance carries from demand to demand in REQUIRED-date order (the
+    // row's date), submission order within a day; the opening row first. Each
+    // row's own figures do not depend on the order — only Previous/Remaining
+    // do — so a branch's final balance is the same either way, and a period
+    // cut by date splits the chain cleanly.
+    list.sort(chainOrder);
     const rows = computeBranchAccount(list);
     rows.forEach((r, i) => out.push({ ...r, lo: list[i]!.lo, hi: list[i]!.hi }));
   }
   return out;
+}
+
+/** Opening row first, then by the row's (required) date, then submission time. */
+export function chainOrder(a: { orderId: string | null; businessDate: string; at: string }, b: typeof a): number {
+  return Number(a.orderId !== null) - Number(b.orderId !== null)
+    || a.businessDate.localeCompare(b.businessDate)
+    || Date.parse(a.at) - Date.parse(b.at)
+    || (a.orderId ?? '').localeCompare(b.orderId ?? '');
 }
 
 function isEmptyOpening(f: BranchAccountFacts): boolean {
@@ -344,13 +361,16 @@ export interface DemandRecordQuery {
 
 /**
  * The period's rows (every branch in scope, unsorted) and each branch's balance
- * either side of it. `from` is clamped to the go-live day and `to` to today.
+ * either side of it, cut by each row's required date. `from` is clamped to the
+ * go-live day. `to` is not cut at today: a demand delivered today can be
+ * required tomorrow, so with no `to` the period runs to the later of today and
+ * the last required date in the record.
  */
 async function loadPeriod(q: { branchId?: string | null; from?: string; to?: string }, start: string) {
   const today = businessDateStr();
   const from = q.from && q.from > start ? q.from : start;
-  const to = q.to && q.to < today ? q.to : today;
   const all = await loadAccounts(q.branchId ?? null, start);
+  const to = q.to ?? all.reduce((m, r) => (r.businessDate > m ? r.businessDate : m), today);
 
   // Balances are per branch and read off the rows either side of the period —
   // never summed down a column, which would count carried money once per row.
@@ -383,7 +403,8 @@ export async function getDemandRecord(q: DemandRecordQuery): Promise<DemandRecor
     ? inPeriod.filter((r) => (r.demandNumber ?? 'opening').toLowerCase().includes(search) || r.branchName.toLowerCase().includes(search))
     : inPeriod;
   const dir = q.sortDir === 'asc' ? 1 : -1;
-  matched.sort((a, b) => dir * (Date.parse(a.at) - Date.parse(b.at)) || a.branchName.localeCompare(b.branchName));
+  matched.sort((a, b) => dir * (a.businessDate.localeCompare(b.businessDate) || Date.parse(a.at) - Date.parse(b.at))
+    || a.branchName.localeCompare(b.branchName));
 
   const pageSize = Math.min(500, Math.max(1, Math.trunc(q.pageSize ?? 50)));
   const total = matched.length;
@@ -568,7 +589,9 @@ export async function getMonthStatement(month: string, branchId: string | null):
 
   const prisma = getPrisma();
   const [period, stockRows, pendingRows, names] = await Promise.all([
-    loadPeriod({ branchId, from, to }, start),
+    // Payments by required date: a demand already delivered but required later
+    // this month is this month's, so the money side runs to the month's end.
+    loadPeriod({ branchId, from, to: last }, start),
     prisma.$queryRawUnsafe<(MonthStatementStock & { branchId: string })[]>(STOCK_SQL, branchId, from, to),
     prisma.$queryRawUnsafe<{ branchId: string; returnsCount: number; returnsAmount: number; depositsCount: number; depositsAmount: number }[]>(
       PENDING_SQL, branchId, from, to),
@@ -605,7 +628,9 @@ export async function getMonthStatement(month: string, branchId: string | null):
         received: t.received,
         closingBalance: t.closingBalance,
         demands: rows.filter((r) => r.orderId !== null).length,
-        lastRowOpen: rows.length > 0 && rows[rows.length - 1]!.open,
+        // Rows run in required-date order, so the still-open demand (the latest
+        // submitted) need not be the last one.
+        lastRowOpen: rows.some((r) => r.open),
       },
       stock,
       pending: {
@@ -640,7 +665,7 @@ export async function getDemandRecordPeriod(q: { branchId?: string | null; from?
   const start = await getLedgerStart();
   if (!start) return null;
   const { from, to, inPeriod, balances } = await loadPeriod(q, start);
-  inPeriod.sort((a, b) => a.branchName.localeCompare(b.branchName) || Date.parse(a.at) - Date.parse(b.at));
+  inPeriod.sort((a, b) => a.branchName.localeCompare(b.branchName) || chainOrder(a, b));
   return { start, from, to, rows: inPeriod, totals: totalBranchAccount(inPeriod, balances), branches: balances };
 }
 

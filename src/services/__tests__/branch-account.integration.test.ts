@@ -705,6 +705,8 @@ test('a deposit pays its own day\'s demand, even when the next demand was submit
 
   const rows = (await rowsOf(`&branchId=${GAMMA}`)).rows as Json[];
   assert.deepEqual(rows.map((r: Json) => [r.demandNumber, r.received]), [['DMD-000301', 1000], ['DMD-000302', 2300]]);
+  // Each row is dated by its demand's required date, not the day it was submitted.
+  assert.deepEqual(rows.map((r: Json) => r.businessDate), ['2026-09-22', '2026-09-23']);
   const [g1, g2] = rows;
   assert.equal(g1.closingBalance, g1.companyShare - 1000);
   assert.equal(g2.previousBalance, g1.closingBalance);
@@ -714,6 +716,36 @@ test('a deposit pays its own day\'s demand, even when the next demand was submit
   const p2 = ok(await call('accountant', 'GET', `${API}/detail?branchId=${GAMMA}&orderId=${G2}`)).payments as Json[];
   assert.deepEqual(p1.map((p) => [p.businessDate, p.amount]), [['2026-09-22', 1000]]);
   assert.deepEqual(p2.map((p) => [p.businessDate, p.amount]), [['2026-09-23', 2000], ['2026-09-25', 300]]);
+});
+
+test('a demand counts on its required date: the balance chains and the period cuts by it', async () => {
+  // Owner's rule, 2026-11-07: every finance figure dates a demand by its
+  // Required by date. D1 is submitted first but required a day after D2.
+  const DELTA = '40000000-0000-4000-8000-00000000000d';
+  const D1 = '60000000-0000-4000-8000-0000000000d1';
+  const D2 = '60000000-0000-4000-8000-0000000000d2';
+  await db.query(`insert into branches (id, name, slug) values ($1, 'Delta', 'delta')`, [DELTA]);
+  await order(D1, DELTA, '2026-09-28', '2026-09-28T20:00:00+05', 'DMD-000401', [{ qty: 10, approved: 10, unitPrice: 100 }]);
+  await order(D2, DELTA, '2026-09-29', '2026-09-29T20:00:00+05', 'DMD-000402', [{ qty: 4, approved: 4, unitPrice: 100 }]);
+  for (const id of [D1, D2]) {
+    await setStatus(id, 'awaiting_verification');
+    await setStatus(id, 'approved');
+  }
+  await db.query(`update production_orders set required_date = '2026-10-01' where id = $1`, [D1]);
+  await db.query(`update production_orders set required_date = '2026-09-30' where id = $1`, [D2]);
+
+  const all = (await rowsOf(`&branchId=${DELTA}`)).rows as Json[];
+  assert.deepEqual(all.map((r: Json) => [r.demandNumber, r.businessDate]), [['DMD-000402', '2026-09-30'], ['DMD-000401', '2026-10-01']]);
+  const [d2, d1] = all;
+  assert.equal(d2.previousBalance, 0);
+  assert.equal(d1.previousBalance, d2.closingBalance);
+
+  // September holds only what was required in September; October opens on it.
+  const sep = await rowsOf(`&branchId=${DELTA}&from=2026-09-01&to=2026-09-30`);
+  assert.deepEqual((sep.rows as Json[]).map((r: Json) => r.demandNumber), ['DMD-000402']);
+  const oct = await rowsOf(`&branchId=${DELTA}&from=2026-10-01&to=2026-10-31`);
+  assert.deepEqual((oct.rows as Json[]).map((r: Json) => r.demandNumber), ['DMD-000401']);
+  assert.equal((oct.branches as Json[])[0].openingBalance, d2.closingBalance);
 });
 
 test('the Collections export marks a demand Provisional while anything on it waits for approval', async () => {

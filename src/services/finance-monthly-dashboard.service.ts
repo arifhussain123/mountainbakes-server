@@ -110,7 +110,10 @@ const sum = <T>(rows: T[], pick: (r: T) => number) => round2(rows.reduce((s, r) 
  * `demand` and `companyShare` on each (day, branch) become the sum of the
  * Demand Record rows dated that day — the net demand (Delivered − Returns −
  * Discount) and the share on it at the demand's frozen % — so this table and
- * the Demand Record cannot disagree. A Demand Record row places a return or
+ * the Demand Record cannot disagree. `orders` becomes the number of demands
+ * dated that day. A Demand Record row is dated by its demand's REQUIRED date
+ * (its business date when it has none), so a demand submitted on 31 Oct for
+ * 1 Nov counts on 1 Nov, in November. A Demand Record row places a return or
  * discount on the demand it is billed to (the slip's own window), so that is
  * where it is netted. Days before go-live keep the old figures; a (day,
  * branch) the SQL had no row for (an opening row) is added.
@@ -122,13 +125,14 @@ export function applyDemandRecord(
   from: string,
   to: string,
 ): FinanceDashboardDay[] {
-  const byKey = new Map<string, { date: string; branchId: string; demand: number; share: number }>();
+  const byKey = new Map<string, { date: string; branchId: string; demand: number; share: number; orders: number }>();
   for (const r of rows) {
     if (r.businessDate < from || r.businessDate > to) continue;
     const k = `${r.businessDate}|${r.branchId}`;
-    const e = byKey.get(k) ?? { date: r.businessDate, branchId: r.branchId, demand: 0, share: 0 };
+    const e = byKey.get(k) ?? { date: r.businessDate, branchId: r.branchId, demand: 0, share: 0, orders: 0 };
     e.demand += r.demand;
     e.share += r.companyShare;
+    if (r.orderId) e.orders += 1;
     byKey.set(k, e);
   }
   const out = days.map((d) => {
@@ -136,12 +140,12 @@ export function applyDemandRecord(
     const k = `${d.date}|${d.branchId}`;
     const e = byKey.get(k);
     byKey.delete(k);
-    return { ...d, demand: round2(e?.demand ?? 0), companyShare: round2(e?.share ?? 0) };
+    return { ...d, demand: round2(e?.demand ?? 0), companyShare: round2(e?.share ?? 0), orders: e?.orders ?? 0 };
   });
   for (const e of byKey.values()) {
     out.push({
       date: e.date, branchId: e.branchId, demand: round2(e.demand), companyShare: round2(e.share),
-      received: 0, returns: 0, discount: 0, orders: 0, unpricedLines: 0, receipts: 0, returnCount: 0, discountCount: 0,
+      received: 0, returns: 0, discount: 0, orders: e.orders, unpricedLines: 0, receipts: 0, returnCount: 0, discountCount: 0,
     });
   }
   return out.sort((a, b) => a.date.localeCompare(b.date) || (a.branchId ?? '').localeCompare(b.branchId ?? ''));
