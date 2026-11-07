@@ -30,6 +30,7 @@ import { PrismaClient } from '../../generated/prisma/client';
 const PRISMA = join(__dirname, '../../../prisma/migrations');
 const BASELINE = readFileSync(join(PRISMA, '0_baseline/migration.sql'), 'utf8');
 const LEDGER_MIGRATION = readFileSync(join(PRISMA, '20261024000001_branch_account_ledger/migration.sql'), 'utf8');
+const SHARE_ON_DELIVERED = readFileSync(join(PRISMA, '20261107000001_company_share_on_delivered/migration.sql'), 'utf8');
 const GO_LIVE = readFileSync(join(PRISMA, '20261024000002_demand_record_go_live/migration.sql'), 'utf8');
 
 function lift(head: string, tail: string): string {
@@ -171,6 +172,7 @@ before(async () => {
     `insert into ledger_heads (code, name, type) values ('INC-COMPANY-SHARE', 'Company Share', 'income') returning id`)).rows[0]!.id;
 
   await db.exec(`begin;${LEDGER_MIGRATION}commit;`);
+  await db.exec(`begin;${SHARE_ON_DELIVERED}commit;`);
 
   // Delivered before go-live, as every live demand was: the trigger freezes
   // their % as they leave pending, the go-live freezes anything it missed.

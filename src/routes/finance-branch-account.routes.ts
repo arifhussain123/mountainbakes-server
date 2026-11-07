@@ -18,6 +18,7 @@ import {
   setLedgerStart,
 } from '../services/branch-account.service';
 import { auditSnapshot, logFinanceAudit } from '../services/finance-audit.service';
+import { getLedgerReconciliation } from '../services/ledger-reconciliation.service';
 
 /**
  * /api/finance/branch-account — the Demand Record: each branch's running
@@ -103,6 +104,22 @@ router.get('/statement', requireFinance('view'), async (req, res, next) => {
   try {
     const q = req.query as Record<string, string | undefined>;
     res.json(await getMonthStatement(q['month'] ?? '', optionalUuid(q['branchId'], 'branchId')));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /reconciliation?from=&to=&branchId=  — collection slip against Demand Record, read only
+router.get('/reconciliation', requireFinance('view'), async (req, res, next) => {
+  try {
+    const q = req.query as Record<string, string | undefined>;
+    const from = optionalDate(q['from'], 'from');
+    const to = optionalDate(q['to'], 'to');
+    if (!from || !to) {
+      res.status(400).json({ error: 'from and to are required' });
+      return;
+    }
+    res.json(await getLedgerReconciliation({ branchId: optionalUuid(q['branchId'], 'branchId') ?? null, from, to }));
   } catch (err) {
     next(err);
   }

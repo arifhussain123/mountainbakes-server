@@ -15,6 +15,7 @@ import {
   type LedgerPage,
   type LedgerQuery,
   type LedgerSourceType,
+  type LedgerAccountSummary,
   type LedgerSummary,
   type UpdateLedgerHeadInput,
 } from '../shared';
@@ -453,6 +454,11 @@ export async function getLedgerSummary(params: { to: string; branchId?: string |
     openingBalance = round2(num(agg?.['opening_balance']));
   }
 
+  const [cash, bank] = await Promise.all([
+    accountSummary('cash', monthStart, to, branchId),
+    accountSummary('bank', monthStart, to, branchId),
+  ]);
+
   return {
     businessDate: to,
     monthStart,
@@ -460,7 +466,32 @@ export async function getLedgerSummary(params: { to: string; branchId?: string |
     totalReceived,
     totalExpense,
     balance: round2(openingBalance + totalReceived - totalExpense),
+    accounts: { cash, bank },
   };
+}
+
+/**
+ * One account's (cash or bank) month-to-date figures, kept apart from the
+ * other's (centralized ledger rules, §5): its own opening balance, received,
+ * expense and balance. The opening is that account's Σ debit − credit before
+ * the month — from the RPC's FILTERED totals, never its `opening_balance`
+ * column, which ignores every filter (docs/centralized-ledger-rules-audit.md,
+ * Finding 4).
+ */
+async function accountSummary(account: 'cash' | 'bank', monthStart: string, to: string, branchId: string | null): Promise<LedgerAccountSummary> {
+  const [period, prior] = await Promise.all([
+    db.rpc('finance_ledger_totals', { p_from: monthStart, p_to: to, p_branch_id: branchId, p_account: account }),
+    db.rpc('finance_ledger_totals', { p_to: dayBefore(monthStart), p_branch_id: branchId, p_account: account }),
+  ]);
+  if (period.error) throw period.error;
+  if (prior.error) throw prior.error;
+  const one = (d: unknown) => (Array.isArray(d) ? d[0] : d) as Record<string, unknown> | null;
+  const p = one(period.data);
+  const b = one(prior.data);
+  const openingBalance = round2(num(b?.['total_debit']) - num(b?.['total_credit']));
+  const totalReceived = round2(num(p?.['total_debit']));
+  const totalExpense = round2(num(p?.['total_credit']));
+  return { openingBalance, totalReceived, totalExpense, balance: round2(openingBalance + totalReceived - totalExpense) };
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

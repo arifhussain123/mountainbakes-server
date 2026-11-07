@@ -1,5 +1,6 @@
 import { dbFor } from '../db';
-import { resolveShareSplit, type PaymentReceivedItem } from '../shared';
+import { isShareOnDelivered, resolveShareSplit, type PaymentReceivedItem } from '../shared';
+import { getShareOnDeliveredFrom } from './branch-account.service';
 import { paymentsReceivedInWindow } from './cash-transfers.service';
 
 const db = dbFor('previous-balance');
@@ -39,6 +40,13 @@ export interface PreviousOrderBalance {
   returnItems: { productName: string; qty: number; amount: number }[];
   discountsValue: number;
   discountItems: { demandNumber: string; amount: number }[];
+  /**
+   * Whether Returns and Discount come off the share. False from the Company-
+   * Share-on-Delivered date (owner's rule, 2026-11-07, by the previous demand's
+   * required date): `amountToCollect` is then the Company Share itself, and the
+   * two are shown as figures of their own. True before it (the old rule).
+   */
+  returnsDeducted: boolean;
   amountToCollect: number;
   /**
    * Approved cash transfers (migration 118) the branch made in the same window
@@ -96,7 +104,7 @@ export async function getPreviousOrderBalance(orderId: string): Promise<Previous
   // 'rejected' never will, so both are skipped when walking back.
   const { data: prev, error: prevErr } = await db
     .from('production_orders')
-    .select('id, demand_number, business_date, submitted_at, items:production_order_items(product_id, qty, approved_qty)')
+    .select('id, demand_number, business_date, required_date, submitted_at, items:production_order_items(product_id, qty, approved_qty)')
     .eq('branch_id', order.branch_id)
     .in('status', ['awaiting_verification', 'approved'])
     .lt('submitted_at', order.submitted_at)
@@ -123,7 +131,7 @@ export async function getPreviousOrderBalance(orderId: string): Promise<Previous
     return {
       previous: null, orderedValue: 0, deliveredValue: 0, companySharePct,
       companyShareValue: 0, returnsValue: 0, returnItems: [],
-      discountsValue: 0, discountItems: [], amountToCollect: 0,
+      discountsValue: 0, discountItems: [], returnsDeducted: false, amountToCollect: 0,
       paymentsReceivedValue: 0, paymentItems: [], remainingBalance: 0,
     };
   }
@@ -252,7 +260,14 @@ export async function getPreviousOrderBalance(orderId: string): Promise<Previous
   );
 
   const companyShareValue = (deliveredValue * companySharePct) / 100;
-  const amountToCollect = companyShareValue - returnsValue - discountsValue;
+  // The Demand Record's rule, by the previous demand's required date: from the
+  // Company-Share-on-Delivered date the share IS what is collected, and Return
+  // and Discount are shown, not subtracted (owner's rule, 2026-11-07).
+  const returnsDeducted = !isShareOnDelivered(
+    String(prev.required_date ?? prev.business_date),
+    await getShareOnDeliveredFrom(),
+  );
+  const amountToCollect = returnsDeducted ? companyShareValue - returnsValue - discountsValue : companyShareValue;
 
   return {
     previous: { demandNumber: prev.demand_number, date: prev.business_date },
@@ -264,9 +279,9 @@ export async function getPreviousOrderBalance(orderId: string): Promise<Previous
     returnItems,
     discountsValue,
     discountItems,
-    // Both deductions come off the company's share. A discount reduces what the
-    // rider collects exactly as a return does — the only difference is that one
-    // is goods coming back and the other is money agreed off.
+    // Before the Company-Share-on-Delivered date both deductions come off the
+    // company's share; from it, neither does (see returnsDeducted).
+    returnsDeducted,
     amountToCollect,
     paymentsReceivedValue,
     paymentItems,

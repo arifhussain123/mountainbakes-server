@@ -36,6 +36,7 @@ import { signAccessToken } from '../auth/tokens';
 const PRISMA = join(__dirname, '../../../prisma/migrations');
 const BASELINE = readFileSync(join(PRISMA, '0_baseline/migration.sql'), 'utf8');
 const MIGRATION = readFileSync(join(PRISMA, '20261024000001_branch_account_ledger/migration.sql'), 'utf8');
+const SHARE_ON_DELIVERED = readFileSync(join(PRISMA, '20261107000001_company_share_on_delivered/migration.sql'), 'utf8');
 const AUTH = readFileSync(join(__dirname, '../../../db/history/migrations/20261009000149_custom_auth.sql'), 'utf8');
 
 function lift(head: string, tail: string): string {
@@ -225,6 +226,7 @@ before(async () => {
   `);
   for (const r of (await db.query<{ id: string; code: string }>('select id, code from ledger_heads')).rows) HEAD[r.code] = r.id;
   await db.exec(`begin;${MIGRATION}commit;`);
+  await db.exec(`begin;${SHARE_ON_DELIVERED}commit;`);
   await db.exec(`update finance_settings set account_ledger_start = '${FROM}'`);
 
   // Cash the business opened October with, so cash stays positive.

@@ -41,6 +41,7 @@ import { signAccessToken } from '../auth/tokens';
 const PRISMA = join(__dirname, '../../../prisma/migrations');
 const BASELINE = readFileSync(join(PRISMA, '0_baseline/migration.sql'), 'utf8');
 const MIGRATION = readFileSync(join(PRISMA, '20261024000001_branch_account_ledger/migration.sql'), 'utf8');
+const SHARE_ON_DELIVERED = readFileSync(join(PRISMA, '20261107000001_company_share_on_delivered/migration.sql'), 'utf8');
 const AUTH = readFileSync(join(__dirname, '../../../db/history/migrations/20261009000149_custom_auth.sql'), 'utf8');
 
 function lift(head: string, tail: string): string {
@@ -202,6 +203,7 @@ before(async () => {
     insert into products (id, name, price) values ('${BUN}', 'Bun', 100);
   `);
   await db.exec(`begin;${MIGRATION}commit;`);
+  await db.exec(`begin;${SHARE_ON_DELIVERED}commit;`);
 
   // Each demand's return, discount and deposit land after it and before the
   // branch's next demand, so they are that demand's.
