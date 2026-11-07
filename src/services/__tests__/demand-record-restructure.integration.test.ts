@@ -301,10 +301,12 @@ test('Test F — Finance Dashboard income: Demand is the net demand, Company Sha
   // before October, so it carries 0 — a real figure, shown rather than blank.
   const byBranch = (xs: { branchId: string | null; balance: number | null }[]) =>
     [...xs].sort((a, b) => String(a.branchId).localeCompare(String(b.branchId)));
-  assert.deepEqual(byBranch(dash.previous), byBranch([{ branchId: BETA, balance: 2500 }, { branchId: ALIABAD, balance: 0 }]));
-  assert.equal(dash.summary.lastMonthBalance, 2500);
+  // On the dashboard's sign (Received − Company Share) what is owed is negative.
+  assert.deepEqual(byBranch(dash.previous), byBranch([{ branchId: BETA, balance: -2500 }, { branchId: ALIABAD, balance: 0 }]));
+  assert.equal(dash.summary.lastMonthBalance, -2500);
+  assert.equal(dash.summary.balance, 70200 - 72640);
   // October's activity plus what was carried in is every branch's Remaining at month end.
-  assert.equal(dash.summary.lastMonthBalance! + dash.summary.companyShare - dash.summary.received, 2440 + 2500);
+  assert.equal(dash.summary.lastMonthBalance! + dash.summary.balance, -(2440 + 2500));
 
   // The drill-down behind each figure adds up to it.
   const base = { from: '2026-10-01', to: '2026-10-31', branchId: null, noBranch: false, ledgerHeadId: null, search: null, page: 1, pageSize: 25 };

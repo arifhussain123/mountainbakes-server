@@ -105,6 +105,13 @@ function toLedgerRow(r: Record<string, unknown>): FinanceDashboardLedgerRow {
 const sum = <T>(rows: T[], pick: (r: T) => number) => round2(rows.reduce((s, r) => s + pick(r), 0));
 
 /**
+ * The dashboard's Balance: Received − Company Share (owner's rule, 2026-11-07).
+ * Negative: the branch paid less than the share (still owed); positive: it
+ * paid more than the share.
+ */
+export const dashboardBalance = (companyShare: number, received: number) => round2(received - companyShare);
+
+/**
  * The income days on the Demand Record's rules, from its go-live day.
  *
  * `demand` and `companyShare` on each (day, branch) become the sum of the
@@ -284,7 +291,7 @@ export async function getFinanceMonthlyDashboard(params: {
       demand: sum(rows, (r) => r.demand),
       companyShare,
       received,
-      balance: round2(companyShare - received),
+      balance: dashboardBalance(companyShare, received),
       returns: sum(rows, (r) => r.returns),
       discount: sum(rows, (r) => r.discount),
     });
@@ -301,13 +308,16 @@ export async function getFinanceMonthlyDashboard(params: {
   }
   let previous: FinanceDashboardPreviousBalance[] = [...prevByBranch].map(([b, rows]) => ({
     branchId: b,
-    balance: round2(sum(rows, (r) => r.companyShare) - sum(rows, (r) => r.received)),
+    balance: dashboardBalance(sum(rows, (r) => r.companyShare), sum(rows, (r) => r.received)),
   }));
   // On the Demand Record, a branch's last-month balance is what it carried into
   // this month — its Remaining, previous balances included — not last month's
-  // activity alone. Receipts with no branch keep their old line.
+  // activity alone, on the dashboard's sign: what is still owed is negative.
+  // Receipts with no branch keep their old line.
   if (record) {
-    previous = [...carriedBalances(record.rows, bounds.first, bounds.last), ...previous.filter((p) => p.branchId === null)];
+    const carried = carriedBalances(record.rows, bounds.first, bounds.last)
+      .map((c) => ({ branchId: c.branchId, balance: c.balance === null ? null : round2(-c.balance) || 0 }));
+    previous = [...carried, ...previous.filter((p) => p.branchId === null)];
   }
 
   const companyShare = sum(days, (r) => r.companyShare);
@@ -333,11 +343,11 @@ export async function getFinanceMonthlyDashboard(params: {
       demand: sum(days, (r) => r.demand),
       companyShare,
       received,
-      balance: round2(companyShare - received),
+      balance: dashboardBalance(companyShare, received),
       lastMonthBalance: record
         ? (previous.length ? sum(previous, (p) => p.balance ?? 0) : null)
         : prevRows.length
-          ? round2(sum(prevRows, (r) => r.companyShare) - sum(prevRows, (r) => r.received))
+          ? dashboardBalance(sum(prevRows, (r) => r.companyShare), sum(prevRows, (r) => r.received))
           : null,
       ledgerExpense: sum(ledger, (r) => r.amount),
       returns: sum(days, (r) => r.returns),
