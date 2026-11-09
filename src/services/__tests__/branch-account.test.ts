@@ -59,6 +59,18 @@ test('Test 3 — share on sales is its own figure and never replaces what was re
   assert.equal(r!.closingBalance, 38_400 - 42_200);
 });
 
+test('nothing delivered: Return and Discount go into G. Total and the share is that same amount, no %', () => {
+  const rows = computeBranchAccount([
+    facts({ orderId: 'o1', delivered: 45_000, returns: 1_200, discount: 1_000, received: 28_000 }),
+    facts({ orderId: 'o2', delivered: 0, returns: 300, discount: 200, received: 0 }),
+  ]);
+  assert.equal(rows[1]!.gTotal, -500);
+  assert.equal(rows[1]!.companyShare, -500, 'the full −500, not −500 × 80%');
+  assert.equal(rows[1]!.closingBalance, 6_240 - 500);
+  // A delivered row still takes its %.
+  assert.equal(rows[0]!.companyShare, 34_240);
+});
+
 test('Test 4 — full settlement closes at exactly 0', () => {
   // Previous 6,240 + share 34,240 − received 40,480.
   const [r] = computeBranchAccount([facts({ delivered: 42_800, received: 40_480 })], 6_240);

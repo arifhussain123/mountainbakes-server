@@ -670,7 +670,8 @@ test('an accepted return between the go-live day and the first demand counts in 
   assert.equal(opening.received, 0);
   assert.equal(opening.gTotal, -200);
   assert.equal(opening.pctFrozen, false); // no demand to freeze from: today's %
-  assert.equal(opening.companyShare, (-200 * opening.sharePct) / 100);
+  // Nothing delivered: the share is the whole −200, no % (owner's rule, 2026-11-10).
+  assert.equal(opening.companyShare, -200);
   assert.equal(b1.returns, 0);
   assert.equal(b1.previousBalance, opening.closingBalance);
 

@@ -1,7 +1,7 @@
 import { getPrisma } from '../db';
 import {
   businessDateStr,
-  companyShareOf,
+  rowCompanyShare,
   computeBranchAccount,
   totalBranchAccount,
   toPaisa,
@@ -1401,7 +1401,7 @@ export async function getDemandFiguresBeforeRecord(
     rows: rows.map(({ frozenPct, livePct, ...r }) => {
       const sharePct = frozenPct ?? livePct;
       const gTotal = toPaisa(r.delivered - r.returns - r.discount);
-      return { ...r, delivered: toPaisa(r.delivered), returns: toPaisa(r.returns), discount: toPaisa(r.discount), gTotal, sharePct, companyShare: companyShareOf(gTotal, sharePct) };
+      return { ...r, delivered: toPaisa(r.delivered), returns: toPaisa(r.returns), discount: toPaisa(r.discount), gTotal, sharePct, companyShare: rowCompanyShare(r.delivered, gTotal, sharePct) };
     }),
   };
 }

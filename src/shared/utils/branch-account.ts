@@ -83,6 +83,17 @@ export function companyShareOf(base: number, pct: number): number {
 }
 
 /**
+ * A row's Company Share (owner's rule, 2026-11-10): G. Total × the row's % ÷ 100 —
+ * except on a row with nothing delivered (Delivered zero or blank). There the
+ * G. Total is only its Return and Discount, as a negative, and the Company
+ * Share is that same amount in full, with no % applied: Return 300 + Discount
+ * 200 on no delivery → G. Total −500, Co. Share −500.
+ */
+export function rowCompanyShare(delivered: number, gTotal: number, pct: number): number {
+  return toPaisa(delivered) === 0 ? toPaisa(gTotal) : companyShareOf(gTotal, pct);
+}
+
+/**
  * One branch's rows, already in order (opening first, then by submission
  * time), into money with the running balance. `startBalance` is the balance
  * before the first row given — 0 when the list starts at the opening row.
@@ -93,7 +104,7 @@ export function computeBranchAccount(facts: BranchAccountFacts[], startBalance =
     const pctFrozen = f.frozenPct !== null;
     const sharePct = pctFrozen ? f.frozenPct! : f.livePct;
     const gTotal = toPaisa(f.delivered - f.returns - f.discount);
-    const companyShare = companyShareOf(gTotal, sharePct);
+    const companyShare = rowCompanyShare(f.delivered, gTotal, sharePct);
     const previousBalance = balance;
     const amountDue = toPaisa(previousBalance + companyShare + f.adjustments);
     const closingBalance = toPaisa(amountDue - f.received);
