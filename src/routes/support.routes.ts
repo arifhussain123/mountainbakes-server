@@ -2024,6 +2024,8 @@ router.delete('/:id/cash-deposit', requireRole('super_admin'), validate(DeleteCa
       deleted?: boolean;
       referenceNo?: string;
       ledgerRemoved?: string | null;
+      /** Receipts on a closed day, reversed today instead of removed: "RV-000239 → PV-000756". */
+      ledgerReversed?: string | null;
       balancesRewritten?: number;
       closingBalance?: number | null;
       reason?: string;
@@ -2045,6 +2047,7 @@ router.delete('/:id/cash-deposit', requireRole('super_admin'), validate(DeleteCa
         supportTicketNo: ticket.ticket_number,
         reason,
         ...(outcome.ledgerRemoved ? { ledgerEntriesRemoved: outcome.ledgerRemoved } : {}),
+        ...(outcome.ledgerReversed ? { ledgerEntriesReversed: outcome.ledgerReversed } : {}),
         ...(outcome.balancesRewritten
           ? { balancesRewritten: outcome.balancesRewritten, closingBalance: outcome.closingBalance ?? null }
           : {}),
@@ -2054,9 +2057,9 @@ router.delete('/:id/cash-deposit', requireRole('super_admin'), validate(DeleteCa
     const resolutionNote = [
       note,
       `Cash deposit ${transferNo} DELETED — ${reason}`,
-      outcome.ledgerRemoved
-        ? `ledger entries removed: ${outcome.ledgerRemoved}`
-        : 'nothing was booked in the ledger for it',
+      outcome.ledgerRemoved ? `ledger entries removed: ${outcome.ledgerRemoved}` : null,
+      outcome.ledgerReversed ? `closed-day entries reversed today: ${outcome.ledgerReversed}` : null,
+      outcome.ledgerRemoved || outcome.ledgerReversed ? null : 'nothing was booked in the ledger for it',
     ].filter(Boolean).join(' — ');
 
     const { data, error: updErr } = await db
@@ -2091,6 +2094,7 @@ router.delete('/:id/cash-deposit', requireRole('super_admin'), validate(DeleteCa
       deleted: true,
       transferNo,
       ledgerRemoved: outcome.ledgerRemoved ?? null,
+      ledgerReversed: outcome.ledgerReversed ?? null,
     });
   } catch (err) {
     next(err);

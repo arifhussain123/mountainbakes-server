@@ -2641,6 +2641,8 @@ router.delete(
         closingBalance?: number | null;
         /** Cash deposit only (migration 125): the RV- vouchers removed with it. */
         ledgerRemoved?: string | null;
+        /** Vouchers on a closed day, reversed today instead of removed: "RV-000239 → PV-000756". */
+        ledgerReversed?: string | null;
         reason?: string;
       };
       if (!source.deleted) {
@@ -2682,6 +2684,7 @@ router.delete(
             ? { balancesRewritten: source.balancesRewritten, closingBalance: source.closingBalance ?? null }
             : {}),
           ...(source.ledgerRemoved ? { ledgerEntriesRemoved: source.ledgerRemoved } : {}),
+          ...(source.ledgerReversed ? { ledgerEntriesReversed: source.ledgerReversed } : {}),
         },
       });
 
@@ -2702,6 +2705,7 @@ router.delete(
         referenceNo: source.referenceNo,
         balancesRewritten: source.balancesRewritten ?? 0,
         ledgerRemoved: source.ledgerRemoved ?? null,
+        ledgerReversed: source.ledgerReversed ?? null,
       });
     } catch (err) {
       next(err);

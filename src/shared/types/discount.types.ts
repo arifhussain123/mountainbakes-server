@@ -75,6 +75,14 @@ export interface BranchDiscount {
    * "Sent Back" and has to guess what to correct. A claim about money says.
    */
   reviewNote: string | null;
+  /**
+   * The branch's own figure, set when Production corrected `amount` from its
+   * Discount Detail popup; null while the amount is still the branch's.
+   */
+  originalAmount: number | null;
+  /** Who at Production last changed the amount, and when. Null with originalAmount. */
+  amountChangedByName: string | null;
+  amountChangedAt: string | null; // ISO UTC
 }
 
 /**

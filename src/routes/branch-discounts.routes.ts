@@ -13,6 +13,7 @@ import {
 } from '../shared';
 import { notify } from '../services/push.service';
 import { getMonthlyDiscountSummary } from '../services/discount-summary.service';
+import { getDiscountDayCheck } from '../services/discount-day-check.service';
 import { summaryRangeFromQuery } from '../utils/summaryRange';
 import { rowToApi } from '../utils/case';
 
@@ -71,9 +72,11 @@ function scopeBranch(req: AuthRequest): string | null {
  */
 function toApi(rows: unknown): Record<string, unknown>[] {
   const camel = rowToApi<Record<string, unknown>[]>((rows ?? []) as Record<string, unknown>[]);
-  return camel.map(({ businessDate, amount, ...rest }) => ({
+  return camel.map(({ businessDate, amount, originalAmount, ...rest }) => ({
     ...rest,
     amount: Number(amount),
+    // Same numeric-as-string fix as `amount`; null while the figure is the branch's own.
+    originalAmount: originalAmount == null ? null : Number(originalAmount),
     date: businessDate,
   }));
 }
@@ -107,6 +110,23 @@ router.get('/summary', async (req: AuthRequest, res, next) => {
     const window = summaryRangeFromQuery(req.query);
     if (!window.ok) { res.status(400).json({ error: window.error }); return; }
     res.json(await getMonthlyDiscountSummary({ branchId, range: window.range }));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/branch-discounts/day-check?date=YYYY-MM-DD — the branch's own till
+// discounts for that business day, per product, against the claims it raised
+// for the same day. The same figures Production sees behind its "Product
+// breakdown" button (owner's call, 2026-11-06), pinned to the caller's branch.
+router.get('/day-check', async (req: AuthRequest, res, next) => {
+  try {
+    const branchId = scopeBranch(req);
+    if (!branchId) { res.status(400).json({ error: 'Branch context required' }); return; }
+    if (!UUID_RE.test(branchId)) { res.status(400).json({ error: 'branchId must be a uuid' }); return; }
+    const date = req.query['date'] as string | undefined;
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) { res.status(400).json({ error: 'date must be YYYY-MM-DD' }); return; }
+    res.json(await getDiscountDayCheck({ branchId, date }));
   } catch (err) {
     next(err);
   }
@@ -266,6 +286,12 @@ router.put('/:id', validate(ReviseBranchDiscountSchema), async (req: AuthRequest
         reviewed_by: null,
         reviewed_by_name: null,
         reviewed_at: null,
+        // The branch's new figure replaces any correction Production made, so
+        // the "changed by Production" record goes with it.
+        original_amount: null,
+        amount_changed_by: null,
+        amount_changed_by_name: null,
+        amount_changed_at: null,
       })
       .eq('id', req.params['id']!)
       .in('status', ['pending', 'returned']);

@@ -29,10 +29,12 @@ export type AggregateBranch_discounts = {
 
 export type Branch_discountsAvgAggregateOutputType = {
   amount: runtime.Decimal | null
+  original_amount: runtime.Decimal | null
 }
 
 export type Branch_discountsSumAggregateOutputType = {
   amount: runtime.Decimal | null
+  original_amount: runtime.Decimal | null
 }
 
 export type Branch_discountsMinAggregateOutputType = {
@@ -52,6 +54,10 @@ export type Branch_discountsMinAggregateOutputType = {
   reviewed_by_name: string | null
   reviewed_at: Date | null
   review_note: string | null
+  original_amount: runtime.Decimal | null
+  amount_changed_by: string | null
+  amount_changed_by_name: string | null
+  amount_changed_at: Date | null
 }
 
 export type Branch_discountsMaxAggregateOutputType = {
@@ -71,6 +77,10 @@ export type Branch_discountsMaxAggregateOutputType = {
   reviewed_by_name: string | null
   reviewed_at: Date | null
   review_note: string | null
+  original_amount: runtime.Decimal | null
+  amount_changed_by: string | null
+  amount_changed_by_name: string | null
+  amount_changed_at: Date | null
 }
 
 export type Branch_discountsCountAggregateOutputType = {
@@ -90,16 +100,22 @@ export type Branch_discountsCountAggregateOutputType = {
   reviewed_by_name: number
   reviewed_at: number
   review_note: number
+  original_amount: number
+  amount_changed_by: number
+  amount_changed_by_name: number
+  amount_changed_at: number
   _all: number
 }
 
 
 export type Branch_discountsAvgAggregateInputType = {
   amount?: true
+  original_amount?: true
 }
 
 export type Branch_discountsSumAggregateInputType = {
   amount?: true
+  original_amount?: true
 }
 
 export type Branch_discountsMinAggregateInputType = {
@@ -119,6 +135,10 @@ export type Branch_discountsMinAggregateInputType = {
   reviewed_by_name?: true
   reviewed_at?: true
   review_note?: true
+  original_amount?: true
+  amount_changed_by?: true
+  amount_changed_by_name?: true
+  amount_changed_at?: true
 }
 
 export type Branch_discountsMaxAggregateInputType = {
@@ -138,6 +158,10 @@ export type Branch_discountsMaxAggregateInputType = {
   reviewed_by_name?: true
   reviewed_at?: true
   review_note?: true
+  original_amount?: true
+  amount_changed_by?: true
+  amount_changed_by_name?: true
+  amount_changed_at?: true
 }
 
 export type Branch_discountsCountAggregateInputType = {
@@ -157,6 +181,10 @@ export type Branch_discountsCountAggregateInputType = {
   reviewed_by_name?: true
   reviewed_at?: true
   review_note?: true
+  original_amount?: true
+  amount_changed_by?: true
+  amount_changed_by_name?: true
+  amount_changed_at?: true
   _all?: true
 }
 
@@ -263,6 +291,10 @@ export type Branch_discountsGroupByOutputType = {
   reviewed_by_name: string | null
   reviewed_at: Date | null
   review_note: string | null
+  original_amount: runtime.Decimal | null
+  amount_changed_by: string | null
+  amount_changed_by_name: string | null
+  amount_changed_at: Date | null
   _count: Branch_discountsCountAggregateOutputType | null
   _avg: Branch_discountsAvgAggregateOutputType | null
   _sum: Branch_discountsSumAggregateOutputType | null
@@ -305,6 +337,10 @@ export type branch_discountsWhereInput = {
   reviewed_by_name?: Prisma.StringNullableFilter<"branch_discounts"> | string | null
   reviewed_at?: Prisma.DateTimeNullableFilter<"branch_discounts"> | Date | string | null
   review_note?: Prisma.StringNullableFilter<"branch_discounts"> | string | null
+  original_amount?: Prisma.DecimalNullableFilter<"branch_discounts"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.UuidNullableFilter<"branch_discounts"> | string | null
+  amount_changed_by_name?: Prisma.StringNullableFilter<"branch_discounts"> | string | null
+  amount_changed_at?: Prisma.DateTimeNullableFilter<"branch_discounts"> | Date | string | null
   branches?: Prisma.XOR<Prisma.BranchesScalarRelationFilter, Prisma.branchesWhereInput>
   users_branch_discounts_created_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   production_orders?: Prisma.XOR<Prisma.Production_ordersScalarRelationFilter, Prisma.production_ordersWhereInput>
@@ -328,6 +364,10 @@ export type branch_discountsOrderByWithRelationInput = {
   reviewed_by_name?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewed_at?: Prisma.SortOrderInput | Prisma.SortOrder
   review_note?: Prisma.SortOrderInput | Prisma.SortOrder
+  original_amount?: Prisma.SortOrderInput | Prisma.SortOrder
+  amount_changed_by?: Prisma.SortOrderInput | Prisma.SortOrder
+  amount_changed_by_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  amount_changed_at?: Prisma.SortOrderInput | Prisma.SortOrder
   branches?: Prisma.branchesOrderByWithRelationInput
   users_branch_discounts_created_byTousers?: Prisma.usersOrderByWithRelationInput
   production_orders?: Prisma.production_ordersOrderByWithRelationInput
@@ -354,6 +394,10 @@ export type branch_discountsWhereUniqueInput = Prisma.AtLeast<{
   reviewed_by_name?: Prisma.StringNullableFilter<"branch_discounts"> | string | null
   reviewed_at?: Prisma.DateTimeNullableFilter<"branch_discounts"> | Date | string | null
   review_note?: Prisma.StringNullableFilter<"branch_discounts"> | string | null
+  original_amount?: Prisma.DecimalNullableFilter<"branch_discounts"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.UuidNullableFilter<"branch_discounts"> | string | null
+  amount_changed_by_name?: Prisma.StringNullableFilter<"branch_discounts"> | string | null
+  amount_changed_at?: Prisma.DateTimeNullableFilter<"branch_discounts"> | Date | string | null
   branches?: Prisma.XOR<Prisma.BranchesScalarRelationFilter, Prisma.branchesWhereInput>
   users_branch_discounts_created_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   production_orders?: Prisma.XOR<Prisma.Production_ordersScalarRelationFilter, Prisma.production_ordersWhereInput>
@@ -377,6 +421,10 @@ export type branch_discountsOrderByWithAggregationInput = {
   reviewed_by_name?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewed_at?: Prisma.SortOrderInput | Prisma.SortOrder
   review_note?: Prisma.SortOrderInput | Prisma.SortOrder
+  original_amount?: Prisma.SortOrderInput | Prisma.SortOrder
+  amount_changed_by?: Prisma.SortOrderInput | Prisma.SortOrder
+  amount_changed_by_name?: Prisma.SortOrderInput | Prisma.SortOrder
+  amount_changed_at?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.branch_discountsCountOrderByAggregateInput
   _avg?: Prisma.branch_discountsAvgOrderByAggregateInput
   _max?: Prisma.branch_discountsMaxOrderByAggregateInput
@@ -404,6 +452,10 @@ export type branch_discountsScalarWhereWithAggregatesInput = {
   reviewed_by_name?: Prisma.StringNullableWithAggregatesFilter<"branch_discounts"> | string | null
   reviewed_at?: Prisma.DateTimeNullableWithAggregatesFilter<"branch_discounts"> | Date | string | null
   review_note?: Prisma.StringNullableWithAggregatesFilter<"branch_discounts"> | string | null
+  original_amount?: Prisma.DecimalNullableWithAggregatesFilter<"branch_discounts"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.UuidNullableWithAggregatesFilter<"branch_discounts"> | string | null
+  amount_changed_by_name?: Prisma.StringNullableWithAggregatesFilter<"branch_discounts"> | string | null
+  amount_changed_at?: Prisma.DateTimeNullableWithAggregatesFilter<"branch_discounts"> | Date | string | null
 }
 
 export type branch_discountsCreateInput = {
@@ -419,6 +471,10 @@ export type branch_discountsCreateInput = {
   reviewed_by_name?: string | null
   reviewed_at?: Date | string | null
   review_note?: string | null
+  original_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: string | null
+  amount_changed_by_name?: string | null
+  amount_changed_at?: Date | string | null
   branches: Prisma.branchesCreateNestedOneWithoutBranch_discountsInput
   users_branch_discounts_created_byTousers?: Prisma.usersCreateNestedOneWithoutBranch_discounts_branch_discounts_created_byTousersInput
   production_orders: Prisma.production_ordersCreateNestedOneWithoutBranch_discountsInput
@@ -442,6 +498,10 @@ export type branch_discountsUncheckedCreateInput = {
   reviewed_by_name?: string | null
   reviewed_at?: Date | string | null
   review_note?: string | null
+  original_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: string | null
+  amount_changed_by_name?: string | null
+  amount_changed_at?: Date | string | null
 }
 
 export type branch_discountsUpdateInput = {
@@ -457,6 +517,10 @@ export type branch_discountsUpdateInput = {
   reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   review_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  original_amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   branches?: Prisma.branchesUpdateOneRequiredWithoutBranch_discountsNestedInput
   users_branch_discounts_created_byTousers?: Prisma.usersUpdateOneWithoutBranch_discounts_branch_discounts_created_byTousersNestedInput
   production_orders?: Prisma.production_ordersUpdateOneRequiredWithoutBranch_discountsNestedInput
@@ -480,6 +544,10 @@ export type branch_discountsUncheckedUpdateInput = {
   reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   review_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  original_amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type branch_discountsCreateManyInput = {
@@ -499,6 +567,10 @@ export type branch_discountsCreateManyInput = {
   reviewed_by_name?: string | null
   reviewed_at?: Date | string | null
   review_note?: string | null
+  original_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: string | null
+  amount_changed_by_name?: string | null
+  amount_changed_at?: Date | string | null
 }
 
 export type branch_discountsUpdateManyMutationInput = {
@@ -514,6 +586,10 @@ export type branch_discountsUpdateManyMutationInput = {
   reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   review_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  original_amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type branch_discountsUncheckedUpdateManyInput = {
@@ -533,6 +609,10 @@ export type branch_discountsUncheckedUpdateManyInput = {
   reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   review_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  original_amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type branch_discountsCountOrderByAggregateInput = {
@@ -552,10 +632,15 @@ export type branch_discountsCountOrderByAggregateInput = {
   reviewed_by_name?: Prisma.SortOrder
   reviewed_at?: Prisma.SortOrder
   review_note?: Prisma.SortOrder
+  original_amount?: Prisma.SortOrder
+  amount_changed_by?: Prisma.SortOrder
+  amount_changed_by_name?: Prisma.SortOrder
+  amount_changed_at?: Prisma.SortOrder
 }
 
 export type branch_discountsAvgOrderByAggregateInput = {
   amount?: Prisma.SortOrder
+  original_amount?: Prisma.SortOrder
 }
 
 export type branch_discountsMaxOrderByAggregateInput = {
@@ -575,6 +660,10 @@ export type branch_discountsMaxOrderByAggregateInput = {
   reviewed_by_name?: Prisma.SortOrder
   reviewed_at?: Prisma.SortOrder
   review_note?: Prisma.SortOrder
+  original_amount?: Prisma.SortOrder
+  amount_changed_by?: Prisma.SortOrder
+  amount_changed_by_name?: Prisma.SortOrder
+  amount_changed_at?: Prisma.SortOrder
 }
 
 export type branch_discountsMinOrderByAggregateInput = {
@@ -594,10 +683,15 @@ export type branch_discountsMinOrderByAggregateInput = {
   reviewed_by_name?: Prisma.SortOrder
   reviewed_at?: Prisma.SortOrder
   review_note?: Prisma.SortOrder
+  original_amount?: Prisma.SortOrder
+  amount_changed_by?: Prisma.SortOrder
+  amount_changed_by_name?: Prisma.SortOrder
+  amount_changed_at?: Prisma.SortOrder
 }
 
 export type branch_discountsSumOrderByAggregateInput = {
   amount?: Prisma.SortOrder
+  original_amount?: Prisma.SortOrder
 }
 
 export type Branch_discountsListRelationFilter = {
@@ -620,6 +714,14 @@ export type DecimalFieldUpdateOperationsInput = {
 
 export type Enumbranch_discount_statusFieldUpdateOperationsInput = {
   set?: $Enums.branch_discount_status
+}
+
+export type NullableDecimalFieldUpdateOperationsInput = {
+  set?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type branch_discountsCreateNestedManyWithoutBranchesInput = {
@@ -803,6 +905,10 @@ export type branch_discountsCreateWithoutBranchesInput = {
   reviewed_by_name?: string | null
   reviewed_at?: Date | string | null
   review_note?: string | null
+  original_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: string | null
+  amount_changed_by_name?: string | null
+  amount_changed_at?: Date | string | null
   users_branch_discounts_created_byTousers?: Prisma.usersCreateNestedOneWithoutBranch_discounts_branch_discounts_created_byTousersInput
   production_orders: Prisma.production_ordersCreateNestedOneWithoutBranch_discountsInput
   users_branch_discounts_reviewed_byTousers?: Prisma.usersCreateNestedOneWithoutBranch_discounts_branch_discounts_reviewed_byTousersInput
@@ -824,6 +930,10 @@ export type branch_discountsUncheckedCreateWithoutBranchesInput = {
   reviewed_by_name?: string | null
   reviewed_at?: Date | string | null
   review_note?: string | null
+  original_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: string | null
+  amount_changed_by_name?: string | null
+  amount_changed_at?: Date | string | null
 }
 
 export type branch_discountsCreateOrConnectWithoutBranchesInput = {
@@ -872,6 +982,10 @@ export type branch_discountsScalarWhereInput = {
   reviewed_by_name?: Prisma.StringNullableFilter<"branch_discounts"> | string | null
   reviewed_at?: Prisma.DateTimeNullableFilter<"branch_discounts"> | Date | string | null
   review_note?: Prisma.StringNullableFilter<"branch_discounts"> | string | null
+  original_amount?: Prisma.DecimalNullableFilter<"branch_discounts"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.UuidNullableFilter<"branch_discounts"> | string | null
+  amount_changed_by_name?: Prisma.StringNullableFilter<"branch_discounts"> | string | null
+  amount_changed_at?: Prisma.DateTimeNullableFilter<"branch_discounts"> | Date | string | null
 }
 
 export type branch_discountsCreateWithoutProduction_ordersInput = {
@@ -887,6 +1001,10 @@ export type branch_discountsCreateWithoutProduction_ordersInput = {
   reviewed_by_name?: string | null
   reviewed_at?: Date | string | null
   review_note?: string | null
+  original_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: string | null
+  amount_changed_by_name?: string | null
+  amount_changed_at?: Date | string | null
   branches: Prisma.branchesCreateNestedOneWithoutBranch_discountsInput
   users_branch_discounts_created_byTousers?: Prisma.usersCreateNestedOneWithoutBranch_discounts_branch_discounts_created_byTousersInput
   users_branch_discounts_reviewed_byTousers?: Prisma.usersCreateNestedOneWithoutBranch_discounts_branch_discounts_reviewed_byTousersInput
@@ -908,6 +1026,10 @@ export type branch_discountsUncheckedCreateWithoutProduction_ordersInput = {
   reviewed_by_name?: string | null
   reviewed_at?: Date | string | null
   review_note?: string | null
+  original_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: string | null
+  amount_changed_by_name?: string | null
+  amount_changed_at?: Date | string | null
 }
 
 export type branch_discountsCreateOrConnectWithoutProduction_ordersInput = {
@@ -949,6 +1071,10 @@ export type branch_discountsCreateWithoutUsers_branch_discounts_created_byTouser
   reviewed_by_name?: string | null
   reviewed_at?: Date | string | null
   review_note?: string | null
+  original_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: string | null
+  amount_changed_by_name?: string | null
+  amount_changed_at?: Date | string | null
   branches: Prisma.branchesCreateNestedOneWithoutBranch_discountsInput
   production_orders: Prisma.production_ordersCreateNestedOneWithoutBranch_discountsInput
   users_branch_discounts_reviewed_byTousers?: Prisma.usersCreateNestedOneWithoutBranch_discounts_branch_discounts_reviewed_byTousersInput
@@ -970,6 +1096,10 @@ export type branch_discountsUncheckedCreateWithoutUsers_branch_discounts_created
   reviewed_by_name?: string | null
   reviewed_at?: Date | string | null
   review_note?: string | null
+  original_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: string | null
+  amount_changed_by_name?: string | null
+  amount_changed_at?: Date | string | null
 }
 
 export type branch_discountsCreateOrConnectWithoutUsers_branch_discounts_created_byTousersInput = {
@@ -995,6 +1125,10 @@ export type branch_discountsCreateWithoutUsers_branch_discounts_reviewed_byTouse
   reviewed_by_name?: string | null
   reviewed_at?: Date | string | null
   review_note?: string | null
+  original_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: string | null
+  amount_changed_by_name?: string | null
+  amount_changed_at?: Date | string | null
   branches: Prisma.branchesCreateNestedOneWithoutBranch_discountsInput
   users_branch_discounts_created_byTousers?: Prisma.usersCreateNestedOneWithoutBranch_discounts_branch_discounts_created_byTousersInput
   production_orders: Prisma.production_ordersCreateNestedOneWithoutBranch_discountsInput
@@ -1016,6 +1150,10 @@ export type branch_discountsUncheckedCreateWithoutUsers_branch_discounts_reviewe
   reviewed_by_name?: string | null
   reviewed_at?: Date | string | null
   review_note?: string | null
+  original_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: string | null
+  amount_changed_by_name?: string | null
+  amount_changed_at?: Date | string | null
 }
 
 export type branch_discountsCreateOrConnectWithoutUsers_branch_discounts_reviewed_byTousersInput = {
@@ -1076,6 +1214,10 @@ export type branch_discountsCreateManyBranchesInput = {
   reviewed_by_name?: string | null
   reviewed_at?: Date | string | null
   review_note?: string | null
+  original_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: string | null
+  amount_changed_by_name?: string | null
+  amount_changed_at?: Date | string | null
 }
 
 export type branch_discountsUpdateWithoutBranchesInput = {
@@ -1091,6 +1233,10 @@ export type branch_discountsUpdateWithoutBranchesInput = {
   reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   review_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  original_amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   users_branch_discounts_created_byTousers?: Prisma.usersUpdateOneWithoutBranch_discounts_branch_discounts_created_byTousersNestedInput
   production_orders?: Prisma.production_ordersUpdateOneRequiredWithoutBranch_discountsNestedInput
   users_branch_discounts_reviewed_byTousers?: Prisma.usersUpdateOneWithoutBranch_discounts_branch_discounts_reviewed_byTousersNestedInput
@@ -1112,6 +1258,10 @@ export type branch_discountsUncheckedUpdateWithoutBranchesInput = {
   reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   review_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  original_amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type branch_discountsUncheckedUpdateManyWithoutBranchesInput = {
@@ -1130,6 +1280,10 @@ export type branch_discountsUncheckedUpdateManyWithoutBranchesInput = {
   reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   review_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  original_amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type branch_discountsCreateManyProduction_ordersInput = {
@@ -1148,6 +1302,10 @@ export type branch_discountsCreateManyProduction_ordersInput = {
   reviewed_by_name?: string | null
   reviewed_at?: Date | string | null
   review_note?: string | null
+  original_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: string | null
+  amount_changed_by_name?: string | null
+  amount_changed_at?: Date | string | null
 }
 
 export type branch_discountsUpdateWithoutProduction_ordersInput = {
@@ -1163,6 +1321,10 @@ export type branch_discountsUpdateWithoutProduction_ordersInput = {
   reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   review_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  original_amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   branches?: Prisma.branchesUpdateOneRequiredWithoutBranch_discountsNestedInput
   users_branch_discounts_created_byTousers?: Prisma.usersUpdateOneWithoutBranch_discounts_branch_discounts_created_byTousersNestedInput
   users_branch_discounts_reviewed_byTousers?: Prisma.usersUpdateOneWithoutBranch_discounts_branch_discounts_reviewed_byTousersNestedInput
@@ -1184,6 +1346,10 @@ export type branch_discountsUncheckedUpdateWithoutProduction_ordersInput = {
   reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   review_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  original_amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type branch_discountsUncheckedUpdateManyWithoutProduction_ordersInput = {
@@ -1202,6 +1368,10 @@ export type branch_discountsUncheckedUpdateManyWithoutProduction_ordersInput = {
   reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   review_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  original_amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type branch_discountsCreateManyUsers_branch_discounts_created_byTousersInput = {
@@ -1220,6 +1390,10 @@ export type branch_discountsCreateManyUsers_branch_discounts_created_byTousersIn
   reviewed_by_name?: string | null
   reviewed_at?: Date | string | null
   review_note?: string | null
+  original_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: string | null
+  amount_changed_by_name?: string | null
+  amount_changed_at?: Date | string | null
 }
 
 export type branch_discountsCreateManyUsers_branch_discounts_reviewed_byTousersInput = {
@@ -1238,6 +1412,10 @@ export type branch_discountsCreateManyUsers_branch_discounts_reviewed_byTousersI
   reviewed_by_name?: string | null
   reviewed_at?: Date | string | null
   review_note?: string | null
+  original_amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: string | null
+  amount_changed_by_name?: string | null
+  amount_changed_at?: Date | string | null
 }
 
 export type branch_discountsUpdateWithoutUsers_branch_discounts_created_byTousersInput = {
@@ -1253,6 +1431,10 @@ export type branch_discountsUpdateWithoutUsers_branch_discounts_created_byTouser
   reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   review_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  original_amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   branches?: Prisma.branchesUpdateOneRequiredWithoutBranch_discountsNestedInput
   production_orders?: Prisma.production_ordersUpdateOneRequiredWithoutBranch_discountsNestedInput
   users_branch_discounts_reviewed_byTousers?: Prisma.usersUpdateOneWithoutBranch_discounts_branch_discounts_reviewed_byTousersNestedInput
@@ -1274,6 +1456,10 @@ export type branch_discountsUncheckedUpdateWithoutUsers_branch_discounts_created
   reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   review_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  original_amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type branch_discountsUncheckedUpdateManyWithoutUsers_branch_discounts_created_byTousersInput = {
@@ -1292,6 +1478,10 @@ export type branch_discountsUncheckedUpdateManyWithoutUsers_branch_discounts_cre
   reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   review_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  original_amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type branch_discountsUpdateWithoutUsers_branch_discounts_reviewed_byTousersInput = {
@@ -1307,6 +1497,10 @@ export type branch_discountsUpdateWithoutUsers_branch_discounts_reviewed_byTouse
   reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   review_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  original_amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   branches?: Prisma.branchesUpdateOneRequiredWithoutBranch_discountsNestedInput
   users_branch_discounts_created_byTousers?: Prisma.usersUpdateOneWithoutBranch_discounts_branch_discounts_created_byTousersNestedInput
   production_orders?: Prisma.production_ordersUpdateOneRequiredWithoutBranch_discountsNestedInput
@@ -1328,6 +1522,10 @@ export type branch_discountsUncheckedUpdateWithoutUsers_branch_discounts_reviewe
   reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   review_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  original_amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type branch_discountsUncheckedUpdateManyWithoutUsers_branch_discounts_reviewed_byTousersInput = {
@@ -1346,6 +1544,10 @@ export type branch_discountsUncheckedUpdateManyWithoutUsers_branch_discounts_rev
   reviewed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   review_note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  original_amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  amount_changed_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount_changed_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -1367,6 +1569,10 @@ export type branch_discountsSelect<ExtArgs extends runtime.Types.Extensions.Inte
   reviewed_by_name?: boolean
   reviewed_at?: boolean
   review_note?: boolean
+  original_amount?: boolean
+  amount_changed_by?: boolean
+  amount_changed_by_name?: boolean
+  amount_changed_at?: boolean
   branches?: boolean | Prisma.branchesDefaultArgs<ExtArgs>
   users_branch_discounts_created_byTousers?: boolean | Prisma.branch_discounts$users_branch_discounts_created_byTousersArgs<ExtArgs>
   production_orders?: boolean | Prisma.production_ordersDefaultArgs<ExtArgs>
@@ -1390,6 +1596,10 @@ export type branch_discountsSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   reviewed_by_name?: boolean
   reviewed_at?: boolean
   review_note?: boolean
+  original_amount?: boolean
+  amount_changed_by?: boolean
+  amount_changed_by_name?: boolean
+  amount_changed_at?: boolean
   branches?: boolean | Prisma.branchesDefaultArgs<ExtArgs>
   users_branch_discounts_created_byTousers?: boolean | Prisma.branch_discounts$users_branch_discounts_created_byTousersArgs<ExtArgs>
   production_orders?: boolean | Prisma.production_ordersDefaultArgs<ExtArgs>
@@ -1413,6 +1623,10 @@ export type branch_discountsSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   reviewed_by_name?: boolean
   reviewed_at?: boolean
   review_note?: boolean
+  original_amount?: boolean
+  amount_changed_by?: boolean
+  amount_changed_by_name?: boolean
+  amount_changed_at?: boolean
   branches?: boolean | Prisma.branchesDefaultArgs<ExtArgs>
   users_branch_discounts_created_byTousers?: boolean | Prisma.branch_discounts$users_branch_discounts_created_byTousersArgs<ExtArgs>
   production_orders?: boolean | Prisma.production_ordersDefaultArgs<ExtArgs>
@@ -1436,9 +1650,13 @@ export type branch_discountsSelectScalar = {
   reviewed_by_name?: boolean
   reviewed_at?: boolean
   review_note?: boolean
+  original_amount?: boolean
+  amount_changed_by?: boolean
+  amount_changed_by_name?: boolean
+  amount_changed_at?: boolean
 }
 
-export type branch_discountsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branch_id" | "branch_name" | "production_order_id" | "demand_number" | "amount" | "reason" | "status" | "business_date" | "created_by" | "created_by_name" | "created_at" | "reviewed_by" | "reviewed_by_name" | "reviewed_at" | "review_note", ExtArgs["result"]["branch_discounts"]>
+export type branch_discountsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "branch_id" | "branch_name" | "production_order_id" | "demand_number" | "amount" | "reason" | "status" | "business_date" | "created_by" | "created_by_name" | "created_at" | "reviewed_by" | "reviewed_by_name" | "reviewed_at" | "review_note" | "original_amount" | "amount_changed_by" | "amount_changed_by_name" | "amount_changed_at", ExtArgs["result"]["branch_discounts"]>
 export type branch_discountsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   branches?: boolean | Prisma.branchesDefaultArgs<ExtArgs>
   users_branch_discounts_created_byTousers?: boolean | Prisma.branch_discounts$users_branch_discounts_created_byTousersArgs<ExtArgs>
@@ -1483,6 +1701,10 @@ export type $branch_discountsPayload<ExtArgs extends runtime.Types.Extensions.In
     reviewed_by_name: string | null
     reviewed_at: Date | null
     review_note: string | null
+    original_amount: runtime.Decimal | null
+    amount_changed_by: string | null
+    amount_changed_by_name: string | null
+    amount_changed_at: Date | null
   }, ExtArgs["result"]["branch_discounts"]>
   composites: {}
 }
@@ -1926,6 +2148,10 @@ export interface branch_discountsFieldRefs {
   readonly reviewed_by_name: Prisma.FieldRef<"branch_discounts", 'String'>
   readonly reviewed_at: Prisma.FieldRef<"branch_discounts", 'DateTime'>
   readonly review_note: Prisma.FieldRef<"branch_discounts", 'String'>
+  readonly original_amount: Prisma.FieldRef<"branch_discounts", 'Decimal'>
+  readonly amount_changed_by: Prisma.FieldRef<"branch_discounts", 'String'>
+  readonly amount_changed_by_name: Prisma.FieldRef<"branch_discounts", 'String'>
+  readonly amount_changed_at: Prisma.FieldRef<"branch_discounts", 'DateTime'>
 }
     
 

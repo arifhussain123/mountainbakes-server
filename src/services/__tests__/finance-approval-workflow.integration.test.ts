@@ -343,13 +343,14 @@ describe('Accountant: create, list, submit', () => {
     assert.deepEqual(events[1].changes, { amount: { from: 1000, to: 1200 } });
   });
 
-  test('only the Accountant edits and submits: Finance Admin saves a draft and decides, nothing more', async () => {
+  test('only the Accountant edits drafts and submits: Finance Admin saves a draft and decides, nothing more', async () => {
     const mine = await newEntry('admin', { ledgerHeadId: HEADS.fuel, description: 'Admin-raised fuel', amount: 700, businessDate: TODAY });
     assert.equal(mine.status, 'draft', 'a Finance Admin entry is saved for the Accountant, not sent');
 
     const edit = await call('admin', 'PUT', `${ENTRIES}/${mine.id}`, { amount: 800 });
-    assert.equal(edit.status, 403);
-    assert.match(edit.body.error, /only the Accountant/);
+    assert.equal(edit.status, 409, 'an approver edits only a pending entry');
+    assert.match(edit.body.error, /only while it awaits approval/);
+    assert.equal((await call('auditor', 'PUT', `${ENTRIES}/${mine.id}`, { amount: 800 })).status, 403);
     assert.equal((await call('admin', 'POST', `${ENTRIES}/${mine.id}/submit`)).status, 403);
     assert.equal((await call('auditor', 'POST', `${ENTRIES}/${mine.id}/submit`)).status, 403);
     assert.equal(Number((await entry(mine.id)).amount), 700);
@@ -387,6 +388,23 @@ describe('Finance Admin: reject, correct, resubmit, approve', () => {
     assert.ok(queue.entries.some((e: Json) => e.id === rent.id));
     const submitters = ok(await call('admin', 'GET', `${ENTRIES}/submitters`)).submitters;
     assert.deepEqual(submitters, [{ id: ACTORS.accountant!.id, name: 'accountant@mb.test' }]);
+  });
+
+  test('an approver may edit a pending entry: it stays pending, the edit is in its history, and no resubmit', async () => {
+    const fuel = await newEntry('accountant', { ledgerHeadId: HEADS.fuel, description: 'Generator fuel', amount: 3000, businessDate: TODAY });
+    const edited = ok(await call('admin', 'PUT', `${ENTRIES}/${fuel.id}`, { amount: 2800, description: 'Generator fuel (bill checked)' })).entry;
+    assert.equal(edited.status, 'pending_approval');
+    assert.equal(edited.revision, fuel.revision, 'an approver fix is not a new revision');
+    assert.equal(Number(edited.amount), 2800);
+    assert.equal((await call('admin', 'PUT', `${ENTRIES}/${fuel.id}`, { amount: 1, resubmit: true })).status, 400);
+    assert.equal((await call('auditor', 'PUT', `${ENTRIES}/${fuel.id}`, { amount: 1 })).status, 403);
+    assert.equal(Number((await entry(fuel.id)).amount), 2800);
+
+    const events = await history(fuel.id, 'admin');
+    assert.deepEqual(events.map((e) => e.event), ['created', 'edited']);
+    assert.equal(events[1].actorName, 'fadmin@mb.test');
+    assert.deepEqual(events[1].changes.amount, { from: 3000, to: 2800 });
+    assert.equal(ok(await call('admin', 'POST', `${ENTRIES}/${fuel.id}/reject`, { reason: 'Returned to keep the queue clean' })).entry.status, 'rejected');
   });
 
   test('only an approver may decide; an accountant, an auditor and a branch cannot', async () => {

@@ -100,6 +100,9 @@ export interface LoanLedgerPage {
   openingBalance: number;
   /** Posted rows in the window only. */
   totalDebit: number;
+  /** totalDebit split by type: Refundable Loan + Receivable Loan = totalDebit. */
+  totalRefundable: number;
+  totalReceivable: number;
   totalCredit: number;
   /** openingBalance + totalDebit − totalCredit — the last row's balance. */
   closingBalance: number;

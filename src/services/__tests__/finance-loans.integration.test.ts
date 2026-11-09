@@ -288,9 +288,13 @@ describe('posting — the §18 client', () => {
     const page = ok(await call('auditor', 'GET', `${LOANS}/ledger?from=2026-10-01&to=2026-10-31&clientId=${ali}`));
     assert.equal(page.openingBalance, 0);
     assert.equal(page.totalDebit, 175000);
+    assert.deepEqual([page.totalRefundable, page.totalReceivable], [125000, 50000], 'Total Loan Payment split by type');
     assert.equal(page.totalCredit, 50000);
     assert.equal(page.closingBalance, 125000);
     assert.deepEqual(page.entries.map((e: Json) => e.balance), [100000, 150000, 120000, 100000, 125000]);
+
+    const receivableOnly = ok(await call('auditor', 'GET', `${LOANS}/ledger?from=2026-10-01&to=2026-10-31&clientId=${ali}&entryType=receivable_loan`));
+    assert.deepEqual([receivableOnly.totalDebit, receivableOnly.totalRefundable, receivableOnly.totalReceivable], [50000, 0, 50000]);
     assert.equal(page.entries.at(-1).balance, page.closingBalance);
   });
 
@@ -377,7 +381,8 @@ describe('exports', () => {
   test('the loan ledger report matches the screen, and downloads as Excel and PDF', async () => {
     const { report } = ok(await call('auditor', 'GET', `/api/finance/reports?type=loan_ledger&from=2026-10-01&to=2026-10-31&clientId=${ali}`));
     assert.deepEqual(report.summary.map((s: Json) => [s.label, s.value]), [
-      ['Opening Balance', 0], ['Total Loan Payment', 175000], ['Loan Paid', 50000], ['Closing Balance', 125000],
+      ['Opening Balance', 0], ['Total Loan Payment', 175000], ['Refundable Loan', 125000], ['Receivable Loan', 50000],
+      ['Loan Paid', 50000], ['Closing Balance', 125000],
     ]);
     assert.equal(report.rows[0].description, 'Opening balance brought forward');
     assert.match(report.subtitle, /^Ali Traders/);

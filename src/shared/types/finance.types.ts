@@ -2191,7 +2191,7 @@ export interface FinanceDashboardMonthTrend {
   discount: number;
 }
 
-/** A branch's balance for the previous business month; null = no records that month. */
+/** A branch's balance for the previous business month (Received − Company Share sign); null = no records that month. */
 export interface FinanceDashboardPreviousBalance {
   branchId: string | null;
   balance: number | null;
@@ -2201,7 +2201,7 @@ export interface FinanceMonthlyDashboardSummary {
   demand: number;
   companyShare: number;
   received: number;
-  /** companyShare − received. */
+  /** received − companyShare: negative = paid less than the share (owed), positive = paid more. */
   balance: number;
   /** The previous month's balance for the same scope; null when it had no records. */
   lastMonthBalance: number | null;

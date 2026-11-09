@@ -969,14 +969,6 @@ export type branchesUpdateOneRequiredWithoutBranch_share_paymentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.branchesUpdateToOneWithWhereWithoutBranch_share_paymentsInput, Prisma.branchesUpdateWithoutBranch_share_paymentsInput>, Prisma.branchesUncheckedUpdateWithoutBranch_share_paymentsInput>
 }
 
-export type NullableDecimalFieldUpdateOperationsInput = {
-  set?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
-}
-
 export type branchesCreateNestedOneWithoutCash_transfersInput = {
   create?: Prisma.XOR<Prisma.branchesCreateWithoutCash_transfersInput, Prisma.branchesUncheckedCreateWithoutCash_transfersInput>
   connectOrCreate?: Prisma.branchesCreateOrConnectWithoutCash_transfersInput

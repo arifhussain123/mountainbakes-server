@@ -7139,7 +7139,11 @@
     "reviewed_by": "uuid",
     "reviewed_by_name": "text",
     "reviewed_at": "timestamp with time zone",
-    "review_note": "text"
+    "review_note": "text",
+    "original_amount": "numeric",
+    "amount_changed_by": "uuid",
+    "amount_changed_by_name": "text",
+    "amount_changed_at": "timestamp with time zone"
    },
    "pk": [
     "id"

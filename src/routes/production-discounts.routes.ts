@@ -3,7 +3,7 @@ import { dbFor } from '../db';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { validate } from '../middleware/validate';
-import { ReviewBranchDiscountSchema, businessDaysAgoStr } from '../shared';
+import { ProductionDiscountAmountSchema, ReviewBranchDiscountSchema, businessDaysAgoStr } from '../shared';
 import { notify } from '../services/push.service';
 import { getMonthlyDiscountSummary } from '../services/discount-summary.service';
 import { getDiscountDayCheck } from '../services/discount-day-check.service';
@@ -63,9 +63,11 @@ const BRANCH_DISCOUNT_SORTABLE_COLUMNS: Record<string, string> = {
  */
 function toApi(rows: unknown): Record<string, unknown>[] {
   const camel = rowToApi<Record<string, unknown>[]>((rows ?? []) as Record<string, unknown>[]);
-  return camel.map(({ businessDate, amount, ...rest }) => ({
+  return camel.map(({ businessDate, amount, originalAmount, ...rest }) => ({
     ...rest,
     amount: Number(amount),
+    // Same numeric-as-string fix as `amount`; null while the figure is the branch's own.
+    originalAmount: originalAmount == null ? null : Number(originalAmount),
     date: businessDate,
   }));
 }
@@ -145,6 +147,79 @@ router.get('/', async (req: AuthRequest, res, next) => {
 
     const discounts = toApi(data);
     res.json({ discounts, total: count ?? 0 });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /api/production-discounts/:id/amount — Production corrects a pending
+// claim's amount from its Discount Detail popup (owner's call, 2026-11-06),
+// typically to match the till's Product breakdown before approving.
+//
+// Only while 'pending' — the same gate as review: a decided claim is final, and
+// a 'returned' one is the branch's to correct. `original_amount` keeps the
+// branch's own figure from the FIRST change; setting the amount back to it
+// clears the record. The update is a check-and-set on the status AND the amount
+// read, so a branch revision or a second reviewer landing in between is a 409,
+// never a silent overwrite.
+router.put('/:id/amount', validate(ProductionDiscountAmountSchema), async (req: AuthRequest, res, next) => {
+  try {
+    const { amount } = req.body as { amount: number };
+    const id = req.params['id']!;
+    if (!UUID_RE.test(id)) { res.status(400).json({ error: 'id must be a uuid' }); return; }
+
+    const { data: current, error: readErr } = await db
+      .from('branch_discounts')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+    if (readErr) throw readErr;
+    if (!current) { res.status(404).json({ error: 'Discount not found' }); return; }
+    if (current.status !== 'pending') {
+      res.status(409).json({ error: 'Only a claim awaiting review can have its amount changed.' });
+      return;
+    }
+
+    const before = Number(current.amount);
+    if (amount === before) { res.json(toApi([current])[0]); return; }
+
+    const branchFigure = current.original_amount == null ? before : Number(current.original_amount);
+    const backToBranch = amount === branchFigure;
+
+    const { data: updated, error } = await db
+      .from('branch_discounts')
+      .update(
+        backToBranch
+          ? { amount, original_amount: null, amount_changed_by: null, amount_changed_by_name: null, amount_changed_at: null }
+          : {
+              amount,
+              original_amount: branchFigure,
+              amount_changed_by: req.user!.uid,
+              amount_changed_by_name: req.user!.email,
+              amount_changed_at: new Date().toISOString(),
+            },
+      )
+      .eq('id', id)
+      .eq('status', 'pending')
+      .eq('amount', current.amount)
+      .select('*')
+      .maybeSingle();
+    if (error) throw error;
+    if (!updated) {
+      res.status(409).json({ error: 'This claim changed while you were editing it — refresh and try again.' });
+      return;
+    }
+
+    await notify({
+      type: 'branch_discount_reviewed',
+      title: 'Discount Amount Changed',
+      message: `Production changed ${updated.demand_number} from ${before} to ${amount}`,
+      targetRole: 'branch_manager',
+      branchId: updated.branch_id,
+      relatedId: id,
+    });
+
+    res.json(toApi([updated])[0]);
   } catch (err) {
     next(err);
   }

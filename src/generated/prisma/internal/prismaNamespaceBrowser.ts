@@ -311,7 +311,11 @@ export const Branch_discountsScalarFieldEnum = {
   reviewed_by: 'reviewed_by',
   reviewed_by_name: 'reviewed_by_name',
   reviewed_at: 'reviewed_at',
-  review_note: 'review_note'
+  review_note: 'review_note',
+  original_amount: 'original_amount',
+  amount_changed_by: 'amount_changed_by',
+  amount_changed_by_name: 'amount_changed_by_name',
+  amount_changed_at: 'amount_changed_at'
 } as const
 
 export type Branch_discountsScalarFieldEnum = (typeof Branch_discountsScalarFieldEnum)[keyof typeof Branch_discountsScalarFieldEnum]

@@ -74,6 +74,14 @@ export const ReviseBranchDiscountSchema = z.object({
  * be a box to fill rather than a message to send — but a rejection over money is
  * exactly where one is worth writing, so the field stays offered.
  */
+/**
+ * Production correcting a pending claim's amount (PUT
+ * /api/production-discounts/:id/amount). Same limits as the branch's own figure.
+ */
+export const ProductionDiscountAmountSchema = z.object({
+  amount: discountAmount,
+});
+
 export const ReviewBranchDiscountSchema = z
   .object({
     status: z.enum(['approved', 'rejected', 'returned']),
@@ -87,3 +95,4 @@ export const ReviewBranchDiscountSchema = z
 export type CreateBranchDiscountInput = z.infer<typeof CreateBranchDiscountSchema>;
 export type ReviseBranchDiscountInput = z.infer<typeof ReviseBranchDiscountSchema>;
 export type ReviewBranchDiscountInput = z.infer<typeof ReviewBranchDiscountSchema>;
+export type ProductionDiscountAmountInput = z.infer<typeof ProductionDiscountAmountSchema>;
