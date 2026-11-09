@@ -76,6 +76,37 @@ export function requireFinanceReviewer() {
 }
 
 /**
+ * Editing an Income & Expense entry: the Accountant (draft or returned
+ * entries), or an approver — Finance Admin / Finance Manager — fixing a pending
+ * entry in their queue before deciding on it (owner's request, 2026-11-09). The
+ * route passes which one it is to the service, which holds each to its statuses.
+ */
+export function requireFinanceEntryEditor() {
+  return async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    try {
+      if (financeCanReview(req.user.role)) {
+        next();
+        return;
+      }
+      const { allowSuperAdminWrite } = await getFinanceSettings();
+      if (!financeCan(req.user.role, 'approve', allowSuperAdminWrite)) {
+        res.status(403).json({
+          error: 'Forbidden: only the Accountant or an approver may edit this entry.',
+        });
+        return;
+      }
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
+}
+
+/**
  * Administering a Finance Help Desk query — respond, assign, resolve, and change
  * or delete the finance record behind it.
  *

@@ -62,7 +62,7 @@ function assertEditable(doc: { status: FinanceDocStatus }, ref: string): void {
     throw Object.assign(
       new Error(
         doc.status === 'pending_approval'
-          ? `${ref} is awaiting approval. Ask an approver to reject it first if it needs changing.`
+          ? `${ref} is awaiting approval. Ask an approver to edit it or return it if it needs changing.`
           : `${ref} is ${doc.status} and can no longer be edited. Post an adjustment instead.`,
       ),
       { status: 409 },
@@ -353,10 +353,29 @@ export async function updateTransaction(
   id: string,
   input: UpdateFinanceTransactionInput,
   actor?: { uid: string; name: string; role?: UserRole },
+  /**
+   * `asApprover`: Finance Admin / Finance Manager fixing an entry in their
+   * queue before deciding on it. Only a pending entry, and it stays pending —
+   * the approver still has to approve it (or return it) afterwards.
+   */
+  opts: { asApprover?: boolean } = {},
 ): Promise<FinanceTransaction> {
   const current = await getTransaction(id);
   if (!current) throw Object.assign(new Error('Entry not found'), { status: 404 });
-  assertEditable(current, current.txnNo);
+  const editableStatuses: readonly FinanceDocStatus[] = opts.asApprover ? ['pending_approval'] : EDITABLE_DOC_STATUSES;
+  if (opts.asApprover) {
+    if (current.status !== 'pending_approval') {
+      throw Object.assign(
+        new Error(`${current.txnNo} is ${current.status}. An approver can edit an entry only while it awaits approval.`),
+        { status: 409 },
+      );
+    }
+    if (input.resubmit) {
+      throw Object.assign(new Error('Only the Accountant resubmits an entry.'), { status: 400 });
+    }
+  } else {
+    assertEditable(current, current.txnNo);
+  }
 
   // An edit that changes the date, the head or the amount is a new decision
   // under the restriction rules. Otherwise "save it for today, then edit the
@@ -417,7 +436,7 @@ export async function updateTransaction(
   }
 
   const { data, error } = await withoutDeleted(
-    db.from('finance_transactions').update(row).eq('id', id).in('status', EDITABLE_DOC_STATUSES),
+    db.from('finance_transactions').update(row).eq('id', id).in('status', editableStatuses),
   )
     .select('*')
     .single();

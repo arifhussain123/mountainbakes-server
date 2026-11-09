@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticate, type AuthRequest } from '../middleware/auth';
-import { requireFinance, requireFinanceReviewer, requireIncomeVerifier } from '../middleware/requireFinance';
+import { requireFinance, requireFinanceEntryEditor, requireFinanceReviewer, requireIncomeVerifier } from '../middleware/requireFinance';
 import { validate } from '../middleware/validate';
 import { idempotent } from '../middleware/idempotency';
 import {
@@ -302,16 +302,19 @@ entriesRouter.post(
   },
 );
 
-// Edit and Submit for Approval are the Accountant's alone (requireFinanceReviewer).
+// Submit for Approval is the Accountant's alone (requireFinanceReviewer). Edit is
+// the Accountant's on a draft or returned entry, and an approver's on a pending
+// one — they may fix it in the queue, then still approve or return it.
 entriesRouter.put(
   '/:id',
-  requireFinanceReviewer(),
+  requireFinanceEntryEditor(),
   validate(UpdateFinanceTransactionSchema),
   async (req: AuthRequest, res, next) => {
     try {
       const id = String(req.params['id']);
       const before = await getTransaction(id);
-      const doc = await updateTransaction(id, req.body, actorOf(req));
+      const asApprover = !financeCanReview(req.user!.role);
+      const doc = await updateTransaction(id, req.body, actorOf(req), { asApprover });
 
       await logFinanceAudit(req, {
         entity: 'finance_transaction',
