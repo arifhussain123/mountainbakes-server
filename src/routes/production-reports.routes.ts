@@ -341,7 +341,8 @@ function collectionsFromDemandRecord(
   // the branch's last demand's Delivered (written =45000-17000), and a Closing
   // Stock row after it shows that amount only, left out of every total
   // (owner's rule, 2026-11-01; getCollectionsMonth).
-  const STOCK_LABEL = { opening: 'Opening Stock', closing: 'Closing Stock' } as const;
+  // A window from mid-month opens on a Brought Forward row: the balance in, nothing charged.
+  const STOCK_LABEL = { opening: 'Opening Stock', closing: 'Closing Stock', forward: 'Brought Forward' } as const;
   const DELIVERED_COL = 3;
   const line = (r: Row): (string | number)[] => r.stockRow === 'closing'
     ? [r.businessDate, STOCK_LABEL.closing, r.branchName, r.delivered, '', '', '', '', '', '', '', '']
@@ -378,7 +379,7 @@ function collectionsFromDemandRecord(
   };
   // Date, then demand number; on a day, the Opening Stock rows before its
   // demands and the Closing Stock rows after them.
-  const rank = (r: Row) => (r.stockRow === 'opening' ? 0 : r.stockRow === 'closing' ? 2 : 1);
+  const rank = (r: Row) => (r.stockRow === 'opening' || r.stockRow === 'forward' ? 0 : r.stockRow === 'closing' ? 2 : 1);
   const byDate = (a: Row, b: Row) =>
     a.businessDate.localeCompare(b.businessDate)
     || rank(a) - rank(b)
