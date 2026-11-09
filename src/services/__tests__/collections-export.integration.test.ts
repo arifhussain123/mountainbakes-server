@@ -438,17 +438,27 @@ test('each branch keeps its own chain; By Branch adds up to the same totals', as
   assert.deepEqual(byBranch.at(-1), ['GRAND TOTAL', 8, 314300, 4100, 6300, 303900, 241845, 211605, 0, 30240]);
 });
 
-test('From is taken as picked: a window from 3 Oct opens on that morning\'s stock', async () => {
+test('a window from mid-month continues its month: it opens on the balance the days before closed on, and ends where a window from the 1st does', async () => {
   const picked = tableOf((await workbook('&from=2026-10-03&to=2026-10-03')).getWorksheet('Collections')!);
+  const fromFirst = tableOf((await workbook('&from=2026-10-01&to=2026-10-03')).getWorksheet('Collections')!);
   const day = (r: unknown[]) => (r[0] as Date).toISOString().slice(0, 10);
   // Nothing before 3 Oct: DMD-000123/124/126/127/128 (1–2 Oct) are carried in, not listed.
   assert.ok(picked.slice(1, -1).every((r) => day(r) === '2026-10-03'));
+  // No stock charged again on the 3rd: 1 Oct's Opening Stock is already in the balance (owner's report, 2026-11-10).
+  assert.ok(!picked.some((r) => r[1] === 'Opening Stock'));
   //                                Delivered Ret Disc G.Total Share Rec  Previous Closing
-  assert.deepEqual(picked.find((r) => r[1] === 'Opening Stock' && r[2] === 'Saddar')!.slice(3),
-    [3000, 0, 0, 3000, 2400, 0, 2440, 4840, '']); // 30 Bun that morning; 2,440 carried from DMD-000124
-  assert.deepEqual(picked.find((r) => r[1] === 'DMD-000125')!.slice(3), [39000, 500, 1000, 37500, 30000, 20000, 4840, 14840, '']);
-  assert.deepEqual(picked.find((r) => r[1] === 'Opening Stock' && r[2] === 'Gulberg')!.slice(9), [-2000, -2000, '']);
+  assert.deepEqual(picked.find((r) => r[1] === 'Brought Forward' && r[2] === 'Saddar')!.slice(3),
+    [0, 0, 0, 0, 0, 0, 4040, 4040, '']); // 1 Oct stock 1,600 + DMD-000123/124, as the window from the 1st has it
+  assert.deepEqual(picked.find((r) => r[1] === 'DMD-000125')!.slice(3), [39000, 500, 1000, 37500, 30000, 20000, 4040, 14040, '']);
   assert.deepEqual(picked.map((r) => r[1]).filter((n) => String(n).startsWith('DMD-')), ['DMD-000125', 'DMD-000129']);
+  // Every branch ends the 3rd on the same balance either way.
+  const lastClosing = (rows: Json[][], branch: unknown) => rows.filter((r) => r[2] === branch && r[1] !== 'Closing Stock').at(-1)![10];
+  const branches = [...new Set(fromFirst.slice(1, -1).map((r) => r[2]))];
+  for (const b of branches) assert.equal(lastClosing(picked, b), lastClosing(fromFirst, b), `${b}`);
+  // And a window across the month's end from mid-month ends on November's balances exactly.
+  const across = tableOf((await workbook('&from=2026-10-20&to=2026-11-05')).getWorksheet('By Branch')!);
+  const november = tableOf((await workbook('&from=2026-11-01&to=2026-11-05')).getWorksheet('By Branch')!);
+  for (const r of november.slice(1, -1)) assert.equal(across.find((x) => x[0] === r[0])![9], r[9], `${r[0]} on 5 Nov`);
 });
 
 test('a later month opens on the month before\'s final balance, its Opening Stock the month before\'s Closing Stock', async () => {

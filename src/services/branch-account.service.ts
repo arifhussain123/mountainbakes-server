@@ -520,7 +520,12 @@ const STOCK_VALUE_SQL = `
 
 /** A Collections row: a Demand Record row, or one of a branch's two stock rows (`orderId` null). */
 export interface CollectionsRow extends DemandRecordRow {
-  stockRow: 'opening' | 'closing' | null;
+  /**
+   * 'forward': the first row of a window that starts mid-month (25 Oct). It
+   * carries the balance in and charges nothing — the month's stock was charged
+   * on its 1st, which the balance already counts.
+   */
+  stockRow: 'opening' | 'closing' | 'forward' | null;
   /**
    * The month's closing stock taken off this row's Delivered (the branch's
    * last row of a finished month), so `delivered` is already net of it and
@@ -756,6 +761,19 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
     carry = { through: monthEndOf(mFrom), balances: new Map(month.balances.map((b) => [b.branchId, b.closingBalance])) };
   }
 
+  // A window that starts mid-month (25 Oct) continues its month: the 1st up
+  // to the day before is worked first, on the same rules, so it opens on the
+  // balance that day closed on — Opening Stock of the 1st included — and its
+  // closing on any day is the same as a window from the 1st gives. Without
+  // this it opened on the Demand Record page's balance (no stock rows) and
+  // charged the stock held that morning again: two exports to the same day
+  // disagreed.
+  if (from > start && !from.endsWith('-01')) {
+    const monthStart = `${from.slice(0, 8)}01`;
+    const lead = await collectionsWindow(ctx, monthStart > start ? monthStart : start, dayBefore(from), carry);
+    carry = { through: dayBefore(from), balances: new Map(lead.balances.map((b) => [b.branchId, b.closingBalance])) };
+  }
+
   // The window itself, a month at a time (owner's rule, 2026-11-01): a window
   // that runs across a month's end (1 Oct to 1 Nov) closes that month on its
   // last day — Closing Stock off the last demand — and opens the next on the
@@ -779,7 +797,7 @@ export async function getCollectionsMonth(q: { branchId?: string | null; from: s
     const last = lastSeen.get(b.id);
     return last ? [{ ...last, openingBalance: firstSeen.get(b.id)! }] : [];
   });
-  const rank = (r: CollectionsRow) => (r.stockRow === 'opening' ? 0 : r.stockRow === 'closing' ? 2 : 1);
+  const rank = (r: CollectionsRow) => (r.stockRow === 'opening' || r.stockRow === 'forward' ? 0 : r.stockRow === 'closing' ? 2 : 1);
   rows.sort((a, b) => a.branchName.localeCompare(b.branchName) || a.businessDate.localeCompare(b.businessDate)
     || rank(a) - rank(b) || Date.parse(a.at) - Date.parse(b.at));
   // The Closing Stock rows are shown, not counted.
@@ -825,8 +843,13 @@ async function collectionsWindow(ctx: CollectionsContext, from: string, to: stri
   // The 1st of a month after the go-live day opens on the month before's
   // Closing Stock: the end of its last day, at that day's prices.
   const opensOnMonthBefore = from.endsWith('-01') && from > start;
+  // Mid-month (getCollectionsMonth carried the 1st up to the day before in):
+  // nothing to charge, the first row only brings the balance forward.
+  const continuesMonth = from > start && !from.endsWith('-01');
   const [stock, closingStock, before] = await Promise.all([
-    opensOnMonthBefore
+    continuesMonth
+      ? Promise.resolve([] as { branchId: string; amount: number }[])
+      : opensOnMonthBefore
       ? prisma.$queryRawUnsafe<{ branchId: string; amount: number }[]>(STOCK_VALUE_SQL, branchId, dayBefore(from), true)
       : prisma.$queryRawUnsafe<{ branchId: string; amount: number }[]>(STOCK_VALUE_SQL, branchId, from, false),
     monthClosed
@@ -908,7 +931,7 @@ async function collectionsWindow(ctx: CollectionsContext, from: string, to: stri
     computed.forEach((r, i) => rows.push({
       ...r,
       open: i === 0 ? false : demands[i - 1]!.open,
-      stockRow: i === 0 ? 'opening' : null,
+      stockRow: i === 0 ? (continuesMonth ? 'forward' : 'opening') : null,
       closingStockDeducted: i === deductAt ? closingValue : 0,
     }));
     const finalBalance = computed[computed.length - 1]!.closingBalance;
@@ -930,7 +953,7 @@ async function collectionsWindow(ctx: CollectionsContext, from: string, to: stri
       closingBalance: finalBalance,
     });
   }
-  const rank = (r: CollectionsRow) => (r.stockRow === 'opening' ? 0 : r.stockRow === 'closing' ? 2 : 1);
+  const rank = (r: CollectionsRow) => (r.stockRow === 'opening' || r.stockRow === 'forward' ? 0 : r.stockRow === 'closing' ? 2 : 1);
   rows.sort((a, b) => a.branchName.localeCompare(b.branchName) || a.businessDate.localeCompare(b.businessDate)
     || rank(a) - rank(b) || Date.parse(a.at) - Date.parse(b.at));
   return { rows, balances, monthClosed };
