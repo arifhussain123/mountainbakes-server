@@ -246,18 +246,35 @@ describe('staying signed in', () => {
     assert.equal((await call('POST', '/api/auth/refresh', { refreshToken: b.body.refreshToken })).status, 200);
   });
 
-  test('a spent token presented later ends the session — for whoever holds its successor too', async () => {
+  test('a spent token presented later, after its successor was used, ends the session for both holders', async () => {
     const first = await signInAs('gulberg');
     const second = await call('POST', '/api/auth/refresh', { refreshToken: first.refreshToken });
+    const third = await call('POST', '/api/auth/refresh', { refreshToken: second.body.refreshToken });
+    assert.equal(third.status, 200);
     await sql(`update auth_refresh_tokens set used_at = now() - interval '5 minutes' where used_at is not null`);
 
     const replay = await call('POST', '/api/auth/refresh', { refreshToken: first.refreshToken });
     assert.equal(replay.status, 401);
     assert.equal(replay.body.details.code, 'session_revoked');
-    assert.equal((await call('POST', '/api/auth/refresh', { refreshToken: second.body.refreshToken })).status, 401);
-    const me = await call('GET', '/api/auth/me', undefined, second.body.accessToken);
+    assert.equal((await call('POST', '/api/auth/refresh', { refreshToken: third.body.refreshToken })).status, 401);
+    const me = await call('GET', '/api/auth/me', undefined, third.body.accessToken);
     assert.equal(me.status, 401);
     assert.equal(me.body.details.code, 'session_revoked');
+  });
+
+  test('a lost answer: the old token asked again later still renews, and the pair that never arrived is dropped', async () => {
+    const first = await signInAs('gulberg');
+    const lost = await call('POST', '/api/auth/refresh', { refreshToken: first.refreshToken });
+    assert.equal(lost.status, 200);
+    await sql(`update auth_refresh_tokens set used_at = now() - interval '5 minutes' where used_at is not null`);
+
+    const retry = await call('POST', '/api/auth/refresh', { refreshToken: first.refreshToken });
+    assert.equal(retry.status, 200);
+    assert.equal((await call('GET', '/api/auth/me', undefined, retry.body.accessToken)).status, 200);
+    // The pair that never arrived no longer works…
+    assert.equal((await call('POST', '/api/auth/refresh', { refreshToken: lost.body.refreshToken })).status, 401);
+    // …but that did not end the session: the retry's own token carries on.
+    assert.equal((await call('POST', '/api/auth/refresh', { refreshToken: retry.body.refreshToken })).status, 200);
   });
 
   test('a token that was never issued, and a session left unused too long', async () => {

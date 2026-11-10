@@ -22,7 +22,10 @@ export type UserRole =
   | 'finance_admin'
   | 'finance_manager'
   | 'accountant'
-  | 'finance_auditor';
+  | 'finance_auditor'
+  // Dry Items Store keeper (migration 20261110000001). Not a branch role and
+  // not a finance role: it sees the Store and nothing else.
+  | 'store_user';
 
 export const USER_ROLES = [
   'super_admin',
@@ -32,6 +35,7 @@ export const USER_ROLES = [
   'finance_manager',
   'accountant',
   'finance_auditor',
+  'store_user',
 ] as const satisfies readonly UserRole[];
 
 /**

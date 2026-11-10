@@ -191,8 +191,20 @@ export async function refreshSession(refreshToken: string): Promise<IssuedSessio
     if (session.revoked_at || session.expires_at.getTime() <= now) return { kind: 'invalid' as const };
 
     if (token.used_at && now - token.used_at.getTime() > REFRESH_REUSE_GRACE_MS) {
-      await tx.auth_sessions.update({ where: { id: session.id }, data: { revoked_at: new Date() } });
-      return { kind: 'reused' as const, sessionId: session.id };
+      // A spent token, well after the grace. Theft only if the chain MOVED ON:
+      // some token issued after this one has itself been exchanged. If none has,
+      // the answer that carried the new pair never reached the device — a slow
+      // branch connection, the browser's 15-second timeout, a phone put to
+      // sleep mid-request — and it is simply asking again. Ending the session
+      // for that signed people out at random. Instead the unused successors are
+      // dropped, so only the pair issued now stays alive, and the chain carries on.
+      const later = { session_id: session.id, created_at: { gt: token.created_at } };
+      const movedOn = await tx.auth_refresh_tokens.count({ where: { ...later, used_at: { not: null } } });
+      if (movedOn > 0) {
+        await tx.auth_sessions.update({ where: { id: session.id }, data: { revoked_at: new Date() } });
+        return { kind: 'reused' as const, sessionId: session.id };
+      }
+      await tx.auth_refresh_tokens.deleteMany({ where: { ...later, used_at: null } });
     }
     if (session.users.status !== 'active') return { kind: 'inactive' as const };
 

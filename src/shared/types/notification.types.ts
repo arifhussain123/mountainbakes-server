@@ -39,6 +39,13 @@ export type NotificationType =
   | 'purchase_message' // a supplier wrote on WhatsApp (matched or not) → Production
   | 'purchase_payment' // Production recorded a supplier payment or credit → Finance
   | 'purchase_payment_reviewed' // Finance approved/rejected/reversed it → Production
+  // Dry Items Store (migration 20261110000001).
+  | 'store_demand' // Production raised a dry-items demand → Store
+  | 'store_demand_reviewed' // Store approved/rejected lines → the requester
+  | 'store_issue' // Store issued stock → the requester
+  | 'store_issue_received' // Production confirmed receipt → Store (and Admin on a difference)
+  | 'store_query' // a store query was raised → Admin
+  | 'store_query_reply' // either side answered or moved a store query → the other side
   // Help Desk → Support Center queries (migration 25)
   | 'support_query' // a branch/production user raised a query → Admin
   | 'support_resolved' // Admin resolved/rejected or corrected the figures → raiser

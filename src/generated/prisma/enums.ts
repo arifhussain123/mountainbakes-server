@@ -349,7 +349,13 @@ export const notification_type = {
   purchase_bill: 'purchase_bill',
   purchase_message: 'purchase_message',
   purchase_payment: 'purchase_payment',
-  purchase_payment_reviewed: 'purchase_payment_reviewed'
+  purchase_payment_reviewed: 'purchase_payment_reviewed',
+  store_demand: 'store_demand',
+  store_demand_reviewed: 'store_demand_reviewed',
+  store_issue: 'store_issue',
+  store_issue_received: 'store_issue_received',
+  store_query: 'store_query',
+  store_query_reply: 'store_query_reply'
 } as const
 
 export type notification_type = (typeof notification_type)[keyof typeof notification_type]
@@ -461,7 +467,8 @@ export const user_role = {
   finance_manager: 'finance_manager',
   accountant: 'accountant',
   finance_auditor: 'finance_auditor',
-  branch_user: 'branch_user'
+  branch_user: 'branch_user',
+  store_user: 'store_user'
 } as const
 
 export type user_role = (typeof user_role)[keyof typeof user_role]

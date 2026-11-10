@@ -2947,6 +2947,534 @@
    ],
    "refTable": "users",
    "table": "finance_transactions"
+  },
+  {
+   "columns": [
+    "created_by"
+   ],
+   "name": "store_accounts_created_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "store_accounts"
+  },
+  {
+   "columns": [
+    "store_id"
+   ],
+   "name": "store_accounts_store_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_departments",
+   "table": "store_accounts"
+  },
+  {
+   "columns": [
+    "user_id"
+   ],
+   "name": "store_accounts_user_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "store_accounts"
+  },
+  {
+   "columns": [
+    "created_by"
+   ],
+   "name": "store_adjustments_created_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "store_adjustments"
+  },
+  {
+   "columns": [
+    "item_id"
+   ],
+   "name": "store_adjustments_item_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_items",
+   "table": "store_adjustments"
+  },
+  {
+   "columns": [
+    "actor_id"
+   ],
+   "name": "store_audit_events_actor_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "store_audit_events"
+  },
+  {
+   "columns": [
+    "adjustment_id"
+   ],
+   "name": "store_batch_allocations_adjustment_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_adjustments",
+   "table": "store_batch_allocations"
+  },
+  {
+   "columns": [
+    "batch_id"
+   ],
+   "name": "store_batch_allocations_batch_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_batches",
+   "table": "store_batch_allocations"
+  },
+  {
+   "columns": [
+    "issue_item_id"
+   ],
+   "name": "store_batch_allocations_issue_item_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_issue_items",
+   "table": "store_batch_allocations"
+  },
+  {
+   "columns": [
+    "item_id"
+   ],
+   "name": "store_batch_allocations_item_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_items",
+   "table": "store_batch_allocations"
+  },
+  {
+   "columns": [
+    "item_id"
+   ],
+   "name": "store_batches_item_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_items",
+   "table": "store_batches"
+  },
+  {
+   "columns": [
+    "price_id"
+   ],
+   "name": "store_batches_price_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_item_prices",
+   "table": "store_batches"
+  },
+  {
+   "columns": [
+    "receipt_id"
+   ],
+   "name": "store_batches_receipt_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_receipts",
+   "table": "store_batches"
+  },
+  {
+   "columns": [
+    "decided_by"
+   ],
+   "name": "store_demand_items_decided_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "store_demand_items"
+  },
+  {
+   "columns": [
+    "demand_id"
+   ],
+   "name": "store_demand_items_demand_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_demands",
+   "table": "store_demand_items"
+  },
+  {
+   "columns": [
+    "item_id"
+   ],
+   "name": "store_demand_items_item_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_items",
+   "table": "store_demand_items"
+  },
+  {
+   "columns": [
+    "cancelled_by"
+   ],
+   "name": "store_demands_cancelled_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "store_demands"
+  },
+  {
+   "columns": [
+    "requested_by"
+   ],
+   "name": "store_demands_requested_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "store_demands"
+  },
+  {
+   "columns": [
+    "store_id"
+   ],
+   "name": "store_demands_store_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_departments",
+   "table": "store_demands"
+  },
+  {
+   "columns": [
+    "demand_item_id"
+   ],
+   "name": "store_issue_items_demand_item_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_demand_items",
+   "table": "store_issue_items"
+  },
+  {
+   "columns": [
+    "issue_id"
+   ],
+   "name": "store_issue_items_issue_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_issues",
+   "table": "store_issue_items"
+  },
+  {
+   "columns": [
+    "item_id"
+   ],
+   "name": "store_issue_items_item_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_items",
+   "table": "store_issue_items"
+  },
+  {
+   "columns": [
+    "confirmed_by"
+   ],
+   "name": "store_issues_confirmed_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "store_issues"
+  },
+  {
+   "columns": [
+    "demand_id"
+   ],
+   "name": "store_issues_demand_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_demands",
+   "table": "store_issues"
+  },
+  {
+   "columns": [
+    "issued_by"
+   ],
+   "name": "store_issues_issued_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "store_issues"
+  },
+  {
+   "columns": [
+    "store_id"
+   ],
+   "name": "store_issues_store_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_departments",
+   "table": "store_issues"
+  },
+  {
+   "columns": [
+    "created_by"
+   ],
+   "name": "store_item_prices_created_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "store_item_prices"
+  },
+  {
+   "columns": [
+    "deactivated_by"
+   ],
+   "name": "store_item_prices_deactivated_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "store_item_prices"
+  },
+  {
+   "columns": [
+    "item_id"
+   ],
+   "name": "store_item_prices_item_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_items",
+   "table": "store_item_prices"
+  },
+  {
+   "columns": [
+    "created_by"
+   ],
+   "name": "store_items_created_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "store_items"
+  },
+  {
+   "columns": [
+    "purchase_item_id"
+   ],
+   "name": "store_items_purchase_item_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "purchase_items",
+   "table": "store_items"
+  },
+  {
+   "columns": [
+    "adjustment_id"
+   ],
+   "name": "store_movements_adjustment_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_adjustments",
+   "table": "store_movements"
+  },
+  {
+   "columns": [
+    "batch_id"
+   ],
+   "name": "store_movements_batch_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_batches",
+   "table": "store_movements"
+  },
+  {
+   "columns": [
+    "created_by"
+   ],
+   "name": "store_movements_created_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "store_movements"
+  },
+  {
+   "columns": [
+    "demand_id"
+   ],
+   "name": "store_movements_demand_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_demands",
+   "table": "store_movements"
+  },
+  {
+   "columns": [
+    "issue_id"
+   ],
+   "name": "store_movements_issue_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_issues",
+   "table": "store_movements"
+  },
+  {
+   "columns": [
+    "item_id"
+   ],
+   "name": "store_movements_item_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_items",
+   "table": "store_movements"
+  },
+  {
+   "columns": [
+    "receipt_id"
+   ],
+   "name": "store_movements_receipt_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_receipts",
+   "table": "store_movements"
+  },
+  {
+   "columns": [
+    "archived_by"
+   ],
+   "name": "store_queries_archived_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "store_queries"
+  },
+  {
+   "columns": [
+    "raised_by"
+   ],
+   "name": "store_queries_raised_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "store_queries"
+  },
+  {
+   "columns": [
+    "related_demand_id"
+   ],
+   "name": "store_queries_related_demand_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_demands",
+   "table": "store_queries"
+  },
+  {
+   "columns": [
+    "related_issue_id"
+   ],
+   "name": "store_queries_related_issue_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_issues",
+   "table": "store_queries"
+  },
+  {
+   "columns": [
+    "related_receipt_id"
+   ],
+   "name": "store_queries_related_receipt_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_receipts",
+   "table": "store_queries"
+  },
+  {
+   "columns": [
+    "author_id"
+   ],
+   "name": "store_query_messages_author_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "store_query_messages"
+  },
+  {
+   "columns": [
+    "query_id"
+   ],
+   "name": "store_query_messages_query_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_queries",
+   "table": "store_query_messages"
+  },
+  {
+   "columns": [
+    "received_by"
+   ],
+   "name": "store_receipts_received_by_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "users",
+   "table": "store_receipts"
+  },
+  {
+   "columns": [
+    "store_id"
+   ],
+   "name": "store_receipts_store_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "store_departments",
+   "table": "store_receipts"
+  },
+  {
+   "columns": [
+    "supplier_id"
+   ],
+   "name": "store_receipts_supplier_id_fkey",
+   "refColumns": [
+    "id"
+   ],
+   "refTable": "suppliers",
+   "table": "store_receipts"
   }
  ],
  "functions": {
@@ -6366,6 +6894,540 @@
     "returns": "scalar",
     "returnsSet": false,
     "volatility": "v"
+   }
+  ],
+  "store_add_price": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_role",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_input",
+      "type": "jsonb"
+     }
+    ],
+    "name": "store_add_price",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "store_adjust_stock": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_role",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_input",
+      "type": "jsonb"
+     }
+    ],
+    "name": "store_adjust_stock",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "store_approve_all": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_demand_id",
+      "type": "uuid"
+     }
+    ],
+    "name": "store_approve_all",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "store_business_date": [
+   {
+    "args": [],
+    "name": "store_business_date",
+    "returnType": "date",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "s"
+   }
+  ],
+  "store_cancel_demand": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_role",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_id",
+      "type": "uuid"
+     }
+    ],
+    "name": "store_cancel_demand",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "store_confirm_issue": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_issue_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_lines",
+      "type": "jsonb"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_note",
+      "type": "text"
+     }
+    ],
+    "name": "store_confirm_issue",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "store_create_demand": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_input",
+      "type": "jsonb"
+     }
+    ],
+    "name": "store_create_demand",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "store_dashboard": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_from",
+      "type": "date"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_to",
+      "type": "date"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_period",
+      "type": "text"
+     }
+    ],
+    "name": "store_dashboard",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "s"
+   }
+  ],
+  "store_deactivate_price": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_role",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_id",
+      "type": "uuid"
+     }
+    ],
+    "name": "store_deactivate_price",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "store_decide_line": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_line_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_decision",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_qty",
+      "type": "numeric"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_reason",
+      "type": "text"
+     }
+    ],
+    "name": "store_decide_line",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "store_get_demand": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_id",
+      "type": "uuid"
+     }
+    ],
+    "name": "store_get_demand",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "s"
+   }
+  ],
+  "store_get_demands": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_ids",
+      "type": "uuid[]"
+     }
+    ],
+    "name": "store_get_demands",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "s"
+   }
+  ],
+  "store_get_issues": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_ids",
+      "type": "uuid[]"
+     }
+    ],
+    "name": "store_get_issues",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "s"
+   }
+  ],
+  "store_issue_stock": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_input",
+      "type": "jsonb"
+     }
+    ],
+    "name": "store_issue_stock",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "store_item_ledger": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_item",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_from",
+      "type": "date"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_to",
+      "type": "date"
+     }
+    ],
+    "name": "store_item_ledger",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "s"
+   }
+  ],
+  "store_receive_stock": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_role",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_input",
+      "type": "jsonb"
+     }
+    ],
+    "name": "store_receive_stock",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "store_report": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_type",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_from",
+      "type": "date"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_to",
+      "type": "date"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_item",
+      "type": "uuid"
+     }
+    ],
+    "name": "store_report",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "s"
+   }
+  ],
+  "store_save_item": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_input",
+      "type": "jsonb"
+     }
+    ],
+    "name": "store_save_item",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "store_set_item_status": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_active",
+      "type": "boolean"
+     }
+    ],
+    "name": "store_set_item_status",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
+  "store_stock_summary": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_from",
+      "type": "date"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_to",
+      "type": "date"
+     }
+    ],
+    "name": "store_stock_summary",
+    "returnType": "jsonb",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "s"
    }
   ],
   "supplier_balances": [
@@ -10091,6 +11153,490 @@
      "product_id",
      "ref_id",
      "type"
+    ]
+   ]
+  },
+  "store_accounts": {
+   "columns": {
+    "id": "uuid",
+    "user_id": "uuid",
+    "store_id": "uuid",
+    "can_manage_items": "boolean",
+    "can_edit_prices": "boolean",
+    "can_adjust_stock": "boolean",
+    "can_issue": "boolean",
+    "notes": "text",
+    "created_by": "uuid",
+    "created_by_name": "text",
+    "created_at": "timestamp with time zone",
+    "updated_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ],
+    [
+     "user_id"
+    ]
+   ]
+  },
+  "store_adjustments": {
+   "columns": {
+    "id": "uuid",
+    "adj_no": "text",
+    "item_id": "uuid",
+    "kind": "text",
+    "direction": "text",
+    "qty": "numeric",
+    "reason": "text",
+    "note": "text",
+    "business_date": "date",
+    "value": "numeric",
+    "client_request_id": "uuid",
+    "created_by": "uuid",
+    "created_by_name": "text",
+    "created_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "adj_no"
+    ],
+    [
+     "client_request_id"
+    ],
+    [
+     "id"
+    ]
+   ]
+  },
+  "store_audit_events": {
+   "columns": {
+    "id": "uuid",
+    "entity": "text",
+    "entity_id": "uuid",
+    "entity_ref": "text",
+    "action": "text",
+    "detail": "text",
+    "before_data": "jsonb",
+    "after_data": "jsonb",
+    "actor_id": "uuid",
+    "actor_name": "text",
+    "actor_role": "text",
+    "created_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ]
+   ]
+  },
+  "store_batch_allocations": {
+   "columns": {
+    "id": "uuid",
+    "batch_id": "uuid",
+    "item_id": "uuid",
+    "issue_item_id": "uuid",
+    "adjustment_id": "uuid",
+    "qty": "numeric",
+    "unit_cost": "numeric",
+    "amount": "numeric",
+    "created_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ]
+   ]
+  },
+  "store_batches": {
+   "columns": {
+    "id": "uuid",
+    "batch_no": "text",
+    "item_id": "uuid",
+    "source": "text",
+    "receipt_id": "uuid",
+    "line_no": "integer",
+    "price_id": "uuid",
+    "package_name": "text",
+    "package_qty": "numeric",
+    "packages": "integer",
+    "list_price": "numeric",
+    "price_per_package": "numeric",
+    "override_reason": "text",
+    "unit_cost": "numeric",
+    "received_qty": "numeric",
+    "remaining_qty": "numeric",
+    "amount": "numeric",
+    "supplier_batch_no": "text",
+    "expiry_date": "date",
+    "received_at": "date",
+    "created_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "batch_no"
+    ],
+    [
+     "id"
+    ]
+   ]
+  },
+  "store_demand_items": {
+   "columns": {
+    "id": "uuid",
+    "demand_id": "uuid",
+    "line_no": "integer",
+    "item_id": "uuid",
+    "item_name": "text",
+    "unit": "text",
+    "requested_qty": "numeric",
+    "status": "text",
+    "approved_qty": "numeric",
+    "issued_qty": "numeric",
+    "received_qty": "numeric",
+    "unit_price": "numeric",
+    "remarks": "text",
+    "decision_note": "text",
+    "decided_by": "uuid",
+    "decided_by_name": "text",
+    "decided_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "demand_id",
+     "item_id"
+    ],
+    [
+     "demand_id",
+     "line_no"
+    ],
+    [
+     "id"
+    ]
+   ]
+  },
+  "store_demands": {
+   "columns": {
+    "id": "uuid",
+    "demand_no": "text",
+    "store_id": "uuid",
+    "demand_date": "date",
+    "required_date": "date",
+    "requested_by": "uuid",
+    "requested_by_name": "text",
+    "production_code": "text",
+    "remarks": "text",
+    "status": "text",
+    "client_request_id": "uuid",
+    "cancelled_at": "timestamp with time zone",
+    "cancelled_by": "uuid",
+    "cancelled_by_name": "text",
+    "created_at": "timestamp with time zone",
+    "updated_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "client_request_id"
+    ],
+    [
+     "demand_no"
+    ],
+    [
+     "id"
+    ]
+   ]
+  },
+  "store_departments": {
+   "columns": {
+    "id": "uuid",
+    "store_code": "text",
+    "name": "text",
+    "opening_date": "date",
+    "is_active": "boolean",
+    "created_at": "timestamp with time zone",
+    "updated_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ],
+    [
+     "store_code"
+    ]
+   ]
+  },
+  "store_issue_items": {
+   "columns": {
+    "id": "uuid",
+    "issue_id": "uuid",
+    "demand_item_id": "uuid",
+    "item_id": "uuid",
+    "item_name": "text",
+    "unit": "text",
+    "issued_qty": "numeric",
+    "received_qty": "numeric",
+    "cost_amount": "numeric",
+    "unit_price": "numeric"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ]
+   ]
+  },
+  "store_issues": {
+   "columns": {
+    "id": "uuid",
+    "issue_no": "text",
+    "demand_id": "uuid",
+    "store_id": "uuid",
+    "issue_date": "date",
+    "issued_by": "uuid",
+    "issued_by_name": "text",
+    "received_by_name": "text",
+    "remarks": "text",
+    "status": "text",
+    "confirmed_by": "uuid",
+    "confirmed_by_name": "text",
+    "confirmed_at": "timestamp with time zone",
+    "confirm_note": "text",
+    "total_cost": "numeric",
+    "client_request_id": "uuid",
+    "created_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "client_request_id"
+    ],
+    [
+     "id"
+    ],
+    [
+     "issue_no"
+    ]
+   ]
+  },
+  "store_item_prices": {
+   "columns": {
+    "id": "uuid",
+    "price_no": "text",
+    "item_id": "uuid",
+    "package_name": "text",
+    "package_qty": "numeric",
+    "price": "numeric",
+    "effective_from": "date",
+    "status": "text",
+    "created_by": "uuid",
+    "created_by_name": "text",
+    "created_at": "timestamp with time zone",
+    "deactivated_by": "uuid",
+    "deactivated_by_name": "text",
+    "deactivated_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ],
+    [
+     "price_no"
+    ]
+   ]
+  },
+  "store_items": {
+   "columns": {
+    "id": "uuid",
+    "item_no": "text",
+    "item_code": "text",
+    "name": "text",
+    "category": "text",
+    "base_unit": "text",
+    "purchase_unit": "text",
+    "conversion_qty": "numeric",
+    "min_stock": "numeric",
+    "available_qty": "numeric",
+    "status": "text",
+    "remarks": "text",
+    "purchase_item_id": "uuid",
+    "created_by": "uuid",
+    "created_by_name": "text",
+    "created_at": "timestamp with time zone",
+    "updated_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ],
+    [
+     "item_code"
+    ],
+    [
+     "item_no"
+    ]
+   ]
+  },
+  "store_lookups": {
+   "columns": {
+    "id": "uuid",
+    "kind": "text",
+    "value": "text",
+    "sort_order": "integer",
+    "is_active": "boolean",
+    "created_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ]
+   ]
+  },
+  "store_movements": {
+   "columns": {
+    "id": "uuid",
+    "item_id": "uuid",
+    "type": "text",
+    "qty_delta": "numeric",
+    "balance_after": "numeric",
+    "value": "numeric",
+    "business_date": "date",
+    "ref_no": "text",
+    "detail": "text",
+    "receipt_id": "uuid",
+    "batch_id": "uuid",
+    "issue_id": "uuid",
+    "demand_id": "uuid",
+    "adjustment_id": "uuid",
+    "created_by": "uuid",
+    "created_by_name": "text",
+    "created_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ]
+   ]
+  },
+  "store_queries": {
+   "columns": {
+    "id": "uuid",
+    "query_no": "text",
+    "subject": "text",
+    "query_type": "text",
+    "description": "text",
+    "related_receipt_id": "uuid",
+    "related_demand_id": "uuid",
+    "related_issue_id": "uuid",
+    "status": "text",
+    "raised_by": "uuid",
+    "raised_by_name": "text",
+    "raised_by_role": "text",
+    "archived_at": "timestamp with time zone",
+    "archived_by": "uuid",
+    "archived_by_name": "text",
+    "created_at": "timestamp with time zone",
+    "updated_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ],
+    [
+     "query_no"
+    ]
+   ]
+  },
+  "store_query_messages": {
+   "columns": {
+    "id": "uuid",
+    "query_id": "uuid",
+    "author_id": "uuid",
+    "author_name": "text",
+    "author_side": "text",
+    "body": "text",
+    "status_change": "text",
+    "created_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "id"
+    ]
+   ]
+  },
+  "store_receipts": {
+   "columns": {
+    "id": "uuid",
+    "receipt_no": "text",
+    "store_id": "uuid",
+    "receipt_date": "date",
+    "supplier_id": "uuid",
+    "supplier_name": "text",
+    "invoice_no": "text",
+    "remarks": "text",
+    "total_amount": "numeric",
+    "client_request_id": "uuid",
+    "received_by": "uuid",
+    "received_by_name": "text",
+    "created_at": "timestamp with time zone"
+   },
+   "pk": [
+    "id"
+   ],
+   "unique": [
+    [
+     "client_request_id"
+    ],
+    [
+     "id"
+    ],
+    [
+     "receipt_no"
     ]
    ]
   },

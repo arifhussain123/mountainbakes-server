@@ -53,6 +53,7 @@ import { router as restrictionsRouter } from './restrictions.routes';
 import { router as notificationsRouter } from './notifications.routes';
 import { router as publicBrandingRouter } from './public-branding.routes';
 import { router as purchasingRouter } from './purchasing.routes';
+import { router as storeRouter } from './store.routes';
 import { router as supplierPortalRouter } from './supplier-portal.routes';
 import { router as financeSupplierPaymentsRouter } from './finance-supplier-payments.routes';
 import { PUBLIC_BRANDING_PATH } from '../services/file-store';
@@ -142,6 +143,8 @@ export function setupRoutes(app: Express) {
   // outside suppliers, and the supplier's own link-only side. The webhook is
   // mounted in app.ts, ahead of the JSON parser.
   app.use('/api/purchasing', purchasingRouter);
+  // Dry Items Store (migration 20261110000002).
+  app.use('/api/store', storeRouter);
   app.use('/api/supplier-portal', supplierPortalRouter);
 
   // ── Finance Ledger ──
