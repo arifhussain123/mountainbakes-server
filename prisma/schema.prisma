@@ -3407,6 +3407,12 @@ enum notification_type {
   purchase_message
   purchase_payment
   purchase_payment_reviewed
+  store_demand
+  store_demand_reviewed
+  store_issue
+  store_issue_received
+  store_query
+  store_query_reply
 }
 
 enum order_status {
@@ -3486,6 +3492,7 @@ enum user_role {
   accountant
   finance_auditor
   branch_user
+  store_user
 }
 
 enum user_status {

@@ -37,6 +37,7 @@ export * from './types/backup.types';
 export * from './types/cash-transfer.types';
 export * from './types/restriction.types';
 export * from './types/finance-loan.types';
+export * from './types/store.types';
 
 // Zod schemas + inferred input types
 export * from './schemas/user.schemas';
@@ -71,6 +72,7 @@ export * from './schemas/cash-transfer.schemas';
 export * from './schemas/restriction.schemas';
 export * from './schemas/purchasing.schemas';
 export * from './schemas/finance-loan.schemas';
+export * from './schemas/store.schemas';
 
 // Utils
 export * from './utils/timezone';

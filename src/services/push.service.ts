@@ -61,6 +61,14 @@ export const TYPE_URL: Record<string, string> = {
   purchase_message: '/production-whatsapp',
   purchase_payment: '/finance-supplier-payments',
   purchase_payment_reviewed: '/production-whatsapp',
+  // Dry Items Store. Role-blind like the rest: 'store_demand' and
+  // 'store_issue_received' are seen by the Store, the other two by Production.
+  store_demand: '/store-approval',
+  store_demand_reviewed: '/production-dry-demand',
+  store_issue: '/production-dry-demand',
+  store_issue_received: '/store-approval',
+  store_query: '/store-queries',
+  store_query_reply: '/store-queries',
   // Special Events. NOTE this map is role-blind — the admin, branch and
   // production event screens live at three different paths, so these entries can
   // only ever be right for one role. Whoever reimplements push has to key the
