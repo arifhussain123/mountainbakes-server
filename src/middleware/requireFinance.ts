@@ -23,11 +23,19 @@ import { getFinanceSettings } from '../services/finance-settings.service';
  *
  * Branch managers and production users never match — `financeCan` returns false
  * for them on every permission, including `view`.
+ *
+ * `superAdmin: true` lets a super admin through regardless of that toggle, for
+ * the few acts the owner has handed Admin outright (adding an employee,
+ * 2026-11-11). Every other route keeps the toggle.
  */
-export function requireFinance(permission: FinancePermission) {
+export function requireFinance(permission: FinancePermission, opts: { superAdmin?: boolean } = {}) {
   return async (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    if (opts.superAdmin && req.user.role === 'super_admin') {
+      next();
       return;
     }
 

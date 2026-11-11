@@ -118,7 +118,8 @@ router.get('/employees', requireFinance('view'), async (req: AuthRequest, res, n
 
 router.post(
   '/employees',
-  requireFinance('configure'),
+  // Super Admin may add an employee without "Allow Super Admin write" (owner, 2026-11-11).
+  requireFinance('configure', { superAdmin: true }),
   validate(CreateEmployeeSchema),
   async (req: AuthRequest, res, next) => {
     try {

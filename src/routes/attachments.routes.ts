@@ -10,7 +10,12 @@ import {
   type AttachmentEntity,
   type UserRole,
 } from '../shared';
-import { discardStagedAttachment, uploadAttachment } from '../services/attachments.service';
+import {
+  discardStagedAttachment,
+  readBoundAttachmentFile,
+  replaceAttachmentFile,
+  uploadAttachment,
+} from '../services/attachments.service';
 
 export const router = Router();
 
@@ -161,3 +166,76 @@ router.delete('/:id', async (req: AuthRequest, res, next) => {
     next(err);
   }
 });
+
+/**
+ * Crop a photo already saved on a record — Finance Admin and Super Admin only.
+ * Any bound photo, whatever it belongs to: Finance Admin reviews receipts,
+ * deposit slips and branch photos alike.
+ */
+const canCrop = (role: UserRole) => role === 'finance_admin' || role === 'super_admin';
+
+/** GET /api/attachments/:id/file — the stored bytes, for the crop dialog's canvas. */
+router.get('/:id/file', async (req: AuthRequest, res, next) => {
+  try {
+    if (!canCrop(req.user!.role)) {
+      res.status(403).json({ error: 'Forbidden' });
+      return;
+    }
+    const id = String(req.params['id'] ?? '');
+    if (!UUID.test(id)) {
+      res.status(400).json({ error: 'Invalid attachment id' });
+      return;
+    }
+    const file = await readBoundAttachmentFile(id);
+    if (!file) {
+      res.status(404).json({ error: 'Picture not found' });
+      return;
+    }
+    res.setHeader('Content-Type', file.mimeType);
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.send(file.buffer);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * PUT /api/attachments/:id/file — replace a saved photo with a cropped one.
+ * The old file is kept in storage and logged in attachment_revisions.
+ */
+router.put(
+  '/:id/file',
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  upload.single('photo') as any,
+  async (req: AuthRequest, res, next) => {
+    try {
+      if (!canCrop(req.user!.role)) {
+        res.status(403).json({ error: 'Forbidden: only Finance Admin can crop a saved picture' });
+        return;
+      }
+      const id = String(req.params['id'] ?? '');
+      if (!UUID.test(id)) {
+        res.status(400).json({ error: 'Invalid attachment id' });
+        return;
+      }
+      if (!req.file) {
+        res.status(400).json({ error: 'No photo uploaded' });
+        return;
+      }
+      const toDimension = (v: unknown): number | null => {
+        const n = Number(v);
+        return Number.isFinite(n) && n > 0 && n < 100_000 ? Math.round(n) : null;
+      };
+      const attachment = await replaceAttachmentFile({
+        id,
+        buffer: req.file.buffer,
+        width: toDimension(req.body?.width),
+        height: toDimension(req.body?.height),
+        actor: { uid: req.user!.uid, email: req.user!.email },
+      });
+      res.json({ attachment });
+    } catch (err) {
+      next(err);
+    }
+  },
+);

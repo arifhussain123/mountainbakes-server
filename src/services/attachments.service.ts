@@ -530,3 +530,85 @@ export async function purgeStagedAttachments(input: {
     q.eq('entity', input.entity).is('entity_id', null).lt('created_at', cutoff).select('storage_path'),
   );
 }
+
+// ── Crop (Finance Admin) ───────────────────────────────────────────────────
+
+/**
+ * A BOUND photo's stored bytes, for the crop dialog. Served through the API,
+ * not the signed URL, because a canvas cannot read pixels from a cross-origin
+ * image unless the bucket sends CORS headers, and the bucket is not set up to.
+ */
+export async function readBoundAttachmentFile(id: string): Promise<{ buffer: Buffer; mimeType: string } | null> {
+  const { data, error } = await db
+    .from('attachments')
+    .select('storage_path, mime_type')
+    .eq('id', id)
+    .not('entity_id', 'is', null)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const store = fileStore();
+  if (!store.download) throw new Error('This file store cannot read files back');
+  const buffer = await store.download(BUCKET, data.storage_path as string);
+  return buffer ? { buffer, mimeType: data.mime_type as string } : null;
+}
+
+/**
+ * Replace a BOUND photo's file with a cropped one (migration
+ * 20261111000001_attachment_crop).
+ *
+ * The cropped bytes go to a NEW path; the old object is never removed, and
+ * `replace_attachment_file` records its path in attachment_revisions, so the
+ * uncropped original stays recoverable. If the database refuses, the new
+ * upload is removed again so nothing is left behind.
+ */
+export async function replaceAttachmentFile(input: {
+  id: string;
+  buffer: Buffer;
+  width?: number | null;
+  height?: number | null;
+  actor: { uid: string; email: string };
+}): Promise<Attachment> {
+  const { data: current, error: readErr } = await db
+    .from('attachments')
+    .select(SELECT)
+    .eq('id', input.id)
+    .maybeSingle();
+  if (readErr) throw readErr;
+  if (!current) throw clientError('Picture not found', 404);
+  const row = rowToApi<AttachmentRow>(current);
+  if (!row.entityId) throw clientError('This picture is not saved on a record yet, so it cannot be cropped here.', 409);
+
+  const sniffed = sniffImageType(input.buffer);
+  const extension = sniffed && sniffed !== 'image/heic' ? EXTENSIONS[sniffed] : undefined;
+  if (!sniffed || !extension) throw clientError('A photo must be a JPEG, PNG or WebP image', 400);
+  if (input.buffer.length > (MAX_BYTES_BY_ENTITY[row.entity] ?? ATTACHMENT_MAX_BYTES)) {
+    throw clientError('That photo is too large.', 413);
+  }
+
+  const storagePath = `${row.entity}/${randomUUID()}.${extension}`;
+  await fileStore().upload(BUCKET, storagePath, input.buffer, sniffed);
+
+  const { error } = await db.rpc('replace_attachment_file', {
+    p_attachment_id: input.id,
+    p_storage_path: storagePath,
+    p_mime_type: sniffed,
+    p_size_bytes: input.buffer.length,
+    p_width: input.width ?? null,
+    p_height: input.height ?? null,
+    p_actor_id: input.actor.uid,
+    p_actor_name: input.actor.email,
+  });
+  if (error) {
+    try {
+      await fileStore().remove(BUCKET, [storagePath]);
+    } catch (cleanupErr) {
+      console.warn(`[attachments] orphaned ${storagePath} after a refused crop:`, (cleanupErr as Error).message);
+    }
+    throw clientError(error.message || 'The cropped picture could not be saved', 409);
+  }
+
+  const [signed] = await signRows([{ ...row, storagePath, mimeType: sniffed, sizeBytes: input.buffer.length, width: input.width ?? null, height: input.height ?? null }]);
+  if (!signed) throw new Error('The cropped picture was stored but could not be read back');
+  return signed;
+}

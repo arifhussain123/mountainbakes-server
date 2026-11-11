@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { dbFor } from '../db';
+import { dbFor, maxRows } from '../db';
 import {
   businessDateStr,
   productionStockStatus,
@@ -272,6 +272,62 @@ export async function getOutstandingDemand(): Promise<Map<string, number>> {
   return out;
 }
 
+// ── Summing the ledger in the database ───────────────────────────────────────
+//
+// Every read through the db layer is capped at DB_MAX_ROWS (1000) rows. The
+// opening is a sum over the WHOLE ledger before a date — thousands of rows once
+// a few months have gone by — so fetching the rows and adding them up in Node
+// quietly summed only the first thousand. The sums are done by
+// `data_engine_aggregate` instead, which returns one row per product (per
+// movement type), well under the cap.
+
+type LedgerCond =
+  | { column: string; op: 'eq' | 'lt' | 'lte' | 'gte'; value: string }
+  | { and: LedgerCond[] };
+
+interface LedgerSum { productId: string; type: ProductionStockMovementType | null; delta: number }
+
+const MOVEMENT_TYPES: ProductionStockMovementType[] = [
+  'prepare', 'transfer_out', 'return_transfer', 'return_in', 'sale', 'adjustment',
+];
+
+async function aggregateLedger(where: LedgerCond, groupBy: string[]): Promise<LedgerSum[]> {
+  const { data, error } = await db.rpc('data_engine_aggregate', {
+    p_table: 'production_stock_history',
+    p_where: where,
+    p_metrics: [{ metric: 'sum', column: 'delta' }],
+    p_group_by: groupBy,
+  });
+  if (error) throw error;
+  const rows = (data ?? []) as Record<string, unknown>[];
+  if (rows.length >= maxRows()) {
+    // More groups than one read returns: refuse rather than report a short sum.
+    throw new Error('Production stock: too many products to total in one read');
+  }
+  return rows.map((r) => ({
+    productId: String(r['product_id']),
+    type: (r['type'] as ProductionStockMovementType | undefined) ?? null,
+    delta: Number(r['sum:delta'] ?? 0),
+  }));
+}
+
+/** Σ delta per product over the slice. */
+function ledgerSums(where: LedgerCond): Promise<LedgerSum[]> {
+  return aggregateLedger(where, ['product_id']);
+}
+
+/** Σ delta per product AND movement type over the slice — one read per type. */
+async function ledgerSumsByType(where: LedgerCond): Promise<LedgerSum[]> {
+  const parts = await Promise.all(
+    MOVEMENT_TYPES.map((t) =>
+      aggregateLedger({ and: [where, { column: 'type', op: 'eq', value: t }] }, ['product_id']).then((rows) =>
+        rows.map((r) => ({ ...r, type: t })),
+      ),
+    ),
+  );
+  return parts.flat();
+}
+
 /**
  * Build the Production Stock table for a Karachi business day.
  *
@@ -297,21 +353,32 @@ export async function getOutstandingDemand(): Promise<Map<string, number>> {
  * missing product as 0, which is exactly what an omitted row means.
  */
 export async function getProductionStockRows(date: string = businessDateStr()): Promise<ProductionStockRow[]> {
-  // `products` is read for stock_code and category — the ledger stores neither,
-  // and the page filters by category. Unfiltered on purpose: a product deactivated
-  // today can still carry an opening balance and must not lose its row or its ID.
+  return getProductionStockWindowRows(date, date);
+}
+
+/**
+ * The same table over a From–To window, for the Production Stock export.
+ *
+ *   opening   — the stock at the START of `from` (Σ delta strictly before it)
+ *   movements — every prepare / delivery / sale / return transfer / adjustment
+ *               ON `from`…`to`, summed
+ *   balance   — the CLOSING stock at the END of `to` (opening + the movements)
+ *
+ * A one-day window is exactly the page's day. Outstanding branch demand is a
+ * fact about NOW, so it is only counted when the window ends today.
+ */
+export async function getProductionStockWindowRows(from: string, to: string): Promise<ProductionStockRow[]> {
+  const date = to;
   const [products, prior, history, demand] = await Promise.all([
     db.from('products').select('id, name, stock_code, is_active, category_id, category_name'),
-    db.from('production_stock_history').select('product_id, delta').lt('business_date', date),
-    db
-      .from('production_stock_history')
-      .select('product_id, product_name, type, delta')
-      .eq('business_date', date),
+    ledgerSums({ column: 'business_date', op: 'lt', value: from }),
+    ledgerSumsByType({ and: [
+      { column: 'business_date', op: 'gte', value: from },
+      { column: 'business_date', op: 'lte', value: to },
+    ] }),
     getOutstandingDemand(),
   ]);
   if (products.error) throw products.error;
-  if (prior.error) throw prior.error;
-  if (history.error) throw history.error;
 
   const catalogue = (products.data ?? []) as {
     id: string; name: string; stock_code: string; is_active: boolean;
@@ -353,8 +420,8 @@ export async function getProductionStockRows(date: string = businessDateStr()): 
   // snapshot, no reset, no 2 AM job — which matters, because the node-cron
   // schedulers in this project are all commented out and a job-based
   // carry-forward would silently never run.
-  for (const h of (prior.data ?? []) as { product_id: string; delta: number | string }[]) {
-    rowFor(h.product_id).opening += Number(h.delta ?? 0);
+  for (const h of prior) {
+    rowFor(h.productId).opening += h.delta;
   }
 
   // ── The day's own movements ────────────────────────────────────────────────
@@ -362,11 +429,9 @@ export async function getProductionStockRows(date: string = businessDateStr()): 
   // transfer_out/sale negative, so negating the two outbound types reports them
   // positive for display. It matters for corrections: an admin lowering "Prepared"
   // appends a NEGATIVE 'prepare', and abs() would count that as more production.
-  for (const h of (history.data ?? []) as {
-    product_id: string; product_name: string; type: ProductionStockMovementType; delta: number | string;
-  }[]) {
-    const row = rowFor(h.product_id, h.product_name);
-    const delta = Number(h.delta ?? 0);
+  for (const h of history) {
+    const row = rowFor(h.productId);
+    const delta = h.delta;
     if (h.type === 'prepare') row.preparedToday += delta;
     else if (h.type === 'transfer_out') row.demandFulfilled -= delta;
     else if (h.type === 'return_transfer') row.returnTransferIn += delta;
@@ -438,21 +503,12 @@ export async function getProductionStockFigures(
   productId: string,
   date: string = businessDateStr(),
 ): Promise<ProductionStockFigures> {
+  const mine: LedgerCond = { column: 'product_id', op: 'eq', value: productId };
   const [prior, history, demand] = await Promise.all([
-    db
-      .from('production_stock_history')
-      .select('delta')
-      .eq('product_id', productId)
-      .lt('business_date', date),
-    db
-      .from('production_stock_history')
-      .select('type, delta')
-      .eq('product_id', productId)
-      .eq('business_date', date),
+    ledgerSums({ and: [mine, { column: 'business_date', op: 'lt', value: date }] }),
+    ledgerSumsByType({ and: [mine, { column: 'business_date', op: 'eq', value: date }] }),
     getOutstandingDemand(),
   ]);
-  if (prior.error) throw prior.error;
-  if (history.error) throw history.error;
 
   const figures: ProductionStockFigures = {
     opening: 0,
@@ -468,11 +524,11 @@ export async function getProductionStockFigures(
     available: 0,
   };
 
-  for (const h of (prior.data ?? []) as { delta: number | string }[]) {
-    figures.opening += Number(h.delta ?? 0);
+  for (const h of prior) {
+    figures.opening += h.delta;
   }
-  for (const h of (history.data ?? []) as { type: ProductionStockMovementType; delta: number | string }[]) {
-    const delta = Number(h.delta ?? 0);
+  for (const h of history) {
+    const delta = h.delta;
     if (h.type === 'prepare') figures.preparedToday += delta;
     else if (h.type === 'transfer_out') figures.demandFulfilled -= delta;
     else if (h.type === 'return_transfer') figures.returnTransferIn += delta;
