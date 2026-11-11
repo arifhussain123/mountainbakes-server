@@ -537,6 +537,40 @@ describe('A. Salary Ledger', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+describe('A2. Pending months and advances', () => {
+  const MONTH = Number(TODAY.slice(5, 7));
+
+  test('a month with no salary and no advance is Pending, the month in progress included', async () => {
+    const zubair = await employee('Zubair Pending', `${THIS}-01-01`);
+    const row = rowOf(await salaryLedger(THIS), zubair.id);
+    for (let m = 1; m <= MONTH; m++) assert.equal(cell(row, m).state, 'unpaid', `month ${m}`);
+    for (let m = MONTH + 1; m <= 12; m++) assert.equal(cell(row, m).state, 'none', `month ${m}`);
+    assert.equal(row.unpaidMonths, MONTH);
+  });
+
+  test('an approved advance takes the month out of Pending, and is never counted as salary', async () => {
+    const kashif = await employee('Kashif Advance', `${THIS}-01-01`);
+    const created = await call('accountant', 'POST', `${PAYROLL}/advances`, {
+      employeeId: kashif.id, advanceAmount: 4000, bonusAmount: 0, loanAmount: 0,
+      paymentMethod: 'cash', account: 'cash', attachmentIds: [await photo('accountant', 'employee_advance')],
+    });
+    assert.equal(created.status, 201, JSON.stringify(created.body));
+    const id = created.body.advance.id;
+
+    // Not approved yet: still Pending.
+    assert.equal(cell(rowOf(await salaryLedger(THIS), kashif.id), MONTH).state, 'unpaid');
+
+    const approved = await call('manager', 'POST', `${PAYROLL}/advances/${id}/approve`, {});
+    assert.equal(approved.status, 200, JSON.stringify(approved.body));
+
+    const row = rowOf(await salaryLedger(THIS), kashif.id);
+    const c = cell(row, MONTH);
+    assert.deepEqual([c.state, c.advanceAmount, c.amount, c.count], ['advance', 4000, 0, 0]);
+    assert.equal(row.total, 0, 'an advance is not salary');
+    assert.equal(row.unpaidMonths, MONTH - 1, 'only the advance month left Pending');
+  });
+});
+
 describe('B. Resignation', () => {
   let shabbir: Json;
   const resign = (id: string, body: Json, as = 'admin') => call(as, 'POST', `${PAYROLL}/employees/${id}/resignation`, body);
@@ -644,6 +678,19 @@ describe('B. Resignation', () => {
     assert.deepEqual((await salaryLedger(PAST, '&status=resigned')).rows.map((r: Json) => r.employeeId), [shabbir.id]);
     // Someone who left last year is not an empty row on this year's ledger.
     assert.equal(rowOf(await salaryLedger(THIS), shabbir.id), undefined);
+  });
+
+  test('active employees are listed first and resigned ones after them, whatever the sort', async () => {
+    const group = (r: Json) => (r.resignation ? 1 : r.isActive ? 0 : 2);
+    for (const sort of ['', '&sort=name', '&sort=total']) {
+      const rows = (await salaryLedger(PAST, sort)).rows;
+      assert.ok(rows.some((r: Json) => r.resignation) && rows.some((r: Json) => !r.resignation), `both kinds present (${sort})`);
+      const groups = rows.map(group);
+      assert.deepEqual(groups, [...groups].sort((a, b) => a - b), `active before resigned (${sort || 'code'})`);
+    }
+    // Shabbir has the year's largest total, and still comes after every active employee.
+    const byTotal = (await salaryLedger(PAST, '&sort=total')).rows;
+    assert.equal(byTotal[byTotal.length - 1].employeeId, shabbir.id);
   });
 
   test('submitting it again does not create a second resignation', async () => {

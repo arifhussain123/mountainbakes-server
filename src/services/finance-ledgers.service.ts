@@ -169,6 +169,29 @@ export async function getSalaryLedger(q: SalaryLedgerQueryInput): Promise<Salary
        from public.salary_ledger_payments group by salary_year`,
   );
 
+  // Approved advances drawn in the year, by employee and month — counted on the
+  // same terms as a payslip: posted or locked, not deleted, voucher still in
+  // the book. They lift a month out of "Pending"; they are never salary.
+  const advanceRows = await prisma().$queryRawUnsafe<{ employee_id: string; month_no: number; amount: string }[]>(
+    `select ea.employee_id::text as employee_id,
+            extract(month from ea.business_date)::int as month_no,
+            sum(coalesce(le.debit + le.credit, ea.total_amount))::text as amount
+       from public.employee_advances ea
+       left join public.ledger_entries le on le.id = ea.ledger_entry_id
+      where ea.deleted_at is null
+        and ea.status in ('posted', 'locked')
+        and (ea.ledger_entry_id is null or (le.deleted_at is null and le.status <> 'reversed'))
+        and extract(year from ea.business_date)::int = $1
+      group by 1, 2`,
+    year,
+  );
+  const advancesOf = new Map<string, Map<number, number>>();
+  for (const a of advanceRows) {
+    const months = advancesOf.get(a.employee_id) ?? new Map<number, number>();
+    months.set(a.month_no, paisa(a.amount));
+    advancesOf.set(a.employee_id, months);
+  }
+
   const resignations = await liveResignations();
 
   const byEmployee = new Map<string, Map<number, MonthAggregate>>();
@@ -185,6 +208,7 @@ export async function getSalaryLedger(q: SalaryLedgerQueryInput): Promise<Salary
 
   for (const e of employees) {
     const months = byEmployee.get(e.id);
+    const advances = advancesOf.get(e.id);
     const resignation = resignations.get(e.id) ?? null;
     const resignedIn = resignation ? resignationMonth(resignation) : null;
     // No joining date on record: the day they were added to the payroll is the
@@ -193,7 +217,7 @@ export async function getSalaryLedger(q: SalaryLedgerQueryInput): Promise<Salary
 
     const onPayroll =
       year <= currentYear && since <= lastMonth && (resignedIn ? resignedIn >= firstMonth : e.is_active);
-    if (!months && !onPayroll) continue;
+    if (!months && !advances && !onPayroll) continue;
 
     const cells: LedgerCell[] = [];
     const cellPaisa: number[] = [];
@@ -211,6 +235,7 @@ export async function getSalaryLedger(q: SalaryLedgerQueryInput): Promise<Salary
       let state: LedgerCell['state'] = 'none';
       let amount = 0;
       let flagged = false;
+      const advancePaisa = advances?.get(m) ?? 0;
 
       if (agg && agg.count > 0) {
         state = 'paid';
@@ -218,15 +243,27 @@ export async function getSalaryLedger(q: SalaryLedgerQueryInput): Promise<Salary
         flagged = agg.flagged;
         totalPaisa += amount;
         if (flagged) flaggedMonths++;
+      } else if (advancePaisa > 0) {
+        // No salary yet, but an advance was drawn: not "Pending" (owner, 2026-11-12).
+        state = 'advance';
       } else if (resignedIn && period > resignedIn) {
         state = 'closed';
-      } else if ((e.is_active || resignedIn) && period >= since && period < currentMonth) {
+      } else if ((e.is_active || resignedIn) && period >= since && period <= currentMonth) {
+        // "Pending": no salary and no advance yet — including the month in progress.
         state = 'unpaid';
         unpaidMonths++;
       }
 
       cellPaisa.push(amount);
-      cells.push({ month: m, amount: rupees(amount), count: agg?.count ?? 0, state, flagged, pendingCount });
+      cells.push({
+        month: m,
+        amount: rupees(amount),
+        count: agg?.count ?? 0,
+        state,
+        flagged,
+        pendingCount,
+        advanceAmount: rupees(advancePaisa),
+      });
     }
 
     all.push({
@@ -283,7 +320,13 @@ export async function getSalaryLedger(q: SalaryLedgerQueryInput): Promise<Salary
     }
   });
 
+  // Active employees first, then those who resigned, then any deactivated
+  // without a resignation (owner, 2026-11-12); the chosen sort applies within
+  // each group. Someone who resigned in an earlier year is not on this year's
+  // ledger at all unless a payslip for it exists (see onPayroll above).
   filtered.sort((a, b) => {
+    const group = rosterGroup(a.row) - rosterGroup(b.row);
+    if (group !== 0) return group;
     if (q.sort === 'name') return a.row.employeeName.localeCompare(b.row.employeeName) || byCode(a.row, b.row);
     if (q.sort === 'total') return b.totalPaisa - a.totalPaisa || byCode(a.row, b.row);
     return byCode(a.row, b.row);
@@ -306,6 +349,10 @@ export async function getSalaryLedger(q: SalaryLedgerQueryInput): Promise<Salary
     yearTotal: rupees(monthPaisa.reduce((t, v) => t + v, 0)),
   };
 }
+
+/** 0 active, 1 resigned, 2 deactivated without a resignation. */
+const rosterGroup = (r: { isActive: boolean; resignation: unknown }) =>
+  r.resignation ? 1 : r.isActive ? 0 : 2;
 
 const byCode = (a: { employeeCode: string }, b: { employeeCode: string }) =>
   a.employeeCode.localeCompare(b.employeeCode, undefined, { numeric: true });
