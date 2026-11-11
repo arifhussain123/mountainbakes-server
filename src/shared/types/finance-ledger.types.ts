@@ -20,12 +20,15 @@ import type {
  * What one month cell is.
  *
  *   paid    — at least one counted record; `amount` is their sum
- *   unpaid  — a month the employee was on the payroll for, already over, with
- *             no counted salary
+ *   advance — Salary Ledger only: no counted salary, but an approved advance
+ *             was drawn this month (`advanceAmount`); not part of `amount`
+ *   unpaid  — shown as "Pending": a month the employee is on the payroll for,
+ *             up to and including the current one, with no counted salary and
+ *             no approved advance
  *   closed  — after the employee's resignation month
  *   none    — nothing counted, and nothing expected
  */
-export type LedgerCellState = 'paid' | 'unpaid' | 'none' | 'closed';
+export type LedgerCellState = 'paid' | 'advance' | 'unpaid' | 'none' | 'closed';
 
 export interface LedgerCell {
   /** 1–12. */
@@ -38,6 +41,8 @@ export interface LedgerCell {
   flagged: boolean;
   /** Draft or awaiting approval — never part of `amount`. */
   pendingCount: number;
+  /** Salary Ledger: approved advances drawn this month. Never part of `amount`. */
+  advanceAmount?: number;
 }
 
 export interface LedgerYearOption {
