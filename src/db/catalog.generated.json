@@ -6522,6 +6522,57 @@
     "volatility": "v"
    }
   ],
+  "replace_attachment_file": [
+   {
+    "args": [
+     {
+      "hasDefault": false,
+      "name": "p_attachment_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_storage_path",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_mime_type",
+      "type": "text"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_size_bytes",
+      "type": "integer"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_width",
+      "type": "integer"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_height",
+      "type": "integer"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_id",
+      "type": "uuid"
+     },
+     {
+      "hasDefault": false,
+      "name": "p_actor_name",
+      "type": "text"
+     }
+    ],
+    "name": "replace_attachment_file",
+    "returnType": "uuid",
+    "returns": "scalar",
+    "returnsSet": false,
+    "volatility": "v"
+   }
+  ],
   "resubmit_cash_transfer": [
    {
     "args": [

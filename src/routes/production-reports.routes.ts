@@ -3,7 +3,7 @@ import { dbFor, getPrisma } from '../db';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { businessDateStr, businessDaysAgoStr, toPaisa } from '../shared';
-import { getProductionStockRows } from '../services/production-stock.service';
+import { getProductionStockWindowRows } from '../services/production-stock.service';
 import { getReturnStockRows } from '../services/return-stock.service';
 import { genericPDF, genericExcel, genericExcelMultiSheet, genericCSV, type ExcelColumn, type ExcelSheet } from '../services/production-export.service';
 import { getPreviousOrderBalance } from '../services/previous-balance.service';
@@ -55,7 +55,7 @@ const PREPARED_ROW_CAP = 20_000;
 
 /** Reports driven by an explicit from/to window instead of the period dropdown. */
 function usesDateRange(report: string): boolean {
-  return report === 'prepared-detail' || report === 'collections';
+  return report === 'prepared-detail' || report === 'collections' || report === 'production-stock';
 }
 
 /**
@@ -820,25 +820,34 @@ async function buildReport(
       };
     }
     case 'production-stock': {
-      const rows = await getProductionStockRows();
-      // The same nine columns, in the same order, as the Production Stock page —
-      // exported from the SAME query, so the sheet and the screen cannot disagree.
+      // Over the From–To window: Opening is the stock at the start of From,
+      // Balance the closing stock at the end of To, and every column between
+      // them is that movement summed over the window. A single day is exactly
+      // what the Production Stock page shows for it — the SAME function, so the
+      // sheet and the screen cannot disagree. (Before 2026-11-11 this ignored
+      // the window and always exported today.)
       //
       // "From Returns" is what was explicitly TRANSFERRED in from Branch Return
       // Stock (plus the pre-migration-139 automatic credit on old days). Branch
       // Return Stock itself is a different inventory and has its own report.
+      const rows = await getProductionStockWindowRows(fromStr, toStr);
       return {
-        title: 'Production Stock',
+        title: fromStr === toStr ? `Production Stock — ${fromStr}` : `Production Stock — ${fromStr} to ${toStr}`,
         headers: [
-          'Product', 'Opening Stock', 'Prepared Stock', 'Total Stock',
-          'Branch Demand Stock', 'Sale', 'From Returns', 'Adjustment', 'Balance',
+          'Product', `Opening Stock (${fromStr})`, 'Prepared Stock', 'Total Stock',
+          'Branch Demand Stock', 'Delivered to Branches', 'Sale', 'From Returns', 'Adjustment', `Closing Stock (${toStr})`,
         ],
+        // "Delivered to Branches" is the verified deliveries in the window — the
+        // outflow that makes Opening + Prepared + From Returns + Adjustment
+        // − Delivered − Sale come to Closing. "Branch Demand Stock" is what is
+        // still OWED, so it is only filled when the window ends today.
         rows: rows.map((r) => [
           r.productName,
           r.opening,
           r.preparedToday,
           r.totalStock,
           r.branchDemand,
+          r.demandFulfilled,
           r.soldToday,
           r.returnTransferIn + r.returned,
           r.adjustment,
