@@ -1899,7 +1899,11 @@ router.delete('/:id/demand', requireRole('super_admin'), validate(DeleteDemandSc
     });
     // Anything else still pointing at the demand (or a discount raised between the
     // check above and the delete). The transaction rolled back, so nothing moved.
-    if (error && (error as { code?: string }).code === '23503') {
+    // An ON DELETE RESTRICT key reports 23001, not 23503 — branch_discounts and
+    // the Demand Record's share snapshot are both RESTRICT — and missing it here
+    // is what turned this refusal into "Internal server error".
+    const fkCode = (error as { code?: string } | null)?.code;
+    if (fkCode === '23503' || fkCode === '23001') {
       res.status(409).json({ error: `${ticket.reference_id} cannot be deleted: other records still refer to it. Nothing was changed.` });
       return;
     }

@@ -72,19 +72,30 @@ const STUBS = `
     reference_snapshot jsonb, status text not null default 'open', resolution_note text,
     resolved_by uuid, resolved_by_name text, resolved_at timestamptz, raised_by uuid,
     branch_id uuid, archived_at timestamptz);
+  -- The Demand Record's frozen share %, as 20261024000001_branch_account_ledger
+  -- made it: RESTRICT on its demand, append-only. The migration under test
+  -- replaces the guard.
+  create table production_order_share_snapshots (
+    production_order_id uuid primary key references production_orders (id) on delete restrict,
+    company_share_pct numeric(5, 2) not null, frozen_at timestamptz not null default now(),
+    source text not null default 'delivery');
+  create function app.share_snapshots_append_only() returns trigger language plpgsql as $$
+    begin raise exception '% rows are append-only', tg_table_name; end $$;
+  create trigger production_order_share_snapshots_append_only
+    before update or delete on production_order_share_snapshots
+    for each row execute function app.share_snapshots_append_only();
+  -- Something else that holds a demand ON DELETE RESTRICT and that the route
+  -- does not check for up front.
+  create table other_holds (
+    production_order_id uuid not null references production_orders (id) on delete restrict);
   create table notifications (
     id uuid primary key default gen_random_uuid(), type text, title text, message text,
     target_user_id uuid, target_role text, branch_id uuid, related_id uuid);
 `;
 
-/** `delete_production_order` exactly as migration 82 defines it. */
-function deleteFunctionFromMigration82(): string {
-  const sql = read('20260816000082_delete_production_order.sql');
-  const start = sql.indexOf('create or replace function public.delete_production_order(');
-  const end = sql.indexOf('$$;', start) + 3;
-  assert.ok(start > 0 && end > start, 'delete_production_order not found in migration 82');
-  return sql.slice(start, end);
-}
+/** The current delete_production_order and the snapshot guard it relies on. */
+const deleteDeliveredDemandMigration = () =>
+  readFileSync(join(__dirname, '../../../prisma/migrations/20261111000002_delete_delivered_demand/migration.sql'), 'utf8');
 
 let db: PGlite;
 let server: Server;
@@ -125,7 +136,7 @@ before(async () => {
 
   db = new PGlite();
   await db.exec(STUBS);
-  await db.exec(deleteFunctionFromMigration82());
+  await db.exec(deleteDeliveredDemandMigration());
   await db.exec(`begin;${read('20261009000149_custom_auth.sql')}commit;`);
   await usePglite(db);
   const prisma = new PrismaClient({ adapter: new PrismaPGlite(db) });
@@ -187,5 +198,40 @@ describe('DELETE /api/support/:id/demand', () => {
     assert.equal(res.status, 409, JSON.stringify(res.body));
     assert.match(res.body.error, /1 approved\/rejected discount claim/);
     assert.match(res.body.error, /A decided discount keeps its demand on the record/);
+  });
+
+  // The regression of 2026-11-11: every delivered demand has a frozen share %
+  // (RESTRICT + append-only), so deleting one failed with SQLSTATE 23001 and the
+  // admin saw "Internal server error".
+  test('a delivered demand with a frozen share % is deleted, the % kept in the audit row', async () => {
+    const { orderId, ticketId } = await demandWithQuery('DMD-000104');
+    await db.query(`insert into production_order_share_snapshots (production_order_id, company_share_pct) values ($1, 75)`, [orderId]);
+
+    const res = await del(ticketId, 'DMD-000104');
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+    assert.equal(await count(`select count(*) as n from production_orders where id = $1`, [orderId]), 0);
+    assert.equal(await count(`select count(*) as n from production_order_share_snapshots where production_order_id = $1`, [orderId]), 0);
+    const { rows: [audit] } = await db.query<{ pct: string }>(
+      `select details->'shareSnapshot'->>'company_share_pct' as pct from audit_logs where details->>'orderId' = $1`, [orderId]);
+    assert.equal(Number(audit!.pct), 75);
+  });
+
+  test('a share snapshot is still append-only outside a demand delete', async () => {
+    const { orderId } = await demandWithQuery('DMD-000105');
+    await db.query(`insert into production_order_share_snapshots (production_order_id, company_share_pct) values ($1, 75)`, [orderId]);
+    await assert.rejects(db.query(`delete from production_order_share_snapshots where production_order_id = $1`, [orderId]), /append-only/);
+    await assert.rejects(db.query(`update production_order_share_snapshots set company_share_pct = 1 where production_order_id = $1`, [orderId]), /append-only/);
+  });
+
+  test('any other RESTRICT hold is a 409 that says nothing changed, not a 500', async () => {
+    const { orderId, ticketId } = await demandWithQuery('DMD-000106');
+    await db.query(`insert into production_order_share_snapshots (production_order_id, company_share_pct) values ($1, 75)`, [orderId]);
+    await db.query(`insert into other_holds (production_order_id) values ($1)`, [orderId]);
+
+    const res = await del(ticketId, 'DMD-000106');
+    assert.equal(res.status, 409, JSON.stringify(res.body));
+    assert.match(res.body.error, /DMD-000106 cannot be deleted: other records still refer to it/);
+    assert.equal(await count(`select count(*) as n from production_orders where id = $1`, [orderId]), 1);
+    assert.equal(await count(`select count(*) as n from production_order_share_snapshots where production_order_id = $1`, [orderId]), 1);
   });
 });
