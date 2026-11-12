@@ -4,7 +4,7 @@
  *
  *   G. Total        = Delivered − Returns − Discount
  *   Company Share   = G. Total × the demand's frozen share % ÷ 100
- *   Closing Balance = Previous Balance + Company Share + Adjustments − Share Received
+ *   Closing Balance = Company Share + Adjustments + Previous Balance − Share Received
  *
  * The same figures under the Demand Record restructure's names
  * (docs/demand-record-accounting-migration.md), carried on every row beside
@@ -12,7 +12,7 @@
  *
  *   Total Demand Amount = Delivered
  *   Demand              = G. Total (the net demand)
- *   Amount Due          = Previous Balance + Company Share + Adjustments
+ *   Amount Due          = Company Share + Adjustments + Previous Balance
  *   Remaining           = Amount Due − Payment Received = Closing Balance
  *
  * Share Received is money Finance approved (cash transfers), each deposit
@@ -69,7 +69,7 @@ export interface BranchAccountRow extends BranchAccountFacts {
   totalDemandAmount: number;
   /** Net demand: Delivered − Returns − Discount — the same figure as `gTotal`. */
   demand: number;
-  /** Previous Balance + Company Share + Adjustments: what is owed before this row's payments. */
+  /** Company Share + Adjustments + Previous Balance: what is owed before this row's payments. */
   amountDue: number;
   /** Amount Due − Payment Received — the same figure as `closingBalance`. Negative is a credit. */
   remaining: number;
@@ -106,7 +106,7 @@ export function computeBranchAccount(facts: BranchAccountFacts[], startBalance =
     const gTotal = toPaisa(f.delivered - f.returns - f.discount);
     const companyShare = rowCompanyShare(f.delivered, gTotal, sharePct);
     const previousBalance = balance;
-    const amountDue = toPaisa(previousBalance + companyShare + f.adjustments);
+    const amountDue = toPaisa(companyShare + f.adjustments + previousBalance);
     const closingBalance = toPaisa(amountDue - f.received);
     balance = closingBalance;
     return {
