@@ -18,6 +18,7 @@ import {
   setLedgerStart,
 } from '../services/branch-account.service';
 import { auditSnapshot, logFinanceAudit } from '../services/finance-audit.service';
+import { exportDemandRecordExcel, loadAllDemandRecordRows, XLSX_TYPE } from '../services/demand-record-export.service';
 
 /**
  * /api/finance/branch-account — the Demand Record: each branch's running
@@ -93,6 +94,28 @@ router.get('/', requireFinance('view'), async (req, res, next) => {
       page: q['page'] ? Number(q['page']) : undefined,
       pageSize: q['pageSize'] ? Number(q['pageSize']) : undefined,
     }));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /export?branchId=&from=&to=&search=&sortDir=asc|desc — every row of the filter as .xlsx
+router.get('/export', requireFinance('view'), async (req, res, next) => {
+  try {
+    const q = req.query as Record<string, string | undefined>;
+    const branchId = optionalUuid(q['branchId'], 'branchId');
+    const data = await loadAllDemandRecordRows({
+      branchId,
+      from: optionalDate(q['from'], 'from'),
+      to: optionalDate(q['to'], 'to'),
+      search: q['search'],
+      sortDir: q['sortDir'] === 'asc' ? 'asc' : 'desc',
+    });
+    const label = branchId ? (data.branches[0]?.branchName ?? 'Branch') : 'All branches';
+    const buf = await exportDemandRecordExcel(data, label);
+    res.setHeader('Content-Type', XLSX_TYPE);
+    res.setHeader('Content-Disposition', `attachment; filename="demand-record-${data.from}_to_${data.to}.xlsx"`);
+    res.send(buf);
   } catch (err) {
     next(err);
   }
