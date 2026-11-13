@@ -3,6 +3,7 @@ import { authenticate, type AuthRequest } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { BRANCH_ROLES } from '../shared';
 import { getDemandRecord, getDemandRecordDetail, getLedgerStart, getMonthStatement } from '../services/branch-account.service';
+import { exportDemandRecordExcel, loadAllDemandRecordRows, XLSX_TYPE } from '../services/demand-record-export.service';
 
 /**
  * /api/branch-account — a branch's OWN Demand Record, read-only. The same rows
@@ -59,6 +60,26 @@ router.get('/', async (req: AuthRequest, res, next) => {
       page: q['page'] ? Number(q['page']) : undefined,
       pageSize: q['pageSize'] ? Number(q['pageSize']) : undefined,
     }));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /export?from=&to=&search=&sortDir=asc|desc — every row of the filter as .xlsx
+router.get('/export', async (req: AuthRequest, res, next) => {
+  try {
+    const q = req.query as Record<string, string | undefined>;
+    const data = await loadAllDemandRecordRows({
+      branchId: ownBranch(req),
+      from: optionalDate(q['from'], 'from'),
+      to: optionalDate(q['to'], 'to'),
+      search: q['search'],
+      sortDir: q['sortDir'] === 'asc' ? 'asc' : 'desc',
+    });
+    const buf = await exportDemandRecordExcel(data, data.branches[0]?.branchName ?? 'Branch');
+    res.setHeader('Content-Type', XLSX_TYPE);
+    res.setHeader('Content-Disposition', `attachment; filename="demand-record-${data.from}_to_${data.to}.xlsx"`);
+    res.send(buf);
   } catch (err) {
     next(err);
   }
