@@ -16,6 +16,8 @@ import type {
   StoreItemImportResult,
   StoreItemImportRow,
   StoreItemInput,
+  StoreItemPackage,
+  StoreItemPackageInput,
   StoreLookup,
   StoreLookupInput,
   StorePrice,
@@ -384,6 +386,44 @@ export async function requestPrice(input: StorePriceRequestInput, actor: StoreAc
   }
   const list = await listPriceRequests('open');
   return list.find((r) => r.itemId === item.id) ?? list[0]!;
+}
+
+// ── Item packages (Items v2) ─────────────────────────────────────────────────
+// Multiple purchase packages per item. The default mirrors the item's
+// purchase_unit/conversion_qty (backfilled by migration); extra ones are added
+// here. The default cannot be removed from here — it changes via the item form.
+
+const PACKAGE_COLS = 'id, item_id, package_name, package_qty, is_default, is_active, sort_order';
+
+export async function listItemPackages(itemId: string): Promise<StoreItemPackage[]> {
+  const { data, error } = await db.from('store_item_packages').select(PACKAGE_COLS)
+    .eq('item_id', itemId).order('is_default', { ascending: false }).order('sort_order').order('package_qty');
+  if (error) throw clientError(error);
+  return api<StoreItemPackage[]>(data ?? []);
+}
+
+export async function addItemPackage(itemId: string, input: StoreItemPackageInput, actor: StoreActor): Promise<StoreItemPackage> {
+  const item = await getItem(itemId); // 404s if the item is gone
+  const { data, error } = await db.from('store_item_packages')
+    .insert({ item_id: itemId, package_name: input.packageName.trim(), package_qty: input.packageQty, sort_order: 500 })
+    .select(PACKAGE_COLS).single();
+  if (error) {
+    if ((error as { code?: string }).code === '23505') throw httpError(409, 'That package is already on this item.');
+    throw clientError(error);
+  }
+  await audit('item', itemId, item.itemNo, 'package added', `${input.packageName.trim()} of ${input.packageQty} ${item.baseUnit}`, actor);
+  return api<StoreItemPackage>(data);
+}
+
+export async function deleteItemPackage(id: string, actor: StoreActor): Promise<void> {
+  const { data: pkg, error: readErr } = await db.from('store_item_packages').select('id, item_id, is_default, package_name').eq('id', id).maybeSingle();
+  if (readErr) throw clientError(readErr);
+  if (!pkg) throw httpError(404, 'Package not found');
+  if (pkg['is_default']) throw httpError(409, 'The default package cannot be removed — change it in the item’s edit form.');
+  const { error } = await db.from('store_item_packages').delete().eq('id', id);
+  if (error) throw clientError(error);
+  const item = await getItem(pkg['item_id'] as string).catch(() => null);
+  await audit('item', pkg['item_id'] as string, item?.itemNo ?? null, 'package removed', pkg['package_name'] as string, actor);
 }
 
 // ── Suppliers (shared master; behind the `suppliers` feature) ────────────────

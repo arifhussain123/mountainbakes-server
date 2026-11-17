@@ -18,6 +18,7 @@ import {
   StoreFeatureToggleSchema,
   StoreItemImportCommitSchema,
   StoreItemInputSchema,
+  StoreItemPackageInputSchema,
   StoreItemStatusSchema,
   StoreLookupInputSchema,
   StorePriceInputSchema,
@@ -184,6 +185,17 @@ router.get('/items/:id/ledger', can('view'), h(async (req) => {
   return { from, to, ...(await stock.itemLedger(req.params['id']!, from, to)) };
 }));
 router.get('/items/:id/batches', can('view'), h((req) => stock.listBatches(req.params['id']!, req.query['open'] === 'true')));
+
+// Item packages (Items v2) — multiple purchase packages per item.
+router.get('/items/:id/packages', can('view'), h((req) => catalog.listItemPackages(req.params['id']!)));
+router.post('/items/:id/packages', can('items.edit'), validate(StoreItemPackageInputSchema), h(async (req, res) => {
+  res.status(201);
+  return catalog.addItemPackage(req.params['id']!, req.body, req.actor!);
+}));
+router.delete('/item-packages/:id', can('items.edit'), h(async (req) => {
+  await catalog.deleteItemPackage(req.params['id']!, req.actor!);
+  return { ok: true };
+}));
 
 // Full item master as .xlsx/.csv — doubles as the import template.
 router.get('/items/export', can('view'), h(async (req, res) => {

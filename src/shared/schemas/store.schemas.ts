@@ -45,6 +45,15 @@ export const StoreItemInputSchema = z.object({
   minStock: z.number({ message: 'Enter 0 or more' }).min(0, 'Enter 0 or more').max(1_000_000).multipleOf(0.001),
   remarks: optionalText(300),
   purchaseItemId: uuid.optional().nullable(),
+  // Items v2 — all optional so existing forms and the Excel import stay valid.
+  reorderQty: z.number().min(0).max(1_000_000).multipleOf(0.001).optional(),
+  maxLevel: z.number().min(0).max(1_000_000).multipleOf(0.001).optional(),
+  safetyStock: z.number().min(0).max(1_000_000).multipleOf(0.001).optional(),
+  leadTimeDays: z.number().int().min(0).max(3650).optional().nullable(),
+  preferredSupplierId: uuid.optional().nullable(),
+  storageType: z.enum(['dry', 'chilled', 'frozen']).optional(),
+  trackExpiry: z.boolean().optional(),
+  description: optionalText(500),
 });
 export type StoreItemInput = z.infer<typeof StoreItemInputSchema>;
 
@@ -192,6 +201,13 @@ export const StoreSupplierInputSchema = z.object({
   notes: optionalText(500),
 });
 export type StoreSupplierInput = z.infer<typeof StoreSupplierInputSchema>;
+
+/** Add a purchase package to an item (Items v2). */
+export const StoreItemPackageInputSchema = z.object({
+  packageName: text(40).min(1, 'Select the purchase package'),
+  packageQty: quantity,
+});
+export type StoreItemPackageInput = z.infer<typeof StoreItemPackageInputSchema>;
 
 export const StoreSettingsSchema = z.object({
   name: text(80).min(1, 'Enter the store name'),

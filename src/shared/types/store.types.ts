@@ -512,6 +512,17 @@ export interface StoreSupplier {
   isActive: boolean;
 }
 
+/** One purchase package of an item and how many base units it holds (Items v2). */
+export interface StoreItemPackage {
+  id: string;
+  itemId: string;
+  packageName: string;
+  packageQty: number;
+  isDefault: boolean;
+  isActive: boolean;
+  sortOrder: number;
+}
+
 export interface StoreItem {
   id: string;
   itemNo: string;
@@ -526,6 +537,15 @@ export interface StoreItem {
   status: 'active' | 'inactive';
   remarks: string | null;
   purchaseItemId: string | null;
+  // Items v2 — reorder planning + handling (min_stock stays the reorder trigger).
+  reorderQty: number;
+  maxLevel: number;
+  safetyStock: number;
+  leadTimeDays: number | null;
+  preferredSupplierId: string | null;
+  storageType: 'dry' | 'chilled' | 'frozen';
+  trackExpiry: boolean;
+  description: string | null;
   createdByName: string | null;
   createdAt: string;
   updatedAt: string;
