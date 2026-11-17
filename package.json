@@ -16,6 +16,7 @@
     "purge:price-history": "tsx --env-file .env src/scripts/purge-price-history.ts",
     "purge:idempotency-keys": "tsx --env-file .env src/scripts/purge-idempotency-keys.ts",
     "purge:return-photos": "tsx --env-file .env src/scripts/purge-staged-return-photos.ts",
+    "purge:store-account": "tsx --env-file .env src/scripts/purge-store-account.ts",
     "files:copy": "tsx --env-file .env infra/railway/copy-files.ts",
     "railway:migrate": "tsx --env-file .env infra/railway/migrate-data.ts",
     "railway:verify": "tsx --env-file .env infra/railway/verify-migration.ts",
