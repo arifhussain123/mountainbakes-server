@@ -523,6 +523,18 @@ export interface StoreItemPackage {
   sortOrder: number;
 }
 
+export const STORE_BARCODE_TYPES = ['ean', 'upc', 'qr', 'code128', 'other'] as const;
+export type StoreBarcodeType = (typeof STORE_BARCODE_TYPES)[number];
+
+/** A scannable code for an item (optionally a specific package). Items v2. */
+export interface StoreItemBarcode {
+  id: string;
+  itemId: string;
+  packageId: string | null;
+  code: string;
+  type: StoreBarcodeType;
+}
+
 export interface StoreItem {
   id: string;
   itemNo: string;

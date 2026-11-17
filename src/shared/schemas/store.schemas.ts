@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { STORE_QUERY_STATUSES, STORE_QUERY_TYPES, STORE_UNIT_TYPES } from '../types/store.types';
+import { STORE_BARCODE_TYPES, STORE_QUERY_STATUSES, STORE_QUERY_TYPES, STORE_UNIT_TYPES } from '../types/store.types';
 
 // ── Dry Items Store ──────────────────────────────────────────────────────────
 //
@@ -208,6 +208,14 @@ export const StoreItemPackageInputSchema = z.object({
   packageQty: quantity,
 });
 export type StoreItemPackageInput = z.infer<typeof StoreItemPackageInputSchema>;
+
+/** Add a barcode to an item (Items v2, behind the `barcodes` flag). */
+export const StoreItemBarcodeInputSchema = z.object({
+  code: text(60).min(1, 'Enter the barcode'),
+  type: z.enum(STORE_BARCODE_TYPES).optional(),
+  packageId: uuid.optional().nullable(),
+});
+export type StoreItemBarcodeInput = z.infer<typeof StoreItemBarcodeInputSchema>;
 
 export const StoreSettingsSchema = z.object({
   name: text(80).min(1, 'Enter the store name'),

@@ -16,6 +16,7 @@ import {
   StoreDemandInputSchema,
   StoreIssueInputSchema,
   StoreFeatureToggleSchema,
+  StoreItemBarcodeInputSchema,
   StoreItemImportCommitSchema,
   StoreItemInputSchema,
   StoreItemPackageInputSchema,
@@ -194,6 +195,17 @@ router.post('/items/:id/packages', can('items.edit'), validate(StoreItemPackageI
 }));
 router.delete('/item-packages/:id', can('items.edit'), h(async (req) => {
   await catalog.deleteItemPackage(req.params['id']!, req.actor!);
+  return { ok: true };
+}));
+
+// Item barcodes (Items v2) — behind the `barcodes` feature flag.
+router.get('/items/:id/barcodes', can('view'), h((req) => catalog.listItemBarcodes(req.params['id']!)));
+router.post('/items/:id/barcodes', requireFeature('barcodes'), can('items.edit'), validate(StoreItemBarcodeInputSchema), h(async (req, res) => {
+  res.status(201);
+  return catalog.addItemBarcode(req.params['id']!, req.body, req.actor!);
+}));
+router.delete('/item-barcodes/:id', requireFeature('barcodes'), can('items.edit'), h(async (req) => {
+  await catalog.deleteItemBarcode(req.params['id']!, req.actor!);
   return { ok: true };
 }));
 

@@ -14,6 +14,8 @@ import type {
   StoreItemImportFields,
   StoreItemImportPreview,
   StoreItemImportResult,
+  StoreItemBarcode,
+  StoreItemBarcodeInput,
   StoreItemImportRow,
   StoreItemInput,
   StoreItemPackage,
@@ -424,6 +426,39 @@ export async function deleteItemPackage(id: string, actor: StoreActor): Promise<
   if (error) throw clientError(error);
   const item = await getItem(pkg['item_id'] as string).catch(() => null);
   await audit('item', pkg['item_id'] as string, item?.itemNo ?? null, 'package removed', pkg['package_name'] as string, actor);
+}
+
+// ── Item barcodes (Items v2; behind the `barcodes` feature) ──────────────────
+
+const BARCODE_COLS = 'id, item_id, package_id, code, type';
+
+export async function listItemBarcodes(itemId: string): Promise<StoreItemBarcode[]> {
+  const { data, error } = await db.from('store_item_barcodes').select(BARCODE_COLS).eq('item_id', itemId).order('created_at');
+  if (error) throw clientError(error);
+  return api<StoreItemBarcode[]>(data ?? []);
+}
+
+export async function addItemBarcode(itemId: string, input: StoreItemBarcodeInput, actor: StoreActor): Promise<StoreItemBarcode> {
+  const item = await getItem(itemId); // 404s if the item is gone
+  const { data, error } = await db.from('store_item_barcodes')
+    .insert({ item_id: itemId, code: input.code.trim(), type: input.type ?? 'ean', package_id: input.packageId ?? null })
+    .select(BARCODE_COLS).single();
+  if (error) {
+    if ((error as { code?: string }).code === '23505') throw httpError(409, `Barcode "${input.code.trim()}" is already used.`);
+    throw clientError(error);
+  }
+  await audit('item', itemId, item.itemNo, 'barcode added', input.code.trim(), actor);
+  return api<StoreItemBarcode>(data);
+}
+
+export async function deleteItemBarcode(id: string, actor: StoreActor): Promise<void> {
+  const { data: bc, error: readErr } = await db.from('store_item_barcodes').select('id, item_id, code').eq('id', id).maybeSingle();
+  if (readErr) throw clientError(readErr);
+  if (!bc) throw httpError(404, 'Barcode not found');
+  const { error } = await db.from('store_item_barcodes').delete().eq('id', id);
+  if (error) throw clientError(error);
+  const item = await getItem(bc['item_id'] as string).catch(() => null);
+  await audit('item', bc['item_id'] as string, item?.itemNo ?? null, 'barcode removed', bc['code'] as string, actor);
 }
 
 // ── Suppliers (shared master; behind the `suppliers` feature) ────────────────
