@@ -17,6 +17,7 @@ import {
   StoreIssueInputSchema,
   StoreFeatureToggleSchema,
   StoreItemBarcodeInputSchema,
+  StoreItemBulkInputSchema,
   StoreItemImportCommitSchema,
   StoreItemInputSchema,
   StoreItemPackageInputSchema,
@@ -240,6 +241,8 @@ router.post('/items/import/preview', can('items.edit'), upload.single('file') as
 
 // Apply the confirmed rows (create/update by matched id) through saveItem.
 router.post('/items/import/commit', can('items.edit'), validate(StoreItemImportCommitSchema), h((req) => catalog.commitItemImport(req.body.rows, req.actor!)));
+// Bulk activate / deactivate / re-categorise selected items (Items v2).
+router.post('/items/bulk', can('items.edit'), validate(StoreItemBulkInputSchema), h((req) => catalog.bulkUpdateItems(req.body, req.actor!)));
 
 // ── Price Control ───────────────────────────────────────────────────────────
 

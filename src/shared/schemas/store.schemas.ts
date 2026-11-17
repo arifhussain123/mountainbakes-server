@@ -217,6 +217,14 @@ export const StoreItemBarcodeInputSchema = z.object({
 });
 export type StoreItemBarcodeInput = z.infer<typeof StoreItemBarcodeInputSchema>;
 
+/** Bulk action on selected items (Items v2): activate / deactivate / change category. */
+export const StoreItemBulkInputSchema = z.object({
+  ids: z.array(uuid).min(1, 'Select at least one item').max(1000, 'Too many items at once'),
+  action: z.enum(['activate', 'deactivate', 'set_category']),
+  categoryTo: optionalText(40),
+});
+export type StoreItemBulkInput = z.infer<typeof StoreItemBulkInputSchema>;
+
 export const StoreSettingsSchema = z.object({
   name: text(80).min(1, 'Enter the store name'),
   openingDate: isoDate.optional().nullable(),

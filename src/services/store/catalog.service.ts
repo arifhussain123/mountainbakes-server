@@ -16,6 +16,7 @@ import type {
   StoreItemImportResult,
   StoreItemBarcode,
   StoreItemBarcodeInput,
+  StoreItemBulkInput,
   StoreItemImportRow,
   StoreItemInput,
   StoreItemPackage,
@@ -426,6 +427,28 @@ export async function deleteItemPackage(id: string, actor: StoreActor): Promise<
   if (error) throw clientError(error);
   const item = await getItem(pkg['item_id'] as string).catch(() => null);
   await audit('item', pkg['item_id'] as string, item?.itemNo ?? null, 'package removed', pkg['package_name'] as string, actor);
+}
+
+/** Bulk activate / deactivate / re-categorise selected items (Items v2). */
+export async function bulkUpdateItems(input: StoreItemBulkInput, actor: StoreActor): Promise<{ updated: number }> {
+  const ids = Array.from(new Set(input.ids));
+  if (ids.length === 0) return { updated: 0 };
+
+  if (input.action === 'set_category') {
+    const cat = (input.categoryTo ?? '').trim();
+    const categories = new Set((await listLookups()).filter((l) => l.kind === 'category' && l.isActive).map((l) => l.value));
+    if (!categories.has(cat)) throw httpError(400, `"${cat}" is not an active category.`);
+    const { count, error } = await db.from('store_items').update({ category: cat }, { count: 'exact' }).in('id', ids);
+    if (error) throw clientError(error);
+    await audit('item', null, null, 'bulk recategorised', `${count ?? ids.length} item(s) → ${cat}`, actor);
+    return { updated: count ?? 0 };
+  }
+
+  const status = input.action === 'activate' ? 'active' : 'inactive';
+  const { count, error } = await db.from('store_items').update({ status }, { count: 'exact' }).in('id', ids);
+  if (error) throw clientError(error);
+  await audit('item', null, null, `bulk ${input.action}d`, `${count ?? ids.length} item(s)`, actor);
+  return { updated: count ?? 0 };
 }
 
 // ── Item barcodes (Items v2; behind the `barcodes` feature) ──────────────────
