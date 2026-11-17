@@ -35,6 +35,16 @@ export type StorePriceState = 'active' | 'scheduled' | 'superseded' | 'inactive'
 
 export type StoreLookupKind = 'category' | 'base_unit' | 'purchase_unit' | 'adjust_reason';
 
+/** The physical kind of a unit, so the pick-list is a managed master (problem 5). */
+export const STORE_UNIT_TYPES = ['weight', 'volume', 'count', 'pack'] as const;
+export type StoreUnitType = (typeof STORE_UNIT_TYPES)[number];
+export const STORE_UNIT_TYPE_LABELS: Record<StoreUnitType, string> = {
+  weight: 'Weight',
+  volume: 'Volume',
+  count: 'Count',
+  pack: 'Pack',
+};
+
 export type StoreMovementType = 'opening' | 'receipt' | 'issue' | 'adjustment' | 'return';
 export const STORE_MOVEMENT_LABELS: Record<StoreMovementType, string> = {
   opening: 'Opening',
@@ -385,12 +395,56 @@ export interface StoreDepartment {
   isActive: boolean;
 }
 
+// ── Feature flags ─────────────────────────────────────────────────────────────
+// Optional inventory modules ship behind a per-store switch so they can merge
+// dark and be enabled once ready. A missing store_features row reads as off.
+export const STORE_FEATURE_KEYS = [
+  'suppliers',
+  'barcodes',
+  'purchase_orders',
+  'returns',
+  'stock_counts',
+  'locations',
+  'transfers',
+] as const;
+export type StoreFeatureKey = (typeof STORE_FEATURE_KEYS)[number];
+
+export const STORE_FEATURE_LABELS: Record<StoreFeatureKey, string> = {
+  suppliers: 'Suppliers master',
+  barcodes: 'Item barcodes',
+  purchase_orders: 'Purchase Orders',
+  returns: 'Returns from Production',
+  stock_counts: 'Stock counts (stocktake)',
+  locations: 'Locations & bins',
+  transfers: 'Stock transfers',
+};
+
+export const STORE_FEATURE_DESCRIPTIONS: Record<StoreFeatureKey, string> = {
+  suppliers: 'A managed supplier list with codes, contacts and per-item pricing.',
+  barcodes: 'Scan-ready barcodes on items and batches.',
+  purchase_orders: 'Raise, approve and receive against purchase orders, with reorder suggestions.',
+  returns: 'Take unused stock back from Production against an issue.',
+  stock_counts: 'Physical stocktakes that post count-correction adjustments.',
+  locations: 'Track stock by store location / bin and move it between them.',
+  transfers: 'Send stock from one store or branch to another.',
+};
+
+/** One feature and whether it is on for the store — the admin toggle list. */
+export interface StoreFeature {
+  key: StoreFeatureKey;
+  label: string;
+  description: string;
+  enabled: boolean;
+}
+
 /** GET /api/store/me — who is asking and what they may do. */
 export interface StoreMe {
   store: StoreDepartment;
   role: UserRole;
   flags: StoreAccountFlags;
   can: Record<StoreAction, boolean>;
+  /** Which optional modules are enabled for this store (missing key = off). */
+  features: Record<StoreFeatureKey, boolean>;
   businessDate: string;
 }
 
@@ -414,6 +468,47 @@ export interface StoreLookup {
   kind: StoreLookupKind;
   value: string;
   sortOrder: number;
+  isActive: boolean;
+  /** Only set for unit kinds: weight / volume / count / pack. */
+  unitType: StoreUnitType | null;
+}
+
+export type StorePriceRequestStatus = 'open' | 'resolved' | 'cancelled';
+
+/** A Store keeper's ask for Finance/Admin to price an item that has none (problem 3). */
+export interface StorePriceRequest {
+  id: string;
+  itemId: string;
+  itemNo: string;
+  itemName: string;
+  baseUnit: string;
+  note: string | null;
+  status: StorePriceRequestStatus;
+  requestedByName: string | null;
+  resolvedByName: string | null;
+  createdAt: string;
+  resolvedAt: string | null;
+}
+
+/**
+ * The supplier master (Phase 2). Shared with WhatsApp Purchasing — the same
+ * `public.suppliers` row. `whatsappNumber` is optional for store-only suppliers.
+ */
+export interface StoreSupplier {
+  id: string;
+  supplierCode: string;
+  name: string;
+  contactPerson: string | null;
+  phone: string | null;
+  whatsappNumber: string | null;
+  email: string | null;
+  category: string | null;
+  address: string | null;
+  ntn: string | null;
+  strn: string | null;
+  paymentTerms: string | null;
+  leadTimeDays: number | null;
+  notes: string | null;
   isActive: boolean;
 }
 
@@ -740,4 +835,58 @@ export interface StoreReport {
 export interface StorePage<T> {
   rows: T[];
   total: number;
+}
+
+// ── Items: Excel import / export ──────────────────────────────────────────────
+
+/**
+ * Column headers for the item export. The import reads them by name,
+ * case- and space-insensitive, so a downloaded sheet is a valid re-upload.
+ * `Item ID` and `Status` are informational — the import ignores them.
+ */
+export const STORE_ITEM_EXPORT_HEADERS = [
+  'Item ID', 'Item Code', 'Item Name', 'Category', 'Base Unit', 'Purchase Unit', 'Conversion Qty', 'Low-stock Level', 'Remarks', 'Status',
+] as const;
+
+/** The editable fields of one imported row — what a commit writes. */
+export interface StoreItemImportFields {
+  itemCode: string;
+  name: string;
+  category: string;
+  baseUnit: string;
+  purchaseUnit: string;
+  conversionQty: number;
+  minStock: number;
+  remarks: string | null;
+}
+
+/** One validated, committable row: a create, or an update of an existing item matched by Item Code. */
+export interface StoreItemImportRow extends StoreItemImportFields {
+  rowNumber: number;
+  action: 'create' | 'update';
+  /** The matched item's id on an update; null on a create. */
+  id: string | null;
+  /** Human-readable field changes on an update (e.g. 'Low-stock 5 → 8'); empty on a create. */
+  changes: string[];
+}
+
+/** A row the import could not accept, with why. */
+export interface StoreItemImportError {
+  rowNumber: number;
+  itemCode: string;
+  message: string;
+}
+
+/** Result of parsing an uploaded workbook. Never writes. */
+export interface StoreItemImportPreview {
+  summary: { total: number; create: number; update: number; unchanged: number; errors: number };
+  rows: StoreItemImportRow[];
+  errors: StoreItemImportError[];
+}
+
+/** Result of committing the confirmed rows. */
+export interface StoreItemImportResult {
+  created: number;
+  updated: number;
+  failed: { itemCode: string; message: string }[];
 }

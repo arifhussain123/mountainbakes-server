@@ -1,7 +1,9 @@
 import { Router, type NextFunction, type Response } from 'express';
+import multer from 'multer';
 import { authenticate, type AuthRequest } from '../middleware/auth';
 import { idempotent } from '../middleware/idempotency';
 import { validate } from '../middleware/validate';
+import { genericCSV, genericExcel } from '../services/production-export.service';
 import {
   STORE_DEMAND_STATUSES,
   STORE_QUERY_STATUSES,
@@ -13,16 +15,21 @@ import {
   StoreDecisionSchema,
   StoreDemandInputSchema,
   StoreIssueInputSchema,
+  StoreFeatureToggleSchema,
+  StoreItemImportCommitSchema,
   StoreItemInputSchema,
   StoreItemStatusSchema,
   StoreLookupInputSchema,
   StorePriceInputSchema,
+  StorePriceRequestInputSchema,
+  StoreSupplierInputSchema,
   StoreQueryInputSchema,
   StoreQueryMessageSchema,
   StoreReceiptInputSchema,
   StoreSettingsSchema,
   storeCan,
   type StoreAction,
+  type StoreFeatureKey,
   type StoreDemandStatus,
   type StoreQueryStatus,
   type StoreReportType,
@@ -44,6 +51,9 @@ import * as reports from '../services/store/reports.service';
  * it changes; nothing here posts to Finance.
  */
 export const router = Router();
+
+// Item import uploads are held in memory (parsed, never stored) and capped at 5 MB.
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 interface StoreRequest extends AuthRequest {
   actor?: StoreActor;
@@ -77,6 +87,20 @@ const can = (...actions: StoreAction[]) => (req: StoreRequest, res: Response, ne
     return;
   }
   res.status(403).json({ error: 'Forbidden: your account is not allowed to do this in the Store' });
+};
+
+/** Gate a route behind a store feature flag — 404 while the module is off. */
+const requireFeature = (key: StoreFeatureKey) => async (req: StoreRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const features = await catalog.featureMap();
+    if (!features[key]) {
+      res.status(404).json({ error: 'This module is not enabled for the store.' });
+      return;
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
 };
 
 type Handler = (req: StoreRequest, res: Response) => Promise<unknown>;
@@ -118,6 +142,7 @@ router.get('/me', h(async (req) => {
     role: a.role,
     flags: a.flags,
     can: Object.fromEntries(actions.map((x) => [x, storeCan(a.role, x, a.flags)])),
+    features: await catalog.featureMap(),
     businessDate: await businessDate(),
   };
 }));
@@ -131,6 +156,10 @@ router.post('/lookups', can('accounts'), validate(StoreLookupInputSchema), h(asy
 }));
 router.patch('/lookups/:id', can('accounts'), validate(StoreItemStatusSchema), h((req) => catalog.setLookupActive(req.params['id']!, req.body.active, req.actor!)));
 router.put('/settings', can('accounts'), validate(StoreSettingsSchema), h((req) => catalog.updateSettings(req.body, req.actor!)));
+
+// Feature flags — which optional modules are on for the store (Admin only).
+router.get('/features', can('accounts'), h(() => catalog.listFeatures()));
+router.put('/features/:key', can('accounts'), validate(StoreFeatureToggleSchema), h((req) => catalog.setFeature(req.params['key']!, req.body.enabled, req.actor!)));
 
 router.get('/accounts', can('accounts'), h(() => catalog.listAccounts()));
 router.put('/accounts/:userId', can('accounts'), validate(StoreAccountFlagsSchema), h((req) => catalog.saveAccountFlags(req.params['userId']!, req.body, req.actor!)));
@@ -156,6 +185,38 @@ router.get('/items/:id/ledger', can('view'), h(async (req) => {
 }));
 router.get('/items/:id/batches', can('view'), h((req) => stock.listBatches(req.params['id']!, req.query['open'] === 'true')));
 
+// Full item master as .xlsx/.csv — doubles as the import template.
+router.get('/items/export', can('view'), h(async (req, res) => {
+  const type = String(req.query['type'] || 'excel');
+  const { headers, rows } = await catalog.buildItemExportRows();
+  const filename = `mountain-bakes-store-items-${new Date().toISOString().slice(0, 10)}`;
+  if (type === 'csv') {
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}.csv"`);
+    res.send(genericCSV(headers, rows));
+    return undefined;
+  }
+  const buf = await genericExcel('Store Items', headers, rows);
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}.xlsx"`);
+  res.send(buf);
+  return undefined;
+}));
+
+// Upload a .xlsx/.csv → validated preview. Never writes.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+router.post('/items/import/preview', can('items.edit'), upload.single('file') as any, async (req: StoreRequest, res: Response, next: NextFunction) => {
+  try {
+    if (!req.file) { res.status(400).json({ error: 'No file uploaded' }); return; }
+    res.json(await catalog.parseItemImport(req.file.buffer));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Apply the confirmed rows (create/update by matched id) through saveItem.
+router.post('/items/import/commit', can('items.edit'), validate(StoreItemImportCommitSchema), h((req) => catalog.commitItemImport(req.body.rows, req.actor!)));
+
 // ── Price Control ───────────────────────────────────────────────────────────
 
 router.get('/prices', can('view'), h((req) => catalog.listPrices({ itemId: str(req.query['itemId']), history: req.query['history'] === 'true' })));
@@ -165,9 +226,27 @@ router.post('/prices', can('prices.edit'), idempotent('store.price_add'), valida
 }));
 router.post('/prices/:id/deactivate', can('prices.edit'), h((req) => catalog.deactivatePrice(req.params['id']!, req.actor!)));
 
+// Request price — a keeper asks Finance to price a no-price item (problem 3).
+// Visible to everyone in the store; Finance/Admin act on it from Price Control.
+router.get('/price-requests', can('view'), h((req) => {
+  const s = req.query['status'];
+  const status = s === 'resolved' || s === 'cancelled' ? s : 'open';
+  return catalog.listPriceRequests(status);
+}));
+router.post('/price-requests', can('receive'), validate(StorePriceRequestInputSchema), h(async (req, res) => {
+  res.status(201);
+  return catalog.requestPrice(req.body, req.actor!);
+}));
+
 // ── Receiving and stock ─────────────────────────────────────────────────────
 
-router.get('/suppliers', can('receive', 'view'), h(() => stock.listSuppliers()));
+router.get('/suppliers', can('receive', 'view'), h((req) => stock.listSuppliers(req.query['includeInactive'] === 'true')));
+// Supplier master writes — behind the `suppliers` feature flag (Phase 2).
+router.post('/suppliers', requireFeature('suppliers'), can('receive', 'accounts'), validate(StoreSupplierInputSchema), h(async (req, res) => {
+  res.status(201);
+  return catalog.saveSupplier(null, req.body, req.actor!);
+}));
+router.put('/suppliers/:id', requireFeature('suppliers'), can('receive', 'accounts'), validate(StoreSupplierInputSchema), h((req) => catalog.saveSupplier(req.params['id']!, req.body, req.actor!)));
 router.get('/receipts', can('view'), h(async (req) => {
   return stock.listReceipts({ from: day(req.query['from']), to: day(req.query['to']), search: str(req.query['search']), limit: int(req.query['limit'], 50), offset: int(req.query['offset'], 0) });
 }));

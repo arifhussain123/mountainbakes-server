@@ -91,3 +91,4 @@ export * from './utils/production-dashboard';
 export * from './utils/discount-summary';
 export * from './utils/cash-transfer-summary';
 export * from './utils/return-month-summary';
+export * from './utils/store-stock';

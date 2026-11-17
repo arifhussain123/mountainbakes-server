@@ -7,6 +7,7 @@ import type {
   StoreReceipt,
   StoreReceiptInput,
   StoreStockRow,
+  StoreSupplier,
 } from '../../shared';
 import { api, call, clientError, db, httpError, searchTerm, type StoreActor } from './common';
 
@@ -73,11 +74,16 @@ function flattenReceipt(r: Record<string, unknown>): StoreReceipt {
 }
 
 /** Suppliers for the receiving form (the same list WhatsApp Purchasing keeps). */
-export async function listSuppliers(): Promise<Array<{ id: string; name: string; supplierCode: string }>> {
-  const { data, error } = await db.from('suppliers').select('id, name, supplier_code')
-    .is('deleted_at', null).eq('is_active', true).order('name').range(0, 499);
+const SUPPLIER_COLS =
+  'id, supplier_code, name, contact_person, phone, whatsapp_number, email, category, address, ntn, strn, payment_terms, lead_time_days, notes, is_active';
+
+/** The supplier master (shared with WhatsApp Purchasing). Active only unless asked. */
+export async function listSuppliers(includeInactive = false): Promise<StoreSupplier[]> {
+  let q = db.from('suppliers').select(SUPPLIER_COLS).is('deleted_at', null);
+  if (!includeInactive) q = q.eq('is_active', true);
+  const { data, error } = await q.order('name').range(0, 999);
   if (error) throw clientError(error);
-  return api(data ?? []);
+  return api<StoreSupplier[]>(data ?? []);
 }
 
 // ── Adjustments ─────────────────────────────────────────────────────────────

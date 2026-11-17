@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { STORE_QUERY_STATUSES, STORE_QUERY_TYPES } from '../types/store.types';
+import { STORE_QUERY_STATUSES, STORE_QUERY_TYPES, STORE_UNIT_TYPES } from '../types/store.types';
 
 // ── Dry Items Store ──────────────────────────────────────────────────────────
 //
@@ -49,6 +49,10 @@ export const StoreItemInputSchema = z.object({
 export type StoreItemInput = z.infer<typeof StoreItemInputSchema>;
 
 export const StoreItemStatusSchema = z.object({ active: z.boolean() });
+
+/** Turn a store feature flag on or off (PUT /store/features/:key). */
+export const StoreFeatureToggleSchema = z.object({ enabled: z.boolean() });
+export type StoreFeatureToggleInput = z.infer<typeof StoreFeatureToggleSchema>;
 
 export const StorePriceInputSchema = z.object({
   itemId: uuid,
@@ -159,11 +163,52 @@ export const StoreLookupInputSchema = z.object({
   kind: z.enum(['category', 'base_unit', 'purchase_unit', 'adjust_reason']),
   value: text(40).min(1, 'Enter a value'),
   sortOrder: z.number().int().min(0).max(9999).optional(),
+  /** Classifies a unit (ignored for category / adjust_reason). */
+  unitType: z.enum(STORE_UNIT_TYPES).optional().nullable(),
 });
 export type StoreLookupInput = z.infer<typeof StoreLookupInputSchema>;
+
+/** A Store keeper asks Finance to price an item that has no active price. */
+export const StorePriceRequestInputSchema = z.object({
+  itemId: uuid,
+  note: optionalText(300),
+});
+export type StorePriceRequestInput = z.infer<typeof StorePriceRequestInputSchema>;
+
+/** Create/edit a supplier in the shared master (Phase 2). */
+export const StoreSupplierInputSchema = z.object({
+  name: text(120).min(1, 'Enter the supplier name'),
+  contactPerson: optionalText(120),
+  phone: optionalText(30),
+  // Optional for store-only suppliers; must be international format when given.
+  whatsappNumber: optionalText(30).refine((v) => !v || /^\+[1-9][0-9]{7,14}$/.test(v), 'Use international format, e.g. +923001234567'),
+  email: optionalText(120),
+  category: optionalText(60),
+  address: optionalText(300),
+  ntn: optionalText(30),
+  strn: optionalText(30),
+  paymentTerms: optionalText(120),
+  leadTimeDays: z.number().int().min(0).max(3650).optional().nullable(),
+  notes: optionalText(500),
+});
+export type StoreSupplierInput = z.infer<typeof StoreSupplierInputSchema>;
 
 export const StoreSettingsSchema = z.object({
   name: text(80).min(1, 'Enter the store name'),
   openingDate: isoDate.optional().nullable(),
 });
 export type StoreSettingsInput = z.infer<typeof StoreSettingsSchema>;
+
+/**
+ * Commit payload for the item Excel import: the confirmed rows, each validated
+ * as a full item plus the matched item id (null = create a new item). The
+ * server re-validates with this — the preview is advisory, never trusted.
+ */
+export const StoreItemImportCommitSchema = z.object({
+  rows: z
+    .array(StoreItemInputSchema.extend({ id: z.string().uuid('Invalid id').nullable() }))
+    .min(1, 'No rows to import')
+    .max(2000, 'Too many rows in one import'),
+});
+export type StoreItemImportCommitInput = z.infer<typeof StoreItemImportCommitSchema>;
+export type StoreItemImportCommitRow = StoreItemImportCommitInput['rows'][number];
