@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { STORE_BARCODE_TYPES, STORE_QUERY_STATUSES, STORE_QUERY_TYPES, STORE_UNIT_TYPES } from '../types/store.types';
+import { STORE_BARCODE_TYPES, STORE_PO_ACTIONS, STORE_QUERY_STATUSES, STORE_QUERY_TYPES, STORE_UNIT_TYPES } from '../types/store.types';
 
 // ── Dry Items Store ──────────────────────────────────────────────────────────
 //
@@ -224,6 +224,31 @@ export const StoreItemBulkInputSchema = z.object({
   categoryTo: optionalText(40),
 });
 export type StoreItemBulkInput = z.infer<typeof StoreItemBulkInputSchema>;
+
+// ── Purchase Orders (Phase 3) ────────────────────────────────────────────────
+export const StorePoLineInputSchema = z.object({
+  itemId: uuid,
+  packageName: text(40).min(1, 'Select a package'),
+  packageQty: quantity,
+  qtyPackages: quantity,
+  expectedPrice: z.number().min(0).max(100_000_000).optional(),
+});
+export type StorePoLineInput = z.infer<typeof StorePoLineInputSchema>;
+
+export const StorePoInputSchema = z.object({
+  supplierId: uuid,
+  orderDate: isoDate.optional(),
+  expectedDate: isoDate.optional().nullable(),
+  notes: optionalText(500),
+  lines: z.array(StorePoLineInputSchema).min(1, 'Add at least one line').max(200, 'Too many lines'),
+});
+export type StorePoInput = z.infer<typeof StorePoInputSchema>;
+
+export const StorePoTransitionSchema = z.object({
+  action: z.enum(STORE_PO_ACTIONS),
+  reason: optionalText(500),
+});
+export type StorePoTransitionInput = z.infer<typeof StorePoTransitionSchema>;
 
 export const StoreSettingsSchema = z.object({
   name: text(80).min(1, 'Enter the store name'),

@@ -6,6 +6,7 @@ import { validate } from '../middleware/validate';
 import { genericCSV, genericExcel } from '../services/production-export.service';
 import {
   STORE_DEMAND_STATUSES,
+  STORE_PO_STATUSES,
   STORE_QUERY_STATUSES,
   STORE_REPORT_TYPES,
   STORE_VIEW_ROLES,
@@ -23,6 +24,8 @@ import {
   StoreItemPackageInputSchema,
   StoreItemStatusSchema,
   StoreLookupInputSchema,
+  StorePoInputSchema,
+  StorePoTransitionSchema,
   StorePriceInputSchema,
   StorePriceRequestInputSchema,
   StoreSupplierInputSchema,
@@ -34,6 +37,7 @@ import {
   type StoreAction,
   type StoreFeatureKey,
   type StoreDemandStatus,
+  type StorePoStatus,
   type StoreQueryStatus,
   type StoreReportType,
 } from '../shared';
@@ -43,6 +47,7 @@ import * as stock from '../services/store/stock.service';
 import * as demands from '../services/store/demands.service';
 import * as queries from '../services/store/queries.service';
 import * as reports from '../services/store/reports.service';
+import * as po from '../services/store/po.service';
 
 /**
  * Dry Items Store — /api/store.
@@ -274,6 +279,23 @@ router.post('/suppliers', requireFeature('suppliers'), can('receive', 'accounts'
   return catalog.saveSupplier(null, req.body, req.actor!);
 }));
 router.put('/suppliers/:id', requireFeature('suppliers'), can('receive', 'accounts'), validate(StoreSupplierInputSchema), h((req) => catalog.saveSupplier(req.params['id']!, req.body, req.actor!)));
+
+// ── Purchase Orders (behind the `purchase_orders` feature) ───────────────────
+router.get('/purchase-orders', requireFeature('purchase_orders'), can('view'), h((req) => {
+  const s = str(req.query['status']);
+  return po.listPurchaseOrders({
+    status: s && (STORE_PO_STATUSES as readonly string[]).includes(s) ? (s as StorePoStatus) : undefined,
+    search: str(req.query['search']),
+    limit: int(req.query['limit'], 50),
+    offset: int(req.query['offset'], 0),
+  });
+}));
+router.get('/purchase-orders/:id', requireFeature('purchase_orders'), can('view'), h((req) => po.getPurchaseOrder(req.params['id']!)));
+router.post('/purchase-orders', requireFeature('purchase_orders'), can('receive', 'accounts'), validate(StorePoInputSchema), h(async (req, res) => {
+  res.status(201);
+  return po.createPurchaseOrder(req.body, req.actor!);
+}));
+router.post('/purchase-orders/:id/action', requireFeature('purchase_orders'), can('receive', 'accounts'), validate(StorePoTransitionSchema), h((req) => po.transitionPurchaseOrder(req.params['id']!, req.body, req.actor!)));
 router.get('/receipts', can('view'), h(async (req) => {
   return stock.listReceipts({ from: day(req.query['from']), to: day(req.query['to']), search: str(req.query['search']), limit: int(req.query['limit'], 50), offset: int(req.query['offset'], 0) });
 }));

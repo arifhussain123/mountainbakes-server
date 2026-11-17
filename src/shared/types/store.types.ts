@@ -535,6 +535,59 @@ export interface StoreItemBarcode {
   type: StoreBarcodeType;
 }
 
+// ── Purchase Orders (Phase 3, behind the `purchase_orders` feature) ───────────
+export const STORE_PO_STATUSES = [
+  'draft', 'pending_approval', 'approved', 'sent', 'partially_received', 'received', 'closed', 'cancelled',
+] as const;
+export type StorePoStatus = (typeof STORE_PO_STATUSES)[number];
+export const STORE_PO_STATUS_LABELS: Record<StorePoStatus, string> = {
+  draft: 'Draft',
+  pending_approval: 'Pending approval',
+  approved: 'Approved',
+  sent: 'Sent',
+  partially_received: 'Partially received',
+  received: 'Received',
+  closed: 'Closed',
+  cancelled: 'Cancelled',
+};
+
+/** Workflow actions on a PO; partially_received/received come from Receiving. */
+export const STORE_PO_ACTIONS = ['submit', 'approve', 'send', 'cancel', 'short_close'] as const;
+export type StorePoAction = (typeof STORE_PO_ACTIONS)[number];
+
+export interface StorePoLine {
+  id: string;
+  lineNo: number;
+  itemId: string;
+  itemName: string;
+  packageName: string;
+  packageQty: number;
+  qtyPackages: number;
+  expectedPrice: number;
+  receivedQtyBase: number;
+  lineTotal: number;
+}
+
+export interface StorePurchaseOrder {
+  id: string;
+  poNo: string;
+  supplierId: string;
+  supplierName: string;
+  orderDate: string;
+  expectedDate: string | null;
+  status: StorePoStatus;
+  notes: string | null;
+  totalAmount: number;
+  cancelReason: string | null;
+  shortCloseReason: string | null;
+  createdByName: string | null;
+  approvedByName: string | null;
+  approvedAt: string | null;
+  createdAt: string;
+  /** Present on a single PO fetch, not on the list. */
+  lines?: StorePoLine[];
+}
+
 export interface StoreItem {
   id: string;
   itemNo: string;
