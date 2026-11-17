@@ -40,6 +40,7 @@
     "prisma:pull": "prisma db pull && prisma generate",
     "prisma:generate": "prisma generate",
     "db:catalog": "tsx --env-file .env src/scripts/gen-db-catalog.ts",
+    "deploy": "prisma migrate deploy && pnpm prisma:pull && pnpm db:catalog",
     "db:baseline": "tsx --env-file .env infra/railway/db-baseline.ts",
     "db:test": "node --import tsx --test \"src/db/__tests__/*.test.ts\"",
     "auth:set-password": "tsx --env-file .env src/scripts/auth-set-password.ts",
