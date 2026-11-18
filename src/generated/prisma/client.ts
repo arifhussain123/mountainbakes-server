@@ -624,3 +624,130 @@ export type finance_loan_clients = Prisma.finance_loan_clientsModel
  * This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
  */
 export type finance_loan_entries = Prisma.finance_loan_entriesModel
+/**
+ * Model attachment_revisions
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type attachment_revisions = Prisma.attachment_revisionsModel
+/**
+ * Model store_accounts
+ * 
+ */
+export type store_accounts = Prisma.store_accountsModel
+/**
+ * Model store_adjustments
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_adjustments = Prisma.store_adjustmentsModel
+/**
+ * Model store_audit_events
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_audit_events = Prisma.store_audit_eventsModel
+/**
+ * Model store_batch_allocations
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_batch_allocations = Prisma.store_batch_allocationsModel
+/**
+ * Model store_batches
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_batches = Prisma.store_batchesModel
+/**
+ * Model store_demand_items
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_demand_items = Prisma.store_demand_itemsModel
+/**
+ * Model store_demands
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_demands = Prisma.store_demandsModel
+/**
+ * Model store_departments
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_departments = Prisma.store_departmentsModel
+/**
+ * Model store_features
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_features = Prisma.store_featuresModel
+/**
+ * Model store_issue_items
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_issue_items = Prisma.store_issue_itemsModel
+/**
+ * Model store_issues
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_issues = Prisma.store_issuesModel
+/**
+ * Model store_item_barcodes
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_item_barcodes = Prisma.store_item_barcodesModel
+/**
+ * Model store_item_packages
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_item_packages = Prisma.store_item_packagesModel
+/**
+ * Model store_item_prices
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_item_prices = Prisma.store_item_pricesModel
+/**
+ * Model store_items
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ * This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+ */
+export type store_items = Prisma.store_itemsModel
+/**
+ * Model store_lookups
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ * This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+ */
+export type store_lookups = Prisma.store_lookupsModel
+/**
+ * Model store_movements
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_movements = Prisma.store_movementsModel
+/**
+ * Model store_price_requests
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_price_requests = Prisma.store_price_requestsModel
+/**
+ * Model store_purchase_order_lines
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_purchase_order_lines = Prisma.store_purchase_order_linesModel
+/**
+ * Model store_purchase_orders
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_purchase_orders = Prisma.store_purchase_ordersModel
+/**
+ * Model store_queries
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_queries = Prisma.store_queriesModel
+/**
+ * Model store_query_messages
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_query_messages = Prisma.store_query_messagesModel
+/**
+ * Model store_receipts
+ * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type store_receipts = Prisma.store_receiptsModel
+/**
+ * Model store_supplier_name_map
+ * 
+ */
+export type store_supplier_name_map = Prisma.store_supplier_name_mapModel

@@ -355,7 +355,8 @@ export const notification_type = {
   store_issue: 'store_issue',
   store_issue_received: 'store_issue_received',
   store_query: 'store_query',
-  store_query_reply: 'store_query_reply'
+  store_query_reply: 'store_query_reply',
+  store_price_request: 'store_price_request'
 } as const
 
 export type notification_type = (typeof notification_type)[keyof typeof notification_type]

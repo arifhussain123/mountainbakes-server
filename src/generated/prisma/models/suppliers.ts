@@ -21,8 +21,18 @@ export type suppliersModel = runtime.Types.Result.DefaultSelection<Prisma.$suppl
 
 export type AggregateSuppliers = {
   _count: SuppliersCountAggregateOutputType | null
+  _avg: SuppliersAvgAggregateOutputType | null
+  _sum: SuppliersSumAggregateOutputType | null
   _min: SuppliersMinAggregateOutputType | null
   _max: SuppliersMaxAggregateOutputType | null
+}
+
+export type SuppliersAvgAggregateOutputType = {
+  lead_time_days: number | null
+}
+
+export type SuppliersSumAggregateOutputType = {
+  lead_time_days: number | null
 }
 
 export type SuppliersMinAggregateOutputType = {
@@ -47,6 +57,10 @@ export type SuppliersMinAggregateOutputType = {
   deleted_by: string | null
   deleted_by_name: string | null
   delete_reason: string | null
+  email: string | null
+  ntn: string | null
+  strn: string | null
+  lead_time_days: number | null
 }
 
 export type SuppliersMaxAggregateOutputType = {
@@ -71,6 +85,10 @@ export type SuppliersMaxAggregateOutputType = {
   deleted_by: string | null
   deleted_by_name: string | null
   delete_reason: string | null
+  email: string | null
+  ntn: string | null
+  strn: string | null
+  lead_time_days: number | null
 }
 
 export type SuppliersCountAggregateOutputType = {
@@ -95,9 +113,21 @@ export type SuppliersCountAggregateOutputType = {
   deleted_by: number
   deleted_by_name: number
   delete_reason: number
+  email: number
+  ntn: number
+  strn: number
+  lead_time_days: number
   _all: number
 }
 
+
+export type SuppliersAvgAggregateInputType = {
+  lead_time_days?: true
+}
+
+export type SuppliersSumAggregateInputType = {
+  lead_time_days?: true
+}
 
 export type SuppliersMinAggregateInputType = {
   id?: true
@@ -121,6 +151,10 @@ export type SuppliersMinAggregateInputType = {
   deleted_by?: true
   deleted_by_name?: true
   delete_reason?: true
+  email?: true
+  ntn?: true
+  strn?: true
+  lead_time_days?: true
 }
 
 export type SuppliersMaxAggregateInputType = {
@@ -145,6 +179,10 @@ export type SuppliersMaxAggregateInputType = {
   deleted_by?: true
   deleted_by_name?: true
   delete_reason?: true
+  email?: true
+  ntn?: true
+  strn?: true
+  lead_time_days?: true
 }
 
 export type SuppliersCountAggregateInputType = {
@@ -169,6 +207,10 @@ export type SuppliersCountAggregateInputType = {
   deleted_by?: true
   deleted_by_name?: true
   delete_reason?: true
+  email?: true
+  ntn?: true
+  strn?: true
+  lead_time_days?: true
   _all?: true
 }
 
@@ -210,6 +252,18 @@ export type SuppliersAggregateArgs<ExtArgs extends runtime.Types.Extensions.Inte
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: SuppliersAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: SuppliersSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: SuppliersMinAggregateInputType
@@ -240,6 +294,8 @@ export type suppliersGroupByArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   _count?: SuppliersCountAggregateInputType | true
+  _avg?: SuppliersAvgAggregateInputType
+  _sum?: SuppliersSumAggregateInputType
   _min?: SuppliersMinAggregateInputType
   _max?: SuppliersMaxAggregateInputType
 }
@@ -249,7 +305,7 @@ export type SuppliersGroupByOutputType = {
   supplier_code: string
   name: string
   contact_person: string | null
-  whatsapp_number: string
+  whatsapp_number: string | null
   phone: string | null
   category: string | null
   address: string | null
@@ -266,7 +322,13 @@ export type SuppliersGroupByOutputType = {
   deleted_by: string | null
   deleted_by_name: string | null
   delete_reason: string | null
+  email: string | null
+  ntn: string | null
+  strn: string | null
+  lead_time_days: number | null
   _count: SuppliersCountAggregateOutputType | null
+  _avg: SuppliersAvgAggregateOutputType | null
+  _sum: SuppliersSumAggregateOutputType | null
   _min: SuppliersMinAggregateOutputType | null
   _max: SuppliersMaxAggregateOutputType | null
 }
@@ -294,7 +356,7 @@ export type suppliersWhereInput = {
   supplier_code?: Prisma.StringFilter<"suppliers"> | string
   name?: Prisma.StringFilter<"suppliers"> | string
   contact_person?: Prisma.StringNullableFilter<"suppliers"> | string | null
-  whatsapp_number?: Prisma.StringFilter<"suppliers"> | string
+  whatsapp_number?: Prisma.StringNullableFilter<"suppliers"> | string | null
   phone?: Prisma.StringNullableFilter<"suppliers"> | string | null
   category?: Prisma.StringNullableFilter<"suppliers"> | string | null
   address?: Prisma.StringNullableFilter<"suppliers"> | string | null
@@ -311,7 +373,15 @@ export type suppliersWhereInput = {
   deleted_by?: Prisma.UuidNullableFilter<"suppliers"> | string | null
   deleted_by_name?: Prisma.StringNullableFilter<"suppliers"> | string | null
   delete_reason?: Prisma.StringNullableFilter<"suppliers"> | string | null
+  email?: Prisma.StringNullableFilter<"suppliers"> | string | null
+  ntn?: Prisma.StringNullableFilter<"suppliers"> | string | null
+  strn?: Prisma.StringNullableFilter<"suppliers"> | string | null
+  lead_time_days?: Prisma.IntNullableFilter<"suppliers"> | number | null
   purchase_demands?: Prisma.Purchase_demandsListRelationFilter
+  store_items?: Prisma.Store_itemsListRelationFilter
+  store_purchase_orders?: Prisma.Store_purchase_ordersListRelationFilter
+  store_receipts?: Prisma.Store_receiptsListRelationFilter
+  store_supplier_name_map?: Prisma.Store_supplier_name_mapListRelationFilter
   supplier_credits?: Prisma.Supplier_creditsListRelationFilter
   supplier_payments?: Prisma.Supplier_paymentsListRelationFilter
   users_suppliers_created_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
@@ -325,7 +395,7 @@ export type suppliersOrderByWithRelationInput = {
   supplier_code?: Prisma.SortOrder
   name?: Prisma.SortOrder
   contact_person?: Prisma.SortOrderInput | Prisma.SortOrder
-  whatsapp_number?: Prisma.SortOrder
+  whatsapp_number?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   category?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -342,7 +412,15 @@ export type suppliersOrderByWithRelationInput = {
   deleted_by?: Prisma.SortOrderInput | Prisma.SortOrder
   deleted_by_name?: Prisma.SortOrderInput | Prisma.SortOrder
   delete_reason?: Prisma.SortOrderInput | Prisma.SortOrder
+  email?: Prisma.SortOrderInput | Prisma.SortOrder
+  ntn?: Prisma.SortOrderInput | Prisma.SortOrder
+  strn?: Prisma.SortOrderInput | Prisma.SortOrder
+  lead_time_days?: Prisma.SortOrderInput | Prisma.SortOrder
   purchase_demands?: Prisma.purchase_demandsOrderByRelationAggregateInput
+  store_items?: Prisma.store_itemsOrderByRelationAggregateInput
+  store_purchase_orders?: Prisma.store_purchase_ordersOrderByRelationAggregateInput
+  store_receipts?: Prisma.store_receiptsOrderByRelationAggregateInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapOrderByRelationAggregateInput
   supplier_credits?: Prisma.supplier_creditsOrderByRelationAggregateInput
   supplier_payments?: Prisma.supplier_paymentsOrderByRelationAggregateInput
   users_suppliers_created_byTousers?: Prisma.usersOrderByWithRelationInput
@@ -376,7 +454,15 @@ export type suppliersWhereUniqueInput = Prisma.AtLeast<{
   deleted_by?: Prisma.UuidNullableFilter<"suppliers"> | string | null
   deleted_by_name?: Prisma.StringNullableFilter<"suppliers"> | string | null
   delete_reason?: Prisma.StringNullableFilter<"suppliers"> | string | null
+  email?: Prisma.StringNullableFilter<"suppliers"> | string | null
+  ntn?: Prisma.StringNullableFilter<"suppliers"> | string | null
+  strn?: Prisma.StringNullableFilter<"suppliers"> | string | null
+  lead_time_days?: Prisma.IntNullableFilter<"suppliers"> | number | null
   purchase_demands?: Prisma.Purchase_demandsListRelationFilter
+  store_items?: Prisma.Store_itemsListRelationFilter
+  store_purchase_orders?: Prisma.Store_purchase_ordersListRelationFilter
+  store_receipts?: Prisma.Store_receiptsListRelationFilter
+  store_supplier_name_map?: Prisma.Store_supplier_name_mapListRelationFilter
   supplier_credits?: Prisma.Supplier_creditsListRelationFilter
   supplier_payments?: Prisma.Supplier_paymentsListRelationFilter
   users_suppliers_created_byTousers?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
@@ -390,7 +476,7 @@ export type suppliersOrderByWithAggregationInput = {
   supplier_code?: Prisma.SortOrder
   name?: Prisma.SortOrder
   contact_person?: Prisma.SortOrderInput | Prisma.SortOrder
-  whatsapp_number?: Prisma.SortOrder
+  whatsapp_number?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   category?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -407,9 +493,15 @@ export type suppliersOrderByWithAggregationInput = {
   deleted_by?: Prisma.SortOrderInput | Prisma.SortOrder
   deleted_by_name?: Prisma.SortOrderInput | Prisma.SortOrder
   delete_reason?: Prisma.SortOrderInput | Prisma.SortOrder
+  email?: Prisma.SortOrderInput | Prisma.SortOrder
+  ntn?: Prisma.SortOrderInput | Prisma.SortOrder
+  strn?: Prisma.SortOrderInput | Prisma.SortOrder
+  lead_time_days?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.suppliersCountOrderByAggregateInput
+  _avg?: Prisma.suppliersAvgOrderByAggregateInput
   _max?: Prisma.suppliersMaxOrderByAggregateInput
   _min?: Prisma.suppliersMinOrderByAggregateInput
+  _sum?: Prisma.suppliersSumOrderByAggregateInput
 }
 
 export type suppliersScalarWhereWithAggregatesInput = {
@@ -420,7 +512,7 @@ export type suppliersScalarWhereWithAggregatesInput = {
   supplier_code?: Prisma.StringWithAggregatesFilter<"suppliers"> | string
   name?: Prisma.StringWithAggregatesFilter<"suppliers"> | string
   contact_person?: Prisma.StringNullableWithAggregatesFilter<"suppliers"> | string | null
-  whatsapp_number?: Prisma.StringWithAggregatesFilter<"suppliers"> | string
+  whatsapp_number?: Prisma.StringNullableWithAggregatesFilter<"suppliers"> | string | null
   phone?: Prisma.StringNullableWithAggregatesFilter<"suppliers"> | string | null
   category?: Prisma.StringNullableWithAggregatesFilter<"suppliers"> | string | null
   address?: Prisma.StringNullableWithAggregatesFilter<"suppliers"> | string | null
@@ -437,6 +529,10 @@ export type suppliersScalarWhereWithAggregatesInput = {
   deleted_by?: Prisma.UuidNullableWithAggregatesFilter<"suppliers"> | string | null
   deleted_by_name?: Prisma.StringNullableWithAggregatesFilter<"suppliers"> | string | null
   delete_reason?: Prisma.StringNullableWithAggregatesFilter<"suppliers"> | string | null
+  email?: Prisma.StringNullableWithAggregatesFilter<"suppliers"> | string | null
+  ntn?: Prisma.StringNullableWithAggregatesFilter<"suppliers"> | string | null
+  strn?: Prisma.StringNullableWithAggregatesFilter<"suppliers"> | string | null
+  lead_time_days?: Prisma.IntNullableWithAggregatesFilter<"suppliers"> | number | null
 }
 
 export type suppliersCreateInput = {
@@ -444,7 +540,7 @@ export type suppliersCreateInput = {
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -459,7 +555,15 @@ export type suppliersCreateInput = {
   deleted_at?: Date | string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
   purchase_demands?: Prisma.purchase_demandsCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapCreateNestedManyWithoutSuppliersInput
   supplier_credits?: Prisma.supplier_creditsCreateNestedManyWithoutSuppliersInput
   supplier_payments?: Prisma.supplier_paymentsCreateNestedManyWithoutSuppliersInput
   users_suppliers_created_byTousers?: Prisma.usersCreateNestedOneWithoutSuppliers_suppliers_created_byTousersInput
@@ -473,7 +577,7 @@ export type suppliersUncheckedCreateInput = {
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -490,7 +594,15 @@ export type suppliersUncheckedCreateInput = {
   deleted_by?: string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
   purchase_demands?: Prisma.purchase_demandsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedCreateNestedManyWithoutSuppliersInput
   supplier_credits?: Prisma.supplier_creditsUncheckedCreateNestedManyWithoutSuppliersInput
   supplier_payments?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutSuppliersInput
   whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedCreateNestedManyWithoutSuppliersInput
@@ -502,7 +614,7 @@ export type suppliersUpdateInput = {
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -517,7 +629,15 @@ export type suppliersUpdateInput = {
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   purchase_demands?: Prisma.purchase_demandsUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUpdateManyWithoutSuppliersNestedInput
   supplier_credits?: Prisma.supplier_creditsUpdateManyWithoutSuppliersNestedInput
   supplier_payments?: Prisma.supplier_paymentsUpdateManyWithoutSuppliersNestedInput
   users_suppliers_created_byTousers?: Prisma.usersUpdateOneWithoutSuppliers_suppliers_created_byTousersNestedInput
@@ -531,7 +651,7 @@ export type suppliersUncheckedUpdateInput = {
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -548,7 +668,15 @@ export type suppliersUncheckedUpdateInput = {
   deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   purchase_demands?: Prisma.purchase_demandsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedUpdateManyWithoutSuppliersNestedInput
   supplier_credits?: Prisma.supplier_creditsUncheckedUpdateManyWithoutSuppliersNestedInput
   supplier_payments?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutSuppliersNestedInput
   whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedUpdateManyWithoutSuppliersNestedInput
@@ -560,7 +688,7 @@ export type suppliersCreateManyInput = {
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -577,6 +705,10 @@ export type suppliersCreateManyInput = {
   deleted_by?: string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
 }
 
 export type suppliersUpdateManyMutationInput = {
@@ -584,7 +716,7 @@ export type suppliersUpdateManyMutationInput = {
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -599,6 +731,10 @@ export type suppliersUpdateManyMutationInput = {
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type suppliersUncheckedUpdateManyInput = {
@@ -606,7 +742,7 @@ export type suppliersUncheckedUpdateManyInput = {
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -623,6 +759,10 @@ export type suppliersUncheckedUpdateManyInput = {
   deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type SuppliersListRelationFilter = {
@@ -662,6 +802,14 @@ export type suppliersCountOrderByAggregateInput = {
   deleted_by?: Prisma.SortOrder
   deleted_by_name?: Prisma.SortOrder
   delete_reason?: Prisma.SortOrder
+  email?: Prisma.SortOrder
+  ntn?: Prisma.SortOrder
+  strn?: Prisma.SortOrder
+  lead_time_days?: Prisma.SortOrder
+}
+
+export type suppliersAvgOrderByAggregateInput = {
+  lead_time_days?: Prisma.SortOrder
 }
 
 export type suppliersMaxOrderByAggregateInput = {
@@ -686,6 +834,10 @@ export type suppliersMaxOrderByAggregateInput = {
   deleted_by?: Prisma.SortOrder
   deleted_by_name?: Prisma.SortOrder
   delete_reason?: Prisma.SortOrder
+  email?: Prisma.SortOrder
+  ntn?: Prisma.SortOrder
+  strn?: Prisma.SortOrder
+  lead_time_days?: Prisma.SortOrder
 }
 
 export type suppliersMinOrderByAggregateInput = {
@@ -710,6 +862,14 @@ export type suppliersMinOrderByAggregateInput = {
   deleted_by?: Prisma.SortOrder
   deleted_by_name?: Prisma.SortOrder
   delete_reason?: Prisma.SortOrder
+  email?: Prisma.SortOrder
+  ntn?: Prisma.SortOrder
+  strn?: Prisma.SortOrder
+  lead_time_days?: Prisma.SortOrder
+}
+
+export type suppliersSumOrderByAggregateInput = {
+  lead_time_days?: Prisma.SortOrder
 }
 
 export type SuppliersNullableScalarRelationFilter = {
@@ -875,12 +1035,72 @@ export type suppliersUpdateOneWithoutWhatsapp_messagesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.suppliersUpdateToOneWithWhereWithoutWhatsapp_messagesInput, Prisma.suppliersUpdateWithoutWhatsapp_messagesInput>, Prisma.suppliersUncheckedUpdateWithoutWhatsapp_messagesInput>
 }
 
+export type suppliersCreateNestedOneWithoutStore_itemsInput = {
+  create?: Prisma.XOR<Prisma.suppliersCreateWithoutStore_itemsInput, Prisma.suppliersUncheckedCreateWithoutStore_itemsInput>
+  connectOrCreate?: Prisma.suppliersCreateOrConnectWithoutStore_itemsInput
+  connect?: Prisma.suppliersWhereUniqueInput
+}
+
+export type suppliersUpdateOneWithoutStore_itemsNestedInput = {
+  create?: Prisma.XOR<Prisma.suppliersCreateWithoutStore_itemsInput, Prisma.suppliersUncheckedCreateWithoutStore_itemsInput>
+  connectOrCreate?: Prisma.suppliersCreateOrConnectWithoutStore_itemsInput
+  upsert?: Prisma.suppliersUpsertWithoutStore_itemsInput
+  disconnect?: Prisma.suppliersWhereInput | boolean
+  delete?: Prisma.suppliersWhereInput | boolean
+  connect?: Prisma.suppliersWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.suppliersUpdateToOneWithWhereWithoutStore_itemsInput, Prisma.suppliersUpdateWithoutStore_itemsInput>, Prisma.suppliersUncheckedUpdateWithoutStore_itemsInput>
+}
+
+export type suppliersCreateNestedOneWithoutStore_purchase_ordersInput = {
+  create?: Prisma.XOR<Prisma.suppliersCreateWithoutStore_purchase_ordersInput, Prisma.suppliersUncheckedCreateWithoutStore_purchase_ordersInput>
+  connectOrCreate?: Prisma.suppliersCreateOrConnectWithoutStore_purchase_ordersInput
+  connect?: Prisma.suppliersWhereUniqueInput
+}
+
+export type suppliersUpdateOneRequiredWithoutStore_purchase_ordersNestedInput = {
+  create?: Prisma.XOR<Prisma.suppliersCreateWithoutStore_purchase_ordersInput, Prisma.suppliersUncheckedCreateWithoutStore_purchase_ordersInput>
+  connectOrCreate?: Prisma.suppliersCreateOrConnectWithoutStore_purchase_ordersInput
+  upsert?: Prisma.suppliersUpsertWithoutStore_purchase_ordersInput
+  connect?: Prisma.suppliersWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.suppliersUpdateToOneWithWhereWithoutStore_purchase_ordersInput, Prisma.suppliersUpdateWithoutStore_purchase_ordersInput>, Prisma.suppliersUncheckedUpdateWithoutStore_purchase_ordersInput>
+}
+
+export type suppliersCreateNestedOneWithoutStore_receiptsInput = {
+  create?: Prisma.XOR<Prisma.suppliersCreateWithoutStore_receiptsInput, Prisma.suppliersUncheckedCreateWithoutStore_receiptsInput>
+  connectOrCreate?: Prisma.suppliersCreateOrConnectWithoutStore_receiptsInput
+  connect?: Prisma.suppliersWhereUniqueInput
+}
+
+export type suppliersUpdateOneWithoutStore_receiptsNestedInput = {
+  create?: Prisma.XOR<Prisma.suppliersCreateWithoutStore_receiptsInput, Prisma.suppliersUncheckedCreateWithoutStore_receiptsInput>
+  connectOrCreate?: Prisma.suppliersCreateOrConnectWithoutStore_receiptsInput
+  upsert?: Prisma.suppliersUpsertWithoutStore_receiptsInput
+  disconnect?: Prisma.suppliersWhereInput | boolean
+  delete?: Prisma.suppliersWhereInput | boolean
+  connect?: Prisma.suppliersWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.suppliersUpdateToOneWithWhereWithoutStore_receiptsInput, Prisma.suppliersUpdateWithoutStore_receiptsInput>, Prisma.suppliersUncheckedUpdateWithoutStore_receiptsInput>
+}
+
+export type suppliersCreateNestedOneWithoutStore_supplier_name_mapInput = {
+  create?: Prisma.XOR<Prisma.suppliersCreateWithoutStore_supplier_name_mapInput, Prisma.suppliersUncheckedCreateWithoutStore_supplier_name_mapInput>
+  connectOrCreate?: Prisma.suppliersCreateOrConnectWithoutStore_supplier_name_mapInput
+  connect?: Prisma.suppliersWhereUniqueInput
+}
+
+export type suppliersUpdateOneRequiredWithoutStore_supplier_name_mapNestedInput = {
+  create?: Prisma.XOR<Prisma.suppliersCreateWithoutStore_supplier_name_mapInput, Prisma.suppliersUncheckedCreateWithoutStore_supplier_name_mapInput>
+  connectOrCreate?: Prisma.suppliersCreateOrConnectWithoutStore_supplier_name_mapInput
+  upsert?: Prisma.suppliersUpsertWithoutStore_supplier_name_mapInput
+  connect?: Prisma.suppliersWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.suppliersUpdateToOneWithWhereWithoutStore_supplier_name_mapInput, Prisma.suppliersUpdateWithoutStore_supplier_name_mapInput>, Prisma.suppliersUncheckedUpdateWithoutStore_supplier_name_mapInput>
+}
+
 export type suppliersCreateWithoutUsers_suppliers_created_byTousersInput = {
   id?: string
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -895,7 +1115,15 @@ export type suppliersCreateWithoutUsers_suppliers_created_byTousersInput = {
   deleted_at?: Date | string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
   purchase_demands?: Prisma.purchase_demandsCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapCreateNestedManyWithoutSuppliersInput
   supplier_credits?: Prisma.supplier_creditsCreateNestedManyWithoutSuppliersInput
   supplier_payments?: Prisma.supplier_paymentsCreateNestedManyWithoutSuppliersInput
   users_suppliers_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutSuppliers_suppliers_deleted_byTousersInput
@@ -908,7 +1136,7 @@ export type suppliersUncheckedCreateWithoutUsers_suppliers_created_byTousersInpu
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -924,7 +1152,15 @@ export type suppliersUncheckedCreateWithoutUsers_suppliers_created_byTousersInpu
   deleted_by?: string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
   purchase_demands?: Prisma.purchase_demandsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedCreateNestedManyWithoutSuppliersInput
   supplier_credits?: Prisma.supplier_creditsUncheckedCreateNestedManyWithoutSuppliersInput
   supplier_payments?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutSuppliersInput
   whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedCreateNestedManyWithoutSuppliersInput
@@ -946,7 +1182,7 @@ export type suppliersCreateWithoutUsers_suppliers_deleted_byTousersInput = {
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -961,7 +1197,15 @@ export type suppliersCreateWithoutUsers_suppliers_deleted_byTousersInput = {
   deleted_at?: Date | string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
   purchase_demands?: Prisma.purchase_demandsCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapCreateNestedManyWithoutSuppliersInput
   supplier_credits?: Prisma.supplier_creditsCreateNestedManyWithoutSuppliersInput
   supplier_payments?: Prisma.supplier_paymentsCreateNestedManyWithoutSuppliersInput
   users_suppliers_created_byTousers?: Prisma.usersCreateNestedOneWithoutSuppliers_suppliers_created_byTousersInput
@@ -974,7 +1218,7 @@ export type suppliersUncheckedCreateWithoutUsers_suppliers_deleted_byTousersInpu
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -990,7 +1234,15 @@ export type suppliersUncheckedCreateWithoutUsers_suppliers_deleted_byTousersInpu
   deleted_at?: Date | string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
   purchase_demands?: Prisma.purchase_demandsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedCreateNestedManyWithoutSuppliersInput
   supplier_credits?: Prisma.supplier_creditsUncheckedCreateNestedManyWithoutSuppliersInput
   supplier_payments?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutSuppliersInput
   whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedCreateNestedManyWithoutSuppliersInput
@@ -1031,7 +1283,7 @@ export type suppliersScalarWhereInput = {
   supplier_code?: Prisma.StringFilter<"suppliers"> | string
   name?: Prisma.StringFilter<"suppliers"> | string
   contact_person?: Prisma.StringNullableFilter<"suppliers"> | string | null
-  whatsapp_number?: Prisma.StringFilter<"suppliers"> | string
+  whatsapp_number?: Prisma.StringNullableFilter<"suppliers"> | string | null
   phone?: Prisma.StringNullableFilter<"suppliers"> | string | null
   category?: Prisma.StringNullableFilter<"suppliers"> | string | null
   address?: Prisma.StringNullableFilter<"suppliers"> | string | null
@@ -1048,6 +1300,10 @@ export type suppliersScalarWhereInput = {
   deleted_by?: Prisma.UuidNullableFilter<"suppliers"> | string | null
   deleted_by_name?: Prisma.StringNullableFilter<"suppliers"> | string | null
   delete_reason?: Prisma.StringNullableFilter<"suppliers"> | string | null
+  email?: Prisma.StringNullableFilter<"suppliers"> | string | null
+  ntn?: Prisma.StringNullableFilter<"suppliers"> | string | null
+  strn?: Prisma.StringNullableFilter<"suppliers"> | string | null
+  lead_time_days?: Prisma.IntNullableFilter<"suppliers"> | number | null
 }
 
 export type suppliersUpsertWithWhereUniqueWithoutUsers_suppliers_deleted_byTousersInput = {
@@ -1071,7 +1327,7 @@ export type suppliersCreateWithoutPurchase_demandsInput = {
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -1086,6 +1342,14 @@ export type suppliersCreateWithoutPurchase_demandsInput = {
   deleted_at?: Date | string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
+  store_items?: Prisma.store_itemsCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapCreateNestedManyWithoutSuppliersInput
   supplier_credits?: Prisma.supplier_creditsCreateNestedManyWithoutSuppliersInput
   supplier_payments?: Prisma.supplier_paymentsCreateNestedManyWithoutSuppliersInput
   users_suppliers_created_byTousers?: Prisma.usersCreateNestedOneWithoutSuppliers_suppliers_created_byTousersInput
@@ -1099,7 +1363,7 @@ export type suppliersUncheckedCreateWithoutPurchase_demandsInput = {
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -1116,6 +1380,14 @@ export type suppliersUncheckedCreateWithoutPurchase_demandsInput = {
   deleted_by?: string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
+  store_items?: Prisma.store_itemsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedCreateNestedManyWithoutSuppliersInput
   supplier_credits?: Prisma.supplier_creditsUncheckedCreateNestedManyWithoutSuppliersInput
   supplier_payments?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutSuppliersInput
   whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedCreateNestedManyWithoutSuppliersInput
@@ -1143,7 +1415,7 @@ export type suppliersUpdateWithoutPurchase_demandsInput = {
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1158,6 +1430,14 @@ export type suppliersUpdateWithoutPurchase_demandsInput = {
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  store_items?: Prisma.store_itemsUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUpdateManyWithoutSuppliersNestedInput
   supplier_credits?: Prisma.supplier_creditsUpdateManyWithoutSuppliersNestedInput
   supplier_payments?: Prisma.supplier_paymentsUpdateManyWithoutSuppliersNestedInput
   users_suppliers_created_byTousers?: Prisma.usersUpdateOneWithoutSuppliers_suppliers_created_byTousersNestedInput
@@ -1171,7 +1451,7 @@ export type suppliersUncheckedUpdateWithoutPurchase_demandsInput = {
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1188,6 +1468,14 @@ export type suppliersUncheckedUpdateWithoutPurchase_demandsInput = {
   deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  store_items?: Prisma.store_itemsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedUpdateManyWithoutSuppliersNestedInput
   supplier_credits?: Prisma.supplier_creditsUncheckedUpdateManyWithoutSuppliersNestedInput
   supplier_payments?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutSuppliersNestedInput
   whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedUpdateManyWithoutSuppliersNestedInput
@@ -1199,7 +1487,7 @@ export type suppliersCreateWithoutSupplier_creditsInput = {
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -1214,7 +1502,15 @@ export type suppliersCreateWithoutSupplier_creditsInput = {
   deleted_at?: Date | string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
   purchase_demands?: Prisma.purchase_demandsCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapCreateNestedManyWithoutSuppliersInput
   supplier_payments?: Prisma.supplier_paymentsCreateNestedManyWithoutSuppliersInput
   users_suppliers_created_byTousers?: Prisma.usersCreateNestedOneWithoutSuppliers_suppliers_created_byTousersInput
   users_suppliers_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutSuppliers_suppliers_deleted_byTousersInput
@@ -1227,7 +1523,7 @@ export type suppliersUncheckedCreateWithoutSupplier_creditsInput = {
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -1244,7 +1540,15 @@ export type suppliersUncheckedCreateWithoutSupplier_creditsInput = {
   deleted_by?: string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
   purchase_demands?: Prisma.purchase_demandsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedCreateNestedManyWithoutSuppliersInput
   supplier_payments?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutSuppliersInput
   whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedCreateNestedManyWithoutSuppliersInput
   whatsapp_messages?: Prisma.whatsapp_messagesUncheckedCreateNestedManyWithoutSuppliersInput
@@ -1271,7 +1575,7 @@ export type suppliersUpdateWithoutSupplier_creditsInput = {
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1286,7 +1590,15 @@ export type suppliersUpdateWithoutSupplier_creditsInput = {
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   purchase_demands?: Prisma.purchase_demandsUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUpdateManyWithoutSuppliersNestedInput
   supplier_payments?: Prisma.supplier_paymentsUpdateManyWithoutSuppliersNestedInput
   users_suppliers_created_byTousers?: Prisma.usersUpdateOneWithoutSuppliers_suppliers_created_byTousersNestedInput
   users_suppliers_deleted_byTousers?: Prisma.usersUpdateOneWithoutSuppliers_suppliers_deleted_byTousersNestedInput
@@ -1299,7 +1611,7 @@ export type suppliersUncheckedUpdateWithoutSupplier_creditsInput = {
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1316,7 +1628,15 @@ export type suppliersUncheckedUpdateWithoutSupplier_creditsInput = {
   deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   purchase_demands?: Prisma.purchase_demandsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedUpdateManyWithoutSuppliersNestedInput
   supplier_payments?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutSuppliersNestedInput
   whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedUpdateManyWithoutSuppliersNestedInput
   whatsapp_messages?: Prisma.whatsapp_messagesUncheckedUpdateManyWithoutSuppliersNestedInput
@@ -1327,7 +1647,7 @@ export type suppliersCreateWithoutSupplier_paymentsInput = {
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -1342,7 +1662,15 @@ export type suppliersCreateWithoutSupplier_paymentsInput = {
   deleted_at?: Date | string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
   purchase_demands?: Prisma.purchase_demandsCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapCreateNestedManyWithoutSuppliersInput
   supplier_credits?: Prisma.supplier_creditsCreateNestedManyWithoutSuppliersInput
   users_suppliers_created_byTousers?: Prisma.usersCreateNestedOneWithoutSuppliers_suppliers_created_byTousersInput
   users_suppliers_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutSuppliers_suppliers_deleted_byTousersInput
@@ -1355,7 +1683,7 @@ export type suppliersUncheckedCreateWithoutSupplier_paymentsInput = {
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -1372,7 +1700,15 @@ export type suppliersUncheckedCreateWithoutSupplier_paymentsInput = {
   deleted_by?: string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
   purchase_demands?: Prisma.purchase_demandsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedCreateNestedManyWithoutSuppliersInput
   supplier_credits?: Prisma.supplier_creditsUncheckedCreateNestedManyWithoutSuppliersInput
   whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedCreateNestedManyWithoutSuppliersInput
   whatsapp_messages?: Prisma.whatsapp_messagesUncheckedCreateNestedManyWithoutSuppliersInput
@@ -1399,7 +1735,7 @@ export type suppliersUpdateWithoutSupplier_paymentsInput = {
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1414,7 +1750,15 @@ export type suppliersUpdateWithoutSupplier_paymentsInput = {
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   purchase_demands?: Prisma.purchase_demandsUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUpdateManyWithoutSuppliersNestedInput
   supplier_credits?: Prisma.supplier_creditsUpdateManyWithoutSuppliersNestedInput
   users_suppliers_created_byTousers?: Prisma.usersUpdateOneWithoutSuppliers_suppliers_created_byTousersNestedInput
   users_suppliers_deleted_byTousers?: Prisma.usersUpdateOneWithoutSuppliers_suppliers_deleted_byTousersNestedInput
@@ -1427,7 +1771,7 @@ export type suppliersUncheckedUpdateWithoutSupplier_paymentsInput = {
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1444,7 +1788,15 @@ export type suppliersUncheckedUpdateWithoutSupplier_paymentsInput = {
   deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   purchase_demands?: Prisma.purchase_demandsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedUpdateManyWithoutSuppliersNestedInput
   supplier_credits?: Prisma.supplier_creditsUncheckedUpdateManyWithoutSuppliersNestedInput
   whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedUpdateManyWithoutSuppliersNestedInput
   whatsapp_messages?: Prisma.whatsapp_messagesUncheckedUpdateManyWithoutSuppliersNestedInput
@@ -1455,7 +1807,7 @@ export type suppliersCreateWithoutWhatsapp_conversationsInput = {
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -1470,7 +1822,15 @@ export type suppliersCreateWithoutWhatsapp_conversationsInput = {
   deleted_at?: Date | string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
   purchase_demands?: Prisma.purchase_demandsCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapCreateNestedManyWithoutSuppliersInput
   supplier_credits?: Prisma.supplier_creditsCreateNestedManyWithoutSuppliersInput
   supplier_payments?: Prisma.supplier_paymentsCreateNestedManyWithoutSuppliersInput
   users_suppliers_created_byTousers?: Prisma.usersCreateNestedOneWithoutSuppliers_suppliers_created_byTousersInput
@@ -1483,7 +1843,7 @@ export type suppliersUncheckedCreateWithoutWhatsapp_conversationsInput = {
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -1500,7 +1860,15 @@ export type suppliersUncheckedCreateWithoutWhatsapp_conversationsInput = {
   deleted_by?: string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
   purchase_demands?: Prisma.purchase_demandsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedCreateNestedManyWithoutSuppliersInput
   supplier_credits?: Prisma.supplier_creditsUncheckedCreateNestedManyWithoutSuppliersInput
   supplier_payments?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutSuppliersInput
   whatsapp_messages?: Prisma.whatsapp_messagesUncheckedCreateNestedManyWithoutSuppliersInput
@@ -1527,7 +1895,7 @@ export type suppliersUpdateWithoutWhatsapp_conversationsInput = {
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1542,7 +1910,15 @@ export type suppliersUpdateWithoutWhatsapp_conversationsInput = {
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   purchase_demands?: Prisma.purchase_demandsUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUpdateManyWithoutSuppliersNestedInput
   supplier_credits?: Prisma.supplier_creditsUpdateManyWithoutSuppliersNestedInput
   supplier_payments?: Prisma.supplier_paymentsUpdateManyWithoutSuppliersNestedInput
   users_suppliers_created_byTousers?: Prisma.usersUpdateOneWithoutSuppliers_suppliers_created_byTousersNestedInput
@@ -1555,7 +1931,7 @@ export type suppliersUncheckedUpdateWithoutWhatsapp_conversationsInput = {
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1572,7 +1948,15 @@ export type suppliersUncheckedUpdateWithoutWhatsapp_conversationsInput = {
   deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   purchase_demands?: Prisma.purchase_demandsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedUpdateManyWithoutSuppliersNestedInput
   supplier_credits?: Prisma.supplier_creditsUncheckedUpdateManyWithoutSuppliersNestedInput
   supplier_payments?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutSuppliersNestedInput
   whatsapp_messages?: Prisma.whatsapp_messagesUncheckedUpdateManyWithoutSuppliersNestedInput
@@ -1583,7 +1967,7 @@ export type suppliersCreateWithoutWhatsapp_messagesInput = {
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -1598,7 +1982,15 @@ export type suppliersCreateWithoutWhatsapp_messagesInput = {
   deleted_at?: Date | string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
   purchase_demands?: Prisma.purchase_demandsCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapCreateNestedManyWithoutSuppliersInput
   supplier_credits?: Prisma.supplier_creditsCreateNestedManyWithoutSuppliersInput
   supplier_payments?: Prisma.supplier_paymentsCreateNestedManyWithoutSuppliersInput
   users_suppliers_created_byTousers?: Prisma.usersCreateNestedOneWithoutSuppliers_suppliers_created_byTousersInput
@@ -1611,7 +2003,7 @@ export type suppliersUncheckedCreateWithoutWhatsapp_messagesInput = {
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -1628,7 +2020,15 @@ export type suppliersUncheckedCreateWithoutWhatsapp_messagesInput = {
   deleted_by?: string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
   purchase_demands?: Prisma.purchase_demandsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedCreateNestedManyWithoutSuppliersInput
   supplier_credits?: Prisma.supplier_creditsUncheckedCreateNestedManyWithoutSuppliersInput
   supplier_payments?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutSuppliersInput
   whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedCreateNestedManyWithoutSuppliersInput
@@ -1655,7 +2055,7 @@ export type suppliersUpdateWithoutWhatsapp_messagesInput = {
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1670,7 +2070,15 @@ export type suppliersUpdateWithoutWhatsapp_messagesInput = {
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   purchase_demands?: Prisma.purchase_demandsUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUpdateManyWithoutSuppliersNestedInput
   supplier_credits?: Prisma.supplier_creditsUpdateManyWithoutSuppliersNestedInput
   supplier_payments?: Prisma.supplier_paymentsUpdateManyWithoutSuppliersNestedInput
   users_suppliers_created_byTousers?: Prisma.usersUpdateOneWithoutSuppliers_suppliers_created_byTousersNestedInput
@@ -1683,7 +2091,7 @@ export type suppliersUncheckedUpdateWithoutWhatsapp_messagesInput = {
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1700,10 +2108,658 @@ export type suppliersUncheckedUpdateWithoutWhatsapp_messagesInput = {
   deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   purchase_demands?: Prisma.purchase_demandsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedUpdateManyWithoutSuppliersNestedInput
   supplier_credits?: Prisma.supplier_creditsUncheckedUpdateManyWithoutSuppliersNestedInput
   supplier_payments?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutSuppliersNestedInput
   whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedUpdateManyWithoutSuppliersNestedInput
+}
+
+export type suppliersCreateWithoutStore_itemsInput = {
+  id?: string
+  supplier_code?: string
+  name: string
+  contact_person?: string | null
+  whatsapp_number?: string | null
+  phone?: string | null
+  category?: string | null
+  address?: string | null
+  payment_terms?: string | null
+  notes?: string | null
+  is_active?: boolean
+  whatsapp_opt_in_at?: Date | string | null
+  whatsapp_opt_in_source?: string | null
+  created_by_name?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
+  purchase_demands?: Prisma.purchase_demandsCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapCreateNestedManyWithoutSuppliersInput
+  supplier_credits?: Prisma.supplier_creditsCreateNestedManyWithoutSuppliersInput
+  supplier_payments?: Prisma.supplier_paymentsCreateNestedManyWithoutSuppliersInput
+  users_suppliers_created_byTousers?: Prisma.usersCreateNestedOneWithoutSuppliers_suppliers_created_byTousersInput
+  users_suppliers_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutSuppliers_suppliers_deleted_byTousersInput
+  whatsapp_conversations?: Prisma.whatsapp_conversationsCreateNestedManyWithoutSuppliersInput
+  whatsapp_messages?: Prisma.whatsapp_messagesCreateNestedManyWithoutSuppliersInput
+}
+
+export type suppliersUncheckedCreateWithoutStore_itemsInput = {
+  id?: string
+  supplier_code?: string
+  name: string
+  contact_person?: string | null
+  whatsapp_number?: string | null
+  phone?: string | null
+  category?: string | null
+  address?: string | null
+  payment_terms?: string | null
+  notes?: string | null
+  is_active?: boolean
+  whatsapp_opt_in_at?: Date | string | null
+  whatsapp_opt_in_source?: string | null
+  created_by?: string | null
+  created_by_name?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by?: string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
+  purchase_demands?: Prisma.purchase_demandsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedCreateNestedManyWithoutSuppliersInput
+  supplier_credits?: Prisma.supplier_creditsUncheckedCreateNestedManyWithoutSuppliersInput
+  supplier_payments?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutSuppliersInput
+  whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedCreateNestedManyWithoutSuppliersInput
+  whatsapp_messages?: Prisma.whatsapp_messagesUncheckedCreateNestedManyWithoutSuppliersInput
+}
+
+export type suppliersCreateOrConnectWithoutStore_itemsInput = {
+  where: Prisma.suppliersWhereUniqueInput
+  create: Prisma.XOR<Prisma.suppliersCreateWithoutStore_itemsInput, Prisma.suppliersUncheckedCreateWithoutStore_itemsInput>
+}
+
+export type suppliersUpsertWithoutStore_itemsInput = {
+  update: Prisma.XOR<Prisma.suppliersUpdateWithoutStore_itemsInput, Prisma.suppliersUncheckedUpdateWithoutStore_itemsInput>
+  create: Prisma.XOR<Prisma.suppliersCreateWithoutStore_itemsInput, Prisma.suppliersUncheckedCreateWithoutStore_itemsInput>
+  where?: Prisma.suppliersWhereInput
+}
+
+export type suppliersUpdateToOneWithWhereWithoutStore_itemsInput = {
+  where?: Prisma.suppliersWhereInput
+  data: Prisma.XOR<Prisma.suppliersUpdateWithoutStore_itemsInput, Prisma.suppliersUncheckedUpdateWithoutStore_itemsInput>
+}
+
+export type suppliersUpdateWithoutStore_itemsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payment_terms?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsapp_opt_in_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  whatsapp_opt_in_source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  purchase_demands?: Prisma.purchase_demandsUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUpdateManyWithoutSuppliersNestedInput
+  supplier_credits?: Prisma.supplier_creditsUpdateManyWithoutSuppliersNestedInput
+  supplier_payments?: Prisma.supplier_paymentsUpdateManyWithoutSuppliersNestedInput
+  users_suppliers_created_byTousers?: Prisma.usersUpdateOneWithoutSuppliers_suppliers_created_byTousersNestedInput
+  users_suppliers_deleted_byTousers?: Prisma.usersUpdateOneWithoutSuppliers_suppliers_deleted_byTousersNestedInput
+  whatsapp_conversations?: Prisma.whatsapp_conversationsUpdateManyWithoutSuppliersNestedInput
+  whatsapp_messages?: Prisma.whatsapp_messagesUpdateManyWithoutSuppliersNestedInput
+}
+
+export type suppliersUncheckedUpdateWithoutStore_itemsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payment_terms?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsapp_opt_in_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  whatsapp_opt_in_source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  purchase_demands?: Prisma.purchase_demandsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedUpdateManyWithoutSuppliersNestedInput
+  supplier_credits?: Prisma.supplier_creditsUncheckedUpdateManyWithoutSuppliersNestedInput
+  supplier_payments?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutSuppliersNestedInput
+  whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedUpdateManyWithoutSuppliersNestedInput
+  whatsapp_messages?: Prisma.whatsapp_messagesUncheckedUpdateManyWithoutSuppliersNestedInput
+}
+
+export type suppliersCreateWithoutStore_purchase_ordersInput = {
+  id?: string
+  supplier_code?: string
+  name: string
+  contact_person?: string | null
+  whatsapp_number?: string | null
+  phone?: string | null
+  category?: string | null
+  address?: string | null
+  payment_terms?: string | null
+  notes?: string | null
+  is_active?: boolean
+  whatsapp_opt_in_at?: Date | string | null
+  whatsapp_opt_in_source?: string | null
+  created_by_name?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
+  purchase_demands?: Prisma.purchase_demandsCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapCreateNestedManyWithoutSuppliersInput
+  supplier_credits?: Prisma.supplier_creditsCreateNestedManyWithoutSuppliersInput
+  supplier_payments?: Prisma.supplier_paymentsCreateNestedManyWithoutSuppliersInput
+  users_suppliers_created_byTousers?: Prisma.usersCreateNestedOneWithoutSuppliers_suppliers_created_byTousersInput
+  users_suppliers_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutSuppliers_suppliers_deleted_byTousersInput
+  whatsapp_conversations?: Prisma.whatsapp_conversationsCreateNestedManyWithoutSuppliersInput
+  whatsapp_messages?: Prisma.whatsapp_messagesCreateNestedManyWithoutSuppliersInput
+}
+
+export type suppliersUncheckedCreateWithoutStore_purchase_ordersInput = {
+  id?: string
+  supplier_code?: string
+  name: string
+  contact_person?: string | null
+  whatsapp_number?: string | null
+  phone?: string | null
+  category?: string | null
+  address?: string | null
+  payment_terms?: string | null
+  notes?: string | null
+  is_active?: boolean
+  whatsapp_opt_in_at?: Date | string | null
+  whatsapp_opt_in_source?: string | null
+  created_by?: string | null
+  created_by_name?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by?: string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
+  purchase_demands?: Prisma.purchase_demandsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedCreateNestedManyWithoutSuppliersInput
+  supplier_credits?: Prisma.supplier_creditsUncheckedCreateNestedManyWithoutSuppliersInput
+  supplier_payments?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutSuppliersInput
+  whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedCreateNestedManyWithoutSuppliersInput
+  whatsapp_messages?: Prisma.whatsapp_messagesUncheckedCreateNestedManyWithoutSuppliersInput
+}
+
+export type suppliersCreateOrConnectWithoutStore_purchase_ordersInput = {
+  where: Prisma.suppliersWhereUniqueInput
+  create: Prisma.XOR<Prisma.suppliersCreateWithoutStore_purchase_ordersInput, Prisma.suppliersUncheckedCreateWithoutStore_purchase_ordersInput>
+}
+
+export type suppliersUpsertWithoutStore_purchase_ordersInput = {
+  update: Prisma.XOR<Prisma.suppliersUpdateWithoutStore_purchase_ordersInput, Prisma.suppliersUncheckedUpdateWithoutStore_purchase_ordersInput>
+  create: Prisma.XOR<Prisma.suppliersCreateWithoutStore_purchase_ordersInput, Prisma.suppliersUncheckedCreateWithoutStore_purchase_ordersInput>
+  where?: Prisma.suppliersWhereInput
+}
+
+export type suppliersUpdateToOneWithWhereWithoutStore_purchase_ordersInput = {
+  where?: Prisma.suppliersWhereInput
+  data: Prisma.XOR<Prisma.suppliersUpdateWithoutStore_purchase_ordersInput, Prisma.suppliersUncheckedUpdateWithoutStore_purchase_ordersInput>
+}
+
+export type suppliersUpdateWithoutStore_purchase_ordersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payment_terms?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsapp_opt_in_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  whatsapp_opt_in_source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  purchase_demands?: Prisma.purchase_demandsUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUpdateManyWithoutSuppliersNestedInput
+  supplier_credits?: Prisma.supplier_creditsUpdateManyWithoutSuppliersNestedInput
+  supplier_payments?: Prisma.supplier_paymentsUpdateManyWithoutSuppliersNestedInput
+  users_suppliers_created_byTousers?: Prisma.usersUpdateOneWithoutSuppliers_suppliers_created_byTousersNestedInput
+  users_suppliers_deleted_byTousers?: Prisma.usersUpdateOneWithoutSuppliers_suppliers_deleted_byTousersNestedInput
+  whatsapp_conversations?: Prisma.whatsapp_conversationsUpdateManyWithoutSuppliersNestedInput
+  whatsapp_messages?: Prisma.whatsapp_messagesUpdateManyWithoutSuppliersNestedInput
+}
+
+export type suppliersUncheckedUpdateWithoutStore_purchase_ordersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payment_terms?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsapp_opt_in_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  whatsapp_opt_in_source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  purchase_demands?: Prisma.purchase_demandsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedUpdateManyWithoutSuppliersNestedInput
+  supplier_credits?: Prisma.supplier_creditsUncheckedUpdateManyWithoutSuppliersNestedInput
+  supplier_payments?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutSuppliersNestedInput
+  whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedUpdateManyWithoutSuppliersNestedInput
+  whatsapp_messages?: Prisma.whatsapp_messagesUncheckedUpdateManyWithoutSuppliersNestedInput
+}
+
+export type suppliersCreateWithoutStore_receiptsInput = {
+  id?: string
+  supplier_code?: string
+  name: string
+  contact_person?: string | null
+  whatsapp_number?: string | null
+  phone?: string | null
+  category?: string | null
+  address?: string | null
+  payment_terms?: string | null
+  notes?: string | null
+  is_active?: boolean
+  whatsapp_opt_in_at?: Date | string | null
+  whatsapp_opt_in_source?: string | null
+  created_by_name?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
+  purchase_demands?: Prisma.purchase_demandsCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapCreateNestedManyWithoutSuppliersInput
+  supplier_credits?: Prisma.supplier_creditsCreateNestedManyWithoutSuppliersInput
+  supplier_payments?: Prisma.supplier_paymentsCreateNestedManyWithoutSuppliersInput
+  users_suppliers_created_byTousers?: Prisma.usersCreateNestedOneWithoutSuppliers_suppliers_created_byTousersInput
+  users_suppliers_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutSuppliers_suppliers_deleted_byTousersInput
+  whatsapp_conversations?: Prisma.whatsapp_conversationsCreateNestedManyWithoutSuppliersInput
+  whatsapp_messages?: Prisma.whatsapp_messagesCreateNestedManyWithoutSuppliersInput
+}
+
+export type suppliersUncheckedCreateWithoutStore_receiptsInput = {
+  id?: string
+  supplier_code?: string
+  name: string
+  contact_person?: string | null
+  whatsapp_number?: string | null
+  phone?: string | null
+  category?: string | null
+  address?: string | null
+  payment_terms?: string | null
+  notes?: string | null
+  is_active?: boolean
+  whatsapp_opt_in_at?: Date | string | null
+  whatsapp_opt_in_source?: string | null
+  created_by?: string | null
+  created_by_name?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by?: string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
+  purchase_demands?: Prisma.purchase_demandsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedCreateNestedManyWithoutSuppliersInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedCreateNestedManyWithoutSuppliersInput
+  supplier_credits?: Prisma.supplier_creditsUncheckedCreateNestedManyWithoutSuppliersInput
+  supplier_payments?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutSuppliersInput
+  whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedCreateNestedManyWithoutSuppliersInput
+  whatsapp_messages?: Prisma.whatsapp_messagesUncheckedCreateNestedManyWithoutSuppliersInput
+}
+
+export type suppliersCreateOrConnectWithoutStore_receiptsInput = {
+  where: Prisma.suppliersWhereUniqueInput
+  create: Prisma.XOR<Prisma.suppliersCreateWithoutStore_receiptsInput, Prisma.suppliersUncheckedCreateWithoutStore_receiptsInput>
+}
+
+export type suppliersUpsertWithoutStore_receiptsInput = {
+  update: Prisma.XOR<Prisma.suppliersUpdateWithoutStore_receiptsInput, Prisma.suppliersUncheckedUpdateWithoutStore_receiptsInput>
+  create: Prisma.XOR<Prisma.suppliersCreateWithoutStore_receiptsInput, Prisma.suppliersUncheckedCreateWithoutStore_receiptsInput>
+  where?: Prisma.suppliersWhereInput
+}
+
+export type suppliersUpdateToOneWithWhereWithoutStore_receiptsInput = {
+  where?: Prisma.suppliersWhereInput
+  data: Prisma.XOR<Prisma.suppliersUpdateWithoutStore_receiptsInput, Prisma.suppliersUncheckedUpdateWithoutStore_receiptsInput>
+}
+
+export type suppliersUpdateWithoutStore_receiptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payment_terms?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsapp_opt_in_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  whatsapp_opt_in_source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  purchase_demands?: Prisma.purchase_demandsUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUpdateManyWithoutSuppliersNestedInput
+  supplier_credits?: Prisma.supplier_creditsUpdateManyWithoutSuppliersNestedInput
+  supplier_payments?: Prisma.supplier_paymentsUpdateManyWithoutSuppliersNestedInput
+  users_suppliers_created_byTousers?: Prisma.usersUpdateOneWithoutSuppliers_suppliers_created_byTousersNestedInput
+  users_suppliers_deleted_byTousers?: Prisma.usersUpdateOneWithoutSuppliers_suppliers_deleted_byTousersNestedInput
+  whatsapp_conversations?: Prisma.whatsapp_conversationsUpdateManyWithoutSuppliersNestedInput
+  whatsapp_messages?: Prisma.whatsapp_messagesUpdateManyWithoutSuppliersNestedInput
+}
+
+export type suppliersUncheckedUpdateWithoutStore_receiptsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payment_terms?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsapp_opt_in_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  whatsapp_opt_in_source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  purchase_demands?: Prisma.purchase_demandsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedUpdateManyWithoutSuppliersNestedInput
+  supplier_credits?: Prisma.supplier_creditsUncheckedUpdateManyWithoutSuppliersNestedInput
+  supplier_payments?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutSuppliersNestedInput
+  whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedUpdateManyWithoutSuppliersNestedInput
+  whatsapp_messages?: Prisma.whatsapp_messagesUncheckedUpdateManyWithoutSuppliersNestedInput
+}
+
+export type suppliersCreateWithoutStore_supplier_name_mapInput = {
+  id?: string
+  supplier_code?: string
+  name: string
+  contact_person?: string | null
+  whatsapp_number?: string | null
+  phone?: string | null
+  category?: string | null
+  address?: string | null
+  payment_terms?: string | null
+  notes?: string | null
+  is_active?: boolean
+  whatsapp_opt_in_at?: Date | string | null
+  whatsapp_opt_in_source?: string | null
+  created_by_name?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
+  purchase_demands?: Prisma.purchase_demandsCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsCreateNestedManyWithoutSuppliersInput
+  supplier_credits?: Prisma.supplier_creditsCreateNestedManyWithoutSuppliersInput
+  supplier_payments?: Prisma.supplier_paymentsCreateNestedManyWithoutSuppliersInput
+  users_suppliers_created_byTousers?: Prisma.usersCreateNestedOneWithoutSuppliers_suppliers_created_byTousersInput
+  users_suppliers_deleted_byTousers?: Prisma.usersCreateNestedOneWithoutSuppliers_suppliers_deleted_byTousersInput
+  whatsapp_conversations?: Prisma.whatsapp_conversationsCreateNestedManyWithoutSuppliersInput
+  whatsapp_messages?: Prisma.whatsapp_messagesCreateNestedManyWithoutSuppliersInput
+}
+
+export type suppliersUncheckedCreateWithoutStore_supplier_name_mapInput = {
+  id?: string
+  supplier_code?: string
+  name: string
+  contact_person?: string | null
+  whatsapp_number?: string | null
+  phone?: string | null
+  category?: string | null
+  address?: string | null
+  payment_terms?: string | null
+  notes?: string | null
+  is_active?: boolean
+  whatsapp_opt_in_at?: Date | string | null
+  whatsapp_opt_in_source?: string | null
+  created_by?: string | null
+  created_by_name?: string | null
+  created_at?: Date | string
+  updated_at?: Date | string
+  deleted_at?: Date | string | null
+  deleted_by?: string | null
+  deleted_by_name?: string | null
+  delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
+  purchase_demands?: Prisma.purchase_demandsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_items?: Prisma.store_itemsUncheckedCreateNestedManyWithoutSuppliersInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedCreateNestedManyWithoutSuppliersInput
+  store_receipts?: Prisma.store_receiptsUncheckedCreateNestedManyWithoutSuppliersInput
+  supplier_credits?: Prisma.supplier_creditsUncheckedCreateNestedManyWithoutSuppliersInput
+  supplier_payments?: Prisma.supplier_paymentsUncheckedCreateNestedManyWithoutSuppliersInput
+  whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedCreateNestedManyWithoutSuppliersInput
+  whatsapp_messages?: Prisma.whatsapp_messagesUncheckedCreateNestedManyWithoutSuppliersInput
+}
+
+export type suppliersCreateOrConnectWithoutStore_supplier_name_mapInput = {
+  where: Prisma.suppliersWhereUniqueInput
+  create: Prisma.XOR<Prisma.suppliersCreateWithoutStore_supplier_name_mapInput, Prisma.suppliersUncheckedCreateWithoutStore_supplier_name_mapInput>
+}
+
+export type suppliersUpsertWithoutStore_supplier_name_mapInput = {
+  update: Prisma.XOR<Prisma.suppliersUpdateWithoutStore_supplier_name_mapInput, Prisma.suppliersUncheckedUpdateWithoutStore_supplier_name_mapInput>
+  create: Prisma.XOR<Prisma.suppliersCreateWithoutStore_supplier_name_mapInput, Prisma.suppliersUncheckedCreateWithoutStore_supplier_name_mapInput>
+  where?: Prisma.suppliersWhereInput
+}
+
+export type suppliersUpdateToOneWithWhereWithoutStore_supplier_name_mapInput = {
+  where?: Prisma.suppliersWhereInput
+  data: Prisma.XOR<Prisma.suppliersUpdateWithoutStore_supplier_name_mapInput, Prisma.suppliersUncheckedUpdateWithoutStore_supplier_name_mapInput>
+}
+
+export type suppliersUpdateWithoutStore_supplier_name_mapInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payment_terms?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsapp_opt_in_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  whatsapp_opt_in_source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  purchase_demands?: Prisma.purchase_demandsUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUpdateManyWithoutSuppliersNestedInput
+  supplier_credits?: Prisma.supplier_creditsUpdateManyWithoutSuppliersNestedInput
+  supplier_payments?: Prisma.supplier_paymentsUpdateManyWithoutSuppliersNestedInput
+  users_suppliers_created_byTousers?: Prisma.usersUpdateOneWithoutSuppliers_suppliers_created_byTousersNestedInput
+  users_suppliers_deleted_byTousers?: Prisma.usersUpdateOneWithoutSuppliers_suppliers_deleted_byTousersNestedInput
+  whatsapp_conversations?: Prisma.whatsapp_conversationsUpdateManyWithoutSuppliersNestedInput
+  whatsapp_messages?: Prisma.whatsapp_messagesUpdateManyWithoutSuppliersNestedInput
+}
+
+export type suppliersUncheckedUpdateWithoutStore_supplier_name_mapInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  payment_terms?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  whatsapp_opt_in_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  whatsapp_opt_in_source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  purchase_demands?: Prisma.purchase_demandsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUncheckedUpdateManyWithoutSuppliersNestedInput
+  supplier_credits?: Prisma.supplier_creditsUncheckedUpdateManyWithoutSuppliersNestedInput
+  supplier_payments?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutSuppliersNestedInput
+  whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedUpdateManyWithoutSuppliersNestedInput
+  whatsapp_messages?: Prisma.whatsapp_messagesUncheckedUpdateManyWithoutSuppliersNestedInput
 }
 
 export type suppliersCreateManyUsers_suppliers_created_byTousersInput = {
@@ -1711,7 +2767,7 @@ export type suppliersCreateManyUsers_suppliers_created_byTousersInput = {
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -1727,6 +2783,10 @@ export type suppliersCreateManyUsers_suppliers_created_byTousersInput = {
   deleted_by?: string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
 }
 
 export type suppliersCreateManyUsers_suppliers_deleted_byTousersInput = {
@@ -1734,7 +2794,7 @@ export type suppliersCreateManyUsers_suppliers_deleted_byTousersInput = {
   supplier_code?: string
   name: string
   contact_person?: string | null
-  whatsapp_number: string
+  whatsapp_number?: string | null
   phone?: string | null
   category?: string | null
   address?: string | null
@@ -1750,6 +2810,10 @@ export type suppliersCreateManyUsers_suppliers_deleted_byTousersInput = {
   deleted_at?: Date | string | null
   deleted_by_name?: string | null
   delete_reason?: string | null
+  email?: string | null
+  ntn?: string | null
+  strn?: string | null
+  lead_time_days?: number | null
 }
 
 export type suppliersUpdateWithoutUsers_suppliers_created_byTousersInput = {
@@ -1757,7 +2821,7 @@ export type suppliersUpdateWithoutUsers_suppliers_created_byTousersInput = {
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1772,7 +2836,15 @@ export type suppliersUpdateWithoutUsers_suppliers_created_byTousersInput = {
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   purchase_demands?: Prisma.purchase_demandsUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUpdateManyWithoutSuppliersNestedInput
   supplier_credits?: Prisma.supplier_creditsUpdateManyWithoutSuppliersNestedInput
   supplier_payments?: Prisma.supplier_paymentsUpdateManyWithoutSuppliersNestedInput
   users_suppliers_deleted_byTousers?: Prisma.usersUpdateOneWithoutSuppliers_suppliers_deleted_byTousersNestedInput
@@ -1785,7 +2857,7 @@ export type suppliersUncheckedUpdateWithoutUsers_suppliers_created_byTousersInpu
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1801,7 +2873,15 @@ export type suppliersUncheckedUpdateWithoutUsers_suppliers_created_byTousersInpu
   deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   purchase_demands?: Prisma.purchase_demandsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedUpdateManyWithoutSuppliersNestedInput
   supplier_credits?: Prisma.supplier_creditsUncheckedUpdateManyWithoutSuppliersNestedInput
   supplier_payments?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutSuppliersNestedInput
   whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedUpdateManyWithoutSuppliersNestedInput
@@ -1813,7 +2893,7 @@ export type suppliersUncheckedUpdateManyWithoutUsers_suppliers_created_byTousers
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1829,6 +2909,10 @@ export type suppliersUncheckedUpdateManyWithoutUsers_suppliers_created_byTousers
   deleted_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type suppliersUpdateWithoutUsers_suppliers_deleted_byTousersInput = {
@@ -1836,7 +2920,7 @@ export type suppliersUpdateWithoutUsers_suppliers_deleted_byTousersInput = {
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1851,7 +2935,15 @@ export type suppliersUpdateWithoutUsers_suppliers_deleted_byTousersInput = {
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   purchase_demands?: Prisma.purchase_demandsUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUpdateManyWithoutSuppliersNestedInput
   supplier_credits?: Prisma.supplier_creditsUpdateManyWithoutSuppliersNestedInput
   supplier_payments?: Prisma.supplier_paymentsUpdateManyWithoutSuppliersNestedInput
   users_suppliers_created_byTousers?: Prisma.usersUpdateOneWithoutSuppliers_suppliers_created_byTousersNestedInput
@@ -1864,7 +2956,7 @@ export type suppliersUncheckedUpdateWithoutUsers_suppliers_deleted_byTousersInpu
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1880,7 +2972,15 @@ export type suppliersUncheckedUpdateWithoutUsers_suppliers_deleted_byTousersInpu
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   purchase_demands?: Prisma.purchase_demandsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_items?: Prisma.store_itemsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_purchase_orders?: Prisma.store_purchase_ordersUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_receipts?: Prisma.store_receiptsUncheckedUpdateManyWithoutSuppliersNestedInput
+  store_supplier_name_map?: Prisma.store_supplier_name_mapUncheckedUpdateManyWithoutSuppliersNestedInput
   supplier_credits?: Prisma.supplier_creditsUncheckedUpdateManyWithoutSuppliersNestedInput
   supplier_payments?: Prisma.supplier_paymentsUncheckedUpdateManyWithoutSuppliersNestedInput
   whatsapp_conversations?: Prisma.whatsapp_conversationsUncheckedUpdateManyWithoutSuppliersNestedInput
@@ -1892,7 +2992,7 @@ export type suppliersUncheckedUpdateManyWithoutUsers_suppliers_deleted_byTousers
   supplier_code?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   contact_person?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  whatsapp_number?: Prisma.StringFieldUpdateOperationsInput | string
+  whatsapp_number?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1908,6 +3008,10 @@ export type suppliersUncheckedUpdateManyWithoutUsers_suppliers_deleted_byTousers
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   deleted_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   delete_reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ntn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  strn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lead_time_days?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 
@@ -1917,6 +3021,10 @@ export type suppliersUncheckedUpdateManyWithoutUsers_suppliers_deleted_byTousers
 
 export type SuppliersCountOutputType = {
   purchase_demands: number
+  store_items: number
+  store_purchase_orders: number
+  store_receipts: number
+  store_supplier_name_map: number
   supplier_credits: number
   supplier_payments: number
   whatsapp_conversations: number
@@ -1925,6 +3033,10 @@ export type SuppliersCountOutputType = {
 
 export type SuppliersCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   purchase_demands?: boolean | SuppliersCountOutputTypeCountPurchase_demandsArgs
+  store_items?: boolean | SuppliersCountOutputTypeCountStore_itemsArgs
+  store_purchase_orders?: boolean | SuppliersCountOutputTypeCountStore_purchase_ordersArgs
+  store_receipts?: boolean | SuppliersCountOutputTypeCountStore_receiptsArgs
+  store_supplier_name_map?: boolean | SuppliersCountOutputTypeCountStore_supplier_name_mapArgs
   supplier_credits?: boolean | SuppliersCountOutputTypeCountSupplier_creditsArgs
   supplier_payments?: boolean | SuppliersCountOutputTypeCountSupplier_paymentsArgs
   whatsapp_conversations?: boolean | SuppliersCountOutputTypeCountWhatsapp_conversationsArgs
@@ -1946,6 +3058,34 @@ export type SuppliersCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Ex
  */
 export type SuppliersCountOutputTypeCountPurchase_demandsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.purchase_demandsWhereInput
+}
+
+/**
+ * SuppliersCountOutputType without action
+ */
+export type SuppliersCountOutputTypeCountStore_itemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.store_itemsWhereInput
+}
+
+/**
+ * SuppliersCountOutputType without action
+ */
+export type SuppliersCountOutputTypeCountStore_purchase_ordersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.store_purchase_ordersWhereInput
+}
+
+/**
+ * SuppliersCountOutputType without action
+ */
+export type SuppliersCountOutputTypeCountStore_receiptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.store_receiptsWhereInput
+}
+
+/**
+ * SuppliersCountOutputType without action
+ */
+export type SuppliersCountOutputTypeCountStore_supplier_name_mapArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.store_supplier_name_mapWhereInput
 }
 
 /**
@@ -1999,7 +3139,15 @@ export type suppliersSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   deleted_by?: boolean
   deleted_by_name?: boolean
   delete_reason?: boolean
+  email?: boolean
+  ntn?: boolean
+  strn?: boolean
+  lead_time_days?: boolean
   purchase_demands?: boolean | Prisma.suppliers$purchase_demandsArgs<ExtArgs>
+  store_items?: boolean | Prisma.suppliers$store_itemsArgs<ExtArgs>
+  store_purchase_orders?: boolean | Prisma.suppliers$store_purchase_ordersArgs<ExtArgs>
+  store_receipts?: boolean | Prisma.suppliers$store_receiptsArgs<ExtArgs>
+  store_supplier_name_map?: boolean | Prisma.suppliers$store_supplier_name_mapArgs<ExtArgs>
   supplier_credits?: boolean | Prisma.suppliers$supplier_creditsArgs<ExtArgs>
   supplier_payments?: boolean | Prisma.suppliers$supplier_paymentsArgs<ExtArgs>
   users_suppliers_created_byTousers?: boolean | Prisma.suppliers$users_suppliers_created_byTousersArgs<ExtArgs>
@@ -2031,6 +3179,10 @@ export type suppliersSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   deleted_by?: boolean
   deleted_by_name?: boolean
   delete_reason?: boolean
+  email?: boolean
+  ntn?: boolean
+  strn?: boolean
+  lead_time_days?: boolean
   users_suppliers_created_byTousers?: boolean | Prisma.suppliers$users_suppliers_created_byTousersArgs<ExtArgs>
   users_suppliers_deleted_byTousers?: boolean | Prisma.suppliers$users_suppliers_deleted_byTousersArgs<ExtArgs>
 }, ExtArgs["result"]["suppliers"]>
@@ -2057,6 +3209,10 @@ export type suppliersSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   deleted_by?: boolean
   deleted_by_name?: boolean
   delete_reason?: boolean
+  email?: boolean
+  ntn?: boolean
+  strn?: boolean
+  lead_time_days?: boolean
   users_suppliers_created_byTousers?: boolean | Prisma.suppliers$users_suppliers_created_byTousersArgs<ExtArgs>
   users_suppliers_deleted_byTousers?: boolean | Prisma.suppliers$users_suppliers_deleted_byTousersArgs<ExtArgs>
 }, ExtArgs["result"]["suppliers"]>
@@ -2083,11 +3239,19 @@ export type suppliersSelectScalar = {
   deleted_by?: boolean
   deleted_by_name?: boolean
   delete_reason?: boolean
+  email?: boolean
+  ntn?: boolean
+  strn?: boolean
+  lead_time_days?: boolean
 }
 
-export type suppliersOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "supplier_code" | "name" | "contact_person" | "whatsapp_number" | "phone" | "category" | "address" | "payment_terms" | "notes" | "is_active" | "whatsapp_opt_in_at" | "whatsapp_opt_in_source" | "created_by" | "created_by_name" | "created_at" | "updated_at" | "deleted_at" | "deleted_by" | "deleted_by_name" | "delete_reason", ExtArgs["result"]["suppliers"]>
+export type suppliersOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "supplier_code" | "name" | "contact_person" | "whatsapp_number" | "phone" | "category" | "address" | "payment_terms" | "notes" | "is_active" | "whatsapp_opt_in_at" | "whatsapp_opt_in_source" | "created_by" | "created_by_name" | "created_at" | "updated_at" | "deleted_at" | "deleted_by" | "deleted_by_name" | "delete_reason" | "email" | "ntn" | "strn" | "lead_time_days", ExtArgs["result"]["suppliers"]>
 export type suppliersInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   purchase_demands?: boolean | Prisma.suppliers$purchase_demandsArgs<ExtArgs>
+  store_items?: boolean | Prisma.suppliers$store_itemsArgs<ExtArgs>
+  store_purchase_orders?: boolean | Prisma.suppliers$store_purchase_ordersArgs<ExtArgs>
+  store_receipts?: boolean | Prisma.suppliers$store_receiptsArgs<ExtArgs>
+  store_supplier_name_map?: boolean | Prisma.suppliers$store_supplier_name_mapArgs<ExtArgs>
   supplier_credits?: boolean | Prisma.suppliers$supplier_creditsArgs<ExtArgs>
   supplier_payments?: boolean | Prisma.suppliers$supplier_paymentsArgs<ExtArgs>
   users_suppliers_created_byTousers?: boolean | Prisma.suppliers$users_suppliers_created_byTousersArgs<ExtArgs>
@@ -2109,6 +3273,10 @@ export type $suppliersPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   name: "suppliers"
   objects: {
     purchase_demands: Prisma.$purchase_demandsPayload<ExtArgs>[]
+    store_items: Prisma.$store_itemsPayload<ExtArgs>[]
+    store_purchase_orders: Prisma.$store_purchase_ordersPayload<ExtArgs>[]
+    store_receipts: Prisma.$store_receiptsPayload<ExtArgs>[]
+    store_supplier_name_map: Prisma.$store_supplier_name_mapPayload<ExtArgs>[]
     supplier_credits: Prisma.$supplier_creditsPayload<ExtArgs>[]
     supplier_payments: Prisma.$supplier_paymentsPayload<ExtArgs>[]
     users_suppliers_created_byTousers: Prisma.$usersPayload<ExtArgs> | null
@@ -2121,7 +3289,7 @@ export type $suppliersPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     supplier_code: string
     name: string
     contact_person: string | null
-    whatsapp_number: string
+    whatsapp_number: string | null
     phone: string | null
     category: string | null
     address: string | null
@@ -2138,6 +3306,10 @@ export type $suppliersPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     deleted_by: string | null
     deleted_by_name: string | null
     delete_reason: string | null
+    email: string | null
+    ntn: string | null
+    strn: string | null
+    lead_time_days: number | null
   }, ExtArgs["result"]["suppliers"]>
   composites: {}
 }
@@ -2533,6 +3705,10 @@ readonly fields: suppliersFieldRefs;
 export interface Prisma__suppliersClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   purchase_demands<T extends Prisma.suppliers$purchase_demandsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.suppliers$purchase_demandsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$purchase_demandsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  store_items<T extends Prisma.suppliers$store_itemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.suppliers$store_itemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$store_itemsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  store_purchase_orders<T extends Prisma.suppliers$store_purchase_ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.suppliers$store_purchase_ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$store_purchase_ordersPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  store_receipts<T extends Prisma.suppliers$store_receiptsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.suppliers$store_receiptsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$store_receiptsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  store_supplier_name_map<T extends Prisma.suppliers$store_supplier_name_mapArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.suppliers$store_supplier_name_mapArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$store_supplier_name_mapPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   supplier_credits<T extends Prisma.suppliers$supplier_creditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.suppliers$supplier_creditsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$supplier_creditsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   supplier_payments<T extends Prisma.suppliers$supplier_paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.suppliers$supplier_paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$supplier_paymentsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   users_suppliers_created_byTousers<T extends Prisma.suppliers$users_suppliers_created_byTousersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.suppliers$users_suppliers_created_byTousersArgs<ExtArgs>>): Prisma.Prisma__usersClient<runtime.Types.Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -2589,6 +3765,10 @@ export interface suppliersFieldRefs {
   readonly deleted_by: Prisma.FieldRef<"suppliers", 'String'>
   readonly deleted_by_name: Prisma.FieldRef<"suppliers", 'String'>
   readonly delete_reason: Prisma.FieldRef<"suppliers", 'String'>
+  readonly email: Prisma.FieldRef<"suppliers", 'String'>
+  readonly ntn: Prisma.FieldRef<"suppliers", 'String'>
+  readonly strn: Prisma.FieldRef<"suppliers", 'String'>
+  readonly lead_time_days: Prisma.FieldRef<"suppliers", 'Int'>
 }
     
 
@@ -3011,6 +4191,102 @@ export type suppliers$purchase_demandsArgs<ExtArgs extends runtime.Types.Extensi
   take?: number
   skip?: number
   distinct?: Prisma.Purchase_demandsScalarFieldEnum | Prisma.Purchase_demandsScalarFieldEnum[]
+}
+
+/**
+ * suppliers.store_items
+ */
+export type suppliers$store_itemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the store_items
+   */
+  select?: Prisma.store_itemsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the store_items
+   */
+  omit?: Prisma.store_itemsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.store_itemsInclude<ExtArgs> | null
+  where?: Prisma.store_itemsWhereInput
+  orderBy?: Prisma.store_itemsOrderByWithRelationInput | Prisma.store_itemsOrderByWithRelationInput[]
+  cursor?: Prisma.store_itemsWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Store_itemsScalarFieldEnum | Prisma.Store_itemsScalarFieldEnum[]
+}
+
+/**
+ * suppliers.store_purchase_orders
+ */
+export type suppliers$store_purchase_ordersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the store_purchase_orders
+   */
+  select?: Prisma.store_purchase_ordersSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the store_purchase_orders
+   */
+  omit?: Prisma.store_purchase_ordersOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.store_purchase_ordersInclude<ExtArgs> | null
+  where?: Prisma.store_purchase_ordersWhereInput
+  orderBy?: Prisma.store_purchase_ordersOrderByWithRelationInput | Prisma.store_purchase_ordersOrderByWithRelationInput[]
+  cursor?: Prisma.store_purchase_ordersWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Store_purchase_ordersScalarFieldEnum | Prisma.Store_purchase_ordersScalarFieldEnum[]
+}
+
+/**
+ * suppliers.store_receipts
+ */
+export type suppliers$store_receiptsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the store_receipts
+   */
+  select?: Prisma.store_receiptsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the store_receipts
+   */
+  omit?: Prisma.store_receiptsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.store_receiptsInclude<ExtArgs> | null
+  where?: Prisma.store_receiptsWhereInput
+  orderBy?: Prisma.store_receiptsOrderByWithRelationInput | Prisma.store_receiptsOrderByWithRelationInput[]
+  cursor?: Prisma.store_receiptsWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Store_receiptsScalarFieldEnum | Prisma.Store_receiptsScalarFieldEnum[]
+}
+
+/**
+ * suppliers.store_supplier_name_map
+ */
+export type suppliers$store_supplier_name_mapArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the store_supplier_name_map
+   */
+  select?: Prisma.store_supplier_name_mapSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the store_supplier_name_map
+   */
+  omit?: Prisma.store_supplier_name_mapOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.store_supplier_name_mapInclude<ExtArgs> | null
+  where?: Prisma.store_supplier_name_mapWhereInput
+  orderBy?: Prisma.store_supplier_name_mapOrderByWithRelationInput | Prisma.store_supplier_name_mapOrderByWithRelationInput[]
+  cursor?: Prisma.store_supplier_name_mapWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Store_supplier_name_mapScalarFieldEnum | Prisma.Store_supplier_name_mapScalarFieldEnum[]
 }
 
 /**

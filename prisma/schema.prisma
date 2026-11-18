@@ -11,21 +11,22 @@ datasource db {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model attachments {
-  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  entity             attachment_entity
-  entity_id          String?             @db.Uuid
-  storage_path       String              @unique
-  mime_type          String
-  size_bytes         Int
-  width              Int?
-  height             Int?
-  uploaded_by        String?             @db.Uuid
-  uploaded_by_name   String?
-  bound_at           DateTime?           @db.Timestamptz(6)
-  created_at         DateTime            @default(now()) @db.Timestamptz(6)
-  content_sha256     String?
-  users              users?              @relation(fields: [uploaded_by], references: [id], onUpdate: NoAction)
-  production_returns production_returns?
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entity               attachment_entity
+  entity_id            String?                @db.Uuid
+  storage_path         String                 @unique
+  mime_type            String
+  size_bytes           Int
+  width                Int?
+  height               Int?
+  uploaded_by          String?                @db.Uuid
+  uploaded_by_name     String?
+  bound_at             DateTime?              @db.Timestamptz(6)
+  created_at           DateTime               @default(now()) @db.Timestamptz(6)
+  content_sha256       String?
+  attachment_revisions attachment_revisions[]
+  users                users?                 @relation(fields: [uploaded_by], references: [id], onUpdate: NoAction)
+  production_returns   production_returns?
 
   @@index([entity, entity_id], map: "attachments_entity_idx", where: raw("(entity_id IS NOT NULL)"))
   @@index([created_at], map: "attachments_orphan_idx", where: raw("(entity_id IS NULL)"))
@@ -2014,7 +2015,7 @@ model salary_payments {
   finance_employees                        finance_employees   @relation(fields: [employee_id], references: [id], onUpdate: NoAction)
   ledger_entries                           ledger_entries?     @relation(fields: [ledger_entry_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
 
-  @@unique([employee_id, salary_month], map: "salary_payments_employee_month_idx", where: raw("(status <> 'rejected'::finance_doc_status)"))
+  @@unique([employee_id, salary_month], map: "salary_payments_employee_month_idx", where: raw("((status <> 'rejected'::finance_doc_status) AND (deleted_at IS NULL))"))
   @@index([deleted_at], map: "salary_payments_live_idx", where: raw("(deleted_at IS NULL)"))
   @@index([salary_month(sort: Desc), employee_name], map: "salary_payments_month_idx")
   @@index([status, created_at(sort: Desc)], map: "salary_payments_status_idx")
@@ -2300,7 +2301,6 @@ model users {
   updated_at                                                           DateTime                     @default(now()) @db.Timestamptz(6)
   user_code                                                            String                       @unique @default(dbgenerated("next_user_number()"))
   attachments                                                          attachments[]
-  finance_ai_captures                                                  finance_ai_captures[]
   audit_logs_audit_logs_admin_idTousers                                audit_logs[]                 @relation("audit_logs_admin_idTousers")
   audit_logs_audit_logs_target_user_idTousers                          audit_logs[]                 @relation("audit_logs_target_user_idTousers")
   auth_sessions                                                        auth_sessions[]
@@ -2315,8 +2315,8 @@ model users {
   cash_transfers_cash_transfers_approved_byTousers                     cash_transfers[]             @relation("cash_transfers_approved_byTousers")
   cash_transfers_cash_transfers_created_byTousers                      cash_transfers[]             @relation("cash_transfers_created_byTousers")
   cash_transfers_cash_transfers_deleted_byTousers                      cash_transfers[]             @relation("cash_transfers_deleted_byTousers")
-  cash_transfers_cash_transfers_resubmitted_byTousers                  cash_transfers[]             @relation("cash_transfers_resubmitted_byTousers")
   cash_transfers_cash_transfers_forwarded_byTousers                    cash_transfers[]             @relation("cash_transfers_forwarded_byTousers")
+  cash_transfers_cash_transfers_resubmitted_byTousers                  cash_transfers[]             @relation("cash_transfers_resubmitted_byTousers")
   cash_transfers_cash_transfers_updated_byTousers                      cash_transfers[]             @relation("cash_transfers_updated_byTousers")
   daily_sale_record_audits                                             daily_sale_record_audits[]
   daily_sale_records_daily_sale_records_created_byTousers              daily_sale_records[]         @relation("daily_sale_records_created_byTousers")
@@ -2332,6 +2332,7 @@ model users {
   event_branch_demands_event_branch_demands_submitted_byTousers        event_branch_demands[]       @relation("event_branch_demands_submitted_byTousers")
   event_production_status                                              event_production_status[]
   expenses                                                             expenses[]
+  finance_ai_captures                                                  finance_ai_captures[]
   finance_amendments                                                   finance_amendments[]
   finance_audit_logs                                                   finance_audit_logs[]
   finance_day_closings                                                 finance_day_closings[]
@@ -2414,6 +2415,28 @@ model users {
   special_orders_special_orders_prepared_byTousers                     special_orders[]             @relation("special_orders_prepared_byTousers")
   special_orders_special_orders_verified_byTousers                     special_orders[]             @relation("special_orders_verified_byTousers")
   stock_audit_log                                                      stock_audit_log[]
+  store_accounts_store_accounts_created_byTousers                      store_accounts[]             @relation("store_accounts_created_byTousers")
+  store_accounts_store_accounts_user_idTousers                         store_accounts?              @relation("store_accounts_user_idTousers")
+  store_adjustments                                                    store_adjustments[]
+  store_audit_events                                                   store_audit_events[]
+  store_demand_items                                                   store_demand_items[]
+  store_demands_store_demands_cancelled_byTousers                      store_demands[]              @relation("store_demands_cancelled_byTousers")
+  store_demands_store_demands_requested_byTousers                      store_demands[]              @relation("store_demands_requested_byTousers")
+  store_features                                                       store_features[]
+  store_issues_store_issues_confirmed_byTousers                        store_issues[]               @relation("store_issues_confirmed_byTousers")
+  store_issues_store_issues_issued_byTousers                           store_issues[]               @relation("store_issues_issued_byTousers")
+  store_item_prices_store_item_prices_created_byTousers                store_item_prices[]          @relation("store_item_prices_created_byTousers")
+  store_item_prices_store_item_prices_deactivated_byTousers            store_item_prices[]          @relation("store_item_prices_deactivated_byTousers")
+  store_items                                                          store_items[]
+  store_movements                                                      store_movements[]
+  store_price_requests_store_price_requests_requested_byTousers        store_price_requests[]       @relation("store_price_requests_requested_byTousers")
+  store_price_requests_store_price_requests_resolved_byTousers         store_price_requests[]       @relation("store_price_requests_resolved_byTousers")
+  store_purchase_orders_store_purchase_orders_approved_byTousers       store_purchase_orders[]      @relation("store_purchase_orders_approved_byTousers")
+  store_purchase_orders_store_purchase_orders_created_byTousers        store_purchase_orders[]      @relation("store_purchase_orders_created_byTousers")
+  store_queries_store_queries_archived_byTousers                       store_queries[]              @relation("store_queries_archived_byTousers")
+  store_queries_store_queries_raised_byTousers                         store_queries[]              @relation("store_queries_raised_byTousers")
+  store_query_messages                                                 store_query_messages[]
+  store_receipts                                                       store_receipts[]
   supplier_access_tokens                                               supplier_access_tokens[]
   supplier_credits_supplier_credits_decided_byTousers                  supplier_credits[]           @relation("supplier_credits_decided_byTousers")
   supplier_credits_supplier_credits_requested_byTousers                supplier_credits[]           @relation("supplier_credits_requested_byTousers")
@@ -2694,6 +2717,7 @@ model purchase_items {
   purchase_demand_items      purchase_demand_items[]
   users                      users?                       @relation(fields: [created_by], references: [id], onUpdate: NoAction)
   purchase_receipt_items     purchase_receipt_items[]
+  store_items                store_items[]
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -2887,32 +2911,40 @@ model supplier_payments {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model suppliers {
-  id                                String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  supplier_code                     String                   @unique @default(dbgenerated("app.next_finance_number('supplier'::text, 'SPL'::text)"))
+  id                                String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  supplier_code                     String                    @unique @default(dbgenerated("app.next_finance_number('supplier'::text, 'SPL'::text)"))
   name                              String
   contact_person                    String?
-  whatsapp_number                   String                   @unique(map: "suppliers_whatsapp_live", where: raw("(deleted_at IS NULL)"))
+  whatsapp_number                   String?                   @unique(map: "suppliers_whatsapp_live", where: raw("(deleted_at IS NULL)"))
   phone                             String?
   category                          String?
   address                           String?
   payment_terms                     String?
   notes                             String?
-  is_active                         Boolean                  @default(true)
-  whatsapp_opt_in_at                DateTime?                @db.Timestamptz(6)
+  is_active                         Boolean                   @default(true)
+  whatsapp_opt_in_at                DateTime?                 @db.Timestamptz(6)
   whatsapp_opt_in_source            String?
-  created_by                        String?                  @db.Uuid
+  created_by                        String?                   @db.Uuid
   created_by_name                   String?
-  created_at                        DateTime                 @default(now()) @db.Timestamptz(6)
-  updated_at                        DateTime                 @default(now()) @db.Timestamptz(6)
-  deleted_at                        DateTime?                @db.Timestamptz(6)
-  deleted_by                        String?                  @db.Uuid
+  created_at                        DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at                        DateTime                  @default(now()) @db.Timestamptz(6)
+  deleted_at                        DateTime?                 @db.Timestamptz(6)
+  deleted_by                        String?                   @db.Uuid
   deleted_by_name                   String?
   delete_reason                     String?
+  email                             String?
+  ntn                               String?
+  strn                              String?
+  lead_time_days                    Int?
   purchase_demands                  purchase_demands[]
+  store_items                       store_items[]
+  store_purchase_orders             store_purchase_orders[]
+  store_receipts                    store_receipts[]
+  store_supplier_name_map           store_supplier_name_map[]
   supplier_credits                  supplier_credits[]
   supplier_payments                 supplier_payments[]
-  users_suppliers_created_byTousers users?                   @relation("suppliers_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
-  users_suppliers_deleted_byTousers users?                   @relation("suppliers_deleted_byTousers", fields: [deleted_by], references: [id], onUpdate: NoAction)
+  users_suppliers_created_byTousers users?                    @relation("suppliers_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
+  users_suppliers_deleted_byTousers users?                    @relation("suppliers_deleted_byTousers", fields: [deleted_by], references: [id], onUpdate: NoAction)
   whatsapp_conversations            whatsapp_conversations[]
   whatsapp_messages                 whatsapp_messages[]
 }
@@ -3148,6 +3180,585 @@ model finance_loan_entries {
   @@index([ledger_head_id], map: "finance_loan_entries_head_idx")
   @@index([status])
   @@index([entry_type], map: "finance_loan_entries_type_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model attachment_revisions {
+  id               String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  attachment_id    String      @db.Uuid
+  action           String      @default("cropped")
+  old_storage_path String
+  old_mime_type    String
+  old_size_bytes   Int
+  old_width        Int?
+  old_height       Int?
+  new_storage_path String
+  new_mime_type    String
+  new_size_bytes   Int
+  new_width        Int?
+  new_height       Int?
+  changed_by       String?     @db.Uuid
+  changed_by_name  String?
+  changed_at       DateTime    @default(now()) @db.Timestamptz(6)
+  attachments      attachments @relation(fields: [attachment_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([attachment_id, changed_at(sort: Desc)], map: "attachment_revisions_attachment_idx")
+}
+
+model store_accounts {
+  id                                     String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                                String            @unique @db.Uuid
+  store_id                               String            @db.Uuid
+  can_manage_items                       Boolean           @default(true)
+  can_edit_prices                        Boolean           @default(false)
+  can_adjust_stock                       Boolean           @default(true)
+  can_issue                              Boolean           @default(true)
+  notes                                  String?
+  created_by                             String?           @db.Uuid
+  created_by_name                        String?
+  created_at                             DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at                             DateTime          @default(now()) @db.Timestamptz(6)
+  users_store_accounts_created_byTousers users?            @relation("store_accounts_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
+  store_departments                      store_departments @relation(fields: [store_id], references: [id], onUpdate: NoAction)
+  users_store_accounts_user_idTousers    users             @relation("store_accounts_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_adjustments {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adj_no                  String                    @unique @default(dbgenerated("app.next_store_number('store_adjustment'::text, 'ADJ'::text)"))
+  item_id                 String                    @db.Uuid
+  kind                    String
+  direction               String
+  qty                     Decimal                   @db.Decimal(14, 3)
+  reason                  String
+  note                    String?
+  business_date           DateTime                  @db.Date
+  value                   Decimal                   @default(0) @db.Decimal(14, 2)
+  client_request_id       String?                   @unique @db.Uuid
+  created_by              String?                   @db.Uuid
+  created_by_name         String?
+  created_at              DateTime                  @default(now()) @db.Timestamptz(6)
+  users                   users?                    @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  store_items             store_items               @relation(fields: [item_id], references: [id], onUpdate: NoAction)
+  store_batch_allocations store_batch_allocations[]
+  store_movements         store_movements[]
+
+  @@index([business_date(sort: Desc), created_at(sort: Desc)], map: "store_adjustments_date_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_audit_events {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entity      String
+  entity_id   String?  @db.Uuid
+  entity_ref  String?
+  action      String
+  detail      String?
+  before_data Json?
+  after_data  Json?
+  actor_id    String?  @db.Uuid
+  actor_name  String?
+  actor_role  String?
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  users       users?   @relation(fields: [actor_id], references: [id], onUpdate: NoAction)
+
+  @@index([entity, entity_id, created_at(sort: Desc)], map: "store_audit_entity_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_batch_allocations {
+  id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  batch_id          String             @db.Uuid
+  item_id           String             @db.Uuid
+  issue_item_id     String?            @db.Uuid
+  adjustment_id     String?            @db.Uuid
+  qty               Decimal            @db.Decimal(14, 3)
+  unit_cost         Decimal            @db.Decimal(14, 4)
+  amount            Decimal            @db.Decimal(14, 2)
+  created_at        DateTime           @default(now()) @db.Timestamptz(6)
+  store_adjustments store_adjustments? @relation(fields: [adjustment_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  store_batches     store_batches      @relation(fields: [batch_id], references: [id], onUpdate: NoAction)
+  store_issue_items store_issue_items? @relation(fields: [issue_item_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  store_items       store_items        @relation(fields: [item_id], references: [id], onUpdate: NoAction)
+
+  @@index([batch_id], map: "store_alloc_batch_idx")
+  @@index([issue_item_id], map: "store_alloc_issue_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_batches {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  batch_no                String                    @unique @default(dbgenerated("app.next_store_number('store_batch'::text, 'BAT'::text)"))
+  item_id                 String                    @db.Uuid
+  source                  String
+  receipt_id              String?                   @db.Uuid
+  line_no                 Int?
+  price_id                String?                   @db.Uuid
+  package_name            String?
+  package_qty             Decimal?                  @db.Decimal(14, 3)
+  packages                Int?
+  list_price              Decimal?                  @db.Decimal(14, 2)
+  price_per_package       Decimal?                  @db.Decimal(14, 2)
+  override_reason         String?
+  unit_cost               Decimal                   @db.Decimal(14, 4)
+  received_qty            Decimal                   @db.Decimal(14, 3)
+  remaining_qty           Decimal                   @db.Decimal(14, 3)
+  amount                  Decimal                   @db.Decimal(14, 2)
+  supplier_batch_no       String?
+  expiry_date             DateTime?                 @db.Date
+  received_at             DateTime                  @db.Date
+  created_at              DateTime                  @default(now()) @db.Timestamptz(6)
+  store_batch_allocations store_batch_allocations[]
+  store_items             store_items               @relation(fields: [item_id], references: [id], onUpdate: NoAction)
+  store_item_prices       store_item_prices?        @relation(fields: [price_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  store_receipts          store_receipts?           @relation(fields: [receipt_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  store_movements         store_movements[]
+
+  @@index([item_id, received_at, created_at], map: "store_batches_fifo_idx", where: raw("(remaining_qty > (0)::numeric)"))
+  @@index([receipt_id], map: "store_batches_receipt_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_demand_items {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  demand_id         String              @db.Uuid
+  line_no           Int
+  item_id           String              @db.Uuid
+  item_name         String
+  unit              String
+  requested_qty     Decimal             @db.Decimal(14, 3)
+  status            String              @default("pending")
+  approved_qty      Decimal?            @db.Decimal(14, 3)
+  issued_qty        Decimal             @default(0) @db.Decimal(14, 3)
+  received_qty      Decimal             @default(0) @db.Decimal(14, 3)
+  unit_price        Decimal?            @db.Decimal(14, 4)
+  remarks           String?
+  decision_note     String?
+  decided_by        String?             @db.Uuid
+  decided_by_name   String?
+  decided_at        DateTime?           @db.Timestamptz(6)
+  users             users?              @relation(fields: [decided_by], references: [id], onUpdate: NoAction)
+  store_demands     store_demands       @relation(fields: [demand_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  store_items       store_items         @relation(fields: [item_id], references: [id], onUpdate: NoAction)
+  store_issue_items store_issue_items[]
+
+  @@unique([demand_id, item_id])
+  @@unique([demand_id, line_no])
+  @@index([item_id], map: "store_demand_items_item_idx", where: raw("(status = 'approved'::text)"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_demands {
+  id                                      String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  demand_no                               String               @unique @default(dbgenerated("app.next_store_number('store_demand'::text, 'DRD'::text)"))
+  store_id                                String               @db.Uuid
+  demand_date                             DateTime             @db.Date
+  required_date                           DateTime             @db.Date
+  requested_by                            String?              @db.Uuid
+  requested_by_name                       String?
+  production_code                         String?
+  remarks                                 String?
+  status                                  String               @default("pending_review")
+  client_request_id                       String?              @unique @db.Uuid
+  cancelled_at                            DateTime?            @db.Timestamptz(6)
+  cancelled_by                            String?              @db.Uuid
+  cancelled_by_name                       String?
+  created_at                              DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at                              DateTime             @default(now()) @db.Timestamptz(6)
+  store_demand_items                      store_demand_items[]
+  users_store_demands_cancelled_byTousers users?               @relation("store_demands_cancelled_byTousers", fields: [cancelled_by], references: [id], onUpdate: NoAction)
+  users_store_demands_requested_byTousers users?               @relation("store_demands_requested_byTousers", fields: [requested_by], references: [id], onUpdate: NoAction)
+  store_departments                       store_departments    @relation(fields: [store_id], references: [id], onUpdate: NoAction)
+  store_issues                            store_issues[]
+  store_movements                         store_movements[]
+  store_queries                           store_queries[]
+
+  @@index([demand_date(sort: Desc), created_at(sort: Desc)], map: "store_demands_date_idx")
+  @@index([status, required_date], map: "store_demands_status_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_departments {
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  store_code            String                  @unique @default(dbgenerated("app.next_store_number('store_department'::text, 'DRY-STORE'::text, 3)"))
+  name                  String
+  opening_date          DateTime?               @db.Date
+  is_active             Boolean                 @default(true)
+  created_at            DateTime                @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime                @default(now()) @db.Timestamptz(6)
+  store_accounts        store_accounts[]
+  store_demands         store_demands[]
+  store_features        store_features[]
+  store_issues          store_issues[]
+  store_price_requests  store_price_requests[]
+  store_purchase_orders store_purchase_orders[]
+  store_receipts        store_receipts[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_features {
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  store_id          String            @db.Uuid
+  feature_key       String
+  enabled           Boolean           @default(false)
+  updated_by        String?           @db.Uuid
+  updated_by_name   String?
+  updated_at        DateTime          @default(now()) @db.Timestamptz(6)
+  store_departments store_departments @relation(fields: [store_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users             users?            @relation(fields: [updated_by], references: [id], onUpdate: NoAction)
+
+  @@unique([store_id, feature_key])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_issue_items {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  issue_id                String                    @db.Uuid
+  demand_item_id          String                    @db.Uuid
+  item_id                 String                    @db.Uuid
+  item_name               String
+  unit                    String
+  issued_qty              Decimal                   @db.Decimal(14, 3)
+  received_qty            Decimal?                  @db.Decimal(14, 3)
+  cost_amount             Decimal                   @default(0) @db.Decimal(14, 2)
+  unit_price              Decimal?                  @db.Decimal(14, 4)
+  store_batch_allocations store_batch_allocations[]
+  store_demand_items      store_demand_items        @relation(fields: [demand_item_id], references: [id], onUpdate: NoAction)
+  store_issues            store_issues              @relation(fields: [issue_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  store_items             store_items               @relation(fields: [item_id], references: [id], onUpdate: NoAction)
+
+  @@index([issue_id], map: "store_issue_items_issue_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_issues {
+  id                                     String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  issue_no                               String              @unique @default(dbgenerated("app.next_store_number('store_issue'::text, 'ISS'::text)"))
+  demand_id                              String              @db.Uuid
+  store_id                               String              @db.Uuid
+  issue_date                             DateTime            @db.Date
+  issued_by                              String?             @db.Uuid
+  issued_by_name                         String?
+  received_by_name                       String
+  remarks                                String?
+  status                                 String              @default("issued")
+  confirmed_by                           String?             @db.Uuid
+  confirmed_by_name                      String?
+  confirmed_at                           DateTime?           @db.Timestamptz(6)
+  confirm_note                           String?
+  total_cost                             Decimal             @default(0) @db.Decimal(14, 2)
+  client_request_id                      String?             @unique @db.Uuid
+  created_at                             DateTime            @default(now()) @db.Timestamptz(6)
+  store_issue_items                      store_issue_items[]
+  users_store_issues_confirmed_byTousers users?              @relation("store_issues_confirmed_byTousers", fields: [confirmed_by], references: [id], onUpdate: NoAction)
+  store_demands                          store_demands       @relation(fields: [demand_id], references: [id], onUpdate: NoAction)
+  users_store_issues_issued_byTousers    users?              @relation("store_issues_issued_byTousers", fields: [issued_by], references: [id], onUpdate: NoAction)
+  store_departments                      store_departments   @relation(fields: [store_id], references: [id], onUpdate: NoAction)
+  store_movements                        store_movements[]
+  store_queries                          store_queries[]
+
+  @@index([issue_date(sort: Desc), created_at(sort: Desc)], map: "store_issues_date_idx")
+  @@index([demand_id], map: "store_issues_demand_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_item_barcodes {
+  id                  String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  item_id             String               @db.Uuid
+  package_id          String?              @db.Uuid
+  code                String               @unique
+  type                String               @default("ean")
+  created_at          DateTime             @default(now()) @db.Timestamptz(6)
+  store_items         store_items          @relation(fields: [item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  store_item_packages store_item_packages? @relation(fields: [package_id], references: [id], onUpdate: NoAction)
+
+  @@index([item_id], map: "store_item_barcodes_item_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_item_packages {
+  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  item_id             String                @unique(map: "store_item_packages_one_default", where: raw("is_default")) @db.Uuid
+  package_name        String
+  package_qty         Decimal               @db.Decimal(14, 3)
+  is_default          Boolean               @default(false)
+  is_active           Boolean               @default(true)
+  sort_order          Int                   @default(0)
+  created_at          DateTime              @default(now()) @db.Timestamptz(6)
+  store_item_barcodes store_item_barcodes[]
+  store_items         store_items           @relation(fields: [item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([item_id, package_name, package_qty])
+  @@index([item_id], map: "store_item_packages_item_idx", where: raw("is_active"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_item_prices {
+  id                                            String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  price_no                                      String                 @unique @default(dbgenerated("app.next_store_number('store_price'::text, 'PRC'::text, 4)"))
+  item_id                                       String                 @db.Uuid
+  package_name                                  String
+  package_qty                                   Decimal                @db.Decimal(14, 3)
+  price                                         Decimal                @db.Decimal(14, 2)
+  effective_from                                DateTime               @db.Date
+  status                                        String                 @default("active")
+  created_by                                    String?                @db.Uuid
+  created_by_name                               String?
+  created_at                                    DateTime               @default(now()) @db.Timestamptz(6)
+  deactivated_by                                String?                @db.Uuid
+  deactivated_by_name                           String?
+  deactivated_at                                DateTime?              @db.Timestamptz(6)
+  store_batches                                 store_batches[]
+  users_store_item_prices_created_byTousers     users?                 @relation("store_item_prices_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
+  users_store_item_prices_deactivated_byTousers users?                 @relation("store_item_prices_deactivated_byTousers", fields: [deactivated_by], references: [id], onUpdate: NoAction)
+  store_items                                   store_items            @relation(fields: [item_id], references: [id], onUpdate: NoAction)
+  store_price_requests                          store_price_requests[]
+
+  @@unique([item_id, package_name, package_qty, effective_from], map: "store_prices_one_per_day", where: raw("(status = 'active'::text)"))
+  @@index([item_id, effective_from(sort: Desc)], map: "store_prices_item_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model store_items {
+  id                         String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  item_no                    String                       @unique @default(dbgenerated("app.next_store_number('store_item'::text, 'DRY'::text, 3)"))
+  item_code                  String                       @unique(map: "store_items_code_key")
+  name                       String
+  category                   String
+  base_unit                  String
+  purchase_unit              String
+  conversion_qty             Decimal                      @db.Decimal(14, 3)
+  min_stock                  Decimal                      @default(0) @db.Decimal(14, 3)
+  available_qty              Decimal                      @default(0) @db.Decimal(14, 3)
+  status                     String                       @default("active")
+  remarks                    String?
+  purchase_item_id           String?                      @db.Uuid
+  created_by                 String?                      @db.Uuid
+  created_by_name            String?
+  created_at                 DateTime                     @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime                     @default(now()) @db.Timestamptz(6)
+  reorder_qty                Decimal                      @default(0) @db.Decimal(14, 3)
+  max_level                  Decimal                      @default(0) @db.Decimal(14, 3)
+  safety_stock               Decimal                      @default(0) @db.Decimal(14, 3)
+  lead_time_days             Int?
+  preferred_supplier_id      String?                      @db.Uuid
+  storage_type               String                       @default("dry")
+  track_expiry               Boolean                      @default(false)
+  description                String?
+  store_adjustments          store_adjustments[]
+  store_batch_allocations    store_batch_allocations[]
+  store_batches              store_batches[]
+  store_demand_items         store_demand_items[]
+  store_issue_items          store_issue_items[]
+  store_item_barcodes        store_item_barcodes[]
+  store_item_packages        store_item_packages?
+  store_item_prices          store_item_prices[]
+  users                      users?                       @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  suppliers                  suppliers?                   @relation(fields: [preferred_supplier_id], references: [id], onUpdate: NoAction)
+  purchase_items             purchase_items?              @relation(fields: [purchase_item_id], references: [id], onUpdate: NoAction)
+  store_movements            store_movements[]
+  store_price_requests       store_price_requests?
+  store_purchase_order_lines store_purchase_order_lines[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model store_lookups {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  kind       String
+  value      String
+  sort_order Int      @default(0)
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  unit_type  String?
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_movements {
+  id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  item_id           String             @db.Uuid
+  type              String
+  qty_delta         Decimal            @db.Decimal(14, 3)
+  balance_after     Decimal            @db.Decimal(14, 3)
+  value             Decimal            @default(0) @db.Decimal(14, 2)
+  business_date     DateTime           @db.Date
+  ref_no            String
+  detail            String?
+  receipt_id        String?            @db.Uuid
+  batch_id          String?            @db.Uuid
+  issue_id          String?            @db.Uuid
+  demand_id         String?            @db.Uuid
+  adjustment_id     String?            @db.Uuid
+  created_by        String?            @db.Uuid
+  created_by_name   String?
+  created_at        DateTime           @default(now()) @db.Timestamptz(6)
+  store_adjustments store_adjustments? @relation(fields: [adjustment_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  store_batches     store_batches?     @relation(fields: [batch_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  users             users?             @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  store_demands     store_demands?     @relation(fields: [demand_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  store_issues      store_issues?      @relation(fields: [issue_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  store_items       store_items        @relation(fields: [item_id], references: [id], onUpdate: NoAction)
+  store_receipts    store_receipts?    @relation(fields: [receipt_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@index([business_date, type], map: "store_movements_date_idx")
+  @@index([item_id, business_date, created_at], map: "store_movements_item_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_price_requests {
+  id                                             String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  item_id                                        String             @unique(map: "store_price_requests_one_open", where: raw("(status = 'open'::text)")) @db.Uuid
+  store_id                                       String             @db.Uuid
+  note                                           String?
+  status                                         String             @default("open")
+  requested_by                                   String?            @db.Uuid
+  requested_by_name                              String?
+  resolved_by                                    String?            @db.Uuid
+  resolved_by_name                               String?
+  resolved_price_id                              String?            @db.Uuid
+  created_at                                     DateTime           @default(now()) @db.Timestamptz(6)
+  resolved_at                                    DateTime?          @db.Timestamptz(6)
+  store_items                                    store_items        @relation(fields: [item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_store_price_requests_requested_byTousers users?             @relation("store_price_requests_requested_byTousers", fields: [requested_by], references: [id], onUpdate: NoAction)
+  users_store_price_requests_resolved_byTousers  users?             @relation("store_price_requests_resolved_byTousers", fields: [resolved_by], references: [id], onUpdate: NoAction)
+  store_item_prices                              store_item_prices? @relation(fields: [resolved_price_id], references: [id], onUpdate: NoAction)
+  store_departments                              store_departments  @relation(fields: [store_id], references: [id], onUpdate: NoAction)
+
+  @@index([status, created_at(sort: Desc)], map: "store_price_requests_status_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_purchase_order_lines {
+  id                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  po_id                 String                @db.Uuid
+  line_no               Int
+  item_id               String                @db.Uuid
+  item_name             String
+  package_name          String
+  package_qty           Decimal               @db.Decimal(14, 3)
+  qty_packages          Decimal               @db.Decimal(14, 3)
+  expected_price        Decimal               @default(0) @db.Decimal(14, 2)
+  received_qty_base     Decimal               @default(0) @db.Decimal(14, 3)
+  line_total            Decimal               @default(0) @db.Decimal(14, 2)
+  store_items           store_items           @relation(fields: [item_id], references: [id], onUpdate: NoAction)
+  store_purchase_orders store_purchase_orders @relation(fields: [po_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([po_id, line_no])
+  @@index([item_id], map: "store_po_lines_item_idx")
+  @@index([po_id], map: "store_po_lines_po_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_purchase_orders {
+  id                                             String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  po_no                                          String                       @unique @default(dbgenerated("app.next_store_number('store_po'::text, 'PO'::text)"))
+  store_id                                       String                       @db.Uuid
+  supplier_id                                    String                       @db.Uuid
+  order_date                                     DateTime                     @db.Date
+  expected_date                                  DateTime?                    @db.Date
+  status                                         String                       @default("draft")
+  notes                                          String?
+  total_amount                                   Decimal                      @default(0) @db.Decimal(14, 2)
+  cancel_reason                                  String?
+  short_close_reason                             String?
+  created_by                                     String?                      @db.Uuid
+  created_by_name                                String?
+  approved_by                                    String?                      @db.Uuid
+  approved_by_name                               String?
+  approved_at                                    DateTime?                    @db.Timestamptz(6)
+  created_at                                     DateTime                     @default(now()) @db.Timestamptz(6)
+  updated_at                                     DateTime                     @default(now()) @db.Timestamptz(6)
+  store_purchase_order_lines                     store_purchase_order_lines[]
+  users_store_purchase_orders_approved_byTousers users?                       @relation("store_purchase_orders_approved_byTousers", fields: [approved_by], references: [id], onUpdate: NoAction)
+  users_store_purchase_orders_created_byTousers  users?                       @relation("store_purchase_orders_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
+  store_departments                              store_departments            @relation(fields: [store_id], references: [id], onUpdate: NoAction)
+  suppliers                                      suppliers                    @relation(fields: [supplier_id], references: [id], onUpdate: NoAction)
+
+  @@index([status, order_date(sort: Desc)], map: "store_purchase_orders_status_idx")
+  @@index([supplier_id], map: "store_purchase_orders_supplier_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_queries {
+  id                                     String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  query_no                               String                 @unique @default(dbgenerated("app.next_store_number('store_query'::text, 'SQ'::text)"))
+  subject                                String
+  query_type                             String
+  description                            String
+  related_receipt_id                     String?                @db.Uuid
+  related_demand_id                      String?                @db.Uuid
+  related_issue_id                       String?                @db.Uuid
+  status                                 String                 @default("open")
+  raised_by                              String?                @db.Uuid
+  raised_by_name                         String?
+  raised_by_role                         String?
+  archived_at                            DateTime?              @db.Timestamptz(6)
+  archived_by                            String?                @db.Uuid
+  archived_by_name                       String?
+  created_at                             DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at                             DateTime               @default(now()) @db.Timestamptz(6)
+  users_store_queries_archived_byTousers users?                 @relation("store_queries_archived_byTousers", fields: [archived_by], references: [id], onUpdate: NoAction)
+  users_store_queries_raised_byTousers   users?                 @relation("store_queries_raised_byTousers", fields: [raised_by], references: [id], onUpdate: NoAction)
+  store_demands                          store_demands?         @relation(fields: [related_demand_id], references: [id], onUpdate: NoAction)
+  store_issues                           store_issues?          @relation(fields: [related_issue_id], references: [id], onUpdate: NoAction)
+  store_receipts                         store_receipts?        @relation(fields: [related_receipt_id], references: [id], onUpdate: NoAction)
+  store_query_messages                   store_query_messages[]
+
+  @@index([status, created_at(sort: Desc)], map: "store_queries_status_idx", where: raw("(archived_at IS NULL)"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_query_messages {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  query_id      String        @db.Uuid
+  author_id     String?       @db.Uuid
+  author_name   String?
+  author_side   String
+  body          String?
+  status_change String?
+  created_at    DateTime      @default(now()) @db.Timestamptz(6)
+  users         users?        @relation(fields: [author_id], references: [id], onUpdate: NoAction)
+  store_queries store_queries @relation(fields: [query_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([query_id, created_at], map: "store_query_messages_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model store_receipts {
+  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  receipt_no        String            @unique @default(dbgenerated("app.next_store_number('store_receipt'::text, 'RCV'::text)"))
+  store_id          String            @db.Uuid
+  receipt_date      DateTime          @db.Date
+  supplier_id       String?           @db.Uuid
+  supplier_name     String
+  invoice_no        String?
+  remarks           String?
+  total_amount      Decimal           @default(0) @db.Decimal(14, 2)
+  client_request_id String?           @unique @db.Uuid
+  received_by       String?           @db.Uuid
+  received_by_name  String?
+  created_at        DateTime          @default(now()) @db.Timestamptz(6)
+  store_batches     store_batches[]
+  store_movements   store_movements[]
+  store_queries     store_queries[]
+  users             users?            @relation(fields: [received_by], references: [id], onUpdate: NoAction)
+  store_departments store_departments @relation(fields: [store_id], references: [id], onUpdate: NoAction)
+  suppliers         suppliers?        @relation(fields: [supplier_id], references: [id], onUpdate: NoAction)
+
+  @@index([receipt_date(sort: Desc), created_at(sort: Desc)], map: "store_receipts_date_idx")
+}
+
+model store_supplier_name_map {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  normalized_name  String    @unique
+  raw_name         String
+  supplier_id      String    @db.Uuid
+  created_supplier Boolean   @default(false)
+  receipts_linked  Int       @default(0)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  suppliers        suppliers @relation(fields: [supplier_id], references: [id], onUpdate: NoAction)
 }
 
 enum app_theme {
@@ -3413,6 +4024,7 @@ enum notification_type {
   store_issue_received
   store_query
   store_query_reply
+  store_price_request
 }
 
 enum order_status {

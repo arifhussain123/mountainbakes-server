@@ -288,6 +288,7 @@ export type attachmentsWhereInput = {
   bound_at?: Prisma.DateTimeNullableFilter<"attachments"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"attachments"> | Date | string
   content_sha256?: Prisma.StringNullableFilter<"attachments"> | string | null
+  attachment_revisions?: Prisma.Attachment_revisionsListRelationFilter
   users?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   production_returns?: Prisma.XOR<Prisma.Production_returnsNullableScalarRelationFilter, Prisma.production_returnsWhereInput> | null
 }
@@ -306,6 +307,7 @@ export type attachmentsOrderByWithRelationInput = {
   bound_at?: Prisma.SortOrderInput | Prisma.SortOrder
   created_at?: Prisma.SortOrder
   content_sha256?: Prisma.SortOrderInput | Prisma.SortOrder
+  attachment_revisions?: Prisma.attachment_revisionsOrderByRelationAggregateInput
   users?: Prisma.usersOrderByWithRelationInput
   production_returns?: Prisma.production_returnsOrderByWithRelationInput
 }
@@ -327,6 +329,7 @@ export type attachmentsWhereUniqueInput = Prisma.AtLeast<{
   bound_at?: Prisma.DateTimeNullableFilter<"attachments"> | Date | string | null
   created_at?: Prisma.DateTimeFilter<"attachments"> | Date | string
   content_sha256?: Prisma.StringNullableFilter<"attachments"> | string | null
+  attachment_revisions?: Prisma.Attachment_revisionsListRelationFilter
   users?: Prisma.XOR<Prisma.UsersNullableScalarRelationFilter, Prisma.usersWhereInput> | null
   production_returns?: Prisma.XOR<Prisma.Production_returnsNullableScalarRelationFilter, Prisma.production_returnsWhereInput> | null
 }, "id" | "storage_path">
@@ -384,6 +387,7 @@ export type attachmentsCreateInput = {
   bound_at?: Date | string | null
   created_at?: Date | string
   content_sha256?: string | null
+  attachment_revisions?: Prisma.attachment_revisionsCreateNestedManyWithoutAttachmentsInput
   users?: Prisma.usersCreateNestedOneWithoutAttachmentsInput
   production_returns?: Prisma.production_returnsCreateNestedOneWithoutAttachmentsInput
 }
@@ -402,6 +406,7 @@ export type attachmentsUncheckedCreateInput = {
   bound_at?: Date | string | null
   created_at?: Date | string
   content_sha256?: string | null
+  attachment_revisions?: Prisma.attachment_revisionsUncheckedCreateNestedManyWithoutAttachmentsInput
   production_returns?: Prisma.production_returnsUncheckedCreateNestedOneWithoutAttachmentsInput
 }
 
@@ -418,6 +423,7 @@ export type attachmentsUpdateInput = {
   bound_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   content_sha256?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attachment_revisions?: Prisma.attachment_revisionsUpdateManyWithoutAttachmentsNestedInput
   users?: Prisma.usersUpdateOneWithoutAttachmentsNestedInput
   production_returns?: Prisma.production_returnsUpdateOneWithoutAttachmentsNestedInput
 }
@@ -436,6 +442,7 @@ export type attachmentsUncheckedUpdateInput = {
   bound_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   content_sha256?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attachment_revisions?: Prisma.attachment_revisionsUncheckedUpdateManyWithoutAttachmentsNestedInput
   production_returns?: Prisma.production_returnsUncheckedUpdateOneWithoutAttachmentsNestedInput
 }
 
@@ -561,6 +568,11 @@ export type attachmentsOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type AttachmentsScalarRelationFilter = {
+  is?: Prisma.attachmentsWhereInput
+  isNot?: Prisma.attachmentsWhereInput
+}
+
 export type StringFieldUpdateOperationsInput = {
   set?: string
 }
@@ -655,6 +667,20 @@ export type attachmentsUncheckedUpdateManyWithoutUsersNestedInput = {
   deleteMany?: Prisma.attachmentsScalarWhereInput | Prisma.attachmentsScalarWhereInput[]
 }
 
+export type attachmentsCreateNestedOneWithoutAttachment_revisionsInput = {
+  create?: Prisma.XOR<Prisma.attachmentsCreateWithoutAttachment_revisionsInput, Prisma.attachmentsUncheckedCreateWithoutAttachment_revisionsInput>
+  connectOrCreate?: Prisma.attachmentsCreateOrConnectWithoutAttachment_revisionsInput
+  connect?: Prisma.attachmentsWhereUniqueInput
+}
+
+export type attachmentsUpdateOneRequiredWithoutAttachment_revisionsNestedInput = {
+  create?: Prisma.XOR<Prisma.attachmentsCreateWithoutAttachment_revisionsInput, Prisma.attachmentsUncheckedCreateWithoutAttachment_revisionsInput>
+  connectOrCreate?: Prisma.attachmentsCreateOrConnectWithoutAttachment_revisionsInput
+  upsert?: Prisma.attachmentsUpsertWithoutAttachment_revisionsInput
+  connect?: Prisma.attachmentsWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.attachmentsUpdateToOneWithWhereWithoutAttachment_revisionsInput, Prisma.attachmentsUpdateWithoutAttachment_revisionsInput>, Prisma.attachmentsUncheckedUpdateWithoutAttachment_revisionsInput>
+}
+
 export type attachmentsCreateWithoutProduction_returnsInput = {
   id?: string
   entity: $Enums.attachment_entity
@@ -668,6 +694,7 @@ export type attachmentsCreateWithoutProduction_returnsInput = {
   bound_at?: Date | string | null
   created_at?: Date | string
   content_sha256?: string | null
+  attachment_revisions?: Prisma.attachment_revisionsCreateNestedManyWithoutAttachmentsInput
   users?: Prisma.usersCreateNestedOneWithoutAttachmentsInput
 }
 
@@ -685,6 +712,7 @@ export type attachmentsUncheckedCreateWithoutProduction_returnsInput = {
   bound_at?: Date | string | null
   created_at?: Date | string
   content_sha256?: string | null
+  attachment_revisions?: Prisma.attachment_revisionsUncheckedCreateNestedManyWithoutAttachmentsInput
 }
 
 export type attachmentsCreateOrConnectWithoutProduction_returnsInput = {
@@ -716,6 +744,7 @@ export type attachmentsUpdateWithoutProduction_returnsInput = {
   bound_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   content_sha256?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attachment_revisions?: Prisma.attachment_revisionsUpdateManyWithoutAttachmentsNestedInput
   users?: Prisma.usersUpdateOneWithoutAttachmentsNestedInput
 }
 
@@ -733,6 +762,7 @@ export type attachmentsUncheckedUpdateWithoutProduction_returnsInput = {
   bound_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   content_sha256?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attachment_revisions?: Prisma.attachment_revisionsUncheckedUpdateManyWithoutAttachmentsNestedInput
 }
 
 export type attachmentsCreateWithoutUsersInput = {
@@ -748,6 +778,7 @@ export type attachmentsCreateWithoutUsersInput = {
   bound_at?: Date | string | null
   created_at?: Date | string
   content_sha256?: string | null
+  attachment_revisions?: Prisma.attachment_revisionsCreateNestedManyWithoutAttachmentsInput
   production_returns?: Prisma.production_returnsCreateNestedOneWithoutAttachmentsInput
 }
 
@@ -764,6 +795,7 @@ export type attachmentsUncheckedCreateWithoutUsersInput = {
   bound_at?: Date | string | null
   created_at?: Date | string
   content_sha256?: string | null
+  attachment_revisions?: Prisma.attachment_revisionsUncheckedCreateNestedManyWithoutAttachmentsInput
   production_returns?: Prisma.production_returnsUncheckedCreateNestedOneWithoutAttachmentsInput
 }
 
@@ -812,6 +844,90 @@ export type attachmentsScalarWhereInput = {
   content_sha256?: Prisma.StringNullableFilter<"attachments"> | string | null
 }
 
+export type attachmentsCreateWithoutAttachment_revisionsInput = {
+  id?: string
+  entity: $Enums.attachment_entity
+  entity_id?: string | null
+  storage_path: string
+  mime_type: string
+  size_bytes: number
+  width?: number | null
+  height?: number | null
+  uploaded_by_name?: string | null
+  bound_at?: Date | string | null
+  created_at?: Date | string
+  content_sha256?: string | null
+  users?: Prisma.usersCreateNestedOneWithoutAttachmentsInput
+  production_returns?: Prisma.production_returnsCreateNestedOneWithoutAttachmentsInput
+}
+
+export type attachmentsUncheckedCreateWithoutAttachment_revisionsInput = {
+  id?: string
+  entity: $Enums.attachment_entity
+  entity_id?: string | null
+  storage_path: string
+  mime_type: string
+  size_bytes: number
+  width?: number | null
+  height?: number | null
+  uploaded_by?: string | null
+  uploaded_by_name?: string | null
+  bound_at?: Date | string | null
+  created_at?: Date | string
+  content_sha256?: string | null
+  production_returns?: Prisma.production_returnsUncheckedCreateNestedOneWithoutAttachmentsInput
+}
+
+export type attachmentsCreateOrConnectWithoutAttachment_revisionsInput = {
+  where: Prisma.attachmentsWhereUniqueInput
+  create: Prisma.XOR<Prisma.attachmentsCreateWithoutAttachment_revisionsInput, Prisma.attachmentsUncheckedCreateWithoutAttachment_revisionsInput>
+}
+
+export type attachmentsUpsertWithoutAttachment_revisionsInput = {
+  update: Prisma.XOR<Prisma.attachmentsUpdateWithoutAttachment_revisionsInput, Prisma.attachmentsUncheckedUpdateWithoutAttachment_revisionsInput>
+  create: Prisma.XOR<Prisma.attachmentsCreateWithoutAttachment_revisionsInput, Prisma.attachmentsUncheckedCreateWithoutAttachment_revisionsInput>
+  where?: Prisma.attachmentsWhereInput
+}
+
+export type attachmentsUpdateToOneWithWhereWithoutAttachment_revisionsInput = {
+  where?: Prisma.attachmentsWhereInput
+  data: Prisma.XOR<Prisma.attachmentsUpdateWithoutAttachment_revisionsInput, Prisma.attachmentsUncheckedUpdateWithoutAttachment_revisionsInput>
+}
+
+export type attachmentsUpdateWithoutAttachment_revisionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  entity?: Prisma.Enumattachment_entityFieldUpdateOperationsInput | $Enums.attachment_entity
+  entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storage_path?: Prisma.StringFieldUpdateOperationsInput | string
+  mime_type?: Prisma.StringFieldUpdateOperationsInput | string
+  size_bytes?: Prisma.IntFieldUpdateOperationsInput | number
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  uploaded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bound_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  content_sha256?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  users?: Prisma.usersUpdateOneWithoutAttachmentsNestedInput
+  production_returns?: Prisma.production_returnsUpdateOneWithoutAttachmentsNestedInput
+}
+
+export type attachmentsUncheckedUpdateWithoutAttachment_revisionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  entity?: Prisma.Enumattachment_entityFieldUpdateOperationsInput | $Enums.attachment_entity
+  entity_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  storage_path?: Prisma.StringFieldUpdateOperationsInput | string
+  mime_type?: Prisma.StringFieldUpdateOperationsInput | string
+  size_bytes?: Prisma.IntFieldUpdateOperationsInput | number
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  uploaded_by?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  uploaded_by_name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bound_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  content_sha256?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  production_returns?: Prisma.production_returnsUncheckedUpdateOneWithoutAttachmentsNestedInput
+}
+
 export type attachmentsCreateManyUsersInput = {
   id?: string
   entity: $Enums.attachment_entity
@@ -840,6 +956,7 @@ export type attachmentsUpdateWithoutUsersInput = {
   bound_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   content_sha256?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attachment_revisions?: Prisma.attachment_revisionsUpdateManyWithoutAttachmentsNestedInput
   production_returns?: Prisma.production_returnsUpdateOneWithoutAttachmentsNestedInput
 }
 
@@ -856,6 +973,7 @@ export type attachmentsUncheckedUpdateWithoutUsersInput = {
   bound_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   content_sha256?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attachment_revisions?: Prisma.attachment_revisionsUncheckedUpdateManyWithoutAttachmentsNestedInput
   production_returns?: Prisma.production_returnsUncheckedUpdateOneWithoutAttachmentsNestedInput
 }
 
@@ -875,6 +993,35 @@ export type attachmentsUncheckedUpdateManyWithoutUsersInput = {
 }
 
 
+/**
+ * Count Type AttachmentsCountOutputType
+ */
+
+export type AttachmentsCountOutputType = {
+  attachment_revisions: number
+}
+
+export type AttachmentsCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  attachment_revisions?: boolean | AttachmentsCountOutputTypeCountAttachment_revisionsArgs
+}
+
+/**
+ * AttachmentsCountOutputType without action
+ */
+export type AttachmentsCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AttachmentsCountOutputType
+   */
+  select?: Prisma.AttachmentsCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * AttachmentsCountOutputType without action
+ */
+export type AttachmentsCountOutputTypeCountAttachment_revisionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.attachment_revisionsWhereInput
+}
+
 
 export type attachmentsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -890,8 +1037,10 @@ export type attachmentsSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   bound_at?: boolean
   created_at?: boolean
   content_sha256?: boolean
+  attachment_revisions?: boolean | Prisma.attachments$attachment_revisionsArgs<ExtArgs>
   users?: boolean | Prisma.attachments$usersArgs<ExtArgs>
   production_returns?: boolean | Prisma.attachments$production_returnsArgs<ExtArgs>
+  _count?: boolean | Prisma.AttachmentsCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["attachments"]>
 
 export type attachmentsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -946,8 +1095,10 @@ export type attachmentsSelectScalar = {
 
 export type attachmentsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "entity" | "entity_id" | "storage_path" | "mime_type" | "size_bytes" | "width" | "height" | "uploaded_by" | "uploaded_by_name" | "bound_at" | "created_at" | "content_sha256", ExtArgs["result"]["attachments"]>
 export type attachmentsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  attachment_revisions?: boolean | Prisma.attachments$attachment_revisionsArgs<ExtArgs>
   users?: boolean | Prisma.attachments$usersArgs<ExtArgs>
   production_returns?: boolean | Prisma.attachments$production_returnsArgs<ExtArgs>
+  _count?: boolean | Prisma.AttachmentsCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type attachmentsIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | Prisma.attachments$usersArgs<ExtArgs>
@@ -959,6 +1110,7 @@ export type attachmentsIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.
 export type $attachmentsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "attachments"
   objects: {
+    attachment_revisions: Prisma.$attachment_revisionsPayload<ExtArgs>[]
     users: Prisma.$usersPayload<ExtArgs> | null
     production_returns: Prisma.$production_returnsPayload<ExtArgs> | null
   }
@@ -1370,6 +1522,7 @@ readonly fields: attachmentsFieldRefs;
  */
 export interface Prisma__attachmentsClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  attachment_revisions<T extends Prisma.attachments$attachment_revisionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.attachments$attachment_revisionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$attachment_revisionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   users<T extends Prisma.attachments$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.attachments$usersArgs<ExtArgs>>): Prisma.Prisma__usersClient<runtime.Types.Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   production_returns<T extends Prisma.attachments$production_returnsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.attachments$production_returnsArgs<ExtArgs>>): Prisma.Prisma__production_returnsClient<runtime.Types.Result.GetResult<Prisma.$production_returnsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
@@ -1812,6 +1965,30 @@ export type attachmentsDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * Limit how many attachments to delete.
    */
   limit?: number
+}
+
+/**
+ * attachments.attachment_revisions
+ */
+export type attachments$attachment_revisionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the attachment_revisions
+   */
+  select?: Prisma.attachment_revisionsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the attachment_revisions
+   */
+  omit?: Prisma.attachment_revisionsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.attachment_revisionsInclude<ExtArgs> | null
+  where?: Prisma.attachment_revisionsWhereInput
+  orderBy?: Prisma.attachment_revisionsOrderByWithRelationInput | Prisma.attachment_revisionsOrderByWithRelationInput[]
+  cursor?: Prisma.attachment_revisionsWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.Attachment_revisionsScalarFieldEnum | Prisma.Attachment_revisionsScalarFieldEnum[]
 }
 
 /**
